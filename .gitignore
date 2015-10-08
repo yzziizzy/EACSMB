@@ -1,3 +1,6 @@
+
+*.kate-swp
+
 # Object files
 *.o
 *.ko
@@ -41,7 +44,16 @@
 /missing
 /stamp-h1
 /configure.scan
+Makefile.in
+Makefile
+
+.deps
 
 /config.*
 
 /src/eacsmb
+
+
+# ignore the external libs for now, i'll figure something out later for it
+/src/c3dlas 
+/src/text 
