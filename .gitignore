@@ -30,3 +30,18 @@
 
 # Debug files
 *.dSYM/
+
+/autom4te.cache
+/aclocal.m4
+/m4
+/compile
+/configure
+/depcomp
+/install-sh
+/missing
+/stamp-h1
+/configure.scan
+
+/config.*
+
+/src/eacsmb
