@@ -3,7 +3,8 @@
 bin_PROGRAMS = eacsmb
 
 eacsmb_SOURCES = main.c \
-	window.c 
+	window.c \
+	shader.c 
 
 eacsmb_LDADD =  \
 	-lm \

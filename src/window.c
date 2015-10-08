@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <limits.h>
 
 #include <X11/X.h>
 #include <X11/Xlib.h>
@@ -67,6 +68,7 @@ int initXWindow(XStuff* xs) {
 	GLXFBConfig chosenFBC;
 	int fbcount, i;
 	int best_fbc = -1, best_num_samp = -1;
+	XSetWindowAttributes setWinAttr;
 	
 	GLint att[] = { GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None };
 	
@@ -116,10 +118,10 @@ int initXWindow(XStuff* xs) {
 	xs->vi = glXGetVisualFromFBConfig(xs->display, chosenFBC);
 	
 	xs->colorMap = XCreateColormap(xs->display, xs->rootWin, xs->vi->visual, AllocNone);
-	xs->winAttr.colormap = xs->colorMap;
-	xs->winAttr.event_mask = ExposureMask | KeyPressMask;
+	setWinAttr.colormap = xs->colorMap;
+	setWinAttr.event_mask = ExposureMask | KeyPressMask;
 
-	xs->clientWin = XCreateWindow(xs->display, xs->rootWin, 0, 0, 600, 600, 0, xs->vi->depth, InputOutput, xs->vi->visual, CWColormap | CWEventMask, &xs->winAttr);
+	xs->clientWin = XCreateWindow(xs->display, xs->rootWin, 0, 0, 600, 600, 0, xs->vi->depth, InputOutput, xs->vi->visual, CWColormap | CWEventMask, &setWinAttr);
 
 	XMapWindow(xs->display, xs->clientWin);
 	
@@ -147,6 +149,54 @@ int initXWindow(XStuff* xs) {
 	// have to have a current GLX context before initializing GLEW
 	initGLEW();
 	
+	
+}
+
+
+
+
+
+void processEvents(XStuff* xs, InputState* st, int max_events) {
+	
+	
+	XEvent xev;
+	int evcnt;
+	
+	if(max_events <= 0) max_events = INT_MAX;
+	
+	// bottleneck :) 
+	clearInputState(st);
+	
+	
+	
+	for(evcnt = 0; XPending(xs->display) && evcnt < max_events; evcnt++) {
+		XNextEvent(xs->display, &xev);
+		
+		// capture expose events cause they're useful. fullscreen games are for wimps who can't ultratask.
+		if(xev.type == Expose) {
+			// update some standard numbers
+			// there's currently risk of a race condition if anything tries to read winAttr before the expose event fires
+			XGetWindowAttributes(xs->display, xs->clientWin, &xs->winAttr);
+			
+			glViewport(0, 0, xs->winAttr.width, xs->winAttr.height);
+			
+			if(xs->onExpose)
+				(*xs->onExpose)(xs, xs->onExposeData);
+		}
+		
+		
+		
+	}
+	
+	
+	
+}
+
+
+
+void clearInputState(InputState* st) {
+	
+	memset(st->keyState, 0, 256);
 	
 }
 
