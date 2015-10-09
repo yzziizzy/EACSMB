@@ -23,6 +23,7 @@
 #include "utilities.h"
 #include "shader.h"
 #include "window.h"
+#include "game.h"
 
 
 
@@ -43,7 +44,12 @@ int main(int argc, char* argv[]) {
 	while(1) {
 		processEvents(&xs, &input, -1);
 		
+		if(xs->ready)
+			renderFrame(&xs, &input);
 		
+
+		
+		usleep(16000);
 	}
 	
 	

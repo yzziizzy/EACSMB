@@ -18,6 +18,8 @@ typedef struct XStuff {
 
 	int targetMSAA;
 	char* windowTitle;
+	
+	Bool ready;
 } XStuff;
 
 

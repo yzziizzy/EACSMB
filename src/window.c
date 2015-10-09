@@ -5,6 +5,7 @@
 
 #include <X11/X.h>
 #include <X11/Xlib.h>
+#include <X11/keysym.h>
 
 #include <GL/glew.h>
 #include <GL/glx.h>
@@ -119,7 +120,7 @@ int initXWindow(XStuff* xs) {
 	
 	xs->colorMap = XCreateColormap(xs->display, xs->rootWin, xs->vi->visual, AllocNone);
 	setWinAttr.colormap = xs->colorMap;
-	setWinAttr.event_mask = ExposureMask | KeyPressMask;
+	setWinAttr.event_mask = ExposureMask | KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask;
 
 	xs->clientWin = XCreateWindow(xs->display, xs->rootWin, 0, 0, 600, 600, 0, xs->vi->depth, InputOutput, xs->vi->visual, CWColormap | CWEventMask, &setWinAttr);
 
@@ -172,6 +173,8 @@ void processEvents(XStuff* xs, InputState* st, int max_events) {
 	for(evcnt = 0; XPending(xs->display) && evcnt < max_events; evcnt++) {
 		XNextEvent(xs->display, &xev);
 		
+		
+		
 		// capture expose events cause they're useful. fullscreen games are for wimps who can't ultratask.
 		if(xev.type == Expose) {
 			// update some standard numbers
@@ -182,6 +185,23 @@ void processEvents(XStuff* xs, InputState* st, int max_events) {
 			
 			if(xs->onExpose)
 				(*xs->onExpose)(xs, xs->onExposeData);
+			
+			xs->ready = 1;
+			
+		}
+		
+		if(xev.type == KeyPress || xev.type == KeyRelease) {
+			KeySym s; 
+			
+			s = XLookupKeysym((XKeyEvent*)&xev, 0);
+			
+		}
+		
+		// mouse events
+		if(xev.type == MotionNotify) {
+			
+			
+			
 		}
 		
 		
