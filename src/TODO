@@ -1,0 +1,25 @@
+ 
+SOONER:
+-------------------
+compile errors for shaders and programs
+
+process X expose event
+
+
+
+
+
+
+
+
+
+
+
+LATER:
+--------------------
+
+
+error reporting on max_events being insufficient, possibly somethign to dump the queue
+clean up shader loading code
+
+
