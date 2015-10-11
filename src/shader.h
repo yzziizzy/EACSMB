@@ -1,3 +1,6 @@
+#ifndef __shader_h__
+#define __shader_h__
+
  
 
 
@@ -22,5 +25,8 @@ typedef struct {
 Shader* loadShader(char* path, GLenum type);
 ShaderProgram* loadProgram(char* vname, char* fname, char* gname, char* tcname, char* tname);
  
+
+
+
  
- 
+#endif

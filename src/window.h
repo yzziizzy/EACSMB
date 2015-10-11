@@ -1,4 +1,5 @@
-
+#ifndef __window_h__
+#define __window_h__
 
 
 
@@ -49,4 +50,4 @@ void clearInputState(InputState* st);
 
 
 
-
+#endif
