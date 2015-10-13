@@ -28,6 +28,7 @@
 
 
 XStuff xs;
+GameState game;
 InputState input;
 
 
@@ -40,12 +41,14 @@ int main(int argc, char* argv[]) {
 	
 	initXWindow(&xs);
 	
+	initGame(&xs, &game);
 	
 	while(1) {
 		processEvents(&xs, &input, -1);
 		
-		if(xs->ready)
-			renderFrame(&xs, &input);
+		if(xs.ready)
+			renderFrame(&xs, &game);
+		
 		
 
 		
@@ -76,7 +79,7 @@ char* glerr(char* msg) {
 	GLenum err;
 	
 	err = glGetError();
-	errstr = NULL;
+	errstr = NULL; 
 	
 	if (err != GL_NO_ERROR) { 
 		errstr = (char*)gluErrorString(err);

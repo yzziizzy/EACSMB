@@ -48,6 +48,4 @@ void processEvents(XStuff* xs, InputState* st, int max_events);
 void clearInputState(InputState* st);
 
 
-
-
 #endif

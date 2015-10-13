@@ -101,6 +101,7 @@ int initXWindow(XStuff* xs) {
 			
 		glXGetFBConfigAttrib(xs->display, fbconfigs[i], GLX_SAMPLE_BUFFERS, &samp_buf);
 		glXGetFBConfigAttrib(xs->display, fbconfigs[i], GLX_SAMPLES, &samples);
+		glerr("samples");
 		
 		if(best_fbc < 0 || samp_buf && samples > best_num_samp && samples <= xs->targetMSAA) {
 			best_fbc = i;
@@ -117,6 +118,7 @@ int initXWindow(XStuff* xs) {
 	
 	// Get a visual
 	xs->vi = glXGetVisualFromFBConfig(xs->display, chosenFBC);
+	
 	
 	xs->colorMap = XCreateColormap(xs->display, xs->rootWin, xs->vi->visual, AllocNone);
 	setWinAttr.colormap = xs->colorMap;
@@ -141,11 +143,13 @@ int initXWindow(XStuff* xs) {
 	
 	xs->glctx = glXCreateContextAttribsARB(xs->display, chosenFBC, 0, True, context_attr);
 	
+	
 	// squeeze out any errors
 	XSync(xs->display, False);
 	
 	
 	glXMakeCurrent(xs->display, xs->clientWin, xs->glctx);
+	
 	
 	// have to have a current GLX context before initializing GLEW
 	initGLEW();
@@ -238,4 +242,5 @@ void initGLEW() {
 	}
 	
 	fprintf(stdout, "Initialized GLEW %s\n", glewGetString(GLEW_VERSION));
+	glerr("existing error on glew init");
 }

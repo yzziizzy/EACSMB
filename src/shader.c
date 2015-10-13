@@ -11,7 +11,28 @@
 #include "shader.h"
 
 
-const char* SHADER_BASE_PATH = "./shaders";
+const char* SHADER_BASE_PATH = "./src/shaders";
+
+
+
+void printLogOnFail(id) {
+	
+	GLint success, logSize;
+	GLsizei len;
+	GLchar* log;
+	
+	glGetShaderiv(id, GL_COMPILE_STATUS, &success);
+	if(success) return;
+	
+	glGetShaderiv(id, GL_INFO_LOG_LENGTH, &logSize);
+	
+	log = (GLchar*)malloc(logSize);
+	glGetShaderInfoLog(id, logSize, &len, log);
+	
+	fprintf(stderr, "Shader Log:\n%s", (char*)log);
+	
+	free(log);
+}
 
 
 
@@ -23,6 +44,10 @@ char* readFile(char* path) {
 	
 	
 	f = fopen(path, "rb");
+	if(!f) {
+		fprintf(stderr, "Could not open file \"%s\"\n", path);
+		return NULL;
+	}
 	
 	fseek(f, 0, SEEK_END);
 	fsize = ftell(f);
@@ -55,11 +80,13 @@ Shader* loadShader(char* path, GLenum type) {
 	printf("read %d bytes from %s\n", sz, path);  
 	
 	sh->id = glCreateShader(type);
+	glerr("shader create error");
 	
 	glShaderSource(sh->id, 1, (const char**)&source, NULL);
 	glerr("shader source error");
 	
 	glCompileShader(sh->id);
+	printLogOnFail(sh->id);
 	glerr("shader compile error");
 
 DONE:
@@ -107,6 +134,7 @@ ShaderProgram* loadProgram(char* vname, char* fname, char* gname, char* tcname, 
 		
 		printf("Loading %s... \n", vpath);
 		prog->vs = loadShader(vpath, GL_VERTEX_SHADER);
+// 		printLogOnFail(prog->vs);
 		
 		glAttachShader(prog->id, prog->vs->id);
 		glerr("Could not attach shader");
@@ -116,8 +144,9 @@ ShaderProgram* loadProgram(char* vname, char* fname, char* gname, char* tcname, 
 		tcpath = (char*)malloc(bplen + strlen(tcname) + strlen(tcsub) + 6);
 		sprintf(tcpath, "%s%s%s.glsl", SHADER_BASE_PATH, tcsub, tcname);
 		
-		printf("Loading %s... \n", vpath);
+		printf("Loading %s... \n", tcpath);
 		prog->tcs = loadShader(tcpath, GL_TESS_CONTROL_SHADER);
+// 		printLogOnFail(prog->vs);
 		
 		glAttachShader(prog->id, prog->tcs->id);
 		glerr("Could not attach shader");
@@ -127,8 +156,9 @@ ShaderProgram* loadProgram(char* vname, char* fname, char* gname, char* tcname, 
 		tpath = (char*)malloc(bplen + strlen(tname) + strlen(tsub) + 6);
 		sprintf(tpath, "%s%s%s.glsl", SHADER_BASE_PATH, tsub, tname);
 		
-		printf("Loading %s... \n", vpath);
+		printf("Loading %s... \n", tpath);
 		prog->ts = loadShader(tpath, GL_TESS_EVALUATION_SHADER);
+// 		printLogOnFail(prog->vs);
 		
 		glAttachShader(prog->id, prog->ts->id);
 		glerr("Could not attach shader");
@@ -139,8 +169,9 @@ ShaderProgram* loadProgram(char* vname, char* fname, char* gname, char* tcname, 
 		gpath = (char*)malloc(bplen + strlen(gname) + strlen(gsub) + 6);
 		sprintf(gpath, "%s%s%s.glsl", SHADER_BASE_PATH, gsub, gname);
 		
-		printf("Loading %s... \n", vpath);
+		printf("Loading %s... \n", gpath);
 		prog->gs = loadShader(gpath, GL_GEOMETRY_SHADER);
+// 		printLogOnFail(prog->vs);
 		
 		glAttachShader(prog->id, prog->gs->id);
 		glerr("Could not attach shader");
@@ -152,8 +183,9 @@ ShaderProgram* loadProgram(char* vname, char* fname, char* gname, char* tcname, 
 		fpath = (char*)malloc(bplen + strlen(fname) + strlen(fsub) + 6);
 		sprintf(fpath, "%s%s%s.glsl", SHADER_BASE_PATH, fsub, fname);
 		
-		printf("Loading %s... \n", vpath);
+		printf("Loading %s... \n", fpath);
 		prog->fs = loadShader(fpath, GL_FRAGMENT_SHADER);
+// 		printLogOnFail(prog->vs);
 		
 		glAttachShader(prog->id, prog->fs->id);
 		glerr("Could not attach shader");
@@ -163,8 +195,7 @@ ShaderProgram* loadProgram(char* vname, char* fname, char* gname, char* tcname, 
 	
 	glLinkProgram(prog->id);
 	glerr("linking program");
-	//glUseProgram(ProgramId);
-	//gle("using program");
+
 	
 
 	

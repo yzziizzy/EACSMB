@@ -40,8 +40,14 @@ typedef struct {
 
 
 
+// use a normal map to not have the overlap problem
 
-void renderFrame(XStuff xs, GameState* gs);
+
+
+
+void renderFrame(XStuff* xs, GameState* gs);
+
+
 
 
 
