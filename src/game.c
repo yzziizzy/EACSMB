@@ -30,6 +30,9 @@ Matrix mProj, mView, mModel;
 
 float angle, zoom;
 
+clock_t last_frame = 0;
+
+
 void initPatch();
 void drawPatch();
 
@@ -62,14 +65,12 @@ void initGame(XStuff* xs, GameState* gs) {
 	mPerspective(60, 1.0, 0.1f, 10.0f, &mProj);
 
 	
-	//mScale3f(2, 2, 2, &mView);
+	mScale3f(.8, .8, .8, &mView);
 	mTrans3f(0, -1, zoom, &mView);
 	mRot3f(1, 0, 0, 3.1415/6, &mView);
 	
 	
-	mRot3f(0, 1, 0, angle, &mModel);
-	//mTrans3f(-p.width*.5, 0, -p.height*.5, &mModel);
-	mRot3f(1, 0, 0, 3.1415/2, &mModel);
+
 	
 // 	mProj = IDENT_MATRIX;
 // 	mView = IDENT_MATRIX;
@@ -80,12 +81,22 @@ void initGame(XStuff* xs, GameState* gs) {
 }
 
 
-
+float rot = 0;
 
 void renderFrame(XStuff* xs, GameState* gs) {
 	
+	mModel = IDENT_MATRIX;
 
+	clock_t now = clock();
+	if (last_frame == 0)
+		last_frame = now;
 	
+	rot += .4; // 45.0f * ((float)(Now - LastTime) / 1);
+	angle = (rot * 3.14159265358979) / 180 ;
+	
+	mRot3f(0, 1, 0, angle, &mModel);
+	//mTrans3f(-p.width*.5, 0, -p.height*.5, &mModel);
+	mRot3f(1, 0, 0, 3.1415/2, &mModel);
 	
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glerr("clearing");
@@ -102,7 +113,7 @@ void renderFrame(XStuff* xs, GameState* gs) {
 	glUniformMatrix4fv(proj_ul, 1, GL_FALSE, mProj.m);
 	glUniformMatrix4fv(model_ul, 1, GL_FALSE, mModel.m);
 	glUniformMatrix4fv(view_ul, 1, GL_FALSE, mView.m);
-	glerr("uniform locations");
+	glexit("uniform locations");
 // 	printf("%d %d %d \n", proj_ul, model_ul, view_ul);
 	
 	
