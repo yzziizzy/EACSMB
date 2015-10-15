@@ -77,6 +77,9 @@ void initGame(XStuff* xs, GameState* gs) {
 // 	mModel = IDENT_MATRIX;
 	
 	initPatch();
+	GLint maxtes;
+	glGetIntegerv(GL_MAX_TESS_GEN_LEVEL, &maxtes);
+	printf("max tessellation level: %d\n", maxtes);
 
 }
 

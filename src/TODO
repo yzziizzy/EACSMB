@@ -5,6 +5,11 @@ compile errors for shaders and programs
 
 process X expose event
 
+text rendering
+gui toolkit
+
+object picking
+
 
 
 
@@ -21,5 +26,87 @@ LATER:
 
 error reporting on max_events being insufficient, possibly somethign to dump the queue
 clean up shader loading code
+
+
+
+
+
+
+
+
+IDEAS:
+--------------------
+
+disasters:
+flood
+earthquake
+huge raging fires
+asteroid
+volcano
+riots, celebration riots
+parades
+rapture
+toxic waste spill
+parasite company that sucks the life out of people and takes over too much of the city, then fails
+recession
+pope/president visit
+mudslides
+hurricane
+hipster infestation
+gang/mafia wars
+
+
+power plants:
+geothermal
+wind
+solar
+tidal
+coal and clean coal
+lng
+oil
+garbage
+nuclear
+hydro dams
+
+
+metrics:
+crime
+air/water/ground pollution
+noise
+land value
+dollars per sq ft for renting/leasing
+red tape
+sin
+political activism
+corruption
+regulation
+cost of living
+consumer confidence
+general niceness of area
+local uniformity (you get dinged for putting a bunch of the same park in te same place)
+
+
+
+ordinances:
+ban/regulate/tax gambling
+ban/regulate/tax prostitution
+ban/regulate/tax guns
+ban/regulate/tax alcohol consumption
+ban/regulate/tax alcohol production
+business licenses
+B&O taxes
+sales taxes
+property taxes
+traffic fines
+strictness fo building codes
+there should be a constant stream of pork-barrel petitioners trying to force people to buy their shit
+plastic bag ban
+car emissions
+set default speed limit
+lane splitting
+drinking age
+free wifi
+
+
 
 
