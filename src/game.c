@@ -14,7 +14,7 @@
 
 #include "c3dlas/c3dlas.h"
 #include "c3dlas/meshgen.h"
-// #include "text/text.h"
+#include "text/text.h"
 
 #include "utilities.h"
 #include "shader.h"

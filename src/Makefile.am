@@ -6,7 +6,8 @@ eacsmb_SOURCES = main.c \
 	window.c \
 	shader.c \
 	game.c \
-	c3dlas/c3dlas.c
+	c3dlas/c3dlas.c \
+	text/text.c
 
 eacsmb_LDADD =  \
 	-lm \
