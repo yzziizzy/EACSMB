@@ -5,6 +5,7 @@
 
 #include <unistd.h>
 
+
 #include <X11/X.h>
 #include <X11/Xlib.h>
 
@@ -32,6 +33,11 @@ float angle, zoom;
 
 clock_t last_frame = 0;
 
+// temp shit
+TextRes* arial;
+ShaderProgram* textProg;
+Matrix textProj, textModel;
+TextRenderInfo* strRI;
 
 void initPatch();
 void drawPatch();
@@ -76,11 +82,17 @@ void initGame(XStuff* xs, GameState* gs) {
 // 	mView = IDENT_MATRIX;
 // 	mModel = IDENT_MATRIX;
 	
-	initPatch();
+	//initPatch();
+	
 	GLint maxtes;
 	glGetIntegerv(GL_MAX_TESS_GEN_LEVEL, &maxtes);
 	printf("max tessellation level: %d\n", maxtes);
 
+	// text rendering stuff
+	arial = LoadFont("/usr/share/fonts/corefonts/arial.ttf", 1, NULL);
+	glerr("clearing before text program load");
+	textProg = loadProgram("text", "text", NULL, NULL, NULL);
+	strRI = prepareText(arial, "lolmeh", -1);
 }
 
 
@@ -121,7 +133,43 @@ void renderFrame(XStuff* xs, GameState* gs) {
 	
 	
 	// draw "tiles"
-	drawPatch();
+	//drawPatch();
+	
+	
+	
+	glUseProgram(textProg->id);
+	
+	textProj = IDENT_MATRIX;
+	textModel = IDENT_MATRIX;
+	
+	mOrtho(-2, 2, 2, -2, -2, 100, &textProj);
+	
+	GLuint tp_ul = glGetUniformLocation(textProg->id, "mProj");
+	GLuint tm_ul = glGetUniformLocation(textProg->id, "mModel");
+	GLuint ts_ul = glGetUniformLocation(textProg->id, "fontTex");
+	
+	glUniformMatrix4fv(tp_ul, 1, GL_FALSE, textProj.m);
+	glUniformMatrix4fv(tm_ul, 1, GL_FALSE, textModel.m);
+	glexit("text matrix uniforms");
+
+	glDisable(GL_CULL_FACE);
+	
+	glActiveTexture(GL_TEXTURE0);
+	glexit("active texture");
+
+	glUniform1i(ts_ul, 0);
+	glexit("text sampler uniform");
+	glBindTexture(GL_TEXTURE_2D, arial->textureID);
+	glexit("bind texture");
+	
+	
+	glBindVertexArray(strRI->vao);
+	glexit("text vao bind");
+	
+	glBindBuffer(GL_ARRAY_BUFFER, strRI->vbo);
+	glexit("text vbo bind");
+	glDrawArrays(GL_TRIANGLES, 0, 3);
+	glexit("text drawing");
 	
 	
 	glXSwapBuffers(xs->display, xs->clientWin);
@@ -140,6 +188,7 @@ void drawPatch() {
 	glBindVertexArray(vao);
 	glerr("vao bind");
 	
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glDrawArrays(GL_PATCHES, 0, 4);
 	glerr("drawing");
 }

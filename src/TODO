@@ -5,6 +5,7 @@ compile errors for shaders and programs
 
 process X expose event
 
+png loading
 text rendering
 gui toolkit
 
@@ -36,6 +37,21 @@ clean up shader loading code
 
 IDEAS:
 --------------------
+animated building demolitions
+buildings should not change often, as in real life
+day and night cycle
+randomized building generator/customizer. swap out colors, fiddle with texture layering.
+freeform park-as-a-zone, with auto layout generator
+automatically generate residential yards and corporate parks
+difficulty level multiplies water/electric usage, boosts crime, decreases economic demand
+rain and clouds, should show in reflections
+fog
+destroyed buildings should fall into one another
+fishing and hunting licenses
+"football traffic"
+tides
+
+
 
 disasters:
 flood
@@ -54,6 +70,16 @@ mudslides
 hurricane
 hipster infestation
 gang/mafia wars
+blizzard
+oil spill
+industrial accident explosions
+unions/strikes
+soccer riots
+global economic meltdown
+red dawn
+tsunami
+full apocalypse of john
+health fad outbreak (gluten intolerance, atkins diet, etc)
 
 
 power plants:
@@ -84,7 +110,10 @@ cost of living
 consumer confidence
 general niceness of area
 local uniformity (you get dinged for putting a bunch of the same park in te same place)
-
+bums
+unemployment/jobs
+civilian contempt for the government
+nationalism
 
 
 ordinances:
@@ -106,6 +135,9 @@ set default speed limit
 lane splitting
 drinking age
 free wifi
+
+
+
 
 
 
