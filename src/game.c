@@ -89,7 +89,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	printf("max tessellation level: %d\n", maxtes);
 
 	// text rendering stuff
-	arial = LoadFont("/usr/share/fonts/corefonts/arial.ttf", 1, NULL);
+	arial = LoadFont("/usr/share/fonts/corefonts/arial.ttf", 16, NULL);
 	glerr("clearing before text program load");
 	textProg = loadProgram("text", "text", NULL, NULL, NULL);
 	strRI = prepareText(arial, "lolmeh", -1);
@@ -142,7 +142,8 @@ void renderFrame(XStuff* xs, GameState* gs) {
 	textProj = IDENT_MATRIX;
 	textModel = IDENT_MATRIX;
 	
-	mOrtho(-2, 2, 2, -2, -2, 100, &textProj);
+	mOrtho(-2, 2, -2, 2, -2, 100, &textProj);
+	//mScale3f(.5,.5,.5, &textProj);
 	
 	GLuint tp_ul = glGetUniformLocation(textProg->id, "mProj");
 	GLuint tm_ul = glGetUniformLocation(textProg->id, "mModel");
@@ -168,7 +169,7 @@ void renderFrame(XStuff* xs, GameState* gs) {
 	
 	glBindBuffer(GL_ARRAY_BUFFER, strRI->vbo);
 	glexit("text vbo bind");
-	glDrawArrays(GL_TRIANGLES, 0, 3);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
 	glexit("text drawing");
 	
 	
