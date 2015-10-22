@@ -27,5 +27,5 @@ void main(void){
 	
 	gl_Position = (mProj * mView * mModel) * tmp;
 	
-	ex_Color = vec4(gl_TessCoord.x, gl_TessCoord.y, .3, 0);
+	ex_Color = vec4(gl_TessCoord.x, gl_TessCoord.y, .3, 1.0);
 }

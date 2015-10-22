@@ -19,6 +19,7 @@
 
 #include "utilities.h"
 #include "shader.h"
+#include "texture.h"
 #include "window.h"
 #include "game.h"
 
@@ -38,6 +39,7 @@ TextRes* arial;
 ShaderProgram* textProg;
 Matrix textProj, textModel;
 TextRenderInfo* strRI;
+BitmapRGBA8* cnoise;
 
 void initPatch();
 void drawPatch();
@@ -46,6 +48,8 @@ void initGame(XStuff* xs, GameState* gs) {
 	
 	glerr("left over error on game init");
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
 	
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	
@@ -82,7 +86,7 @@ void initGame(XStuff* xs, GameState* gs) {
 // 	mView = IDENT_MATRIX;
 // 	mModel = IDENT_MATRIX;
 	
-	//initPatch();
+	initPatch();
 	
 	GLint maxtes;
 	glGetIntegerv(GL_MAX_TESS_GEN_LEVEL, &maxtes);
@@ -100,6 +104,9 @@ void initGame(XStuff* xs, GameState* gs) {
 	};
 	
 	strRI = prepareText(arial, "cjAVll!l.Yg^", -1, colors);
+	
+	
+	cnoise = readPNG("./assets/textures/colornoise.png");
 }
 
 
@@ -140,7 +147,7 @@ void renderFrame(XStuff* xs, GameState* gs) {
 	
 	
 	// draw "tiles"
-	//drawPatch();
+	drawPatch();
 	
 	
 	
