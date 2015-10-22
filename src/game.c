@@ -92,7 +92,14 @@ void initGame(XStuff* xs, GameState* gs) {
 	arial = LoadFont("/usr/share/fonts/corefonts/times.ttf", 64, NULL);
 	glerr("clearing before text program load");
 	textProg = loadProgram("text", "text", NULL, NULL, NULL);
-	strRI = prepareText(arial, "cjAVll!l.Yg^", -1);
+	
+	unsigned int colors[] = {
+		0xFF0000FF, 2,
+		0x00FF00FF, 4,
+		0x0000FFFF, INT_MAX
+	};
+	
+	strRI = prepareText(arial, "cjAVll!l.Yg^", -1, colors);
 }
 
 

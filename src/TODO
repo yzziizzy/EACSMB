@@ -6,7 +6,7 @@ compile errors for shaders and programs
 process X expose event
 
 png loading
-text rendering
+clean up text rendering function
 gui toolkit
 
 object picking
