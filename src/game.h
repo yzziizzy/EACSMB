@@ -23,20 +23,6 @@ typedef struct {
 
 
 
-typedef struct {
-	unsigned int info;
-	float height;
-} MapTile;
-
-
-
-typedef struct {
-	int x,y;
-	Vector2 center;
-	
-	MapTile tiles[MAP_SIZE][MAP_SIZE];
-	
-} MapNode;
 
 
 

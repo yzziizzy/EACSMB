@@ -6,6 +6,7 @@ eacsmb_SOURCES = main.c \
 	window.c \
 	shader.c \
 	game.c \
+	map.c \
 	texture.c \
 	c3dlas/c3dlas.c \
 	text/text.c
