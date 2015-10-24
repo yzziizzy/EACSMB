@@ -22,6 +22,7 @@
 #include "texture.h"
 #include "window.h"
 #include "map.h"
+#include "scene.h"
 #include "game.h"
 
 
@@ -46,8 +47,7 @@ void initPatch();
 void drawPatch();
 
 void initGame(XStuff* xs, GameState* gs) {
-	
-	printMapMemoryStats();
+// 	printMapMemoryStats();
 	
 	glerr("left over error on game init");
 	glEnable(GL_DEPTH_TEST);
