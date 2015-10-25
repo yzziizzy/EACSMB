@@ -11,6 +11,7 @@
 #include <GL/glx.h>
 #include <GL/glu.h>
 
+#include "c3dlas/c3dlas.h"
 #include "window.h"
 
 
@@ -166,6 +167,8 @@ void processEvents(XStuff* xs, InputState* st, int max_events) {
 	
 	XEvent xev;
 	int evcnt;
+	int x, y;
+	float fx, fy;
 	
 	if(max_events <= 0) max_events = INT_MAX;
 	
@@ -202,9 +205,10 @@ void processEvents(XStuff* xs, InputState* st, int max_events) {
 		}
 		
 		// mouse events
-		if(xev.type == MotionNotify) {
-			
-			
+		if(xev.type == ButtonRelease) {
+			st->clickPos.x = xev.xbutton.x / (float)xs->winAttr.width;
+			st->clickPos.y = (xs->winAttr.height - xev.xbutton.y) / (float)xs->winAttr.height;
+			t->clickButton = xev.xbutton.button;
 			
 		}
 		

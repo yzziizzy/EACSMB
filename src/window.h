@@ -20,6 +20,7 @@ typedef struct XStuff {
 	int targetMSAA;
 	char* windowTitle;
 	
+	
 	Bool ready;
 } XStuff;
 
@@ -33,6 +34,10 @@ typedef struct XStuff {
 
 
 typedef struct {
+	
+	// shitty for now
+	Vector2 clickPos;
+	char clickButton;
 	
 	unsigned char keyState[256];
 	
