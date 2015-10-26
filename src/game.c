@@ -43,6 +43,8 @@ Matrix textProj, textModel;
 TextRenderInfo* strRI;
 BitmapRGBA8* cnoise;
 
+MapBlock* map;
+
 void initPatch();
 void drawPatch();
 
@@ -83,7 +85,10 @@ void initGame(XStuff* xs, GameState* gs) {
 	mRot3f(1, 0, 0, 3.1415/6, &mView);
 	
 	
-
+	map = allocMapBlock(sizeof(float), 1024, 1024);
+	
+	
+	
 	
 // 	mProj = IDENT_MATRIX;
 // 	mView = IDENT_MATRIX;

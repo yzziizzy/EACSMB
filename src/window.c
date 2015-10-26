@@ -208,7 +208,7 @@ void processEvents(XStuff* xs, InputState* st, int max_events) {
 		if(xev.type == ButtonRelease) {
 			st->clickPos.x = xev.xbutton.x / (float)xs->winAttr.width;
 			st->clickPos.y = (xs->winAttr.height - xev.xbutton.y) / (float)xs->winAttr.height;
-			t->clickButton = xev.xbutton.button;
+			st->clickButton = xev.xbutton.button;
 			
 		}
 		

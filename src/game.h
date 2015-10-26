@@ -10,12 +10,18 @@ typedef struct {
 	
 	ShaderProgram* tileProg;
 	
+	MatrixStack model;
+	MatrixStack view;
+	MatrixStack proj;
 	
 	Vector eyePos;
 	Vector eyeDir;
 	
 	float timeOfDay;
 	Vector sunPos;
+	
+	float frameTime;
+	
 	
 } GameState;
 
