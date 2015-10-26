@@ -3,7 +3,7 @@
 
 AC_PREREQ([2.69])
 AC_INIT(eacsmb, 1.0, no@spam.com)
-AM_INIT_AUTOMAKE([-Werror foreign])
+AM_INIT_AUTOMAKE([-Werror foreign subdir-objects])
 AC_CONFIG_SRCDIR([config.h.in])
 AC_CONFIG_HEADERS([config.h])
 
