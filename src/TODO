@@ -5,13 +5,15 @@ compile errors for shaders and programs
 
 process X expose event
 
-png loading
 clean up text rendering function
 gui toolkit
 
 object picking
 
+cursors
 
+prng for perlin noise
+perlin noise
 
 
 

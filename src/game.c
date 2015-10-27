@@ -44,6 +44,7 @@ TextRenderInfo* strRI;
 BitmapRGBA8* cnoise;
 
 MapBlock* map;
+TerrainBlock* terrain;
 
 void initPatch();
 void drawPatch();
@@ -85,16 +86,19 @@ void initGame(XStuff* xs, GameState* gs) {
 	mRot3f(1, 0, 0, 3.1415/6, &mView);
 	
 	
-	map = allocMapBlock(sizeof(float), 1024, 1024);
+	
+//	initPatch();
+	initTerrain();
 	
 	
+// 	map = allocMapBlock(sizeof(float), 1024, 1024);
 	
+	terrain = allocTerrainBlock(0, 0);
+	updateTerrainTexture(terrain);
 	
 // 	mProj = IDENT_MATRIX;
 // 	mView = IDENT_MATRIX;
 // 	mModel = IDENT_MATRIX;
-	
-	initPatch();
 	
 	GLint maxtes;
 	glGetIntegerv(GL_MAX_TESS_GEN_LEVEL, &maxtes);
@@ -130,9 +134,10 @@ void renderFrame(XStuff* xs, GameState* gs) {
 	
 	rot += .4; // 45.0f * ((float)(Now - LastTime) / 1);
 	angle = (rot * 3.14159265358979) / 180 ;
+	mScale3f(10, 10, 10, &mModel);
 	
 	mRot3f(0, 1, 0, angle, &mModel);
-	//mTrans3f(-p.width*.5, 0, -p.height*.5, &mModel);
+	mTrans3f(-.5, 0, -.5, &mModel);
 	mRot3f(1, 0, 0, 3.1415/2, &mModel);
 	
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -145,22 +150,26 @@ void renderFrame(XStuff* xs, GameState* gs) {
 // 	glPatchParameteri(GL_PATCH_VERTICES, 4);
 	
 	
-	glUseProgram(gs->tileProg->id);
+	//glUseProgram(gs->tileProg->id);
 	// set up matrices
-	glUniformMatrix4fv(proj_ul, 1, GL_FALSE, mProj.m);
+/*	glUniformMatrix4fv(proj_ul, 1, GL_FALSE, mProj.m);
 	glUniformMatrix4fv(model_ul, 1, GL_FALSE, mModel.m);
 	glUniformMatrix4fv(view_ul, 1, GL_FALSE, mView.m);
 	glexit("uniform locations");
-// 	printf("%d %d %d \n", proj_ul, model_ul, view_ul);
+/*/// 	printf("%d %d %d \n", proj_ul, model_ul, view_ul);
 	
-	
+	//drawPatch();
+
 	// draw "tiles"
-	drawPatch();
+	drawTerrainBlock(terrain, &mModel, &mView, &mProj);
 	
 	
 	
 	glUseProgram(textProg->id);
 	
+	
+	
+	// text stuff
 	textProj = IDENT_MATRIX;
 	textModel = IDENT_MATRIX;
 	
