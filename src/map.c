@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <string.h>
+#include <math.h>
 
 #include <GL/glew.h>
 #include <GL/glx.h>
@@ -76,13 +77,13 @@ void initTerrain() {
 	patchVertices = malloc(sizeof(TerrainPatchVertex) * 4 * patchCnt);
 	
 	
-	float sideUnit = 1.0 / TERR_BLOCK_SZ; // size of a square, the smallest tessellation level
+	float sideUnit = 1.0 / TERR_TEX_SZ; // size of a square, the smallest tessellation level
 	float wpSide = sideUnit * MaxTessGenLevel; // total length of a whole patch side
 	float fpSide = sideUnit * fracPatchSize; // total length of a fractional patch side
 	
 	printf("wpside: %f, fpside: %f, sideunit: %f\n", wpSide, fpSide, sideUnit);
 	
-	int baseTexUV = 1;
+	int baseTexUV = 1.0 / TERR_TEX_SZ;
 	
 	
 	
@@ -99,17 +100,22 @@ void initTerrain() {
 			pv->x = (ix * wpSide);
 			pv->y = (iy * wpSide);
 			pv->z = 0;
-			pv->hmU = baseTexUV + (ix * MaxTessGenLevel);
-			pv->hmV = baseTexUV + (iy * MaxTessGenLevel);
+			pv->hmU = baseTexUV + (ix * MaxTessGenLevel * sideUnit);
+			pv->hmV = baseTexUV + (iy * MaxTessGenLevel * sideUnit);
 			pv->divX = tlX;
 			pv->divY = tlY;
 			pv++;
+			
+			printf("u %f, v %f\n",
+				baseTexUV + (ix * MaxTessGenLevel * sideUnit),
+				baseTexUV + (iy * MaxTessGenLevel * sideUnit)
+			);
 
 			pv->x = (ix * wpSide);
 			pv->y = ((iy+1) * wpSide);
 			pv->z = 0;
-			pv->hmU = baseTexUV + (ix * MaxTessGenLevel);
-			pv->hmV = baseTexUV + ((iy+1) * MaxTessGenLevel);
+			pv->hmU = baseTexUV + (ix * MaxTessGenLevel * sideUnit);
+			pv->hmV = baseTexUV + ((iy+1) * MaxTessGenLevel * sideUnit);
 			pv->divX = tlX;
 			pv->divY = tlY;
 			pv++;
@@ -117,8 +123,8 @@ void initTerrain() {
 			pv->x = ((ix+1) * wpSide);
 			pv->y = ((iy+1) * wpSide);
 			pv->z = 0;
-			pv->hmU = baseTexUV + ((ix+1) * MaxTessGenLevel);
-			pv->hmV = baseTexUV + ((iy+1) * MaxTessGenLevel);
+			pv->hmU = baseTexUV + ((ix+1) * MaxTessGenLevel * sideUnit);
+			pv->hmV = baseTexUV + ((iy+1) * MaxTessGenLevel * sideUnit);
 			pv->divX = tlX;
 			pv->divY = tlY;
 			pv++;
@@ -126,8 +132,8 @@ void initTerrain() {
 			pv->x = ((ix+1) * wpSide);
 			pv->y = (iy * wpSide);
 			pv->z = 0;
-			pv->hmU = baseTexUV + ((ix+1) * MaxTessGenLevel);
-			pv->hmV = baseTexUV + (iy * MaxTessGenLevel);
+			pv->hmU = baseTexUV + ((ix+1) * MaxTessGenLevel * sideUnit);
+			pv->hmV = baseTexUV + (iy * MaxTessGenLevel * sideUnit);
 			pv->divX = tlX;
 			pv->divY = tlY;
 			pv++;
@@ -157,7 +163,7 @@ void initTerrain() {
 	
 	// heightmap texel coordinates
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2, GL_UNSIGNED_SHORT, GL_FALSE, sizeof(TerrainPatchVertex), (void*)offsetof(TerrainPatchVertex, hmU));
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(TerrainPatchVertex), (void*)offsetof(TerrainPatchVertex, hmU));
 	
 	// data for TCS output divisions
 	glEnableVertexAttribArray(2);
@@ -212,9 +218,11 @@ TerrainBlock* allocTerrainBlock(int cx, int cy) {
 	
 	tb->tex = 0;
 	
-	int i = 0;
-	for(i = 0; i < TERR_BLOCK_SZ * TERR_BLOCK_SZ; i++) {
-		tb->zs[i] = 0.3 * (i % 7);
+	int x, y;
+	for(y = 0; y < TERR_TEX_SZ ; y++) {
+		for(x = 0; x < TERR_TEX_SZ ; x++) {
+			tb->zs[x + (y * TERR_TEX_SZ)] = sin(x * .01);
+		}
 	}
 	
 	

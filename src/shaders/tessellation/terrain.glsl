@@ -3,7 +3,7 @@
 layout (quads, equal_spacing, ccw) in;
 
 // in vec4 pos_in[];
-// in ivec2 tex_in[];
+in vec2 te_tex[];
 // in ivec2 tess_in[];
 
 uniform sampler2D sHeightMap;
@@ -14,6 +14,7 @@ uniform mat4 mModel;
 
 
 out vec4 ex_Color;
+out vec2 texCoord;
 
 void main(void){
 
@@ -21,11 +22,16 @@ void main(void){
 	vec4 p2 = mix(gl_in[2].gl_Position, gl_in[3].gl_Position, gl_TessCoord.x);
 	vec4 tmp = mix(p1, p2, gl_TessCoord.y);
 	
-// 	vec2 u = mix(tex_in[1],  
+	vec2 tp1 = mix(te_tex[1], te_tex[0], gl_TessCoord.x);
+	vec2 tp2 = mix(te_tex[2], te_tex[3], gl_TessCoord.x);
+	vec2 ttmp = mix(tp1, tp2, gl_TessCoord.y);
 	
-// 	float t = texelFetch(sHeightMap, coors.xy, 0);
 	
-	tmp.z = .01 *  sin(gl_TessCoord.y*12) + .01 *sin(gl_TessCoord.x*12);
+// 	vec2 u = mix(te_tex[1],  
+	
+ 	float t = texture2D(sHeightMap, ttmp.xy, 0);
+	
+	tmp.z = t * .05; // .01 *  sin(gl_TessCoord.y*12) + .01 *sin(gl_TessCoord.x*12);
 	
 	vec3 tang = gl_in[0].gl_Position.xyz - gl_in[1].gl_Position.xyz;
 	vec3 bita = gl_in[0].gl_Position.xyz - gl_in[2].gl_Position.xyz;
@@ -38,5 +44,7 @@ void main(void){
 	
 	gl_Position = (mProj * mView * mModel) * tmp;
 	
-	ex_Color = vec4(gl_TessCoord.x, gl_TessCoord.y, .3, 1.0);
+//  	ex_Color = vec4(gl_TessCoord.x, gl_TessCoord.y, .3, 1.0);
+	ex_Color = vec4(ttmp.xy, .3, 1.0);
+	texCoord = gl_TessCoord.xy;
 }
