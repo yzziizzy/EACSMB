@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <setjmp.h>
+
 
 #include <unistd.h>
 
@@ -17,7 +17,7 @@
 #include "texture.h"
 
 #include <png.h>
-
+#include <setjmp.h>
 
 
 
