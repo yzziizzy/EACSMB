@@ -13,15 +13,16 @@
 
 #include "utilities.h"
 #include "shader.h"
+#include "texture.h"
 #include "map.h"
 
 
 
 static GLuint patchVAO;
 static GLuint patchVBO;
-static GLuint proj_ul, view_ul, model_ul, heightmap_ul, winsize_ul; 
+static GLuint proj_ul, view_ul, model_ul, heightmap_ul, winsize_ul, basetex_ul; 
 static totalPatches;
-
+Texture* cnoise;
 
 static TerrainPatchVertex* patchVertices;
 
@@ -49,6 +50,9 @@ void initTerrain() {
 	};
 	
 	
+	cnoise = loadBitmapTexture("./assets/textures/colornoise.png");
+	
+	
 	glerr("clearing before terrain program load");
 	terrProg = loadProgram("terrain", "terrain", NULL, "terrain", "terrain");
 	
@@ -61,6 +65,8 @@ void initTerrain() {
 	glerr("terrain uniform loc Projection");
 	heightmap_ul = glGetUniformLocation(terrProg->id, "sHeightMap");
 	glerr("terrain uniform loc hm");
+	basetex_ul = glGetUniformLocation(terrProg->id, "sBaseTex");
+	glerr("terrain uniform loc tex");
 	winsize_ul = glGetUniformLocation(terrProg->id, "winSize");
 	glerr("terrain uniform loc ws");
 
@@ -75,11 +81,6 @@ void initTerrain() {
 	
 	float sideUnit = 1.0 / TERR_TEX_SZ; // size of a square, the smallest tessellation level
 	float wpSide = sideUnit * MaxTessGenLevel; // total length of a whole patch side
-	
-	int baseTexUV = 1.0 / TERR_TEX_SZ;
-	
-	//int baseTexUV = 1.0 / TERR_TEX_SZ;
-	
 	
 	
 	TerrainPatchVertex* pv = patchVertices;
@@ -282,12 +283,20 @@ void drawTerrainBlock(TerrainBlock* tb, Matrix* mModel, Matrix* mView, Matrix* m
 	
 	
 	glActiveTexture(GL_TEXTURE0);
+	
 	glexit("active texture");
+	
 	glBindTexture(GL_TEXTURE_2D, tb->tex);
-	glexit("bind texture");
+	glexit("bind hm texture");
+	
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, cnoise->tex_id);
+	glexit("bind base texture");
 
 	glUniform1i(heightmap_ul, 0);
-	glexit("text sampler uniform");
+	glexit("hm sampler uniform");
+	glUniform1i(basetex_ul, 1);
+	glexit("base tex sampler uniform");
 
 	
 	glerr("pre vao bind");

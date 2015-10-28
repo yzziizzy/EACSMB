@@ -11,7 +11,7 @@ in vec2 t_tile;
 out vec4 out_Color;
 
 
-// uniform sampler2D sHeightMap;
+uniform sampler2D sBaseTex;
 
 void main(void)
 {
@@ -26,8 +26,8 @@ void main(void)
 	
 	//out_Color = vec4(t_tile.x, t_tile.y,1 ,1.0);
 	
-// 	vec4 tc = texture2D(sHeightMap, texCoord);
-	out_Color = ex_Color * edgeIntensity; //(1.0, 0, .5, .6);
+ 	vec4 tc = texture2D(sBaseTex, t_tile);
+	out_Color = tc * edgeIntensity; //(1.0, 0, .5, .6);
 // 	out_Color = vec4(tc.rgb, 1.0); //ex_Color; //(1.0, 0, .5, .6);
 	
 }

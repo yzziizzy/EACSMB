@@ -6,7 +6,7 @@ typedef struct {
 	short height;
 	
 	
-} DataTexture;
+} Texture;
 
 typedef struct {
 	char* path;
@@ -14,11 +14,11 @@ typedef struct {
 	uint32_t* data;
 } BitmapRGBA8;
 
-DataTexture* loadDataTexture(unsigned char* data, short width, short height);
+Texture* loadDataTexture(unsigned char* data, short width, short height);
 
 BitmapRGBA8* readPNG(char* path);
 
-
+Texture* loadBitmapTexture(char* path);
 
 
 

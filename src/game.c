@@ -41,7 +41,7 @@ TextRes* arial;
 ShaderProgram* textProg;
 Matrix textProj, textModel;
 TextRenderInfo* strRI;
-BitmapRGBA8* cnoise;
+Texture* cnoise;
 
 MapBlock* map;
 TerrainBlock* terrain;
@@ -118,7 +118,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	strRI = prepareText(arial, "cjAVll!l.Yg^", -1, colors);
 	
 	
-	cnoise = readPNG("./assets/textures/colornoise.png");
+	
 }
 
 

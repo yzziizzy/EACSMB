@@ -24,12 +24,12 @@
 
 
 
-DataTexture* loadDataTexture(unsigned char* data, short width, short height) {
+Texture* loadDataTexture(unsigned char* data, short width, short height) {
 
 	
-	DataTexture* dt;
+	Texture* dt;
 	
-	dt = (DataTexture*)malloc(sizeof(DataTexture));
+	dt = (Texture*)malloc(sizeof(Texture));
 	dt->width = width;
 	dt->height = height;
 	
@@ -66,7 +66,7 @@ DataTexture* loadDataTexture(unsigned char* data, short width, short height) {
 	
 	
 	glBindTexture(GL_TEXTURE_2D, 0);
-	
+	return dt;
 }
 
 
@@ -155,4 +155,58 @@ BitmapRGBA8* readPNG(char* path) {
 }
 
 
+Texture* loadBitmapTexture(char* path) {
+
+	BitmapRGBA8* png; 
+	
+	
+	
+	png = readPNG(path);
+	if(!png) {
+		fprintf(stderr, "could not load texture %s \n", path);
+		return NULL;
+	}
+	
+	Texture* dt;
+	
+	dt = (Texture*)malloc(sizeof(Texture));
+	dt->width = png->width;
+	dt->height = png->height;
+	
+	
+	glEnable(GL_TEXTURE_2D);
+
+	glGenTextures(1, &dt->tex_id);
+	glBindTexture(GL_TEXTURE_2D, dt->tex_id);
+	
+	glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
+	
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE); 
+
+	// squash the data in
+	glPixelStorei(GL_PACK_ALIGNMENT, 1);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+	
+	glTexImage2D(GL_TEXTURE_2D, // target
+		0,  // level, 0 = base, no minimap,
+		GL_RGBA8, // internalformat
+		png->width,
+		png->height,
+		0,  // border
+		GL_RGBA,  // format
+		GL_UNSIGNED_BYTE, // input type
+		png->data);
+	
+	
+	
+	glBindTexture(GL_TEXTURE_2D, 0);
+	
+	return dt;
+}
 
