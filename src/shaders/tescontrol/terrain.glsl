@@ -5,9 +5,10 @@ layout (vertices = 4) out;
 
 
 in vec2 vs_tex[];
-// in ivec2 tess_in[];
+in vec2 vs_tile[];
 
 out vec2 te_tex[];
+out vec2 te_tile[];
 
 void main() {
 
@@ -33,6 +34,7 @@ void main() {
 	}
 		
 	te_tex[gl_InvocationID] = vs_tex[gl_InvocationID];
+	te_tile[gl_InvocationID] = vs_tile[gl_InvocationID];
 	gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
 	
 	

@@ -35,13 +35,12 @@ MapBlock* allocMapBlock(size_t stride, int w, int h);
 typedef struct TerrainPatchVertex {
 	float x, y, z;
 	float hmU, hmV; // these are in texels
-	short divX, divY;
+	float divX, divY;
 } TerrainPatchVertex;
 
 
 typedef struct TerrainBlock {
 	float zs[TERR_TEX_SZ * TERR_TEX_SZ];
-// 	float zs[TERR_BLOCK_SZ * TERR_BLOCK_SZ];
 	int cx, cy;
 	AABB2 box;
 	

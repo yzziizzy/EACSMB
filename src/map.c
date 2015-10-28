@@ -19,7 +19,7 @@
 
 static GLuint patchVAO;
 static GLuint patchVBO;
-static GLuint proj_ul, view_ul, model_ul, heightmap_ul; 
+static GLuint proj_ul, view_ul, model_ul, heightmap_ul, winsize_ul; 
 static totalPatches;
 
 
@@ -60,30 +60,25 @@ void initTerrain() {
 	proj_ul = glGetUniformLocation(terrProg->id, "mProj");
 	glerr("terrain uniform loc Projection");
 	heightmap_ul = glGetUniformLocation(terrProg->id, "sHeightMap");
-	glerr("terrain uniform loc Projection");
+	glerr("terrain uniform loc hm");
+	winsize_ul = glGetUniformLocation(terrProg->id, "winSize");
+	glerr("terrain uniform loc ws");
 
 	
 	
 	// in one dimension
-	int wholePatches = TERR_BLOCK_SZ / MaxTessGenLevel;
-	int fracPatchSize = TERR_BLOCK_SZ - (wholePatches * MaxTessGenLevel);
-	totalPatches = wholePatches + (fracPatchSize > 0 ? 1 : 0);
-	
-//  	printf("Max supported patch vertices %d\n", MaxPatchVertices);
-//  	glPatchParameteri(GL_PATCH_VERTICES, 4);
-	
+	totalPatches = TERR_TEX_SZ / MaxTessGenLevel; //wholePatches + (fracPatchSize > 0 ? 1 : 0);
+		
 	int patchCnt = (totalPatches * totalPatches);
-	printf("whole: %d, frac: %d, total: %d, cnt: %d\n", wholePatches, fracPatchSize, totalPatches, patchCnt);
 	patchVertices = malloc(sizeof(TerrainPatchVertex) * 4 * patchCnt);
 	
 	
 	float sideUnit = 1.0 / TERR_TEX_SZ; // size of a square, the smallest tessellation level
 	float wpSide = sideUnit * MaxTessGenLevel; // total length of a whole patch side
-	float fpSide = sideUnit * fracPatchSize; // total length of a fractional patch side
-	
-	printf("wpside: %f, fpside: %f, sideunit: %f\n", wpSide, fpSide, sideUnit);
 	
 	int baseTexUV = 1.0 / TERR_TEX_SZ;
+	
+	//int baseTexUV = 1.0 / TERR_TEX_SZ;
 	
 	
 	
@@ -93,8 +88,8 @@ void initTerrain() {
 	for(iy = 0; iy < totalPatches; iy++) {
 		for(ix = 0; ix < totalPatches; ix++) {
 			//printf("pv: %d\n", pv);
-			int tlX = (fracPatchSize && ix == wholePatches) ? fracPatchSize : MaxTessGenLevel;
-			int tlY = (fracPatchSize && iy == wholePatches) ? fracPatchSize : MaxTessGenLevel;
+			int tlX = MaxTessGenLevel;
+			int tlY = MaxTessGenLevel;
 			
 			
 			pv->x = (ix * wpSide);
@@ -102,22 +97,24 @@ void initTerrain() {
 			pv->z = 0;
 			pv->hmU = baseTexUV + (ix * MaxTessGenLevel * sideUnit);
 			pv->hmV = baseTexUV + (iy * MaxTessGenLevel * sideUnit);
-			pv->divX = tlX;
-			pv->divY = tlY;
+			pv->divX = ix * sideUnit;
+			pv->divY = iy * sideUnit;
 			pv++;
 			
-			printf("u %f, v %f\n",
-				baseTexUV + (ix * MaxTessGenLevel * sideUnit),
-				baseTexUV + (iy * MaxTessGenLevel * sideUnit)
-			);
+// 			printf("divx: %d\n", iy * tlY);
+			
+	//		printf("u %f, v %f\n",
+	//			baseTexUV + (ix * MaxTessGenLevel * sideUnit),
+	//			baseTexUV + (iy * MaxTessGenLevel * sideUnit)
+	//		);
 
 			pv->x = (ix * wpSide);
 			pv->y = ((iy+1) * wpSide);
 			pv->z = 0;
 			pv->hmU = baseTexUV + (ix * MaxTessGenLevel * sideUnit);
 			pv->hmV = baseTexUV + ((iy+1) * MaxTessGenLevel * sideUnit);
-			pv->divX = tlX;
-			pv->divY = tlY;
+			pv->divX = ix * sideUnit;
+			pv->divY = (iy+1) * sideUnit;
 			pv++;
 
 			pv->x = ((ix+1) * wpSide);
@@ -125,8 +122,8 @@ void initTerrain() {
 			pv->z = 0;
 			pv->hmU = baseTexUV + ((ix+1) * MaxTessGenLevel * sideUnit);
 			pv->hmV = baseTexUV + ((iy+1) * MaxTessGenLevel * sideUnit);
-			pv->divX = tlX;
-			pv->divY = tlY;
+			pv->divX = (ix+1) * sideUnit;
+			pv->divY = (iy+1) * sideUnit;
 			pv++;
 
 			pv->x = ((ix+1) * wpSide);
@@ -134,8 +131,8 @@ void initTerrain() {
 			pv->z = 0;
 			pv->hmU = baseTexUV + ((ix+1) * MaxTessGenLevel * sideUnit);
 			pv->hmV = baseTexUV + (iy * MaxTessGenLevel * sideUnit);
-			pv->divX = tlX;
-			pv->divY = tlY;
+			pv->divX = (ix+1) * sideUnit;
+			pv->divY = iy * sideUnit;
 			pv++;
 		}
 	}
@@ -167,7 +164,7 @@ void initTerrain() {
 	
 	// data for TCS output divisions
 	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 2, GL_UNSIGNED_SHORT, GL_FALSE, sizeof(TerrainPatchVertex), (void*)offsetof(TerrainPatchVertex, divX));
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(TerrainPatchVertex), (void*)offsetof(TerrainPatchVertex, divX));
 	glexit("terrain vertex attrib calls");
 	
 	
@@ -277,6 +274,12 @@ void drawTerrainBlock(TerrainBlock* tb, Matrix* mModel, Matrix* mView, Matrix* m
 	glUniformMatrix4fv(view_ul, 1, GL_FALSE, mView->m);
 	glUniformMatrix4fv(proj_ul, 1, GL_FALSE, mProj->m);
 	glexit("terrain matrix uniforms");
+	
+	
+	
+	glUniform2f(winsize_ul, 600, 600);
+	
+	
 	
 	glActiveTexture(GL_TEXTURE0);
 	glexit("active texture");
