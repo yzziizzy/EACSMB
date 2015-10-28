@@ -71,19 +71,32 @@ void initGame(XStuff* xs, GameState* gs) {
 	glerr("uniform loc Projection");
 	
 	
-	zoom = -8.0;
+	// set up matrix stacks
+	MatrixStack* model, *view, *proj;
+	
+	model = &gs->model;
+	view = &gs->view;
+	proj = &gs->proj;
+	
+	msAlloc(30, model);
+	msAlloc(2, view);
+	msAlloc(2, proj);
+
+	msIdent(model);
+	msIdent(view);
+	msIdent(proj);
+
+	// perspective matrix, pretty standard
+	msPerspective(60, 1.0, 0.1f, 10.0f, proj);
+	
+	gs->zoom = -6.0;
+	gs->direction = 0.0;
 	angle = 0.2;
 	
-	mProj = IDENT_MATRIX;
-	mView = IDENT_MATRIX;
-	mModel = IDENT_MATRIX;
-	
-	mPerspective(60, 1.0, 0.1f, 10.0f, &mProj);
-
-	
-	mScale3f(.8, .8, .8, &mView);
-	mTrans3f(0, -1, zoom, &mView);
-	mRot3f(1, 0, 0, 3.1415/6, &mView);
+	// view matrix, everything is done backwards
+//  	msScale3f(.8, .8, .8, view); // legacy
+	msTrans3f(0, -1, gs->zoom, view);
+	msRot3f(1, 0, 0, 3.1415/6, view);
 	
 	
 	
@@ -126,19 +139,29 @@ float rot = 0;
 
 void renderFrame(XStuff* xs, GameState* gs) {
 	
-	mModel = IDENT_MATRIX;
+	//mModel = IDENT_MATRIX;
 
 	clock_t now = clock();
 	if (last_frame == 0)
 		last_frame = now;
 	
+	// old stuff to make the scene rotate
 	rot += .4; // 45.0f * ((float)(Now - LastTime) / 1);
 	angle = (rot * 3.14159265358979) / 180 ;
-	mScale3f(10, 10, 10, &mModel);
+	//mScale3f(10, 10, 10, &mModel);
+	//mRot3f(0, 1, 0, angle, &mModel);
 	
-	mRot3f(0, 1, 0, angle, &mModel);
-	mTrans3f(-.5, 0, -.5, &mModel);
-	mRot3f(1, 0, 0, 3.1415/2, &mModel);
+	
+	msPush(&gs->model);
+	msIdent(&gs->model);
+	msScale3f(10,10,10, &gs->model);
+	msRot3f(0,1,0, angle, &gs->model);
+	
+	// nove it to the middle of the screen
+	msTrans3f(-.5, 0, -.5, &gs->model);
+	
+	// y-up to z-up rotation
+	msRot3f(1, 0, 0, 3.1415/2, &gs->model);
 	
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glerr("clearing");
@@ -161,9 +184,10 @@ void renderFrame(XStuff* xs, GameState* gs) {
 	//drawPatch();
 
 	// draw "tiles"
-	drawTerrainBlock(terrain, &mModel, &mView, &mProj);
+	drawTerrainBlock(terrain, msGetTop(&gs->model), msGetTop(&gs->view), msGetTop(&gs->proj));
 	
 	
+	msPop(&gs->model);
 	
 	glUseProgram(textProg->id);
 	
