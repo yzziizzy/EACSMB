@@ -6,9 +6,11 @@ eacsmb_SOURCES = main.c \
 	window.c \
 	shader.c \
 	game.c \
+	ui.c \
 	scene.c \
 	map.c \
 	texture.c \
+	perlin.c \
 	c3dlas/c3dlas.c \
 	text/text.c
 

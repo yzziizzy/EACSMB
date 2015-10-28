@@ -17,10 +17,15 @@ typedef struct {
 	Vector eyePos;
 	Vector eyeDir;
 	
+	float zoom;
+	float direction;
+	Vector lookCenter;
+	
 	float timeOfDay;
 	Vector sunPos;
 	
 	float frameTime;
+	
 	
 	
 } GameState;

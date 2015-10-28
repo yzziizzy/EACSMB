@@ -15,6 +15,7 @@
 #include "shader.h"
 #include "texture.h"
 #include "map.h"
+#include "perlin.h"
 
 
 
@@ -219,7 +220,10 @@ TerrainBlock* allocTerrainBlock(int cx, int cy) {
 	int x, y;
 	for(y = 0; y < TERR_TEX_SZ ; y++) {
 		for(x = 0; x < TERR_TEX_SZ ; x++) {
-			tb->zs[x + (y * TERR_TEX_SZ)] = sin(x * .01);
+			tb->zs[x + (y * TERR_TEX_SZ)] = sin(x * .1) * .1;
+// 			float f = PerlinNoise_2D(x, y, .01, 3); // slow-ass function, disable except for noise testing
+// 			printf("[%d,%d] %f\n", x,y,f);
+// 			tb->zs[x + (y * TERR_TEX_SZ)] = fabs(f * 100);
 		}
 	}
 	
