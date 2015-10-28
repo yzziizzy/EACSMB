@@ -95,8 +95,8 @@ void initTerrain() {
 			pv->x = (ix * wpSide);
 			pv->y = (iy * wpSide);
 			pv->z = 0;
-			pv->hmU = baseTexUV + (ix * MaxTessGenLevel * sideUnit);
-			pv->hmV = baseTexUV + (iy * MaxTessGenLevel * sideUnit);
+			pv->hmU = (ix * MaxTessGenLevel * sideUnit);
+			pv->hmV = (iy * MaxTessGenLevel * sideUnit);
 			pv->divX = ix * sideUnit;
 			pv->divY = iy * sideUnit;
 			pv++;
@@ -111,8 +111,8 @@ void initTerrain() {
 			pv->x = (ix * wpSide);
 			pv->y = ((iy+1) * wpSide);
 			pv->z = 0;
-			pv->hmU = baseTexUV + (ix * MaxTessGenLevel * sideUnit);
-			pv->hmV = baseTexUV + ((iy+1) * MaxTessGenLevel * sideUnit);
+			pv->hmU = (ix * MaxTessGenLevel * sideUnit);
+			pv->hmV = ((iy+1) * MaxTessGenLevel * sideUnit);
 			pv->divX = ix * sideUnit;
 			pv->divY = (iy+1) * sideUnit;
 			pv++;
@@ -120,8 +120,8 @@ void initTerrain() {
 			pv->x = ((ix+1) * wpSide);
 			pv->y = ((iy+1) * wpSide);
 			pv->z = 0;
-			pv->hmU = baseTexUV + ((ix+1) * MaxTessGenLevel * sideUnit);
-			pv->hmV = baseTexUV + ((iy+1) * MaxTessGenLevel * sideUnit);
+			pv->hmU = ((ix+1) * MaxTessGenLevel * sideUnit);
+			pv->hmV = ((iy+1) * MaxTessGenLevel * sideUnit);
 			pv->divX = (ix+1) * sideUnit;
 			pv->divY = (iy+1) * sideUnit;
 			pv++;
@@ -129,8 +129,8 @@ void initTerrain() {
 			pv->x = ((ix+1) * wpSide);
 			pv->y = (iy * wpSide);
 			pv->z = 0;
-			pv->hmU = baseTexUV + ((ix+1) * MaxTessGenLevel * sideUnit);
-			pv->hmV = baseTexUV + (iy * MaxTessGenLevel * sideUnit);
+			pv->hmU = ((ix+1) * MaxTessGenLevel * sideUnit);
+			pv->hmV = (iy * MaxTessGenLevel * sideUnit);
 			pv->divX = (ix+1) * sideUnit;
 			pv->divY = iy * sideUnit;
 			pv++;
