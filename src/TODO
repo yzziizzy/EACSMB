@@ -6,15 +6,18 @@ compile errors for shaders and programs
 process X expose event
 
 clean up text rendering function
+spaces in fonts don't work right
 gui toolkit
 
 object picking
 
 cursors
 
-prng for perlin noise
-perlin noise
+normals for terrain
+simplex noise
 
+
+use fontconfig to find fonts by name
 
 
 

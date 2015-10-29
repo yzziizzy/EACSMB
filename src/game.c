@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include <unistd.h>
 
@@ -34,7 +35,7 @@ Matrix mProj, mView, mModel;
 
 float angle, zoom;
 
-clock_t last_frame = 0;
+
 
 // temp shit
 TextRes* arial;
@@ -85,7 +86,12 @@ void initGame(XStuff* xs, GameState* gs) {
 	msIdent(model);
 	msIdent(view);
 	msIdent(proj);
+	
+	msScale3f(10,10,10, model);
 
+
+	
+	
 	// perspective matrix, pretty standard
 	msPerspective(60, 1.0, 0.1f, 10.0f, proj);
 	
@@ -118,7 +124,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	printf("max tessellation level: %d\n", maxtes);
 
 	// text rendering stuff
-	arial = LoadFont("/usr/share/fonts/corefonts/times.ttf", 64, NULL);
+	arial = LoadFont("/usr/share/fonts/corefonts/arial.ttf", 64, NULL);
 	glerr("clearing before text program load");
 	textProg = loadProgram("text", "text", NULL, NULL, NULL);
 	
@@ -128,10 +134,25 @@ void initGame(XStuff* xs, GameState* gs) {
 		0x0000FFFF, INT_MAX
 	};
 	
-	strRI = prepareText(arial, "cjAVll!l.Yg^", -1, colors);
+	strRI = prepareText(arial, "FPS: --", -1, colors);
 	
 	
 	
+}
+
+
+double getCurrentTime() {
+	double now;
+	struct timespec ts;
+	static double offset = 0;
+	
+	
+	clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
+	
+	now = (double)ts.tv_sec + ((double)ts.tv_nsec / 1000000000.0);
+	if(offset == 0) offset = now;
+	
+	return now - offset;
 }
 
 
@@ -140,10 +161,35 @@ float rot = 0;
 void renderFrame(XStuff* xs, GameState* gs) {
 	
 	//mModel = IDENT_MATRIX;
+	
+	char frameCounterBuf[128];
+	unsigned int fpsColors[] = {0xeeeeeeff, 4, 0xeeee22ff, INT_MAX};
+	
+	
+	static int frameCounter = 0;
+	static float last_frame = 0;
+	
+	float now = getCurrentTime();
 
-	clock_t now = clock();
 	if (last_frame == 0)
 		last_frame = now;
+	
+	gs->frameTime = (float)now;
+	gs->frameSpan = (float)(now - last_frame);
+	
+	frameCounter = (frameCounter + 1) % 60;
+	
+	static float lastPoint = 0;
+	if(lastPoint == 0.0f) lastPoint = gs->frameTime;
+	if(frameCounter == 0) {
+		float fps = 60.0f / (gs->frameTime - lastPoint);
+		
+		snprintf(frameCounterBuf, 128, "FPS:  %.2f", fps);
+		
+		//printf("--->%s\n", frameCounterBuf);
+		
+		updateText(strRI, frameCounterBuf, -1, fpsColors);
+	}
 	
 	// old stuff to make the scene rotate
 	rot += .4; // 45.0f * ((float)(Now - LastTime) / 1);
@@ -152,9 +198,9 @@ void renderFrame(XStuff* xs, GameState* gs) {
 	//mRot3f(0, 1, 0, angle, &mModel);
 	
 	
-	msPush(&gs->model);
-	msIdent(&gs->model);
-	msScale3f(10,10,10, &gs->model);
+ 	msPush(&gs->model);
+// 	msIdent(&gs->model);
+// 	msScale3f(10,10,10, &gs->model);
 	msRot3f(0,1,0, angle, &gs->model);
 	
 	// nove it to the middle of the screen
@@ -197,8 +243,10 @@ void renderFrame(XStuff* xs, GameState* gs) {
 	textProj = IDENT_MATRIX;
 	textModel = IDENT_MATRIX;
 	
-	mOrtho(-2, 2, -2, 2, -2, 100, &textProj);
-	mScale3f(.5,.5,.5, &textProj);
+	mOrtho(0, 1, 0, 1, -1, 100, &textProj);
+	//mScale3f(.5,.5,.5, &textProj);
+	
+	mScale3f(.06, .06, .06, &textModel);
 	
 	GLuint tp_ul = glGetUniformLocation(textProg->id, "mProj");
 	GLuint tm_ul = glGetUniformLocation(textProg->id, "mModel");

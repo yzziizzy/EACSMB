@@ -24,7 +24,8 @@ typedef struct {
 	float timeOfDay;
 	Vector sunPos;
 	
-	float frameTime;
+	float frameTime; // ever incrementing time of the this frame
+	float frameSpan; // the length of this frame, since last frame
 	
 	
 	

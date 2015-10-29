@@ -221,9 +221,9 @@ TerrainBlock* allocTerrainBlock(int cx, int cy) {
 	for(y = 0; y < TERR_TEX_SZ ; y++) {
 		for(x = 0; x < TERR_TEX_SZ ; x++) {
 			tb->zs[x + (y * TERR_TEX_SZ)] = sin(x * .1) * .1;
-// 			float f = PerlinNoise_2D(x, y, .01, 3); // slow-ass function, disable except for noise testing
+			//float f = PerlinNoise_2D(x / 64.0, y / 64.0, .1, 3); // slow-ass function, disable except for noise testing
 // 			printf("[%d,%d] %f\n", x,y,f);
-// 			tb->zs[x + (y * TERR_TEX_SZ)] = fabs(f * 100);
+			//tb->zs[x + (y * TERR_TEX_SZ)] = fabs(f * 10);
 		}
 	}
 	

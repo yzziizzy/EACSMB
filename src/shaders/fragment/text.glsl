@@ -14,7 +14,7 @@ void main(void) {
 	
 	float alpha = texture2D(fontTex, texCoord).r;
 	
-	if(alpha < .1) {
+	if(alpha < .01) {
 		discard;
 	}
 	else {
