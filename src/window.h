@@ -25,8 +25,8 @@ typedef struct XStuff {
 } XStuff;
 
 
-#define IS_KEYDOWN    0x01
-#define IS_KEYPRESSED 0x02
+#define IS_KEYDOWN    0x01 // is it down now
+#define IS_KEYPRESSED 0x02 // was the key pressed ever
 #define IS_CONTROL    0x04
 #define IS_SHIFT      0x08
 #define IS_ALT        0x10

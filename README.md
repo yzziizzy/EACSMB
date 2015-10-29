@@ -14,10 +14,15 @@ It's written in pure C using no frameworks. Dependencies are Xlib, FreeType, lib
 * `sudo apt-get install libx11-dev libglew-dev libfreetype6-dev ttf-mscorefonts-installer`
 
 * `sudo mkdir /usr/share/fonts/corefonts`
-* `sudo ln -s /usr/share/fonts/truetype/msttcorefonts/times.ttf /usr/share/fonts/corefonts/times.ttf`
+* `sudo ln -s /usr/share/fonts/truetype/msttcorefonts /usr/share/fonts/corefonts`
 
 * `./autogen.sh`
 * `make && ./src/eacsmb`
+
+# Controls (for now)
+
+Play with a/s, z/x, and the arrow keys.
+
 
 Licensed under Affero GPL v3.0 until I get a stronger copyleft license for games.
 

@@ -162,6 +162,9 @@ int initXWindow(XStuff* xs) {
 
 
 
+
+
+
 void processEvents(XStuff* xs, InputState* st, int max_events) {
 	
 	
@@ -197,11 +200,20 @@ void processEvents(XStuff* xs, InputState* st, int max_events) {
 			
 		}
 		
-		if(xev.type == KeyPress || xev.type == KeyRelease) {
+		if(xev.type == KeyPress) {
 			KeySym s; 
 			
-			s = XLookupKeysym((XKeyEvent*)&xev, 0);
+			int keycode = ((XKeyEvent*)&xev)->keycode;
+			//s = XLookupKeysym((XKeyEvent*)&xev, 0);
 			
+			printf("key: %d %c\n", keycode, keycode);
+			
+			st->keyState[keycode] |= IS_KEYPRESSED | IS_KEYDOWN;
+		}
+		if(xev.type == KeyRelease) {
+			
+			int keycode = ((XKeyEvent*)&xev)->keycode;
+			st->keyState[keycode] &= !IS_KEYDOWN;
 		}
 		
 		// mouse events
@@ -223,8 +235,11 @@ void processEvents(XStuff* xs, InputState* st, int max_events) {
 
 
 void clearInputState(InputState* st) {
+	int i;
 	
-	memset(st->keyState, 0, 256);
+	for(i = 0; i < 256; i++) {
+		st->keyState[i] &= IS_KEYDOWN;
+	}
 	
 }
 

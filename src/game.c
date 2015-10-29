@@ -87,22 +87,20 @@ void initGame(XStuff* xs, GameState* gs) {
 	msIdent(view);
 	msIdent(proj);
 	
-	msScale3f(10,10,10, model);
+	msScale3f(1024,1024,1024, model);
 
 
 	
 	
 	// perspective matrix, pretty standard
-	msPerspective(60, 1.0, 0.1f, 10.0f, proj);
+	msPerspective(60, 1.0, 0.0001f, 10.0f, proj);
 	
-	gs->zoom = -6.0;
+	gs->zoom = -960.0;
 	gs->direction = 0.0;
 	angle = 0.2;
 	
 	// view matrix, everything is done backwards
 //  	msScale3f(.8, .8, .8, view); // legacy
-	msTrans3f(0, -1, gs->zoom, view);
-	msRot3f(1, 0, 0, 3.1415/6, view);
 	
 	
 	
@@ -158,7 +156,7 @@ double getCurrentTime() {
 
 float rot = 0;
 
-void renderFrame(XStuff* xs, GameState* gs) {
+void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	//mModel = IDENT_MATRIX;
 	
@@ -175,7 +173,7 @@ void renderFrame(XStuff* xs, GameState* gs) {
 		last_frame = now;
 	
 	gs->frameTime = (float)now;
-	gs->frameSpan = (float)(now - last_frame);
+	float te = gs->frameSpan = (float)(now - last_frame);
 	
 	frameCounter = (frameCounter + 1) % 60;
 	
@@ -189,21 +187,62 @@ void renderFrame(XStuff* xs, GameState* gs) {
 		//printf("--->%s\n", frameCounterBuf);
 		
 		updateText(strRI, frameCounterBuf, -1, fpsColors);
+		
+		lastPoint = now;
 	}
 	
-	// old stuff to make the scene rotate
-	rot += .4; // 45.0f * ((float)(Now - LastTime) / 1);
+	
+	// look direction
+	if(is->keyState[38] & IS_KEYDOWN) {
+		rot +=  .08 * te; // 45.0f * ((float)(Now - LastTime) / 1);
+	}
+	if(is->keyState[39] & IS_KEYDOWN) {
+		rot -=  .08 * te; // 45.0f * ((float)(Now - LastTime) / 1);
+	}
+	
+	// zoom
+	if(is->keyState[52] & IS_KEYDOWN) {
+		gs->zoom +=  .5 * te; // 45.0f * ((float)(Now - LastTime) / 1);
+ 		gs->zoom = fmin(gs->zoom, -10.0);
+		printf("zoom: %f\n", gs->zoom);
+	}
+	if(is->keyState[53] & IS_KEYDOWN) {
+		gs->zoom -=  .5 * te; // 45.0f * ((float)(Now - LastTime) / 1);
+	}
+
+	// movement
+	if(is->keyState[113] & IS_KEYDOWN) {
+		gs->lookCenter.x -=  .5 * te; // 45.0f * ((float)(Now - LastTime) / 1);
+	}
+	if(is->keyState[114] & IS_KEYDOWN) {
+		gs->lookCenter.x +=  .5 * te; // 45.0f * ((float)(Now - LastTime) / 1);
+	}
+	
+	if(is->keyState[111] & IS_KEYDOWN) {
+		gs->lookCenter.y -=  .5 * te; // 45.0f * ((float)(Now - LastTime) / 1);
+	}
+	if(is->keyState[116] & IS_KEYDOWN) {
+		gs->lookCenter.y +=  .5 * te; // 45.0f * ((float)(Now - LastTime) / 1);
+	}
+	
 	angle = (rot * 3.14159265358979) / 180 ;
 	//mScale3f(10, 10, 10, &mModel);
 	//mRot3f(0, 1, 0, angle, &mModel);
+	msPush(&gs->view);
 	
+	
+	
+	// order matters! don't mess with this.
+	msTrans3f(0, -1, gs->zoom, &gs->view);
+	msRot3f(1, 0, 0, 3.1415/6, &gs->view);
+	msRot3f(0,1,0, angle, &gs->view);
+	msTrans3f(gs->lookCenter.x, 0, gs->lookCenter.y, &gs->view);
+	// TODO: fix coordinates
+
 	
  	msPush(&gs->model);
-// 	msIdent(&gs->model);
-// 	msScale3f(10,10,10, &gs->model);
-	msRot3f(0,1,0, angle, &gs->model);
 	
-	// nove it to the middle of the screen
+	// move it to the middle of the screen
 	msTrans3f(-.5, 0, -.5, &gs->model);
 	
 	// y-up to z-up rotation
@@ -230,10 +269,12 @@ void renderFrame(XStuff* xs, GameState* gs) {
 	//drawPatch();
 
 	// draw "tiles"
+	
 	drawTerrainBlock(terrain, msGetTop(&gs->model), msGetTop(&gs->view), msGetTop(&gs->proj));
 	
 	
 	msPop(&gs->model);
+	msPop(&gs->view);
 	
 	glUseProgram(textProg->id);
 	

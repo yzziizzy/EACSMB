@@ -1,9 +1,6 @@
 
 
 
-#define MAP_SIZE 128
-
-
 
 
 typedef struct {
@@ -43,7 +40,7 @@ typedef struct {
 
 
 
-void renderFrame(XStuff* xs, GameState* gs);
+void renderFrame(XStuff* xs, GameState* gs, InputState* is);
 
 
 

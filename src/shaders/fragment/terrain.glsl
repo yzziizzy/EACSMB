@@ -23,11 +23,13 @@ void main(void)
 // 	float edgeIntensity = exp2(-1.0*nearD*nearD);
 	
 	float edgeIntensity = 1.0 - exp2(-1.0*nearD*nearD);
+	float edgeIntensity2 = exp2(-1.0*nearD*nearD);
+	
 	
 	//out_Color = vec4(t_tile.x, t_tile.y,1 ,1.0);
 	
  	vec4 tc = texture2D(sBaseTex, t_tile);
-	out_Color = tc * edgeIntensity; //(1.0, 0, .5, .6);
+	out_Color = tc * max(edgeIntensity,edgeIntensity2); //(1.0, 0, .5, .6);
 // 	out_Color = vec4(tc.rgb, 1.0); //ex_Color; //(1.0, 0, .5, .6);
 	
 }
