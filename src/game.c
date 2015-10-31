@@ -28,8 +28,6 @@
 #include "game.h"
 
 
-
-GLuint vao, vbo, ibo;
 GLuint proj_ul, view_ul, model_ul; 
 
 Matrix mProj, mView, mModel;
@@ -46,13 +44,13 @@ TextRenderInfo* strRI;
 Texture* cnoise;
 
 MapBlock* map;
-TerrainBlock* terrain;
+// TerrainBlock* terrain;
 
 void initPatch();
 void drawPatch();
 
 void initGame(XStuff* xs, GameState* gs) {
-// 	printMapMemoryStats();
+
 	
 	glerr("left over error on game init");
 	glEnable(GL_DEPTH_TEST);
@@ -60,17 +58,6 @@ void initGame(XStuff* xs, GameState* gs) {
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
 	
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	
-	glerr("clearing before program load");
-	gs->tileProg = loadProgram("tiles", "tiles", NULL, "tiles", "tiles");
-	
-	
-	model_ul = glGetUniformLocation(gs->tileProg->id, "mModel");
-	glerr("uniform loc Model");
-	view_ul = glGetUniformLocation(gs->tileProg->id, "mView");
-	glerr("uniform loc View");
-	proj_ul = glGetUniformLocation(gs->tileProg->id, "mProj");
-	glerr("uniform loc Projection");
 	
 	
 	// set up matrix stacks
@@ -100,27 +87,15 @@ void initGame(XStuff* xs, GameState* gs) {
 	gs->direction = 0.0;
 	angle = 0.2;
 	
-	// view matrix, everything is done backwards
-//  	msScale3f(.8, .8, .8, view); // legacy
 	
-	
-	
-//	initPatch();
+	// initialize all those magic globals
 	initTerrain();
 	
+
 	
-// 	map = allocMapBlock(sizeof(float), 1024, 1024);
+	gs->terrain = allocTerrainBlock(0, 0);
+	updateTerrainTexture(gs->terrain);
 	
-	terrain = allocTerrainBlock(0, 0);
-	updateTerrainTexture(terrain);
-	
-// 	mProj = IDENT_MATRIX;
-// 	mView = IDENT_MATRIX;
-// 	mModel = IDENT_MATRIX;
-	
-	GLint maxtes;
-	glGetIntegerv(GL_MAX_TESS_GEN_LEVEL, &maxtes);
-	printf("max tessellation level: %d\n", maxtes);
 
 	// text rendering stuff
 	arial = LoadFont("/usr/share/fonts/corefonts/arial.ttf", 64, NULL);
@@ -145,7 +120,7 @@ double getCurrentTime() {
 	struct timespec ts;
 	static double offset = 0;
 	
-	
+	// CLOCK_MONOTONIC_RAW is linux-specific. 
 	clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
 	
 	now = (double)ts.tv_sec + ((double)ts.tv_nsec / 1000000000.0);
@@ -165,22 +140,22 @@ void preFrame(GameState* gs) {
 	char frameCounterBuf[128];
 	unsigned int fpsColors[] = {0xeeeeeeff, 4, 0xeeee22ff, INT_MAX};
 	
-	
 	static int frameCounter = 0;
 	static double last_frame = 0;
+	static double lastPoint = 0;
 	
-	double now = getCurrentTime();
+	double now;
+	
+	gs->frameTime = now = getCurrentTime();
 
 	if (last_frame == 0)
 		last_frame = now;
 	
-	gs->frameTime = (double)now;
-	double te = gs->frameSpan = (double)(now - last_frame);
+	gs->frameSpan = (double)(now - last_frame);
 	last_frame = now;
 	
 	frameCounter = (frameCounter + 1) % 60;
 	
-	static double lastPoint = 0;
 	if(lastPoint == 0.0f) lastPoint = gs->frameTime;
 	if(frameCounter == 0) {
 		float fps = 60.0f / (gs->frameTime - lastPoint);
@@ -195,41 +170,42 @@ void preFrame(GameState* gs) {
 	}
 }
 
+
+
 void handleInput(GameState* gs, InputState* is) {
 	double te = gs->frameSpan;
 	
 	
 	// look direction
 	if(is->keyState[38] & IS_KEYDOWN) {
-		rot +=  10.8 * te; // 45.0f * ((float)(Now - LastTime) / 1);
+		rot +=  20.8 * te;
 	}
 	if(is->keyState[39] & IS_KEYDOWN) {
-		rot -=  10.8 * te; // 45.0f * ((float)(Now - LastTime) / 1);
+		rot -=  20.8 * te;
 	}
 	
 	// zoom
 	if(is->keyState[52] & IS_KEYDOWN) {
-		gs->zoom +=  150 * te; // 45.0f * ((float)(Now - LastTime) / 1);
+		gs->zoom +=  150 * te;
  		gs->zoom = fmin(gs->zoom, -10.0);
-		printf("zoom: %f\n", gs->zoom);
 	}
 	if(is->keyState[53] & IS_KEYDOWN) {
-		gs->zoom -=  150 * te; // 45.0f * ((float)(Now - LastTime) / 1);
+		gs->zoom -=  150 * te; 
 	}
 
 	// movement
 	if(is->keyState[113] & IS_KEYDOWN) {
-		gs->lookCenter.x -=  250 * te; // 45.0f * ((float)(Now - LastTime) / 1);
+		gs->lookCenter.x +=  250 * te; 
 	}
 	if(is->keyState[114] & IS_KEYDOWN) {
-		gs->lookCenter.x +=  250 * te; // 45.0f * ((float)(Now - LastTime) / 1);
+		gs->lookCenter.x -=  250 * te; 
 	}
 	
 	if(is->keyState[111] & IS_KEYDOWN) {
-		gs->lookCenter.y -=  250 * te; // 45.0f * ((float)(Now - LastTime) / 1);
+		gs->lookCenter.y +=  250 * te;
 	}
 	if(is->keyState[116] & IS_KEYDOWN) {
-		gs->lookCenter.y +=  250 * te; // 45.0f * ((float)(Now - LastTime) / 1);
+		gs->lookCenter.y -=  250 * te; 
 	}
 	
 }
@@ -280,15 +256,6 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 // 	glPatchParameteri(GL_PATCH_VERTICES, 4);
 	
 	
-	//glUseProgram(gs->tileProg->id);
-	// set up matrices
-/*	glUniformMatrix4fv(proj_ul, 1, GL_FALSE, mProj.m);
-	glUniformMatrix4fv(model_ul, 1, GL_FALSE, mModel.m);
-	glUniformMatrix4fv(view_ul, 1, GL_FALSE, mView.m);
-	glexit("uniform locations");
-/*/// 	printf("%d %d %d \n", proj_ul, model_ul, view_ul);
-	
-	//drawPatch();
 
 	// calculate cursor position
 	Vector cursorp;
@@ -328,13 +295,13 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	Vector2 c2;
 	
-	c2.x = cursorp.x;
-	c2.y = cursorp.z;
+	c2.x = 300; //cursorp.x;
+	c2.y = 300; //cursorp.z;
 	
 	
 	
 	// draw terrain
-	drawTerrainBlock(terrain, msGetTop(&gs->model), msGetTop(&gs->view), msGetTop(&gs->proj), (Vector2*)&c2);
+	drawTerrainBlock(gs->terrain, msGetTop(&gs->model), msGetTop(&gs->view), msGetTop(&gs->proj), (Vector2*)&c2);
 	
 	
 	msPop(&gs->model);
@@ -403,51 +370,6 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 }
 
 
-
-
-
-void drawPatch() {
-	
-	glerr("pre vao bind");
-	glBindVertexArray(vao);
-	glerr("vao bind");
-	
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glDrawArrays(GL_PATCHES, 0, 4);
-	glerr("drawing");
-}
-
-
-void initPatch() {
-	GLfloat vertices[] = {
-		-1.0f, -1.0f, 0.0f,
-		-1.0f, 1.0f, 0.0f, 
-		1.0f, 1.0f, 0.0f, 
-		1.0f, -1.0f, 0.0f, 
-	};
-
-	glPatchParameteri(GL_PATCH_VERTICES, 4);
-	
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
-	
-	
-	glGenBuffers(1, &vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	glerr("buffering data");
-// 	glBindVertexArray(vbo);
-	
-
-	
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	
-	glerr("vertex attrib ptr");
-
-	
-	
-}
 
 
 

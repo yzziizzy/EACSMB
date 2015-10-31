@@ -5,7 +5,7 @@
 
 typedef struct {
 	
-	ShaderProgram* tileProg;
+	TerrainBlock* terrain;
 	
 	MatrixStack model;
 	MatrixStack view;

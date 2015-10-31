@@ -23,6 +23,7 @@
 #include "utilities.h"
 #include "shader.h"
 #include "window.h"
+#include "map.h"
 #include "game.h"
 
 
