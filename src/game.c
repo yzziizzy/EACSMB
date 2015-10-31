@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <math.h>
 
 #include <unistd.h>
 
@@ -156,28 +157,30 @@ double getCurrentTime() {
 
 float rot = 0;
 
-void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
+
+
+void preFrame(GameState* gs) {
 	
-	//mModel = IDENT_MATRIX;
-	
+	// update timers
 	char frameCounterBuf[128];
 	unsigned int fpsColors[] = {0xeeeeeeff, 4, 0xeeee22ff, INT_MAX};
 	
 	
 	static int frameCounter = 0;
-	static float last_frame = 0;
+	static double last_frame = 0;
 	
-	float now = getCurrentTime();
+	double now = getCurrentTime();
 
 	if (last_frame == 0)
 		last_frame = now;
 	
-	gs->frameTime = (float)now;
-	float te = gs->frameSpan = (float)(now - last_frame);
+	gs->frameTime = (double)now;
+	double te = gs->frameSpan = (double)(now - last_frame);
+	last_frame = now;
 	
 	frameCounter = (frameCounter + 1) % 60;
 	
-	static float lastPoint = 0;
+	static double lastPoint = 0;
 	if(lastPoint == 0.0f) lastPoint = gs->frameTime;
 	if(frameCounter == 0) {
 		float fps = 60.0f / (gs->frameTime - lastPoint);
@@ -190,40 +193,59 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 		
 		lastPoint = now;
 	}
+}
+
+void handleInput(GameState* gs, InputState* is) {
+	double te = gs->frameSpan;
 	
 	
 	// look direction
 	if(is->keyState[38] & IS_KEYDOWN) {
-		rot +=  .08 * te; // 45.0f * ((float)(Now - LastTime) / 1);
+		rot +=  10.8 * te; // 45.0f * ((float)(Now - LastTime) / 1);
 	}
 	if(is->keyState[39] & IS_KEYDOWN) {
-		rot -=  .08 * te; // 45.0f * ((float)(Now - LastTime) / 1);
+		rot -=  10.8 * te; // 45.0f * ((float)(Now - LastTime) / 1);
 	}
 	
 	// zoom
 	if(is->keyState[52] & IS_KEYDOWN) {
-		gs->zoom +=  .5 * te; // 45.0f * ((float)(Now - LastTime) / 1);
+		gs->zoom +=  150 * te; // 45.0f * ((float)(Now - LastTime) / 1);
  		gs->zoom = fmin(gs->zoom, -10.0);
 		printf("zoom: %f\n", gs->zoom);
 	}
 	if(is->keyState[53] & IS_KEYDOWN) {
-		gs->zoom -=  .5 * te; // 45.0f * ((float)(Now - LastTime) / 1);
+		gs->zoom -=  150 * te; // 45.0f * ((float)(Now - LastTime) / 1);
 	}
 
 	// movement
 	if(is->keyState[113] & IS_KEYDOWN) {
-		gs->lookCenter.x -=  .5 * te; // 45.0f * ((float)(Now - LastTime) / 1);
+		gs->lookCenter.x -=  250 * te; // 45.0f * ((float)(Now - LastTime) / 1);
 	}
 	if(is->keyState[114] & IS_KEYDOWN) {
-		gs->lookCenter.x +=  .5 * te; // 45.0f * ((float)(Now - LastTime) / 1);
+		gs->lookCenter.x +=  250 * te; // 45.0f * ((float)(Now - LastTime) / 1);
 	}
 	
 	if(is->keyState[111] & IS_KEYDOWN) {
-		gs->lookCenter.y -=  .5 * te; // 45.0f * ((float)(Now - LastTime) / 1);
+		gs->lookCenter.y -=  250 * te; // 45.0f * ((float)(Now - LastTime) / 1);
 	}
 	if(is->keyState[116] & IS_KEYDOWN) {
-		gs->lookCenter.y +=  .5 * te; // 45.0f * ((float)(Now - LastTime) / 1);
+		gs->lookCenter.y +=  250 * te; // 45.0f * ((float)(Now - LastTime) / 1);
 	}
+	
+}
+
+
+void setUpView(GameState* gs) {
+	
+	
+}
+
+void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
+	
+	//mModel = IDENT_MATRIX;
+	
+
+	
 	
 	angle = (rot * 3.14159265358979) / 180 ;
 	//mScale3f(10, 10, 10, &mModel);
@@ -268,9 +290,51 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	//drawPatch();
 
-	// draw "tiles"
+	// calculate cursor position
+	Vector cursorp;
+	Vector eyeCoord;
+	Vector worldCoord;
+	Matrix p, invp, invv;
 	
-	drawTerrainBlock(terrain, msGetTop(&gs->model), msGetTop(&gs->view), msGetTop(&gs->proj));
+	// device space (-1:1)
+	Vector devCoord;
+	devCoord.x = 0.50;
+	devCoord.y = 0.50;
+	devCoord.z = -1.0;
+	
+	// eye space
+	mInverse(msGetTop(&gs->proj), &invp);
+	vMatrixMul(&devCoord, &invp, &eyeCoord);
+	vNorm(&eyeCoord, &eyeCoord);
+	
+	// world space
+	mInverse(msGetTop(&gs->view), &invv);
+	vMatrixMul(&eyeCoord, &invv, &worldCoord);
+	vNorm(&worldCoord, &worldCoord);
+	
+	
+	
+	
+// 	mFastMul(msGetTop(&gs->view), msGetTop(&gs->proj), &mp);
+	
+// 	mInverse(&mp, &invmp);
+	
+	
+	
+	
+// 	vMatrixMul(&devCoord, &invmp, &cursorp);
+	
+	//printf("(%f, %f, %f)\n", worldCoord.x, worldCoord.y, worldCoord.z);
+	
+	Vector2 c2;
+	
+	c2.x = cursorp.x;
+	c2.y = cursorp.z;
+	
+	
+	
+	// draw terrain
+	drawTerrainBlock(terrain, msGetTop(&gs->model), msGetTop(&gs->view), msGetTop(&gs->proj), (Vector2*)&c2);
 	
 	
 	msPop(&gs->model);
@@ -316,12 +380,27 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	glDrawArrays(GL_TRIANGLES, 0, strRI->vertexCnt);
 	glexit("text drawing");
 	
-	
+		
 	glXSwapBuffers(xs->display, xs->clientWin);
+	
 }
 
 
 
+void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
+	
+	preFrame(gs);
+	
+	handleInput(gs, is);
+	
+	setUpView(gs);
+	
+	// update world state
+	
+	renderFrame(xs, gs, is);
+	
+
+}
 
 
 

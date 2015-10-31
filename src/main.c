@@ -47,13 +47,14 @@ int main(int argc, char* argv[]) {
 		processEvents(&xs, &input, -1);
 		
 		if(xs.ready)
-			renderFrame(&xs, &game, &input);
+			gameLoop(&xs, &game, &input);
 		
 		
 		
 		if(game.frameSpan < 1.0/60.0) {
-			float sleeptime = (1000.0/60.0) - (game.frameSpan * 1000000);
-			printf("sleeptime: %f\n", sleeptime /1000000);
+			// shitty estimation based on my machine's heuristics, needs improvement
+			float sleeptime = (((1.0/60.0) * 1000000) - (game.frameSpan * 1000000)) * .7;
+			//printf("sleeptime: %f\n", sleeptime / 1000000);
 			if(sleeptime > 0) usleep(sleeptime); // problem... something is wrong in the math
 		}
 	}

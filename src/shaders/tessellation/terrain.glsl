@@ -14,9 +14,14 @@ uniform mat4 mModel;
 
 uniform vec2 winSize;
 
+
+
+
 out vec4 ex_Color;
 out vec2 texCoord;
+// out vec2 cursorTexCoord;
 out vec2 t_tile;
+
 
 void main(void){
 
@@ -54,9 +59,12 @@ void main(void){
 	
 	//dist = vec3(0.0, 0.0, sin(gl_TessCoord.y * 10));
 	
-	t_tile =  ttmp; //te_tile[3];
+	t_tile =  tltmp; //te_tile[3];
 	
 //  	ex_Color = vec4(gl_TessCoord.x, gl_TessCoord.y, .3, 1.0);
 	ex_Color = vec4(ttmp.xy, .3, 1.0);
-	texCoord = gl_TessCoord.xy;
+	texCoord = ttmp; //gl_TessCoord.xy;
+	
+	
+	
 }

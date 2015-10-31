@@ -55,7 +55,7 @@ void initTerrain();
 TerrainBlock* allocTerrainBlock(int cx, int cy);
 void updateTerrainTexture(TerrainBlock* tb);
 
-void drawTerrainBlock(TerrainBlock* tb, Matrix* mModel, Matrix* mView, Matrix* mProj);
+void drawTerrainBlock(TerrainBlock* tb, Matrix* mModel, Matrix* mView, Matrix* mProj, Vector2* cursor);
 
 
 // stuff below is too complicated for now. more knowledge is needed about the game to proceed.

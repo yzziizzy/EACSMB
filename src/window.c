@@ -206,7 +206,7 @@ void processEvents(XStuff* xs, InputState* st, int max_events) {
 			int keycode = ((XKeyEvent*)&xev)->keycode;
 			//s = XLookupKeysym((XKeyEvent*)&xev, 0);
 			
-			printf("key: %d %c\n", keycode, keycode);
+			//printf("key: %d %c\n", keycode, keycode);
 			
 			st->keyState[keycode] |= IS_KEYPRESSED | IS_KEYDOWN;
 		}

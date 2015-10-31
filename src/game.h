@@ -18,11 +18,12 @@ typedef struct {
 	float direction;
 	Vector lookCenter;
 	
-	float timeOfDay;
+	float timeOfDay; // radians of earth spin. 0 = midnight, pi/2 = morning
+	// need time of year for sun angle
 	Vector sunPos;
 	
-	float frameTime; // ever incrementing time of the this frame
-	float frameSpan; // the length of this frame, since last frame
+	double frameTime; // ever incrementing time of the this frame
+	double frameSpan; // the length of this frame, since last frame
 	
 	
 	
@@ -41,7 +42,7 @@ typedef struct {
 
 
 void renderFrame(XStuff* xs, GameState* gs, InputState* is);
-
+void gameLoop(XStuff* xs, GameState* gs, InputState* is);
 
 
 

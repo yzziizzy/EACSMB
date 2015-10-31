@@ -99,8 +99,8 @@ void initTerrain() {
 			pv->z = 0;
 			pv->hmU = (ix * MaxTessGenLevel * sideUnit);
 			pv->hmV = (iy * MaxTessGenLevel * sideUnit);
-			pv->divX = ix * sideUnit;
-			pv->divY = iy * sideUnit;
+			pv->divX = ix * MaxTessGenLevel;
+			pv->divY = iy * MaxTessGenLevel;
 			pv++;
 			
 // 			printf("divx: %d\n", iy * tlY);
@@ -115,8 +115,8 @@ void initTerrain() {
 			pv->z = 0;
 			pv->hmU = (ix * MaxTessGenLevel * sideUnit);
 			pv->hmV = ((iy+1) * MaxTessGenLevel * sideUnit);
-			pv->divX = ix * sideUnit;
-			pv->divY = (iy+1) * sideUnit;
+			pv->divX = ix * MaxTessGenLevel;
+			pv->divY = (iy+1) * MaxTessGenLevel;
 			pv++;
 
 			pv->x = ((ix+1) * wpSide);
@@ -124,8 +124,8 @@ void initTerrain() {
 			pv->z = 0;
 			pv->hmU = ((ix+1) * MaxTessGenLevel * sideUnit);
 			pv->hmV = ((iy+1) * MaxTessGenLevel * sideUnit);
-			pv->divX = (ix+1) * sideUnit;
-			pv->divY = (iy+1) * sideUnit;
+			pv->divX = (ix+1) * MaxTessGenLevel;
+			pv->divY = (iy+1) * MaxTessGenLevel;
 			pv++;
 
 			pv->x = ((ix+1) * wpSide);
@@ -133,8 +133,8 @@ void initTerrain() {
 			pv->z = 0;
 			pv->hmU = ((ix+1) * MaxTessGenLevel * sideUnit);
 			pv->hmV = (iy * MaxTessGenLevel * sideUnit);
-			pv->divX = (ix+1) * sideUnit;
-			pv->divY = iy * sideUnit;
+			pv->divX = (ix+1) * MaxTessGenLevel;
+			pv->divY = iy * MaxTessGenLevel;
 			pv++;
 		}
 	}
@@ -270,7 +270,7 @@ void updateTerrainTexture(TerrainBlock* tb) {
 
 
 
-void drawTerrainBlock(TerrainBlock* tb, Matrix* mModel, Matrix* mView, Matrix* mProj) {
+void drawTerrainBlock(TerrainBlock* tb, Matrix* mModel, Matrix* mView, Matrix* mProj, Vector2* cursor) {
 	
 	glUseProgram(terrProg->id);
 	glexit("using terrain program");
@@ -303,6 +303,11 @@ void drawTerrainBlock(TerrainBlock* tb, Matrix* mModel, Matrix* mView, Matrix* m
 	glexit("base tex sampler uniform");
 
 	
+// 	l_ul = glGetUniformLocation(terrProg->id, "cursorPos");
+
+	glUniform2f(glGetUniformLocation(terrProg->id, "cursorPos"), cursor->x, cursor->y);
+
+	
 	glerr("pre vao bind");
 	glBindVertexArray(patchVAO);
 	glerr("vao bind");
@@ -316,6 +321,13 @@ void drawTerrainBlock(TerrainBlock* tb, Matrix* mModel, Matrix* mView, Matrix* m
 }
 
 
+
+
+void areaStats(AABB2* b) {
+	
+	// min, max, avg heights
+	
+}
 
 
 
