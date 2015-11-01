@@ -34,6 +34,7 @@ InputState input;
 
 
 int main(int argc, char* argv[]) {
+	int first = 1;
 	
 	memset(&xs, 0, sizeof(XStuff));
 	
@@ -42,10 +43,14 @@ int main(int argc, char* argv[]) {
 	
 	initXWindow(&xs);
 	
-	initGame(&xs, &game);
 	
 	while(1) {
 		processEvents(&xs, &input, -1);
+		
+		if(first && xs.ready) {
+			initGame(&xs, &game);
+			first = 0;
+		}
 		
 		if(xs.ready)
 			gameLoop(&xs, &game, &input);

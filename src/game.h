@@ -5,6 +5,12 @@
 
 typedef struct {
 	
+	float viewW, viewH;
+	
+	GLuint diffuseTexBuffer, normalTexBuffer, depthTexBuffer;
+	GLuint framebuffer;
+	GLuint depthRenderbuffer;
+	
 	TerrainBlock* terrain;
 	
 	MatrixStack model;

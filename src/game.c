@@ -46,18 +46,156 @@ Texture* cnoise;
 MapBlock* map;
 // TerrainBlock* terrain;
 
-void initPatch();
-void drawPatch();
+GLuint fsQuadVAO, fsQuadVBO;
+ShaderProgram* shadingProg;
+
+void initFSQuad() {
+	float vertices[] = {
+		-1.0, -1.0, 0.0,
+		-1.0, 1.0, 0.0,
+		1.0, -1.0, 0.0,
+		1.0, 1.0, 0.0
+	};
+
+	glGenVertexArrays(1, &fsQuadVAO);
+	glBindVertexArray(fsQuadVAO);
+	
+	glGenBuffers(1, &fsQuadVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, fsQuadVBO);
+	
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 12, 0);
+
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+
+}
+
+void drawFSQuad() {
+	
+	glBindVertexArray(fsQuadVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, fsQuadVBO);
+	glexit("quad vbo");
+	
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glexit("quad draw");
+	
+}
+
+
+#define getPrintGLEnum(e, m) _getPrintGLEnumMin(e, #e, m)
+
+int _getPrintGLEnumMin(GLenum e, char* name, char* message) {
+	GLint i;
+	
+	glGetIntegerv(e, &i);
+	printf("%s: %d\n", name, i);
+	
+	return i;
+}
+
+
+
+
+GLuint initTexBuffer(int w, int h, GLenum internalType, GLenum format, GLenum size) {
+	GLuint id;
+	
+	glGenTextures(1, &id);
+	glBindTexture(GL_TEXTURE_2D, id);
+		glexit(" -- tex buffer creation");
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glexit("pre tex buffer creation");
+	glTexImage2D(GL_TEXTURE_2D, 0, internalType, w, h, 0, format, size, NULL);
+	glexit("tex buffer creation");
+	
+	return id;
+}
+GLuint initTexBufferRGBA(int w, int h) {
+	return initTexBuffer(w, h, GL_RGB, GL_RGB, GL_UNSIGNED_BYTE);
+}
+GLuint initTexBufferDepth(int w, int h) {
+	return initTexBuffer(w, h, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
+}
 
 void initGame(XStuff* xs, GameState* gs) {
-
+	int ww, wh;
 	
 	glerr("left over error on game init");
+	
+	
+	gs->viewW = ww = xs->winAttr.width;
+	gs->viewH = wh = xs->winAttr.height;
+
+	printf("w: %d, h: %d\n", ww, wh);
+	
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
 	
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	
+glexit("here");
+
+
+	
+	printf("0\n");
+	gs->diffuseTexBuffer = initTexBufferRGBA(ww, wh); 
+	printf("1\n");
+	gs->normalTexBuffer = initTexBufferRGBA(ww, wh); 
+	printf("2\n");
+	gs->depthTexBuffer = initTexBufferDepth(ww, wh); 
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	
+	glGenFramebuffers(1, &gs->framebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, gs->framebuffer);
+	glexit("fbo creation");
+	
+	// The depth buffer
+	
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gs->diffuseTexBuffer, 0); 
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gs->normalTexBuffer, 0);  
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, gs->depthTexBuffer, 0);  
+	glexit("fb tex2d");
+	
+	GLenum DrawBuffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+	glDrawBuffers(1, DrawBuffers);
+	glexit("drawbuffers");
+	
+	GLenum status;
+	status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	if(status != GL_FRAMEBUFFER_COMPLETE) {
+		printf("fbo status invalid\n");
+		exit(1);
+	}
+	printf("FBO created.\n");
+	
+
+	shadingProg = loadProgram("shading", "shading", NULL, NULL, NULL);
+	initFSQuad();
+	
+	// check some prerequisites
+// 	GLint MaxDrawBuffers = 0;
+// 	glGetIntegerv(GL_MAX_DRAW_BUFFERS, &MaxDrawBuffers);
+// 	printf("MAX_DRAW_BUFFERS: %d\n", MaxDrawBuffers);
+//  	if(MaxDrawBuffers < 4) {
+// 		fprintf(stderr, "FATAL: GL_MAX_DRAW_BUFFERS is too low: %d. Minimum required value is 4.\n", MaxDrawBuffers);
+// 		exit(3);
+// 	};
+
+	getPrintGLEnum(GL_MAX_COLOR_ATTACHMENTS, "meh");
+	getPrintGLEnum(GL_MAX_DRAW_BUFFERS, "meh");
+	getPrintGLEnum(GL_MAX_FRAMEBUFFER_WIDTH, "meh");
+	getPrintGLEnum(GL_MAX_FRAMEBUFFER_HEIGHT, "meh");
+	getPrintGLEnum(GL_MAX_FRAMEBUFFER_LAYERS, "meh");
+	getPrintGLEnum(GL_MAX_FRAMEBUFFER_SAMPLES, "meh");
 	
 	
 	// set up matrix stacks
@@ -246,8 +384,6 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	// y-up to z-up rotation
 	msRot3f(1, 0, 0, 3.1415/2, &gs->model);
 	
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glerr("clearing");
 	
 // 	GLint MaxPatchVertices = 0;
 // 	glGetIntegerv(GL_MAX_PATCH_VERTICES, &MaxPatchVertices);
@@ -348,9 +484,42 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	glexit("text drawing");
 	
 		
-	glXSwapBuffers(xs->display, xs->clientWin);
 	
 }
+
+void shadingPass(GameState* gs) {
+	
+	Matrix world;
+	
+	world = IDENT_MATRIX;
+	
+	glUseProgram(shadingProg->id);
+	glexit("shading prog");
+
+	glActiveTexture(GL_TEXTURE0 + 6);
+	glexit("shading tex 1");
+	glBindTexture(GL_TEXTURE_2D, gs->diffuseTexBuffer);
+	glexit("shading tex 2");
+	glActiveTexture(GL_TEXTURE0 + 7);
+	glexit("shading tex 3");
+	glBindTexture(GL_TEXTURE_2D, gs->normalTexBuffer);
+	glexit("shading tex 4");
+	
+	glUniform1i(glGetUniformLocation(shadingProg->id, "sDiffuse"), 6);
+	glUniform1i(glGetUniformLocation(shadingProg->id, "sNormals"), 7);
+	glexit("shading samplers");
+	
+	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "world"), 1, GL_FALSE, world.m);
+	glexit("shading world");
+
+// 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glerr("clearing");
+
+	
+	drawFSQuad();
+	glexit("post quad draw");
+}
+
 
 
 
@@ -364,8 +533,21 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	
 	// update world state
 	
+	// draw to the g-buffer
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, gs->framebuffer);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	
 	renderFrame(xs, gs, is);
 	
+	// draw to the screen
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, gs->framebuffer);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	
+	shadingPass(gs);
+	
+	
+	glXSwapBuffers(xs->display, xs->clientWin);
 
 }
 
