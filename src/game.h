@@ -27,6 +27,7 @@ typedef struct {
 	float zoom;
 	float direction;
 	Vector lookCenter;
+	Vector2 mapCenter;
 	
 	float timeOfDay; // radians of earth spin. 0 = midnight, pi/2 = morning
 	// need time of year for sun angle

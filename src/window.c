@@ -254,6 +254,10 @@ void clearInputState(InputState* st) {
 		st->keyState[i] &= IS_KEYDOWN;
 	}
 	
+	st->clickPos.y = -1;
+	st->clickPos.x = -1;
+	st->clickButton = 0;
+	
 }
 
 

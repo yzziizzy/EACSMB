@@ -262,6 +262,8 @@ glexit("here");
 	gs->zoom = -960.0;
 	gs->direction = 0.0;
 	angle = 0.2;
+	gs->lookCenter.x = 512;
+	gs->lookCenter.y = 512;
 	
 	
 	// initialize all those magic globals
@@ -368,6 +370,13 @@ void handleInput(GameState* gs, InputState* is) {
 	if(is->keyState[53] & IS_KEYDOWN) {
 		gs->zoom -=  150 * te; 
 	}
+	if(is->clickButton == 4) {
+		gs->zoom +=  50;
+ 		gs->zoom = fmin(gs->zoom, -10.0);
+	}
+	if(is->clickButton == 5) {
+		gs->zoom -=  50; 
+	}
 
 	// movement
 	if(is->keyState[113] & IS_KEYDOWN) {
@@ -439,14 +448,14 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	msTrans3f(0, -1, gs->zoom, &gs->view);
 	msRot3f(1, 0, 0, 3.1415/6, &gs->view);
 	msRot3f(0,1,0, angle, &gs->view);
-	msTrans3f(gs->lookCenter.x, 0, gs->lookCenter.y, &gs->view);
+	msTrans3f(-gs->lookCenter.x + 512, 0, -gs->lookCenter.y + 512, &gs->view);
 	// TODO: fix coordinates
 
 	
  	msPush(&gs->model);
 	
 	// move it to the middle of the screen
-	msTrans3f(-.5, 0, -.5, &gs->model);
+ 	msTrans3f(-.5, 0, -.5, &gs->model);
 	
 	// y-up to z-up rotation
 	msRot3f(1, 0, 0, 3.1415/2, &gs->model);
@@ -608,8 +617,12 @@ void checkCursor(GameState* gs, InputState* is) {
 	gs->cursorPos.x = rgb[0];
 	gs->cursorPos.y = rgb[1];
 	
-	printf("mx: %d, my: %d, x: %d, y: %d\n", (int)is->cursorPosPixels.x, (int)is->cursorPosPixels.y, rgb[0], rgb[1]);
+// 	printf("mx: %d, my: %d, x: %d, y: %d\n", (int)is->cursorPosPixels.x, (int)is->cursorPosPixels.y, rgb[0], rgb[1]);
 	
+	if(is->clickButton == 3) {
+		gs->lookCenter.x = gs->cursorPos.x;
+		gs->lookCenter.y = gs->cursorPos.y;
+	}
 	
 }
 

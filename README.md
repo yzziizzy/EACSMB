@@ -21,7 +21,9 @@ It's written in pure C using no frameworks. Dependencies are Xlib, FreeType, lib
 
 # Controls (for now)
 
-Play with a/s, z/x, and the arrow keys.
+a/s to rotate.
+Mouse scroll or z/x to zoom.
+Right click or the arrow keys to move.
 
 
 Licensed under Affero GPL v3.0 until I get a stronger copyleft license for games.
