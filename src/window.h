@@ -37,6 +37,8 @@ typedef struct {
 	
 	// shitty for now
 	Vector2 clickPos;
+	Vector2 cursorPos;
+	Vector2 cursorPosPixels;
 	char clickButton;
 	
 	unsigned char keyState[256];

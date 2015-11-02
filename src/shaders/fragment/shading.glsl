@@ -4,6 +4,7 @@
 uniform sampler2D sDiffuse;
 uniform sampler2D sNormals;
 uniform sampler2D sDepth;
+uniform sampler2D sSelection;
 
 uniform int debugMode;
 
@@ -28,6 +29,10 @@ void main() {
 	else if(debugMode == 3) {
 		// diffuse
 		FragColor = vec4(texture(sDepth, tex).rrr,  1.0);
+	} 
+	else if(debugMode == 4) {
+		// diffuse
+		FragColor = vec4(texture(sSelection, tex).rgb / 1024,  1.0);
 	}
 
 //	FragColor = vec4(texture(sNormals, tex).rgb,  1.0);

@@ -3,8 +3,15 @@ SOONER:
 -------------------
 
 
-process X expose event
+building generator
 
+decal mesh generation
+	triangle clipping
+	terrain area stats
+
+organize sampler namespace
+
+fix text rendering and make it match pixel for pixel
 clean up text rendering function
 spaces in fonts don't work right
 gui toolkit
@@ -13,14 +20,22 @@ object picking
 
 cursors
 
-normals for terrain
+rebuild eye/view code
+
+fix lines
+terrain zoning 
+terrain texture blending
+proper terrain scaling
+save to file
 simplex noise
 
+get lighting working
 
 use fontconfig to find fonts by name
 
+dummy textures
 
-
+revamp shader storage to use one file with internal markers for the different kinds
 
 
 

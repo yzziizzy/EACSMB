@@ -7,7 +7,7 @@ typedef struct {
 	
 	float viewW, viewH;
 	
-	GLuint diffuseTexBuffer, normalTexBuffer, depthTexBuffer;
+	GLuint diffuseTexBuffer, normalTexBuffer, depthTexBuffer, selectionTexBuffer;
 	GLuint framebuffer;
 	GLuint depthRenderbuffer;
 	
@@ -19,6 +19,8 @@ typedef struct {
 	
 	Vector eyePos;
 	Vector eyeDir;
+	
+	Vector2 cursorPos;
 	
 	int debugMode;
 	

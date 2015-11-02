@@ -34,7 +34,7 @@ Matrix mProj, mView, mModel;
 
 float angle, zoom;
 
-double nearPlane = 300;
+double nearPlane = 20;
 double farPlane = 1700;
 
 
@@ -178,6 +178,8 @@ glexit("here");
 	printf("1\n");
 	gs->normalTexBuffer = initTexBufferRGBA(ww, wh); 
 	printf("2\n");
+	gs->selectionTexBuffer = initTexBuffer(ww, wh, GL_RGB16I, GL_RGB_INTEGER, GL_SHORT);
+	printf("2\n");
 	gs->depthTexBuffer = initTexBufferDepth(ww, wh); 
 
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -190,13 +192,18 @@ glexit("here");
 	// The depth buffer
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gs->diffuseTexBuffer, 0); 
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gs->normalTexBuffer, 0);  
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gs->selectionTexBuffer, 0);  
  	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, gs->depthTexBuffer, 0);  
 	glexit("fb tex2d");
 	
 //glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, gs->depthTexBuffer, 0);
 	
-	GLenum DrawBuffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
-	glDrawBuffers(2, DrawBuffers);
+	GLenum DrawBuffers[] = {
+		GL_COLOR_ATTACHMENT0, 
+		GL_COLOR_ATTACHMENT1,
+		GL_COLOR_ATTACHMENT2
+	};
+	glDrawBuffers(3, DrawBuffers);
 	glexit("drawbuffers");
 	
 	GLenum status;
@@ -397,7 +404,7 @@ void handleInput(GameState* gs, InputState* is) {
 	static lastChange = 0;
 	if(is->keyState[119] & IS_KEYDOWN) {
 		if(gs->frameTime > lastChange + 1) {
-			gs->debugMode = (gs->debugMode + 1) % 4; 
+			gs->debugMode = (gs->debugMode + 1) % 5; 
 			lastChange = gs->frameTime;
 		}
 	}
@@ -445,13 +452,6 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	msRot3f(1, 0, 0, 3.1415/2, &gs->model);
 	
 	
-// 	GLint MaxPatchVertices = 0;
-// 	glGetIntegerv(GL_MAX_PATCH_VERTICES, &MaxPatchVertices);
-// 	
-// 	printf("Max supported patch vertices %d\n", MaxPatchVertices);
-// 	glPatchParameteri(GL_PATCH_VERTICES, 4);
-	
-	
 
 	// calculate cursor position
 	Vector cursorp;
@@ -497,7 +497,7 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	
 	// draw terrain
-	drawTerrainBlock(gs->terrain, msGetTop(&gs->model), msGetTop(&gs->view), msGetTop(&gs->proj), (Vector2*)&c2);
+	drawTerrainBlock(gs->terrain, msGetTop(&gs->model), msGetTop(&gs->view), msGetTop(&gs->proj), &gs->cursorPos);
 	
 	
 	msPop(&gs->model);
@@ -544,7 +544,7 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	glDrawArrays(GL_TRIANGLES, 0, strRI->vertexCnt);
 	glexit("text drawing");
 	
-		
+	
 	
 }
 
@@ -569,25 +569,49 @@ void shadingPass(GameState* gs) {
 	glexit("shading tex 5");
 	glBindTexture(GL_TEXTURE_2D, gs->depthTexBuffer);
 	glexit("shading tex 6");
+	glActiveTexture(GL_TEXTURE0 + 9);
+	glexit("shading tex 5");
+	glBindTexture(GL_TEXTURE_2D, gs->selectionTexBuffer);
+	glexit("shading tex 6");
 	
 	glUniform1i(glGetUniformLocation(shadingProg->id, "debugMode"), gs->debugMode);
 	glUniform1i(glGetUniformLocation(shadingProg->id, "sDiffuse"), 6);
 	glUniform1i(glGetUniformLocation(shadingProg->id, "sNormals"), 7);
 	glUniform1i(glGetUniformLocation(shadingProg->id, "sDepth"), 8);
+ 	glUniform1i(glGetUniformLocation(shadingProg->id, "sSelection"), 9);
 	glexit("shading samplers");
 	
 	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "world"), 1, GL_FALSE, world.m);
 	glexit("shading world");
-
-// 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glerr("clearing");
 
 	
 	drawFSQuad();
 	glexit("post quad draw");
 }
 
-
+void checkCursor(GameState* gs, InputState* is) {
+	
+	unsigned short rgb[4];
+	
+	glReadBuffer(GL_COLOR_ATTACHMENT2);
+	glexit("selection buff");
+	glReadPixels(
+		is->cursorPosPixels.x,
+		is->cursorPosPixels.y,
+		1,
+		1,
+		GL_RGB_INTEGER,
+		GL_SHORT,
+		&rgb);
+	glexit("read selection");
+	
+	gs->cursorPos.x = rgb[0];
+	gs->cursorPos.y = rgb[1];
+	
+	printf("mx: %d, my: %d, x: %d, y: %d\n", (int)is->cursorPosPixels.x, (int)is->cursorPosPixels.y, rgb[0], rgb[1]);
+	
+	
+}
 
 
 void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
@@ -602,36 +626,18 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	
 	// draw to the g-buffer
 	glBindFramebuffer(GL_FRAMEBUFFER, gs->framebuffer);
-// 	glClearDepth(0) ;
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 	renderFrame(xs, gs, is);
-	
-	
-	float pixels[600*600];
- 
-// 	glReadPixels(
-// 		0,
-// 		0,
-// 		600,
-// 		600,
-// 		GL_DEPTH_COMPONENT,
-// 		GL_FLOAT,
-// 		pixels);
-//  int i ,j;
-// 	for (  i = 0; i < 600; ++i)
-// 	{
-// 		for (  j = 0; j < 600; ++j )
-// 		{
-// 			float pixel = pixels[(600 * i) + j];
-// 			if(pixel != 1.0) printf("%d,%d: %f\n", i, j, pixel);
-// 		}
-// 	}
-	//printf("%d,%d: %f\n", 300,300, pixels[(300*600) + 300]);
-	// draw to the screen
+
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-// 	glBindFramebuffer(GL_READ_FRAMEBUFFER, gs->framebuffer);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, gs->framebuffer);
+	
+	checkCursor(gs, is);
+	
+	// draw to the screen
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	
 	
 	shadingPass(gs);
 	

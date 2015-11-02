@@ -15,9 +15,10 @@ const vec2 eye = vec2(500,500);
 
 layout(location = 0) out vec4 out_Color;
 layout(location = 1) out vec4 out_Normal;
+layout(location = 2) out ivec4 out_Selection;
 
 #define UNIT (1.0/1024.0)
-#define HALFUNIT 20
+#define HALFUNIT .5
 
 uniform sampler2D sBaseTex;
 
@@ -32,7 +33,7 @@ void main(void) {
 	float qn = mod(texCoord.x * 1024, scaleNear) / scaleNear;
 	float rn = mod(texCoord.y * 1024, scaleNear) / scaleNear;
 	
-	float d = distance(t_tile, eye);
+	float d = distance(t_tile, cursorPos);
 	if(d < 200) {
 		float s = clamp((d - 190) / 10, 0.0, 1.0);
 		q = mix(qn , q, s);
@@ -54,8 +55,9 @@ void main(void) {
  	bool incy = t_tile.y > cursorPos.y - HALFUNIT && t_tile.y < cursorPos.y + HALFUNIT;
  	
 	//float distToCursor = length(gl_TessCoord.xy - cursorPos);
-	vec4 cursorIntensity = (incx && incy ) ? vec4(0,0,0, 1.0) : vec4(1,1,1,1) ;//0 cursorRad - exp2(-1.0*distToCursor*distToCursor);
+	vec4 cursorIntensity = (incx && incy ) ? vec4(0,1.0,1.0, 1.0) : vec4(1,1,1,1) ;//0 cursorRad - exp2(-1.0*distToCursor*distToCursor);
 	
+	out_Selection = ivec4(floor(texCoord.x * 1024), floor(texCoord.y * 1024) , 1, 1);
 	out_Normal = vec4(te_normal.xyz, 1);
 	out_Color = tc * cursorIntensity * vec4(min(min(ei1, ei2), min(ei3, ei4)), 0,0,1).rrra; //(1.0, 0, .5, .6);
 }

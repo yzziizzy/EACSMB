@@ -172,13 +172,26 @@ void processEvents(XStuff* xs, InputState* st, int max_events) {
 	int evcnt;
 	int x, y;
 	float fx, fy;
+
+	int rootX, rootY, clientX, clientY;
+	Window rootReturn, clientReturn;
+	unsigned int mouseMask;
+
 	
 	if(max_events <= 0) max_events = INT_MAX;
 	
 	// bottleneck :) 
 	clearInputState(st);
 	
-	
+	if(XQueryPointer(xs->display, xs->clientWin, &rootReturn, &clientReturn, &rootX, &rootY, &clientX, &clientY, &mouseMask)) {
+		if(xs->winAttr.height > 0 && xs->winAttr.width > 0) {
+			st->cursorPosPixels.x = clientX;
+			st->cursorPosPixels.y = xs->winAttr.height - clientY;
+		
+			st->cursorPos.x = clientX / xs->winAttr.width;
+			st->cursorPos.y = 1.0 - (clientY / xs->winAttr.height); // opengl is inverted to X
+		}
+	}
 	
 	for(evcnt = 0; XPending(xs->display) && evcnt < max_events; evcnt++) {
 		XNextEvent(xs->display, &xev);

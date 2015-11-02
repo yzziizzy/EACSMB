@@ -51,7 +51,7 @@ void initTerrain() {
 	};
 	
 	
-	cnoise = loadBitmapTexture("./assets/textures/colornoise.png");
+	cnoise = loadBitmapTexture("./assets/textures/grass_texture-256.png");
 	
 	
 	glerr("clearing before terrain program load");
