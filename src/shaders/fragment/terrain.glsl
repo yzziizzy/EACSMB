@@ -11,6 +11,8 @@ in vec2 texCoord;
 in vec2 t_tile;
 in vec4 te_normal;
 
+const vec2 eye = vec2(500,500);
+
 layout(location = 0) out vec4 out_Color;
 layout(location = 1) out vec4 out_Normal;
 
@@ -19,18 +21,29 @@ layout(location = 1) out vec4 out_Normal;
 
 uniform sampler2D sBaseTex;
 
-void main(void)
-{
-	float q = mod(texCoord.x * 1024, 128);
-	float r = mod(texCoord.y * 1024, 128);
+void main(void) {
 	
- 	float nearD = min(q,r);
-// 	float nearD = mod(tile.x, 256);
-// 	float edgeIntensity = exp2(-1.0*nearD*nearD);
+	float scaleNear = 64;
+	float scaleFar = 128;
 	
-	float edgeIntensity = 1.0 - exp2(-1.0*nearD*nearD);
-	float edgeIntensity2 = exp2(-1.0*nearD*nearD);
+	float q = mod(texCoord.x * 1024, scaleFar) / scaleFar;
+	float r = mod(texCoord.y * 1024, scaleFar) / scaleFar;
 	
+	float qn = mod(texCoord.x * 1024, scaleNear) / scaleNear;
+	float rn = mod(texCoord.y * 1024, scaleNear) / scaleNear;
+	
+	float d = distance(t_tile, eye);
+	if(d < 200) {
+		float s = clamp((d - 190) / 10, 0.0, 1.0);
+		q = mix(qn , q, s);
+		r = mix(rn , r, s);
+	}
+	
+	
+	float ei1 = smoothstep(0.0, 0.01, q);
+	float ei2 = 1.0 - smoothstep(0.99, 1.0, q);
+	float ei3 = smoothstep(0.0, 0.01, r);
+	float ei4 = 1.0 - smoothstep(0.99, 1.0, r);
 	
 	//out_Color = vec4(t_tile.x, t_tile.y,1 ,1.0);
 	
@@ -42,9 +55,7 @@ void main(void)
  	
 	//float distToCursor = length(gl_TessCoord.xy - cursorPos);
 	vec4 cursorIntensity = (incx && incy ) ? vec4(0,0,0, 1.0) : vec4(1,1,1,1) ;//0 cursorRad - exp2(-1.0*distToCursor*distToCursor);
-	out_Normal = vec4(te_normal.xyz, 1);
-	out_Color = tc * cursorIntensity * max(edgeIntensity,edgeIntensity2); //(1.0, 0, .5, .6);
-// 	out_Color = vec4(tc.rgb, 1.0); //ex_Color; //(1.0, 0, .5, .6);
-	//gl_FragDepth = texCoord.x;
 	
+	out_Normal = vec4(te_normal.xyz, 1);
+	out_Color = tc * cursorIntensity * vec4(min(min(ei1, ei2), min(ei3, ei4)), 0,0,1).rrra; //(1.0, 0, .5, .6);
 }
