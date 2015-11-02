@@ -9,9 +9,10 @@ uniform vec2 cursorPos;
 in vec4 ex_Color;
 in vec2 texCoord;
 in vec2 t_tile;
+in vec4 te_normal;
 
-out vec4 out_Color;
-
+layout(location = 0) out vec4 out_Color;
+layout(location = 1) out vec4 out_Normal;
 
 #define UNIT (1.0/1024.0)
 #define HALFUNIT 20
@@ -41,8 +42,9 @@ void main(void)
  	
 	//float distToCursor = length(gl_TessCoord.xy - cursorPos);
 	vec4 cursorIntensity = (incx && incy ) ? vec4(0,0,0, 1.0) : vec4(1,1,1,1) ;//0 cursorRad - exp2(-1.0*distToCursor*distToCursor);
- 	
+	out_Normal = vec4(te_normal.xyz, 1);
 	out_Color = tc * cursorIntensity * max(edgeIntensity,edgeIntensity2); //(1.0, 0, .5, .6);
 // 	out_Color = vec4(tc.rgb, 1.0); //ex_Color; //(1.0, 0, .5, .6);
+	//gl_FragDepth = texCoord.x;
 	
 }

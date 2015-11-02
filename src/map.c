@@ -220,10 +220,10 @@ TerrainBlock* allocTerrainBlock(int cx, int cy) {
 	int x, y;
 	for(y = 0; y < TERR_TEX_SZ ; y++) {
 		for(x = 0; x < TERR_TEX_SZ ; x++) {
-			tb->zs[x + (y * TERR_TEX_SZ)] = sin(x * .1) * .1;
-			//float f = PerlinNoise_2D(x / 512.0, y / 512.0, .1, 6); // slow-ass function, disable except for noise testing
+			//tb->zs[x + (y * TERR_TEX_SZ)] = sin(x * .1) * .1;
+			float f = PerlinNoise_2D(x / 512.0, y / 512.0, .1, 6); // slow-ass function, disable except for noise testing
 // 			printf("[%d,%d] %f\n", x,y,f);
-			//tb->zs[x + (y * TERR_TEX_SZ)] = fabs(f * 4);
+			tb->zs[x + (y * TERR_TEX_SZ)] = fabs(f * 4);
 		}
 	}
 	
@@ -275,6 +275,8 @@ void drawTerrainBlock(TerrainBlock* tb, Matrix* mModel, Matrix* mView, Matrix* m
 	glUseProgram(terrProg->id);
 	glexit("using terrain program");
 	
+	glEnable(GL_DEPTH_TEST);
+	
 	glUniformMatrix4fv(model_ul, 1, GL_FALSE, mModel->m);
 	glUniformMatrix4fv(view_ul, 1, GL_FALSE, mView->m);
 	glUniformMatrix4fv(proj_ul, 1, GL_FALSE, mProj->m);
@@ -316,6 +318,38 @@ void drawTerrainBlock(TerrainBlock* tb, Matrix* mModel, Matrix* mView, Matrix* m
 	glBindBuffer(GL_ARRAY_BUFFER, patchVBO);
 	glDrawArrays(GL_PATCHES, 0, totalPatches * totalPatches * 4);
 	glerr("drawing");
+	
+	
+}
+
+
+// interpreted as a vertical projection of the quad
+void genDecalMesh(Quad* q, float zOffset) {
+	int x, y, mx, my;
+	Vector2 min, max;
+	
+	min.x = fmin(fmin(q->v[0].x, q->v[1].x), fmin(q->v[0].x, q->v[1].x));
+	min.y = fmin(fmin(q->v[0].y, q->v[1].y), fmin(q->v[0].y, q->v[1].y));
+	max.x = fmax(fmax(q->v[0].x, q->v[1].x), fmax(q->v[0].x, q->v[1].x));
+	max.y = fmax(fmax(q->v[0].y, q->v[1].y), fmax(q->v[0].y, q->v[1].y));
+	
+	mx = ceil(max.x);
+	my = ceil(max.y);
+	
+	// step 1: duplicate a mesh of all tiles the quad overlaps
+	for(y = floor(min.y); y <= my; y++) {
+		for(x = floor(min.y); x <= mx; x++) {
+			
+			
+			
+			
+		}
+	}
+	
+	
+	// step 2: slice off any parts outside the quad
+	
+	
 	
 	
 }

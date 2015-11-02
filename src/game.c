@@ -34,6 +34,8 @@ Matrix mProj, mView, mModel;
 
 float angle, zoom;
 
+double nearPlane = 300;
+double farPlane = 1700;
 
 
 // temp shit
@@ -120,11 +122,38 @@ GLuint initTexBufferRGBA(int w, int h) {
 	return initTexBuffer(w, h, GL_RGB, GL_RGB, GL_UNSIGNED_BYTE);
 }
 GLuint initTexBufferDepth(int w, int h) {
-	return initTexBuffer(w, h, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
+	//GLuint id = initTexBuffer(w, h, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
+
+		GLuint id;
+	
+	glGenTextures(1, &id);
+	glBindTexture(GL_TEXTURE_2D, id);
+		glexit(" -- tex buffer creation");
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
+	glexit("a pre tex buffer creation");
+	//glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_RED);
+	
+// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+
+	glexit("b pre tex buffer creation");
+//	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, w, h, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
+ 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, w, h, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glexit("tex buffer creation");
+	
+
+	//glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_LUMINANCE);
+	return id;
 }
 
 void initGame(XStuff* xs, GameState* gs) {
 	int ww, wh;
+	
+	gs->debugMode = 0;
 	
 	glerr("left over error on game init");
 	
@@ -159,14 +188,15 @@ glexit("here");
 	glexit("fbo creation");
 	
 	// The depth buffer
-	
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gs->diffuseTexBuffer, 0); 
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gs->normalTexBuffer, 0);  
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, gs->depthTexBuffer, 0);  
+ 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, gs->depthTexBuffer, 0);  
 	glexit("fb tex2d");
 	
+//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, gs->depthTexBuffer, 0);
+	
 	GLenum DrawBuffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
-	glDrawBuffers(1, DrawBuffers);
+	glDrawBuffers(2, DrawBuffers);
 	glexit("drawbuffers");
 	
 	GLenum status;
@@ -219,8 +249,9 @@ glexit("here");
 	
 	
 	// perspective matrix, pretty standard
-	msPerspective(60, 1.0, 0.0001f, 10.0f, proj);
-	
+// 	msPerspective(60, 1.0, 01000.0f, 100000.0f, proj);
+// 		msOrtho(0, 1, 0, 1, .01, 100000, proj);
+
 	gs->zoom = -960.0;
 	gs->direction = 0.0;
 	angle = 0.2;
@@ -346,6 +377,31 @@ void handleInput(GameState* gs, InputState* is) {
 		gs->lookCenter.y -=  250 * te; 
 	}
 	
+	if(is->keyState[110] & IS_KEYDOWN) {
+		nearPlane += 50 * te;
+		printf("near: %f, far: %f\n", nearPlane, farPlane);
+	}
+	if(is->keyState[115] & IS_KEYDOWN) {
+		nearPlane -= 50 * te; 
+		printf("near: %f, far: %f\n", nearPlane, farPlane);
+	}
+	if(is->keyState[112] & IS_KEYDOWN) {
+		farPlane += 250 * te;
+		printf("near: %f, far: %f\n", nearPlane, farPlane);
+	}
+	if(is->keyState[117] & IS_KEYDOWN) {
+		farPlane -= 250 * te; 
+		printf("near: %f, far: %f\n", nearPlane, farPlane);
+	}
+	
+	static lastChange = 0;
+	if(is->keyState[119] & IS_KEYDOWN) {
+		if(gs->frameTime > lastChange + 1) {
+			gs->debugMode = (gs->debugMode + 1) % 4; 
+			lastChange = gs->frameTime;
+		}
+	}
+	
 }
 
 
@@ -364,6 +420,10 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	angle = (rot * 3.14159265358979) / 180 ;
 	//mScale3f(10, 10, 10, &mModel);
 	//mRot3f(0, 1, 0, angle, &mModel);
+	msPush(&gs->proj);
+	msPerspective(60, 1.0, nearPlane, farPlane, &gs->proj);
+
+	
 	msPush(&gs->view);
 	
 	
@@ -442,6 +502,7 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	msPop(&gs->model);
 	msPop(&gs->view);
+	msPop(&gs->proj);
 	
 	glUseProgram(textProg->id);
 	
@@ -504,9 +565,15 @@ void shadingPass(GameState* gs) {
 	glexit("shading tex 3");
 	glBindTexture(GL_TEXTURE_2D, gs->normalTexBuffer);
 	glexit("shading tex 4");
+	glActiveTexture(GL_TEXTURE0 + 8);
+	glexit("shading tex 5");
+	glBindTexture(GL_TEXTURE_2D, gs->depthTexBuffer);
+	glexit("shading tex 6");
 	
+	glUniform1i(glGetUniformLocation(shadingProg->id, "debugMode"), gs->debugMode);
 	glUniform1i(glGetUniformLocation(shadingProg->id, "sDiffuse"), 6);
 	glUniform1i(glGetUniformLocation(shadingProg->id, "sNormals"), 7);
+	glUniform1i(glGetUniformLocation(shadingProg->id, "sDepth"), 8);
 	glexit("shading samplers");
 	
 	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "world"), 1, GL_FALSE, world.m);
@@ -534,14 +601,36 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	// update world state
 	
 	// draw to the g-buffer
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, gs->framebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, gs->framebuffer);
+// 	glClearDepth(0) ;
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 	renderFrame(xs, gs, is);
 	
+	
+	float pixels[600*600];
+ 
+// 	glReadPixels(
+// 		0,
+// 		0,
+// 		600,
+// 		600,
+// 		GL_DEPTH_COMPONENT,
+// 		GL_FLOAT,
+// 		pixels);
+//  int i ,j;
+// 	for (  i = 0; i < 600; ++i)
+// 	{
+// 		for (  j = 0; j < 600; ++j )
+// 		{
+// 			float pixel = pixels[(600 * i) + j];
+// 			if(pixel != 1.0) printf("%d,%d: %f\n", i, j, pixel);
+// 		}
+// 	}
+	//printf("%d,%d: %f\n", 300,300, pixels[(300*600) + 300]);
 	// draw to the screen
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, gs->framebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+// 	glBindFramebuffer(GL_READ_FRAMEBUFFER, gs->framebuffer);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 	shadingPass(gs);

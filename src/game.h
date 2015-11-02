@@ -20,6 +20,8 @@ typedef struct {
 	Vector eyePos;
 	Vector eyeDir;
 	
+	int debugMode;
+	
 	float zoom;
 	float direction;
 	Vector lookCenter;

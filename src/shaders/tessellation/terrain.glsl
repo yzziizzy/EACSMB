@@ -14,6 +14,8 @@ uniform mat4 mModel;
 
 uniform vec2 winSize;
 
+const vec2 size = vec2(2,0.0);
+const ivec3 off = ivec3(-1,0,1);
 
 
 
@@ -21,7 +23,7 @@ out vec4 ex_Color;
 out vec2 texCoord;
 // out vec2 cursorTexCoord;
 out vec2 t_tile;
-
+out vec4 te_normal;
 
 void main(void){
 
@@ -38,18 +40,27 @@ void main(void){
 	vec2 tltmp = mix(tlp1, tlp2, gl_TessCoord.y);
 	
 	
-// 	vec2 u = mix(te_tex[1],  
+	float t = texture2D(sHeightMap, ttmp.xy, 0);
 	
- 	float t = texture2D(sHeightMap, ttmp.xy, 0);
+	// normals. remember that z is still up at this point
+	float xm1 = textureOffset(sHeightMap, ttmp.xy, off.xy).x;
+	float xp1 = textureOffset(sHeightMap, ttmp.xy, off.zy).x;
+	float ym1 = textureOffset(sHeightMap, ttmp.xy, off.yx).x;
+	float yp1 = textureOffset(sHeightMap, ttmp.xy, off.yz).x;
+
+	float sx = (xp1 - xm1);
+	float sy = (yp1 - ym1);
+
+	te_normal = normalize(vec4(sx*32, sy*32 ,1.0,1.0));
 	
+
 	tmp.z = t * .05; // .01 *  sin(gl_TessCoord.y*12) + .01 *sin(gl_TessCoord.x*12);
-	
-	vec3 tang = gl_in[0].gl_Position.xyz - gl_in[1].gl_Position.xyz;
-	vec3 bita = gl_in[0].gl_Position.xyz - gl_in[2].gl_Position.xyz;
-	
-	vec3 cnorm = cross(tang, bita);
-	 
-	vec4 norm = vec4(normalize(cnorm).xyz, 1.0);
+
+// old normals
+// 	vec3 tang = gl_in[0].gl_Position.xyz - gl_in[1].gl_Position.xyz;
+// 	vec3 bita = gl_in[0].gl_Position.xyz - gl_in[2].gl_Position.xyz;
+// 	vec3 cnorm = cross(tang, bita);
+// 	vec4 norm = vec4(normalize(cnorm).xyz, 1.0);
 	
 	//tmp = tmp + (norm * sin(gl_TessCoord.y*4));
 	
@@ -64,6 +75,7 @@ void main(void){
 //  	ex_Color = vec4(gl_TessCoord.x, gl_TessCoord.y, .3, 1.0);
 	ex_Color = vec4(ttmp.xy, .3, 1.0);
 	texCoord = ttmp; //gl_TessCoord.xy;
+	
 	
 	
 	
