@@ -8,6 +8,8 @@ uniform sampler2D sSelection;
 
 uniform int debugMode;
 
+uniform vec3 sunNormal;
+
 out vec4 FragColor;
 
 void main() {
@@ -15,7 +17,10 @@ void main() {
 	
 	if(debugMode == 0) {
 		// normal rendering
-		FragColor = vec4(texture(sDiffuse, tex).rgb,  1.0);
+		vec3 d = texture(sDiffuse, tex).rgb;
+		vec3 amb = d * vec3(.2,.2,.45);
+		vec3 sun = d * vec3(1.5, 1.0, .9) * dot(sunNormal, texture(sNormals, tex).xyz);
+		FragColor = vec4(amb + sun,  1.0);
 
 	}
 	else if(debugMode == 1) {

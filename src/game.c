@@ -430,7 +430,11 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	//mModel = IDENT_MATRIX;
 	
-
+	
+	 
+	gs->sunNormal.x = cos(gs->frameTime * .5);
+	gs->sunNormal.y = sin(gs->frameTime * .5);
+	gs->sunNormal.z = 0.0;
 	
 	
 	angle = (rot * 3.14159265358979) / 180 ;
@@ -593,6 +597,8 @@ void shadingPass(GameState* gs) {
 	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "world"), 1, GL_FALSE, world.m);
 	glexit("shading world");
 
+	glUniform3fv(glGetUniformLocation(shadingProg->id, "sunNormal"), 1, &gs->sunNormal);
+	
 	
 	drawFSQuad();
 	glexit("post quad draw");

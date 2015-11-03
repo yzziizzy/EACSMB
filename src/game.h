@@ -31,7 +31,7 @@ typedef struct {
 	
 	float timeOfDay; // radians of earth spin. 0 = midnight, pi/2 = morning
 	// need time of year for sun angle
-	Vector sunPos;
+	Vector sunNormal;
 	
 	double frameTime; // ever incrementing time of the this frame
 	double frameSpan; // the length of this frame, since last frame

@@ -17,15 +17,15 @@ layout(location = 0) out vec4 out_Color;
 layout(location = 1) out vec4 out_Normal;
 layout(location = 2) out ivec4 out_Selection;
 
-#define UNIT (1.0/1024.0)
+#define UNIT 1
 #define HALFUNIT .5
 
 uniform sampler2D sBaseTex;
 
 void main(void) {
 	
-	float scaleNear = 64;
-	float scaleFar = 128;
+	float scaleNear = 4;
+	float scaleFar = 32;
 	
 	float q = mod(texCoord.x * 1024, scaleFar) / scaleFar;
 	float r = mod(texCoord.y * 1024, scaleFar) / scaleFar;
@@ -51,13 +51,13 @@ void main(void) {
  	
  	vec4 tc = texture2D(sBaseTex, texCoord);
  	
- 	bool incx = t_tile.x > cursorPos.x - HALFUNIT && t_tile.x < cursorPos.x + HALFUNIT;
- 	bool incy = t_tile.y > cursorPos.y - HALFUNIT && t_tile.y < cursorPos.y + HALFUNIT;
+ 	bool incx = t_tile.x > cursorPos.x && t_tile.x < cursorPos.x + UNIT;
+ 	bool incy = t_tile.y > cursorPos.y && t_tile.y < cursorPos.y + UNIT;
  	
 	//float distToCursor = length(gl_TessCoord.xy - cursorPos);
 	vec4 cursorIntensity = (incx && incy ) ? vec4(0,1.0,1.0, 1.0) : vec4(1,1,1,1) ;//0 cursorRad - exp2(-1.0*distToCursor*distToCursor);
 	
-	out_Selection = ivec4(floor(texCoord.x * 1024), floor(texCoord.y * 1024) , 1, 1);
+	out_Selection = ivec4(floor(t_tile.x), floor(t_tile.y) , 1, 1);
 	out_Normal = vec4(te_normal.xyz, 1);
 	out_Color = tc * cursorIntensity * vec4(min(min(ei1, ei2), min(ei3, ei4)), 0,0,1).rrra; //(1.0, 0, .5, .6);
 }
