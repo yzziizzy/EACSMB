@@ -154,6 +154,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	int ww, wh;
 	
 	gs->debugMode = 0;
+	gs->sunSpeed = 0;
 	
 	glerr("left over error on game init");
 	
@@ -354,6 +355,20 @@ void handleInput(GameState* gs, InputState* is) {
 	double te = gs->frameSpan;
 	
 	
+	if(is->clickButton == 1) {
+		
+		flattenArea(gs->terrain, 
+			gs->cursorPos.x - 5,
+			gs->cursorPos.y - 5,
+			gs->cursorPos.x + 5,
+			gs->cursorPos.y + 5
+		);
+		
+		
+		checkTerrainDirty(gs->terrain);
+	}
+	
+	
 	// look direction
 	if(is->keyState[38] & IS_KEYDOWN) {
 		rot +=  20.8 * te;
@@ -432,8 +447,8 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	
 	 
-	gs->sunNormal.x = cos(gs->frameTime * .5);
-	gs->sunNormal.y = sin(gs->frameTime * .5);
+	gs->sunNormal.x = cos(gs->frameTime * gs->sunSpeed);
+	gs->sunNormal.y = sin(gs->frameTime * gs->sunSpeed);
 	gs->sunNormal.z = 0.0;
 	
 	
@@ -625,7 +640,7 @@ void checkCursor(GameState* gs, InputState* is) {
 	
 // 	printf("mx: %d, my: %d, x: %d, y: %d\n", (int)is->cursorPosPixels.x, (int)is->cursorPosPixels.y, rgb[0], rgb[1]);
 	
-	if(is->clickButton == 3) {
+	if(is->clickButton == 3 && rgb[2] == 1) {
 		gs->lookCenter.x = gs->cursorPos.x;
 		gs->lookCenter.y = gs->cursorPos.y;
 	}

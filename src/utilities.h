@@ -10,6 +10,12 @@ void glexit(char* msg);
 char* glerr(char* msg);
 
 
+// yeah yeah double evaluation. i'm only using them with variables and constants so shut up.
+#define MAX(a,b) ((a) > (b) ?  (a) : (b))
+#define MIN(a,b) ((a) < (b) ?  (a) : (b))
+#define MAXE(a,b) ((a) >= (b) ?  (a) : (b))
+#define MINE(a,b) ((a) <= (b) ?  (a) : (b))
+
 
 
 

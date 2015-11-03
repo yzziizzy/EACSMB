@@ -55,7 +55,7 @@ void main(void) {
  	bool incy = t_tile.y > cursorPos.y && t_tile.y < cursorPos.y + UNIT;
  	
 	//float distToCursor = length(gl_TessCoord.xy - cursorPos);
-	vec4 cursorIntensity = (incx && incy ) ? vec4(0,1.0,1.0, 1.0) : vec4(1,1,1,1) ;//0 cursorRad - exp2(-1.0*distToCursor*distToCursor);
+	vec4 cursorIntensity = (incx && incy ) ? vec4(0,10.0,10.0, 1.0) : vec4(1,1,1,1) ;//0 cursorRad - exp2(-1.0*distToCursor*distToCursor);
 	
 	out_Selection = ivec4(floor(t_tile.x), floor(t_tile.y) , 1, 1);
 	out_Normal = vec4(te_normal.xyz, 1);

@@ -51,7 +51,7 @@ void initTerrain() {
 	};
 	
 	
-	cnoise = loadBitmapTexture("./assets/textures/grass_texture-256.png");
+	cnoise = loadBitmapTexture("./assets/textures/grass texture3.png");
 	
 	
 	glerr("clearing before terrain program load");
@@ -233,11 +233,35 @@ TerrainBlock* allocTerrainBlock(int cx, int cy) {
 
 
 
+
+void checkTerrainDirty(TerrainBlock* tb) {
+	if(!tb->dirty) return;
+	
+	updateTerrainTexture(tb);
+	tb->dirty = 0;
+}
+
 void updateTerrainTexture(TerrainBlock* tb) {
 	
-	if(!tb->tex) {
-		glGenTextures(1, &tb->tex);
+	if(tb->tex) {
+		printf("updating terrain texture\n");
+		glBindTexture(GL_TEXTURE_2D, tb->tex);
+		
+		glTexSubImage2D(GL_TEXTURE_2D, // target
+			0,  // level, 0 = base, no minimap,
+			0, 0, // offset
+			TERR_TEX_SZ,
+			TERR_TEX_SZ,
+			GL_RED,  // format
+			GL_FLOAT, // input type
+			tb->zs);
+		glerr("updating terrain texture");
+		
+		return;
 	}
+	
+	glGenTextures(1, &tb->tex);
+	printf("tex num: %d \n", tb->tex);
 	glBindTexture(GL_TEXTURE_2D, tb->tex);
 	
 	// we do want mipmaps
@@ -354,16 +378,147 @@ void genDecalMesh(Quad* q, float zOffset) {
 	
 }
 
+#define TCOORD(x,y) ((y * TERR_TEX_SZ) + x)
 
-
-
-void areaStats(AABB2* b) {
+// coordinates are in game tiles. 
+void areaStats(TerrainBlock* tb, int x1, int y1, int x2, int y2, AreaStats* ass) {
+	int x, y, xmin, ymin, xmax, ymax, count;
+	float min, max, total;
 	
-	// min, max, avg heights
+	xmin = MIN(x1, x2);
+	xmax = MAX(x1, x2) + 1;
+	ymin = MIN(y1, y2);
+	ymax = MAX(y1, y2) + 1;
+	
+	xmin = MAX(xmin, 0);
+	ymin = MAX(ymin, 0);
+	xmax = MIN(xmax, TERR_TEX_SZ);
+	ymax = MIN(ymax, TERR_TEX_SZ);
+	
+	min = -999999;
+	max = 999999;
+	total = 0;
+	
+	count = (xmax - xmin + 1) * (ymax - ymin + 1);
+	
+	for(y = ymin; y <= ymax; y++) {
+		for(x = xmin; x <= xmax; x++) {
+			min = fmin(min, tb->zs[TCOORD(x,y)]);
+			max = fmax(max, tb->zs[TCOORD(x,y)]);
+			total += tb->zs[TCOORD(x,y)];
+		}
+	}
+	
+	ass->min = min;
+	ass->max = max;
+	ass->avg = total / count;
+	
+	xmax--;
+	ymax--;
+	// area in x-y plane only
+	ass->areaFlat = (xmax - xmin) * (ymax - ymin);
+	ass->volume = 0;
+	
+	for(y = ymin; y <= ymax; y++) {
+		for(x = xmin; x <= xmax; x++) {
+			float h1 = tb->zs[TCOORD(x,y)];
+			float h2 = tb->zs[TCOORD(x+1,y)];
+			float h3 = tb->zs[TCOORD(x,y+1)];
+			float h4 = tb->zs[TCOORD(x+1,y+1)];
+			
+			/*
+			split the volume in half along the diagonal of the base,
+			leaving two weird prisms.
+			
+			find the lowest vertex of the top of each prism and cut it there,
+			leaving a right triangular prism and an irregular pyramid on its side.
+			the pyramid's base is irregular and created by the plane from step 1.
+			*/
+			
+			float h23min = fmin(h2, h3);
+			float p1min = fmin(h23min, h1);
+			float p2min = fmin(h23min, h4);
+			
+			// each tile is a unit square, so the area of the base of each prism is .5
+			float rtp1_v = p1min * .5;
+			float rtp2_v = p2min * .5;
+			
+			// the base of the pyramid is a trapezoid, height sqrt(2)
+			float p1ba = M_SQRT2 * (((h2 - p1min) + (h3 - p1min)) * .5);
+			float p2ba = M_SQRT2 * (((h2 - p2min) + (h3 - p2min)) * .5);
+			
+			//               height     base area
+			float p1_v = ((M_SQRT2 * .5 * p1ba) / 3.0);  
+			float p2_v = ((M_SQRT2 * .5 * p2ba) / 3.0);  
+			
+			// add it all up
+			ass->volume += p1_v + p2_v + rtp1_v + rtp2_v;
+		}
+	}
 	
 }
 
 
+
+void invalidateTerrain(TerrainBlock *tb, int x1, int y1, int x2, int y2) {
+	int xmin, ymin, xmax, ymax;
+	
+	xmin = MIN(x1, x2);
+	xmax = MAX(x1, x2);
+	ymin = MIN(y1, y2);
+	ymax = MAX(y1, y2);
+	
+	xmin = MAX(xmin, 0);
+	ymin = MAX(ymin, 0);
+	xmax = MIN(xmax, TERR_TEX_SZ - 1);
+	ymax = MIN(ymax, TERR_TEX_SZ - 1);
+	
+	if(!tb->dirty) {
+		tb->dirtyBox.min.x = xmin;
+		tb->dirtyBox.min.y = ymin;
+		tb->dirtyBox.max.x = xmax;
+		tb->dirtyBox.max.y = ymax;
+		
+		tb->dirty = 1;
+		return;
+	}
+	
+	tb->dirtyBox.min.x = MIN(tb->dirtyBox.min.x, xmin); 
+	tb->dirtyBox.min.y = MIN(tb->dirtyBox.min.y, ymin); 
+	tb->dirtyBox.max.x = MAX(tb->dirtyBox.max.x, xmax); 
+	tb->dirtyBox.max.y = MAX(tb->dirtyBox.max.y, ymax); 
+}
+
+
+
+void flattenArea(TerrainBlock *tb, int x1, int y1, int x2, int y2) {
+	int x, y, xmin, ymin, xmax, ymax;
+	AreaStats ass;
+	
+	xmin = MIN(x1, x2);
+	xmax = MAX(x1, x2);
+	ymin = MIN(y1, y2);
+	ymax = MAX(y1, y2);
+	
+	xmin = MAX(xmin, 0);
+	ymin = MAX(ymin, 0);
+	xmax = MIN(xmax, TERR_TEX_SZ - 1);
+	ymax = MIN(ymax, TERR_TEX_SZ - 1);
+	
+	areaStats(tb, x1,y1,x2,y2, &ass);
+	
+	printf("flattening: %d,%d|%d,%d to %f\n",xmin,ymin,xmax,ymax, ass.avg);
+	
+	for(y = ymin; y <= ymax; y++) {
+		for(x = xmin; x <= xmax; x++) {
+			tb->zs[TCOORD(x,y)] = ass.avg;
+		}
+	}
+	
+	invalidateTerrain(tb, x1,y1,x2,y2);
+	
+	
+}
 
 /* complicated premature optimization below
 

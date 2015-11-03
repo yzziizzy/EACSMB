@@ -32,6 +32,10 @@ MapBlock* allocMapBlock(size_t stride, int w, int h);
 // // maximum divisions per patch
 // #define TERR_MAX_TESS 32
 
+
+
+
+
 typedef struct TerrainPatchVertex {
 	float x, y, z;
 	float hmU, hmV; // these are in texels
@@ -43,12 +47,33 @@ typedef struct TerrainBlock {
 	float zs[TERR_TEX_SZ * TERR_TEX_SZ];
 	int cx, cy;
 	AABB2 box;
+	int scale;
+	
+	int dirty;
+	AABB2 dirtyBox;
 	
 	GLuint tex;
 	
 } TerrainBlock;
 
 
+typedef struct TerrainInfo {
+	TerrainBlock* zeroZero;
+	
+	int scale; // how many terrain tiles are along an edge of one game tile. SC3k would be 1.
+	
+	
+	
+} TerrainInfo;
+
+
+typedef struct AreaStats {
+	float min, max;
+	float avg;
+	float areaFlat; // area in x-y plane only
+	float volume; // min is the base
+	
+} AreaStats;
 
 
 void initTerrain(); 
@@ -56,7 +81,10 @@ TerrainBlock* allocTerrainBlock(int cx, int cy);
 void updateTerrainTexture(TerrainBlock* tb);
 
 void drawTerrainBlock(TerrainBlock* tb, Matrix* mModel, Matrix* mView, Matrix* mProj, Vector2* cursor);
+void checkTerrainDirty(TerrainBlock* tb);
+void areaStats(TerrainBlock* tb, int x1, int y1, int x2, int y2, AreaStats* ass);
 
+void flattenArea(TerrainBlock *tb, int x1, int y1, int x2, int y2);
 
 // stuff below is too complicated for now. more knowledge is needed about the game to proceed.
 
