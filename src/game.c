@@ -45,7 +45,7 @@ Matrix textProj, textModel;
 TextRenderInfo* strRI;
 Texture* cnoise;
 
-MapBlock* map;
+// MapBlock* map;
 // TerrainBlock* terrain;
 
 GLuint fsQuadVAO, fsQuadVBO;
@@ -234,6 +234,11 @@ glexit("here");
 	getPrintGLEnum(GL_MAX_FRAMEBUFFER_HEIGHT, "meh");
 	getPrintGLEnum(GL_MAX_FRAMEBUFFER_LAYERS, "meh");
 	getPrintGLEnum(GL_MAX_FRAMEBUFFER_SAMPLES, "meh");
+	getPrintGLEnum(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS, "meh");
+	getPrintGLEnum(GL_MAX_TESS_EVALUATION_TEXTURE_IMAGE_UNITS, "meh");
+	getPrintGLEnum(GL_MAX_GEOMETRY_TEXTURE_IMAGE_UNITS, "meh");
+	getPrintGLEnum(GL_MAX_TEXTURE_IMAGE_UNITS, "meh");
+	getPrintGLEnum(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, "meh");
 	
 	
 	// set up matrix stacks
@@ -268,12 +273,8 @@ glexit("here");
 	
 	
 	// initialize all those magic globals
-	initTerrain();
-	
-
-	
-	gs->terrain = allocTerrainBlock(0, 0);
-	updateTerrainTexture(gs->terrain);
+	initMap(&gs->map);
+	updateTerrainTexture(gs->map.tb);
 	
 
 	// text rendering stuff
@@ -357,15 +358,23 @@ void handleInput(GameState* gs, InputState* is) {
 	
 	if(is->clickButton == 1) {
 		
-		flattenArea(gs->terrain, 
+		flattenArea(gs->map.tb, 
 			gs->cursorPos.x - 5,
 			gs->cursorPos.y - 5,
 			gs->cursorPos.x + 5,
 			gs->cursorPos.y + 5
 		);
 		
+		setZone(&gs->map, 
+			gs->cursorPos.x - 5,
+			gs->cursorPos.y - 5,
+			gs->cursorPos.x + 5,
+			gs->cursorPos.y + 5,
+			1
+		);
 		
-		checkTerrainDirty(gs->terrain);
+		
+		checkMapDirty(&gs->map);
 	}
 	
 	
@@ -525,7 +534,7 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	
 	// draw terrain
-	drawTerrainBlock(gs->terrain, msGetTop(&gs->model), msGetTop(&gs->view), msGetTop(&gs->proj), &gs->cursorPos);
+	drawTerrainBlock(&gs->map, msGetTop(&gs->model), msGetTop(&gs->view), msGetTop(&gs->proj), &gs->cursorPos);
 	
 	
 	msPop(&gs->model);
@@ -612,7 +621,7 @@ void shadingPass(GameState* gs) {
 	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "world"), 1, GL_FALSE, world.m);
 	glexit("shading world");
 
-	glUniform3fv(glGetUniformLocation(shadingProg->id, "sunNormal"), 1, &gs->sunNormal);
+	glUniform3fv(glGetUniformLocation(shadingProg->id, "sunNormal"), 1, (float*)&gs->sunNormal);
 	
 	
 	drawFSQuad();

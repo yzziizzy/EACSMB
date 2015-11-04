@@ -1,15 +1,16 @@
  
-#version 400
+#version 420
 
 
 // fragment shader
 uniform vec2 cursorPos;
 // uniform float cursorRad;
 
-in vec4 ex_Color;
+// in vec4 ex_Color;
 in vec2 texCoord;
 in vec2 t_tile;
 in vec4 te_normal;
+
 
 const vec2 eye = vec2(500,500);
 
@@ -21,8 +22,15 @@ layout(location = 2) out ivec4 out_Selection;
 #define HALFUNIT .5
 
 uniform sampler2D sBaseTex;
+uniform isampler2DArray sMap; // 0 = zones, 1 = surfaceTex
+uniform sampler1D sZoneColors;
 
 void main(void) {
+	
+	ivec2 tile = ivec2(floor(texCoord * 1024));
+	
+	int zoneIndex = texelFetch(sMap, ivec3(tile.xy,0), 0).r;
+	vec4 zoneColor = texelFetch(sZoneColors, zoneIndex, 0);
 	
 	float scaleNear = 4;
 	float scaleFar = 32;
@@ -50,6 +58,7 @@ void main(void) {
 	
  	
  	vec4 tc = texture2D(sBaseTex, texCoord);
+//  	vec4 tc = vec4(texture(sMap, vec3(texCoord, 1)).rgb * 128, 1.0);
  	
  	bool incx = t_tile.x > cursorPos.x && t_tile.x < cursorPos.x + UNIT;
  	bool incy = t_tile.y > cursorPos.y && t_tile.y < cursorPos.y + UNIT;
@@ -59,5 +68,5 @@ void main(void) {
 	
 	out_Selection = ivec4(floor(t_tile.x), floor(t_tile.y) , 1, 1);
 	out_Normal = vec4(te_normal.xyz, 1);
-	out_Color = tc * cursorIntensity * vec4(min(min(ei1, ei2), min(ei3, ei4)), 0,0,1).rrra; //(1.0, 0, .5, .6);
+	out_Color =  zoneColor * tc * cursorIntensity * vec4(min(min(ei1, ei2), min(ei3, ei4)), 0,0,1).rrra; //(1.0, 0, .5, .6);
 }

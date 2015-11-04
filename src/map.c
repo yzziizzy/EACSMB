@@ -22,6 +22,7 @@
 static GLuint patchVAO;
 static GLuint patchVBO;
 static GLuint proj_ul, view_ul, model_ul, heightmap_ul, winsize_ul, basetex_ul; 
+static GLuint map_ul, zoneColors_ul; 
 static totalPatches;
 Texture* cnoise;
 
@@ -31,6 +32,53 @@ ShaderProgram* terrProg;
 
 GLuint MaxPatchVertices;
 GLuint MaxTessGenLevel;
+
+
+
+void initMap(MapInfo* mi) {
+	
+	initTerrain();
+	
+	mi->tb = allocTerrainBlock(0, 0);
+	mi->mb = allocMapBlock(0, 0);
+	
+	
+	// zone stuff
+	memset(&mi->zoneColors, 0, 256);
+	
+	// TODO: load zone colors
+	mi->zoneColors[0] = 0xFFFFFFFF;
+	mi->zoneColors[1] = 0xFFFF00FF;
+	mi->zoneColors[2] = 0xFFFF0000;
+	
+	glGenTextures(1, &mi->zoneColorTex);
+	glBindTexture(GL_TEXTURE_1D, mi->zoneColorTex);
+	
+// 	glTexParameteri(GL_TEXTURE_1D, GL_GENERATE_MIPMAP, GL_FALSE);
+	
+	// need to switch to nearest later on 
+	glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+// 	glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+
+	// squash the data in
+	glPixelStorei(GL_PACK_ALIGNMENT, 1);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+	glTexImage1D(GL_TEXTURE_1D, // target
+		0,  // level, 0 = base, no minimap,
+		GL_RGBA8, // internalformat
+		256,
+		0,  // border
+		GL_RGBA,  // format
+		GL_UNSIGNED_BYTE, // input type
+		mi->zoneColors);
+	
+	glerr("zone color map");
+	
+}
+
 
 
 void initTerrain() {
@@ -70,6 +118,11 @@ void initTerrain() {
 	glerr("terrain uniform loc tex");
 	winsize_ul = glGetUniformLocation(terrProg->id, "winSize");
 	glerr("terrain uniform loc ws");
+	zoneColors_ul = glGetUniformLocation(terrProg->id, "sZoneColors");
+	glerr("terrain uniform loc ws");
+	map_ul = glGetUniformLocation(terrProg->id, "sMap");
+	glerr("terrain uniform loc ws");
+
 
 	
 	
@@ -103,13 +156,6 @@ void initTerrain() {
 			pv->divY = iy * MaxTessGenLevel;
 			pv++;
 			
-// 			printf("divx: %d\n", iy * tlY);
-			
-	//		printf("u %f, v %f\n",
-	//			baseTexUV + (ix * MaxTessGenLevel * sideUnit),
-	//			baseTexUV + (iy * MaxTessGenLevel * sideUnit)
-	//		);
-
 			pv->x = (ix * wpSide);
 			pv->y = ((iy+1) * wpSide);
 			pv->z = 0;
@@ -138,9 +184,6 @@ void initTerrain() {
 			pv++;
 		}
 	}
-	
-	
-	
 	
 	
 // 	GLuint tp_ul = glGetUniformLocation(textProg->id, "mProj");
@@ -177,24 +220,11 @@ void initTerrain() {
 
 
 
-MapBlock* allocMapBlock(size_t stride, int w, int h) {
+MapBlock* allocMapBlock(int llx, int lly) {
 	
 	
-	MapBlock* b = malloc(sizeof(MapBlock));
+	MapBlock* b = calloc(sizeof(MapBlock), 1);
 	
-	b->data[0] = malloc(w * h * stride * 2);
-	b->data[1] = b->data[0] + (w * h * stride);
-	
-	b->stride = stride;
-	b->width = w;
-	b->height = h;
-	
-	b->near[0][0] = NULL;
-	b->near[0][1] = NULL;
-	b->near[1][0] = NULL;
-	b->near[1][1] = NULL;
-	
-	b->description = NULL;
 	
 	return b;
 }
@@ -210,6 +240,8 @@ TerrainBlock* allocTerrainBlock(int cx, int cy) {
 	
 	tb->cx = cx;
 	tb->cy = cy;
+	
+	// BUG: probably wrong
 	tb->box.min.x = cx - (TERR_BLOCK_SZ / 2);
 	tb->box.max.x = cx + (TERR_BLOCK_SZ / 2);
 	tb->box.min.y = cy - (TERR_BLOCK_SZ / 2);
@@ -234,17 +266,81 @@ TerrainBlock* allocTerrainBlock(int cx, int cy) {
 
 
 
-void checkTerrainDirty(TerrainBlock* tb) {
-	if(!tb->dirty) return;
+void checkMapDirty(MapInfo* mi) {
+	if(mi->mb->dirtyZone || mi->mb->dirtySurface) {
+		updateMapTextures(mi->mb);
+		mi->mb->dirtyZone = 0;
+		mi->mb->dirtySurface = 0;
+	}
 	
-	updateTerrainTexture(tb);
-	tb->dirty = 0;
+	if(mi->tb->dirty) {
+		updateTerrainTexture(mi->tb);
+		mi->tb->dirty = 0;
+	}
 }
+
+
+void updateMapTextures(MapBlock* mb) {
+	if(!mb->tex) {
+		
+		glGenTextures(1, &mb->tex);
+		glBindTexture(GL_TEXTURE_2D_ARRAY, mb->tex);
+		glexit("failed to create map textures b");
+		
+// 		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_GENERATE_MIPMAP, GL_FALSE);
+		glexit("failed to create map textures c");
+
+		glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		
+		glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+// 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE); 
+		glexit("failed to create map textures a");
+		
+		// squash the data in
+		glPixelStorei(GL_PACK_ALIGNMENT, 1);
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+		
+		glTexStorage3D(GL_TEXTURE_2D_ARRAY, 
+			1,  // mips, flat
+			GL_R8UI, 
+			MAP_TEX_SZ, MAP_TEX_SZ, 
+			2); // layers
+		
+		glexit("failed to create map textures");
+	} 
+	else {
+		glBindTexture(GL_TEXTURE_2D_ARRAY, mb->tex);
+	}
+	
+	glTexSubImage3D(GL_TEXTURE_2D_ARRAY, // target
+		0,  // level, 0 = base, no minimap,
+		0, 0, 0,// offset
+		MAP_TEX_SZ,
+		MAP_TEX_SZ,
+		1,
+		GL_RED_INTEGER,  // format
+		GL_UNSIGNED_BYTE, // input type
+		mb->zones);
+
+	glTexSubImage3D(GL_TEXTURE_2D_ARRAY, // target
+		0,  // level, 0 = base, no minimap,
+		0, 0, 1,// offset
+		MAP_TEX_SZ,
+		MAP_TEX_SZ,
+		1,
+		GL_RED_INTEGER,  // format
+		GL_UNSIGNED_BYTE, // input type
+		mb->surface);
+	
+	glerr("failed to update map tex info");
+}
+
 
 void updateTerrainTexture(TerrainBlock* tb) {
 	
 	if(tb->tex) {
-		printf("updating terrain texture\n");
 		glBindTexture(GL_TEXTURE_2D, tb->tex);
 		
 		glTexSubImage2D(GL_TEXTURE_2D, // target
@@ -264,8 +360,7 @@ void updateTerrainTexture(TerrainBlock* tb) {
 	printf("tex num: %d \n", tb->tex);
 	glBindTexture(GL_TEXTURE_2D, tb->tex);
 	
-	// we do want mipmaps
-	//glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
+// 	glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
 	
 	// need to switch to nearest later on 
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -289,12 +384,15 @@ void updateTerrainTexture(TerrainBlock* tb) {
 		GL_RED,  // format
 		GL_FLOAT, // input type
 		tb->zs);
+	
 	glerr("failed to load terrain heightmap");
 }
 
 
 
-void drawTerrainBlock(TerrainBlock* tb, Matrix* mModel, Matrix* mView, Matrix* mProj, Vector2* cursor) {
+void drawTerrainBlock(MapInfo* mi, Matrix* mModel, Matrix* mView, Matrix* mProj, Vector2* cursor) {
+	
+	TerrainBlock* tb = mi->tb;
 	
 	glUseProgram(terrProg->id);
 	glexit("using terrain program");
@@ -322,6 +420,17 @@ void drawTerrainBlock(TerrainBlock* tb, Matrix* mModel, Matrix* mView, Matrix* m
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, cnoise->tex_id);
 	glexit("bind base texture");
+
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_1D, mi->zoneColorTex);
+	glUniform1i(zoneColors_ul, 2);
+	glexit("bind zone colors texture");
+
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, mi->mb->tex);
+	glUniform1i(map_ul, 3);
+	glexit("bind map info texture");
+
 
 	glUniform1i(heightmap_ul, 0);
 	glexit("hm sampler uniform");
@@ -378,7 +487,7 @@ void genDecalMesh(Quad* q, float zOffset) {
 	
 }
 
-#define TCOORD(x,y) ((y * TERR_TEX_SZ) + x)
+
 
 // coordinates are in game tiles. 
 void areaStats(TerrainBlock* tb, int x1, int y1, int x2, int y2, AreaStats* ass) {
@@ -459,7 +568,7 @@ void areaStats(TerrainBlock* tb, int x1, int y1, int x2, int y2, AreaStats* ass)
 }
 
 
-
+// ehhh... this was built before i realized you can't update parts of textures the way i thought you could.
 void invalidateTerrain(TerrainBlock *tb, int x1, int y1, int x2, int y2) {
 	int xmin, ymin, xmax, ymax;
 	
@@ -508,7 +617,7 @@ void flattenArea(TerrainBlock *tb, int x1, int y1, int x2, int y2) {
 	areaStats(tb, x1,y1,x2,y2, &ass);
 	
 	printf("flattening: %d,%d|%d,%d to %f\n",xmin,ymin,xmax,ymax, ass.avg);
-	
+	// something seems off here, there might be a mismatch in resolution 
 	for(y = ymin; y <= ymax; y++) {
 		for(x = xmin; x <= xmax; x++) {
 			tb->zs[TCOORD(x,y)] = ass.avg;
@@ -519,6 +628,37 @@ void flattenArea(TerrainBlock *tb, int x1, int y1, int x2, int y2) {
 	
 	
 }
+
+
+void setZone(MapInfo *mi, int x1, int y1, int x2, int y2, int zone) {
+	int x, y, xmin, ymin, xmax, ymax;
+	
+	xmin = MIN(x1, x2);
+	xmax = MAX(x1, x2);
+	ymin = MIN(y1, y2);
+	ymax = MAX(y1, y2);
+	
+	xmin = MAX(xmin, 0);
+	ymin = MAX(ymin, 0);
+	xmax = MIN(xmax, MAP_TEX_SZ);
+	ymax = MIN(ymax, MAP_TEX_SZ);
+	
+	printf("rezoning: %d,%d|%d,%d to %d\n",xmin,ymin,xmax,ymax, zone);
+	
+	for(y = ymin; y < ymax; y++) {
+		for(x = xmin; x < xmax; x++) {
+			mi->mb->zones[MCOORD(x,y)] = zone;
+		}
+	}
+	
+	
+	
+	
+	mi->mb->dirtyZone = 1;
+}
+
+
+
 
 /* complicated premature optimization below
 

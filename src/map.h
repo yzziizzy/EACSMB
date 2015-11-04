@@ -2,35 +2,30 @@
 #define __map_h__
 
 
+// terrain textures must always be a power of two
+#define TERR_TEX_SZ 1024
+// terrain blocks must always be a power of two minus one
+#define TERR_BLOCK_SZ (TERR_TEX_SZ - 2)
 
+#define MAP_TEX_SZ (TERR_TEX_SZ - 1)
+
+
+
+#define TCOORD(x,y) ((y * TERR_TEX_SZ) + x)
+#define MCOORD(x,y) ((y * MAP_TEX_SZ) + x)
 
 
 typedef struct MapBlock {
-	void* data[2];
-	size_t stride;
+	unsigned char surface[MAP_TEX_SZ * MAP_TEX_SZ];
+	unsigned char zones[MAP_TEX_SZ * MAP_TEX_SZ];
 	
-	int width;
-	int height;
+	AABB2i bounds; // in world tiles
 	
-	char* description;
+	int dirtyZone, dirtySurface;
 	
-	struct MapBlock* near[2][2];
-	
+	GLuint tex;
 	
 } MapBlock;
-
-MapBlock* allocMapBlock(size_t stride, int w, int h);
-
-// terrain textures must always be a power of two
-#define TERR_TEX_SZ 1024
-// terrain blocks must always be a power of two minus two
-#define TERR_BLOCK_SZ (TERR_TEX_SZ - 2)
-
-// disused in latest algorithm
-// // number of patches per block, in one dimension. must be integral
-// #define TERR_PATCH_DIVISOR 32
-// // maximum divisions per patch
-// #define TERR_MAX_TESS 32
 
 
 
@@ -57,14 +52,37 @@ typedef struct TerrainBlock {
 } TerrainBlock;
 
 
-typedef struct TerrainInfo {
-	TerrainBlock* zeroZero;
+
+
+
+//TODO: mark some regular terrain tiles as transparent... to see excavations
+typedef struct VirtualTerrainBlock { // used for planning, renders as wireframe, usually
+	float* zs;
+	AABB2i worldBounds; // in world tile space, not TB tile space
+	
+	GLuint vbo;
+	int vertices;
+	
+	TerrainBlock** blocks; 
+	
+} VirtualTerrainBlock;
+
+
+typedef struct MapInfo {
+	// will be replaced by expandable structures later
+	TerrainBlock* tb;
+	MapBlock* mb;
+	
 	
 	int scale; // how many terrain tiles are along an edge of one game tile. SC3k would be 1.
 	
+	GLuint zoneColorTex;
 	
-	
-} TerrainInfo;
+	// probably don'y need to keep these around
+	unsigned int zoneColors[256];
+	// probably needs to be somewhere else
+	char* zoneNames[256];
+} MapInfo;
 
 
 typedef struct AreaStats {
@@ -78,14 +96,17 @@ typedef struct AreaStats {
 
 void initTerrain(); 
 TerrainBlock* allocTerrainBlock(int cx, int cy);
+MapBlock* allocMapBlock(int llx, int lly);
+
 void updateTerrainTexture(TerrainBlock* tb);
 
-void drawTerrainBlock(TerrainBlock* tb, Matrix* mModel, Matrix* mView, Matrix* mProj, Vector2* cursor);
-void checkTerrainDirty(TerrainBlock* tb);
+void drawTerrainBlock(MapInfo* tb, Matrix* mModel, Matrix* mView, Matrix* mProj, Vector2* cursor);
+void checkMapDirty(MapInfo* mi);
 void areaStats(TerrainBlock* tb, int x1, int y1, int x2, int y2, AreaStats* ass);
 
 void flattenArea(TerrainBlock *tb, int x1, int y1, int x2, int y2);
-
+void updateMapTextures(MapBlock* mb);
+void setZone(MapInfo *mi, int x1, int y1, int x2, int y2, int zone);
 // stuff below is too complicated for now. more knowledge is needed about the game to proceed.
 
 

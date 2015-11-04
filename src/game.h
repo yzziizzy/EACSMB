@@ -3,7 +3,7 @@
 
 
 
-typedef struct {
+typedef struct GameState {
 	
 	float viewW, viewH;
 	
@@ -11,7 +11,7 @@ typedef struct {
 	GLuint framebuffer;
 	GLuint depthRenderbuffer;
 	
-	TerrainBlock* terrain;
+	MapInfo map;
 	
 	MatrixStack model;
 	MatrixStack view;

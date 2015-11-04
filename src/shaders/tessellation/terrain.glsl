@@ -8,6 +8,7 @@ in vec2 te_tile[];
 
 uniform sampler2D sHeightMap;
 
+
 uniform mat4 mView;
 uniform mat4 mProj;
 uniform mat4 mModel;
@@ -19,11 +20,12 @@ const ivec3 off = ivec3(-1,0,1);
 
 
 
-out vec4 ex_Color;
+// out vec4 ex_Color;
 out vec2 texCoord;
 // out vec2 cursorTexCoord;
 out vec2 t_tile;
 out vec4 te_normal;
+
 
 void main(void){
 
@@ -56,27 +58,7 @@ void main(void){
 
 	tmp.z = t * .05; // .01 *  sin(gl_TessCoord.y*12) + .01 *sin(gl_TessCoord.x*12);
 
-// old normals
-// 	vec3 tang = gl_in[0].gl_Position.xyz - gl_in[1].gl_Position.xyz;
-// 	vec3 bita = gl_in[0].gl_Position.xyz - gl_in[2].gl_Position.xyz;
-// 	vec3 cnorm = cross(tang, bita);
-// 	vec4 norm = vec4(normalize(cnorm).xyz, 1.0);
-	
-	//tmp = tmp + (norm * sin(gl_TessCoord.y*4));
-	
 	gl_Position = (mProj * mView * mModel) * tmp;
-	
-	//gl_in[0].gl_Position.xy/gl_PositionIn[0].w
-	
-	//dist = vec3(0.0, 0.0, sin(gl_TessCoord.y * 10));
-	
-	t_tile =  tltmp; //te_tile[3];
-	
-//  	ex_Color = vec4(gl_TessCoord.x, gl_TessCoord.y, .3, 1.0);
-	ex_Color = vec4(ttmp.xy, .3, 1.0);
-	texCoord = ttmp; //gl_TessCoord.xy;
-	
-	
-	
-	
+	t_tile =  tltmp; 
+	texCoord = ttmp; 
 }
