@@ -103,7 +103,7 @@ void initTerrain() {
 	
 	
 	glerr("clearing before terrain program load");
-	terrProg = loadProgram("terrain", "terrain", NULL, "terrain", "terrain");
+	terrProg = loadCombinedProgram("terrain");
 	
 	
 	model_ul = glGetUniformLocation(terrProg->id, "mModel");

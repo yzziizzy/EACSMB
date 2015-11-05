@@ -7,7 +7,6 @@ It's written in pure C using no frameworks. Dependencies are Xlib, FreeType, lib
 # Installing (ubuntu)
 
 * `https://github.com/yzziizzy/c3dlas` linked as `src/c3dlas`
-* `https://github.com/yzziizzy/opengl_text` linked as `src/text`
 
 * `mkdir m4`
 

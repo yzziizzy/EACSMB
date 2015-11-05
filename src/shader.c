@@ -11,7 +11,7 @@
 #include "shader.h"
 
 
-const char* SHADER_BASE_PATH = "./src/shaders";
+const char* SHADER_BASE_PATH = "./src/shaders/";
 
 
 
@@ -36,7 +36,7 @@ void printLogOnFail(id) {
 
 
 
-char* readFile(char* path) {
+char* readFile(char* path, int* srcLen) {
 	
 	int fsize;
 	char* contents;
@@ -53,18 +53,39 @@ char* readFile(char* path) {
 	fsize = ftell(f);
 	rewind(f);
 	
-	contents = (char*)malloc(fsize + 1);
+	contents = (char*)malloc(fsize + 2);
 	
-	fread(contents, sizeof(char), fsize, f);
+	fread(contents+1, sizeof(char), fsize, f);
+	contents[0] = '\n';
 	contents[fsize] = 0;
 	
 	fclose(f);
+	
+	if(srcLen) *srcLen = fsize + 1;
 	
 	return contents;
 }
 
 
+GLuint loadShaderSource(char* source, int length, GLenum type) {
+	
+	GLuint id;
+	
+	id = glCreateShader(type);
+	glerr("shader create error");
+	
+	glShaderSource(id, 1, (const char**)&source, &length);
+	glerr("shader source error");
+	
+	glCompileShader(id);
+	printLogOnFail(id);
+	glerr("shader compile error");
 
+	return id;
+}
+
+
+/*
 Shader* loadShader(char* path, GLenum type) {
 	
 	Shader* sh;
@@ -93,7 +114,7 @@ DONE:
 	free(source);
 	
 	return sh;
-}
+}*/
 
 
 
@@ -107,7 +128,7 @@ void deleteShader(Shader* s) {
 	
 }
 
-
+/*
 ShaderProgram* loadProgram(char* vname, char* fname, char* gname, char* tcname, char* tname) {
 	
 	int bplen;
@@ -198,6 +219,90 @@ ShaderProgram* loadProgram(char* vname, char* fname, char* gname, char* tcname, 
 
 	
 
+	
+	return prog;
+}
+
+*/
+
+
+GLenum nameToEnum(char* name) {
+	
+	if(0 == strcasecmp(name, "VERTEX")) return GL_VERTEX_SHADER;
+	if(0 == strcasecmp(name, "TESS_CONTROL")) return GL_TESS_CONTROL_SHADER;
+	if(0 == strcasecmp(name, "TESS_EVALUATION")) return GL_TESS_EVALUATION_SHADER;
+	if(0 == strcasecmp(name, "GEOMETRY")) return GL_GEOMETRY_SHADER;
+	if(0 == strcasecmp(name, "FRAGMENT")) return GL_FRAGMENT_SHADER;
+	if(0 == strcasecmp(name, "COMPUTE")) return GL_COMPUTE_SHADER;
+	
+	return -1;
+}
+
+
+ShaderProgram* loadCombinedProgram(char* path) {
+	
+	ShaderProgram* prog;
+	char* source, *spath, *end, *base;
+	int srcLen;
+	char typeName[24];
+	GLenum type; 
+	GLuint id;
+	
+	int bplen = strlen(SHADER_BASE_PATH);
+	
+	prog = calloc(1, sizeof(ShaderProgram));
+	prog->id = glCreateProgram();
+	
+	// grab the source
+	spath = (char*)malloc(bplen + strlen(path) + 6);
+	sprintf(spath, "%s%s.glsl", SHADER_BASE_PATH, path);
+	
+	source = readFile(spath, &srcLen);
+	if(!source) {
+		free(spath);
+		return NULL;
+	}
+	
+	
+	//parse out the contents one shader at a time
+	
+	base = strstr(source, "\n#shader");
+	while(1) {
+		
+		// TODO skip line;
+		int cnt = sscanf(base + 8, " %23s", &typeName); // != 1 for failure
+		if(cnt == EOF || cnt == 0) {
+			break;
+		}
+		
+		//TODO check for EOF
+		end = strstr(base + 8 + cnt, "\n#shader");
+		
+		type = nameToEnum(typeName);
+		if(type == -1) {
+			fprintf(stderr, "Invalid shader type %s in file \"%s\"\n", typeName, spath);
+			base = end + 8;
+			continue;
+		}
+		
+		id = loadShaderSource(base, end - base, type);
+		if(!id) { // BUG: look up the real failure code
+			base = end + 8;
+			continue;
+		}
+		
+		glAttachShader(prog->id, id);
+		glerr("Could not attach shader");
+		
+		base = end + 8;
+		if(base >= source + srcLen) break;
+	}
+	
+	free(source);
+	free(spath);
+	
+	glLinkProgram(prog->id);
+	glerr("linking program");
 	
 	return prog;
 }

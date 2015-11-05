@@ -505,6 +505,7 @@ void updateText(TextRenderInfo* tri, const char* str, int len, unsigned int* col
 
 }
 
+/*
 void renderText(TextRenderInfo* tri) {
 	glUseProgram(textProg->id);
 	
@@ -546,6 +547,6 @@ void renderText(TextRenderInfo* tri) {
 	
 	
 }
-
+*/
 
 

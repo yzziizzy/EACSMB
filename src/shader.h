@@ -25,7 +25,7 @@ typedef struct {
 Shader* loadShader(char* path, GLenum type);
 ShaderProgram* loadProgram(char* vname, char* fname, char* gname, char* tcname, char* tname);
  
-
+ShaderProgram* loadCombinedProgram(char* path);
 
 
  

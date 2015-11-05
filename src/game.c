@@ -216,7 +216,7 @@ glexit("here");
 	printf("FBO created.\n");
 	
 
-	shadingProg = loadProgram("shading", "shading", NULL, NULL, NULL);
+	shadingProg = loadCombinedProgram("shading");
 	initFSQuad();
 	
 	// check some prerequisites
@@ -280,7 +280,7 @@ glexit("here");
 	// text rendering stuff
 	arial = LoadFont("/usr/share/fonts/corefonts/arial.ttf", 64, NULL);
 	glerr("clearing before text program load");
-	textProg = loadProgram("text", "text", NULL, NULL, NULL);
+	textProg = loadCombinedProgram("text");
 	
 	unsigned int colors[] = {
 		0xFF0000FF, 2,
