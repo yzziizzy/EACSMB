@@ -34,8 +34,26 @@ GLuint MaxPatchVertices;
 GLuint MaxTessGenLevel;
 
 
+char* tmpSavePath;
+char* tmpSaveName = "EACSMB-map-cache";
+
 
 void initMap(MapInfo* mi) {
+	
+	char* tmpDir;
+	
+	
+	tmpDir = getenv("TMPDIR");
+	
+	if(!tmpDir) tmpDir = P_tmpdir;
+	
+	tmpSavePath = malloc(strlen(tmpDir) + strlen(tmpSaveName) + 2);
+	
+	strcpy(tmpSavePath, tmpDir);
+	strcat(tmpSavePath, "/");
+	strcat(tmpSavePath, tmpSaveName);
+	
+	
 	
 	initTerrain();
 	
@@ -77,6 +95,8 @@ void initMap(MapInfo* mi) {
 	
 	glerr("zone color map");
 	
+	
+
 }
 
 
@@ -233,7 +253,9 @@ MapBlock* allocMapBlock(int llx, int lly) {
 
 TerrainBlock* allocTerrainBlock(int cx, int cy) {
 	
+	
 	TerrainBlock* tb;
+	FILE* f;
 	
 	// clear for now
 	tb = calloc(sizeof(TerrainBlock), 1);
@@ -249,14 +271,35 @@ TerrainBlock* allocTerrainBlock(int cx, int cy) {
 	
 	tb->tex = 0;
 	
-	int x, y;
-	for(y = 0; y < TERR_TEX_SZ ; y++) {
-		for(x = 0; x < TERR_TEX_SZ ; x++) {
-			//tb->zs[x + (y * TERR_TEX_SZ)] = sin(x * .1) * .1;
-			float f = PerlinNoise_2D(x / 512.0, y / 512.0, .1, 6); // slow-ass function, disable except for noise testing
-// 			printf("[%d,%d] %f\n", x,y,f);
-			tb->zs[x + (y * TERR_TEX_SZ)] = fabs(f * 4);
+	f = fopen(tmpSavePath, "rb");
+	
+	if(f) {
+		// load data
+		printf("Loading saved terrain from %s\n", tmpSavePath);
+		fread(tb->zs, sizeof(float), TERR_TEX_SZ * TERR_TEX_SZ, f);
+		
+		fclose(f);
+	}
+	else {
+		// generate new data and save it
+		printf("Generating new terrain... ");
+		int x, y;
+		for(y = 0; y < TERR_TEX_SZ ; y++) {
+			for(x = 0; x < TERR_TEX_SZ ; x++) {
+				//tb->zs[x + (y * TERR_TEX_SZ)] = sin(x * .1) * .1;
+				float f = PerlinNoise_2D(x / 512.0, y / 512.0, .1, 6); // slow-ass function, disable except for noise testing
+	// 			printf("[%d,%d] %f\n", x,y,f);
+				tb->zs[x + (y * TERR_TEX_SZ)] = fabs(f * 4);
+			}
 		}
+		
+		printf("done.\nSaving terrain to %s\n", tmpSavePath);
+		f = fopen(tmpSavePath, "wb");
+		if(!f) return tb;
+		
+		fwrite(tb->zs, sizeof(float), TERR_TEX_SZ * TERR_TEX_SZ, f);
+		
+		fclose(f);
 	}
 	
 	
