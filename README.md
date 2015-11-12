@@ -2,7 +2,7 @@
 A 3D city building game. Currently under construction.
 
 
-It's written in pure C using no frameworks. Dependencies are Xlib, FreeType, libPNG, GLEW, and OpenGL 4.5. You should probably have a lot of ram as well as a real CPU.
+It's written in pure C using no frameworks. Dependencies are Xlib, FreeType, fontconfig, libPNG, GLEW, and OpenGL 4.5. You should probably have a lot of ram as well as a real CPU.
 
 # Installing (ubuntu)
 
@@ -10,10 +10,7 @@ It's written in pure C using no frameworks. Dependencies are Xlib, FreeType, lib
 
 * `mkdir m4`
 
-* `sudo apt-get install libx11-dev libglew-dev libfreetype6-dev ttf-mscorefonts-installer`
-
-* `sudo mkdir /usr/share/fonts/corefonts`
-* `sudo ln -s /usr/share/fonts/truetype/msttcorefonts /usr/share/fonts/corefonts`
+* `sudo apt-get install libx11-dev libglew-dev libfreetype6-dev <whatever dev-lib is needed for fontconfig>`
 
 * `./autogen.sh`
 * `make && ./src/eacsmb`

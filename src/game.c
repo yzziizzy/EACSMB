@@ -280,7 +280,7 @@ glexit("here");
 	
 
 	// text rendering stuff
-	arial = LoadFont("/usr/share/fonts/corefonts/arial.ttf", 64, NULL);
+	arial = LoadFont("Arial", 64, NULL);
 	glerr("clearing before text program load");
 	textProg = loadCombinedProgram("text");
 	

@@ -12,6 +12,7 @@
 
 #include "../c3dlas/c3dlas.h"
 #include "text.h"
+#include "fcfg.h"
 #include "../EACSMB/src/utilities.h"
 
 
@@ -67,12 +68,13 @@ static void blit(
 
 
 
-TextRes* LoadFont(char* path, int size, char* chars) {
+TextRes* LoadFont(char* fontName, int size, char* chars) {
 
 	FT_Error err;
 	FT_GlyphSlot slot;
 	TextRes* res;
 	int i, j, charlen, width, h_above, h_below, height, padding, xoffset;
+	char* fontPath;
 	
 	padding = 2;
 	
@@ -84,12 +86,18 @@ TextRes* LoadFont(char* path, int size, char* chars) {
 		}
 	}
 	
+	fontPath = getFontFile(fontName);
+	if(!fontPath) {
+		fprintf(stderr, "Could not load font '%s'\n", fontName);
+		return NULL;
+	}
+	
 	res = (TextRes*)malloc(sizeof(TextRes));
 	// if you're out of memory you have bigger problems than error checking...
 	
-	err = FT_New_Face(ftLib, path, 0, &res->fontFace);
+	err = FT_New_Face(ftLib, fontPath, 0, &res->fontFace);
 	if(err) {
-		fprintf(stderr, "Could not load font file \"%s\".\n", path);
+		fprintf(stderr, "Could not load font file \"%s\".\n", fontPath);
 		free(res);
 		return NULL;
 	}
