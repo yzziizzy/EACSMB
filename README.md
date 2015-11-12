@@ -10,7 +10,7 @@ It's written in pure C using no frameworks. Dependencies are Xlib, FreeType, fon
 
 * `mkdir m4`
 
-* `sudo apt-get install libx11-dev libglew-dev libfreetype6-dev <whatever dev-lib is needed for fontconfig>`
+* `sudo apt-get install libx11-dev libglew-dev libfreetype6-dev libfontconfig1-dev`
 
 * `./autogen.sh`
 * `make && ./src/eacsmb`
