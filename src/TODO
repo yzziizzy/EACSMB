@@ -23,10 +23,8 @@ cursors
 rebuild eye/view code
 
 fix lines
-terrain zoning 
 terrain texture blending
 proper terrain scaling
-save to file
 simplex noise
 
 get lighting working
@@ -35,9 +33,8 @@ use fontconfig to find fonts by name
 
 dummy textures
 
-revamp shader storage to use one file with internal markers for the different kinds
-
-
+extrusion of a 2d shape along a spline
+	perhaps the shape is a spline, alling even better LoD
 
 
 
@@ -48,9 +45,9 @@ LATER:
 error reporting on max_events being insufficient, possibly somethign to dump the queue
 clean up shader loading code
 
+make all functions static that need to be
 
-
-
+volumetric clouds and ground fog with projected translucent shadows
 
 
 
@@ -72,7 +69,7 @@ fishing and hunting licenses
 tides
 plant aspen and redwood as forest fire breaks
 sieze forest lands and log for profit
-
+a slider for strictness that police enforce the laws
 
 
 disasters:
@@ -149,7 +146,7 @@ B&O taxes
 sales taxes
 property taxes
 traffic fines
-strictness fo building codes
+strictness of building codes
 there should be a constant stream of pork-barrel petitioners trying to force people to buy their shit
 plastic bag ban
 car emissions
@@ -157,7 +154,11 @@ set default speed limit
 lane splitting
 drinking age
 free wifi
-
+B/R/T home gardens
+B/R/T livestock
+B/R/T pets
+B/R/T home businesses
+B/R/T a zillion different occupations
 
 
 
