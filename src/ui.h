@@ -29,7 +29,10 @@ union UIWin;
 typedef struct UIWindow {
 	unsigned int type;
 	AABB2 box;
+	Vector2 dims;
+	Vector2 pos;
 	float z;
+	float scale;
 	struct UIWinList* kids;
 	union UIWin* parent;
 } UIWindow;
@@ -41,6 +44,13 @@ typedef struct UISolidWin {
 	unsigned int bgColor;
 	AABB2 padding;
 } UISolidWin;
+
+
+typedef struct UIIcon {
+	UIWindow win;
+	unsigned int bgColor;
+	GLuint texID; // TODO change this to an index into the texture array later
+} UIIcon;
 
 
 
@@ -64,7 +74,10 @@ typedef union UIWin {
 	struct {
 		unsigned int type;
 		AABB2 box;
+		Vector2 dims;
+		Vector2 pos;
 		float z;
+		float scale;
 		struct UIWinList* kids;
 		union UIWin* parent;
 	};
@@ -76,6 +89,14 @@ typedef union UIWin {
 	
 	
 } UIWin;
+
+
+
+typedef struct WindowVertex {
+	float x,y,z;
+	float u,v;
+	unsigned int texIndex;
+} WindowVertex;
 
 
 

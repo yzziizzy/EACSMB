@@ -239,6 +239,8 @@ glexit("here");
 	getPrintGLEnum(GL_MAX_GEOMETRY_TEXTURE_IMAGE_UNITS, "meh");
 	getPrintGLEnum(GL_MAX_TEXTURE_IMAGE_UNITS, "meh");
 	getPrintGLEnum(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, "meh");
+	getPrintGLEnum(GL_MAX_ARRAY_TEXTURE_LAYERS, "meh");
+	getPrintGLEnum(GL_MAX_SAMPLES, "meh");
 	
 	
 	// set up matrix stacks
