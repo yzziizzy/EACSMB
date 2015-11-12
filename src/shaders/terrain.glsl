@@ -108,7 +108,7 @@ void main(void){
 	vec2 tltmp = mix(tlp1, tlp2, gl_TessCoord.y);
 	
 	
-	float t = texture2D(sHeightMap, ttmp.xy, 0);
+	float t = texture2D(sHeightMap, ttmp.xy, 0).r;
 	
 	// normals. remember that z is still up at this point
 	float xm1 = textureOffset(sHeightMap, ttmp.xy, off.xy).x;
