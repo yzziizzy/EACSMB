@@ -153,10 +153,11 @@ GLuint initTexBufferDepth(int w, int h) {
 void initGame(XStuff* xs, GameState* gs) {
 	int ww, wh;
 	
+	glerr("left over error on game init");
+	
+	
 	gs->debugMode = 0;
 	gs->sunSpeed = 0;
-	
-	glerr("left over error on game init");
 	
 	
 	gs->viewW = ww = xs->winAttr.width;
@@ -170,8 +171,6 @@ void initGame(XStuff* xs, GameState* gs) {
 	
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	
-glexit("here");
-
 
 	
 	printf("0\n");

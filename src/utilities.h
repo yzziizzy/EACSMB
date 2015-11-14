@@ -18,7 +18,7 @@ char* glerr(char* msg);
 
 
 
-
+char* readFile(char* path, int* srcLen);
 
 
 

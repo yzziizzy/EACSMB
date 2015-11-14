@@ -25,8 +25,15 @@ UIWindow uiRootWin;
 
 ShaderProgram* windowProg;
 GLuint windowVAO;
+TexArray* icons;
 
-
+char* iconFiles[] = {
+	"./assets/ui/icons/res.png",
+	"./assets/ui/icons/com.png",
+	"./assets/ui/icons/ind.png",
+	NULL
+};
+	
 void initRootWin();
 
 
@@ -36,7 +43,9 @@ void initUI() {
 	windowProg = loadCombinedProgram("ui");
 	
 	// uniform locations
+
 	
+	icons = loadTexArray(iconFiles);
 	
 	// VAO
 	glGenVertexArrays(1, &windowVAO);

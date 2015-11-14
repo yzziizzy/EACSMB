@@ -210,3 +210,102 @@ Texture* loadBitmapTexture(char* path) {
 	return dt;
 }
 
+
+// actually, the argument is a void**, but the compiler complains. stupid standards...
+size_t ptrlen(const void* a) {
+	size_t i = 0;
+	void** b = (void**)a;
+	
+	while(*b++) i++;
+	return i;
+}
+
+
+
+TexArray* loadTexArray(char** files) {
+	
+	TexArray* ta;
+	int len, i;
+	char* source, *s;
+	BitmapRGBA8** bmps;
+	int w, h;
+	
+	
+	len = ptrlen(files);
+	
+	bmps = malloc(sizeof(BitmapRGBA8*) * len);
+	ta = calloc(sizeof(TexArray), 1);
+	
+	w = 0;
+	h = 0;
+	
+	for(i = 0; i < len; i++) {
+		bmps[i] = readPNG(files[i]);
+		
+		if(!bmps[1]) {
+			printf("Failed to load %s\n", files[i]);
+			continue;
+		}
+		
+		w = MAX(w, bmps[i]->width);
+		h = MAX(h, bmps[i]->height);
+	}
+	
+	ta->width = w;
+	ta->height = h;
+	ta->depth = len;
+	
+	printf("len: %d\n", len);
+	
+	
+	glGenTextures(1, &ta->tex_id);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, ta->tex_id);
+	glexit("failed to create texture array 1");
+	
+// 		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_GENERATE_MIPMAP, GL_FALSE);
+	glexit("failed to create texture array 2");
+
+	glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	
+	glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+// 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE); 
+	glexit("failed to create texture array 3");
+	
+	// squash the data in
+	glPixelStorei(GL_PACK_ALIGNMENT, 1);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	
+	glTexStorage3D(GL_TEXTURE_2D_ARRAY, 
+		1,  // mips, flat
+		GL_RGBA8, 
+		w, h, 
+		len); // layers
+	
+	glexit("failed to create texture array 4");
+	
+	
+	for(i = 0; i < len; i++) {
+		if(!bmps[i]) continue;
+		
+		
+		glTexSubImage3D(GL_TEXTURE_2D_ARRAY, // target
+			0,  // mip level, 0 = base, no mipmap,
+			0, 0, i,// offset
+			w, h,
+			1,
+			GL_RGBA,  // format
+			GL_UNSIGNED_BYTE, // input type
+			bmps[i]->data);
+		glexit("could not load tex array slice");
+		
+		free(bmps[i]->data);
+		free(bmps[i]);
+	}
+	
+	free(bmps);
+	
+	return ta;
+}
+

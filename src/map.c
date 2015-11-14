@@ -358,7 +358,7 @@ void updateMapTextures(MapBlock* mb) {
 	}
 	
 	glTexSubImage3D(GL_TEXTURE_2D_ARRAY, // target
-		0,  // level, 0 = base, no minimap,
+		0,  // mip level, 0 = base, no mipmap,
 		0, 0, 0,// offset
 		MAP_TEX_SZ,
 		MAP_TEX_SZ,
@@ -368,7 +368,7 @@ void updateMapTextures(MapBlock* mb) {
 		mb->zones);
 
 	glTexSubImage3D(GL_TEXTURE_2D_ARRAY, // target
-		0,  // level, 0 = base, no minimap,
+		0,  // mip level, 0 = base, no mipmap,
 		0, 0, 1,// offset
 		MAP_TEX_SZ,
 		MAP_TEX_SZ,

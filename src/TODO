@@ -49,6 +49,8 @@ make all functions static that need to be
 
 volumetric clouds and ground fog with projected translucent shadows
 
+LOD tessellation on terrain
+implement z culling prepass combined with picking
 
 
 

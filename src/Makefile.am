@@ -3,6 +3,7 @@
 bin_PROGRAMS = eacsmb
 
 eacsmb_SOURCES = main.c \
+	utilities.c \
 	window.c \
 	shader.c \
 	game.c \

@@ -36,35 +36,6 @@ void printLogOnFail(id) {
 
 
 
-char* readFile(char* path, int* srcLen) {
-	
-	int fsize;
-	char* contents;
-	FILE* f;
-	
-	
-	f = fopen(path, "rb");
-	if(!f) {
-		fprintf(stderr, "Could not open file \"%s\"\n", path);
-		return NULL;
-	}
-	
-	fseek(f, 0, SEEK_END);
-	fsize = ftell(f);
-	rewind(f);
-	
-	contents = (char*)malloc(fsize + 2);
-	
-	fread(contents+1, sizeof(char), fsize, f);
-	contents[0] = '\n';
-	contents[fsize] = 0;
-	
-	fclose(f);
-	
-	if(srcLen) *srcLen = fsize + 1;
-	
-	return contents;
-}
 
 
 GLuint loadShaderSource(char* source, int length, GLenum type) {

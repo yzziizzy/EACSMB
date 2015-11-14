@@ -14,6 +14,15 @@ typedef struct {
 	uint32_t* data;
 } BitmapRGBA8;
 
+
+typedef struct TexArray {
+	unsigned short width, height;
+	int depth;
+	
+	GLuint tex_id;
+} TexArray;
+
+
 Texture* loadDataTexture(unsigned char* data, short width, short height);
 
 BitmapRGBA8* readPNG(char* path);
@@ -21,7 +30,7 @@ BitmapRGBA8* readPNG(char* path);
 Texture* loadBitmapTexture(char* path);
 
 
-
+TexArray* loadTexArray(char** files);
 
 
 
