@@ -451,6 +451,72 @@ void setUpView(GameState* gs) {
 	
 }
 
+
+
+void depthPrepass(XStuff* xs, GameState* gs, InputState* is) {
+	
+	// draw UI
+	
+	// draw terrain
+	// TODO: factor all the math into the frame setup function
+	angle = (rot * 3.14159265358979) / 180 ;
+	//mScale3f(10, 10, 10, &mModel);
+	//mRot3f(0, 1, 0, angle, &mModel);
+	msPush(&gs->proj);
+	msPerspective(60, 1.0, nearPlane, farPlane, &gs->proj);
+
+	
+	msPush(&gs->view);
+	
+	
+	
+	// order matters! don't mess with this.
+	msTrans3f(0, -1, gs->zoom, &gs->view);
+	msRot3f(1, 0, 0, 3.1415/6, &gs->view);
+	msRot3f(0,1,0, angle, &gs->view);
+	msTrans3f(-gs->lookCenter.x + 512, 0, -gs->lookCenter.y + 512, &gs->view);
+	// TODO: fix coordinates
+
+	
+ 	msPush(&gs->model);
+	
+	// move it to the middle of the screen
+ 	msTrans3f(-.5, 0, -.5, &gs->model);
+	
+	// y-up to z-up rotation
+	msRot3f(1, 0, 0, 3.1415/2, &gs->model);
+	
+	// calculate cursor position
+	Vector eyeCoord;
+	Vector worldCoord;
+	Matrix p, invp, invv;
+	
+	// device space (-1:1)
+	Vector devCoord;
+	devCoord.x = 0.50;
+	devCoord.y = 0.50;
+	devCoord.z = -1.0;
+	
+	// eye space
+	mInverse(msGetTop(&gs->proj), &invp);
+	vMatrixMul(&devCoord, &invp, &eyeCoord);
+	vNorm(&eyeCoord, &eyeCoord);
+	
+	// world space
+	mInverse(msGetTop(&gs->view), &invv);
+	vMatrixMul(&eyeCoord, &invv, &worldCoord);
+	vNorm(&worldCoord, &worldCoord);
+
+	// draw terrain
+	drawTerrainBlockDepth(&gs->map, msGetTop(&gs->model), msGetTop(&gs->view), msGetTop(&gs->proj));
+	
+	
+	msPop(&gs->model);
+	msPop(&gs->view);
+	msPop(&gs->proj);
+	
+}
+
 void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	//mModel = IDENT_MATRIX;
@@ -633,7 +699,7 @@ void checkCursor(GameState* gs, InputState* is) {
 	
 	unsigned short rgb[4];
 	
-	glReadBuffer(GL_COLOR_ATTACHMENT2);
+	glReadBuffer(GL_COLOR_ATTACHMENT0);
 	glexit("selection buff");
 	glReadPixels(
 		is->cursorPosPixels.x,
@@ -668,16 +734,24 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	
 	// update world state
 	
-	// draw to the g-buffer
+	// depth and picking pre-pass
+	glDepthFunc(GL_LESS);
 	glBindFramebuffer(GL_FRAMEBUFFER, gs->framebuffer);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	
+	depthPrepass(xs, gs, is);
+	checkCursor(gs, is);
+	
+	
+	// clear color buffer for actual rendering
+	glClear(GL_COLOR_BUFFER_BIT);
+	glDepthFunc(GL_LEQUAL);
 	
 	renderFrame(xs, gs, is);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, gs->framebuffer);
 	
-	checkCursor(gs, is);
 	
 	// draw to the screen
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

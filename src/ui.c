@@ -66,13 +66,7 @@ void initUI() {
 	
 	initRootWin();
 	
-	
-	
-	Texture* resTex = loadBitmapTexture("./assets/ui/icons/res.png");
-	Texture* comTex = loadBitmapTexture("./assets/ui/icons/com.png");
-	Texture* indTex = loadBitmapTexture("./assets/ui/icons/ind.png");
-	
-	
+/*	
 	UIIcon* resIcon = malloc(sizeof(UIIcon));
 	UIIcon* comIcon = malloc(sizeof(UIIcon));
 	UIIcon* indIcon = malloc(sizeof(UIIcon));
@@ -89,7 +83,7 @@ void initUI() {
 	indIcon->win.dims.y = 128;
 	
 	resIcon->win.pos.x = .8;
-	resIcon->win.pos.y = .8;
+	resIcon->win.pos.y = .8;*/
 	
 }
 
@@ -134,14 +128,20 @@ void uiPreRenderSetup() {
 }
 
 
-
-void renderWindow(UIWin* win, MatrixStack* base) {
+void renderUIPicking() {
+	
 	
 	
 	
 }
 
-void renderUIIcon(UIIcon* win, MatrixStack* base) {
+
+/*
+
+The ui is drawn on the actual framebuffer.
+
+*/
+void renderUI() {
 	
 	// mess with matrices
 	// set uniforms

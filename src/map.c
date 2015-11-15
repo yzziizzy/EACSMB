@@ -29,6 +29,7 @@ Texture* cnoise;
 static TerrainPatchVertex* patchVertices;
 
 ShaderProgram* terrProg;
+ShaderProgram* terrDepthProg;
 
 GLuint MaxPatchVertices;
 GLuint MaxTessGenLevel;
@@ -124,6 +125,7 @@ void initTerrain() {
 	
 	glerr("clearing before terrain program load");
 	terrProg = loadCombinedProgram("terrain");
+	terrDepthProg = loadCombinedProgram("terrainDepth");
 	
 	
 	model_ul = glGetUniformLocation(terrProg->id, "mModel");
@@ -497,6 +499,75 @@ void drawTerrainBlock(MapInfo* mi, Matrix* mModel, Matrix* mView, Matrix* mProj,
 	
 	
 }
+
+
+
+
+void drawTerrainBlockDepth(MapInfo* mi, Matrix* mModel, Matrix* mView, Matrix* mProj, Vector2* cursor) {
+	
+	TerrainBlock* tb = mi->tb;
+	
+	glUseProgram(terrDepthProg->id);
+	glexit("using terrain program");
+	
+	glEnable(GL_DEPTH_TEST);
+	
+	glUniformMatrix4fv(model_ul, 1, GL_FALSE, mModel->m);
+	glUniformMatrix4fv(view_ul, 1, GL_FALSE, mView->m);
+	glUniformMatrix4fv(proj_ul, 1, GL_FALSE, mProj->m);
+	glexit("terrain matrix uniforms");
+	
+	
+	
+	glUniform2f(winsize_ul, 600, 600);
+	
+	
+	
+	glActiveTexture(GL_TEXTURE0);
+	
+	glexit("active texture");
+	
+	glBindTexture(GL_TEXTURE_2D, tb->tex);
+	glexit("bind hm texture");
+	
+// 	glActiveTexture(GL_TEXTURE1);
+// 	glBindTexture(GL_TEXTURE_2D, cnoise->tex_id);
+// 	glexit("bind base texture");
+// 
+// 	glActiveTexture(GL_TEXTURE2);
+// 	glBindTexture(GL_TEXTURE_1D, mi->zoneColorTex);
+// 	glUniform1i(zoneColors_ul, 2);
+// 	glexit("bind zone colors texture");
+// 
+// 	glActiveTexture(GL_TEXTURE3);
+// 	glBindTexture(GL_TEXTURE_2D_ARRAY, mi->mb->tex);
+// 	glUniform1i(map_ul, 3);
+// 	glexit("bind map info texture");
+
+
+	glUniform1i(heightmap_ul, 0);
+	glexit("hm sampler uniform");
+// 	glUniform1i(basetex_ul, 1);
+// 	glexit("base tex sampler uniform");
+
+	
+// 	l_ul = glGetUniformLocation(terrProg->id, "cursorPos");
+
+// 	glUniform2f(glGetUniformLocation(terrProg->id, "cursorPos"), cursor->x, cursor->y);
+
+	
+	glerr("pre vao bind");
+	glBindVertexArray(patchVAO);
+	glerr("vao bind");
+	
+	glPatchParameteri(GL_PATCH_VERTICES, 4);
+	glBindBuffer(GL_ARRAY_BUFFER, patchVBO);
+	glDrawArrays(GL_PATCHES, 0, totalPatches * totalPatches * 4);
+	glerr("drawing");
+	
+	
+}
+
 
 
 // interpreted as a vertical projection of the quad
