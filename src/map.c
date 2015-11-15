@@ -22,6 +22,7 @@
 static GLuint patchVAO;
 static GLuint patchVBO;
 static GLuint proj_ul, view_ul, model_ul, heightmap_ul, winsize_ul, basetex_ul; 
+static GLuint proj_d_ul, view_d_ul, model_d_ul, heightmap_d_ul; 
 static GLuint map_ul, zoneColors_ul; 
 static totalPatches;
 Texture* cnoise;
@@ -127,7 +128,6 @@ void initTerrain() {
 	terrProg = loadCombinedProgram("terrain");
 	terrDepthProg = loadCombinedProgram("terrainDepth");
 	
-	
 	model_ul = glGetUniformLocation(terrProg->id, "mModel");
 	glerr("terrain uniform loc Model");
 	view_ul = glGetUniformLocation(terrProg->id, "mView");
@@ -146,6 +146,14 @@ void initTerrain() {
 	glerr("terrain uniform loc ws");
 
 
+	model_d_ul = glGetUniformLocation(terrDepthProg->id, "mModel");
+	glerr("terraindepth uniform loc Model");
+	view_d_ul = glGetUniformLocation(terrDepthProg->id, "mView");
+	glerr("terraindepth uniform loc View");
+	proj_d_ul = glGetUniformLocation(terrDepthProg->id, "mProj");
+	glerr("terraindepth uniform loc Projection");
+	heightmap_d_ul = glGetUniformLocation(terrDepthProg->id, "sHeightMap");
+	glerr("terraindepth uniform loc hm");
 	
 	
 	// in one dimension
@@ -512,9 +520,9 @@ void drawTerrainBlockDepth(MapInfo* mi, Matrix* mModel, Matrix* mView, Matrix* m
 	
 	glEnable(GL_DEPTH_TEST);
 	
-	glUniformMatrix4fv(model_ul, 1, GL_FALSE, mModel->m);
-	glUniformMatrix4fv(view_ul, 1, GL_FALSE, mView->m);
-	glUniformMatrix4fv(proj_ul, 1, GL_FALSE, mProj->m);
+	glUniformMatrix4fv(model_d_ul, 1, GL_FALSE, mModel->m);
+	glUniformMatrix4fv(view_d_ul, 1, GL_FALSE, mView->m);
+	glUniformMatrix4fv(proj_d_ul, 1, GL_FALSE, mProj->m);
 	glexit("terrain matrix uniforms");
 	
 	
@@ -545,7 +553,7 @@ void drawTerrainBlockDepth(MapInfo* mi, Matrix* mModel, Matrix* mView, Matrix* m
 // 	glexit("bind map info texture");
 
 
-	glUniform1i(heightmap_ul, 0);
+	glUniform1i(heightmap_d_ul, 0);
 	glexit("hm sampler uniform");
 // 	glUniform1i(basetex_ul, 1);
 // 	glexit("base tex sampler uniform");

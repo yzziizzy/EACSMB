@@ -21,14 +21,18 @@ void printLogOnFail(id) {
 	GLsizei len;
 	GLchar* log;
 	
+	if(!glIsShader(id)) {
+		fprintf(stderr, "id is not a shader!\n");
+		return;
+	}
+	
 	glGetShaderiv(id, GL_COMPILE_STATUS, &success);
 	if(success) return;
 	
 	glGetShaderiv(id, GL_INFO_LOG_LENGTH, &logSize);
-	
 	log = (GLchar*)malloc(logSize);
-	glGetShaderInfoLog(id, logSize, &len, log);
 	
+	glGetShaderInfoLog(id, logSize, &len, log);
 	fprintf(stderr, "Shader Log:\n%s", (char*)log);
 	
 	free(log);
@@ -41,7 +45,7 @@ void printLogOnFail(id) {
 GLuint loadShaderSource(char* source, int length, GLenum type) {
 	
 	GLuint id;
-	
+	glerr("pre shader create error");
 	id = glCreateShader(type);
 	glerr("shader create error");
 	
@@ -148,6 +152,7 @@ ShaderProgram* loadCombinedProgram(char* path) {
 	int bplen = strlen(SHADER_BASE_PATH);
 	
 	prog = calloc(1, sizeof(ShaderProgram));
+	glerr("pre shader create 1");
 	prog->id = glCreateProgram();
 	
 	// grab the source
@@ -175,8 +180,6 @@ ShaderProgram* loadCombinedProgram(char* path) {
 	
 	glLinkProgram(prog->id);
 	glerr("linking program");
-	
-	printLogOnFail(prog->id);
 	
 	return prog;
 }

@@ -698,23 +698,25 @@ void shadingPass(GameState* gs) {
 void checkCursor(GameState* gs, InputState* is) {
 	
 	unsigned short rgb[4];
+	glexit("pre selection buff");
 	
-	glReadBuffer(GL_COLOR_ATTACHMENT0);
+	glReadBuffer(GL_COLOR_ATTACHMENT2);
 	glexit("selection buff");
+	//printf("cursor pixels: %f, %f\n", is->cursorPosPixels.x, is->cursorPosPixels.y);
 	glReadPixels(
 		is->cursorPosPixels.x,
 		is->cursorPosPixels.y,
 		1,
 		1,
 		GL_RGB_INTEGER,
-		GL_SHORT,
+		GL_UNSIGNED_SHORT,
 		&rgb);
 	glexit("read selection");
 	
 	gs->cursorPos.x = rgb[0];
 	gs->cursorPos.y = rgb[1];
 	
-// 	printf("mx: %d, my: %d, x: %d, y: %d\n", (int)is->cursorPosPixels.x, (int)is->cursorPosPixels.y, rgb[0], rgb[1]);
+	printf("mx: %d, my: %d, x: %d, y: %d\n", (int)is->cursorPosPixels.x, (int)is->cursorPosPixels.y, rgb[0], rgb[1]);
 	
 	if(is->clickButton == 3 && rgb[2] == 1) {
 		gs->lookCenter.x = gs->cursorPos.x;
@@ -733,20 +735,26 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	setUpView(gs);
 	
 	// update world state
-	
+	glerr("pre shader create a");
 	// depth and picking pre-pass
-	glDepthFunc(GL_LESS);
+	glDepthFunc(GL_LESS);glerr("pre shader create b");
 	glBindFramebuffer(GL_FRAMEBUFFER, gs->framebuffer);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
+	glerr("pre shader create c");
 	depthPrepass(xs, gs, is);
+	
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, gs->framebuffer);
 	checkCursor(gs, is);
+	glBindFramebuffer(GL_FRAMEBUFFER, gs->framebuffer);
 	
 	
 	// clear color buffer for actual rendering
 	glClear(GL_COLOR_BUFFER_BIT);
+	glerr("pre shader create 1d");
 	glDepthFunc(GL_LEQUAL);
-	
+	glerr("pre shader create e");
 	renderFrame(xs, gs, is);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
