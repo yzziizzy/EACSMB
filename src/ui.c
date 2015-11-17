@@ -26,7 +26,7 @@
 
 UIWindow uiRootWin;
 
-ShaderProgram* windowProg;
+ShaderProgram* windowProg, *windowDepthProg;
 GLuint windowVAO;
 GLuint windowVBO;
 TexArray* icons;
@@ -54,6 +54,7 @@ void initUI() {
 	
 	initRootWin();
 	windowProg = loadCombinedProgram("ui");
+	windowDepthProg = loadCombinedProgram("uiDepth");
 	
 	// uniform locations
 
@@ -145,6 +146,8 @@ void uiPreRenderSetup() {
 
 void renderUIPicking(XStuff* xs, GameState* gs) {
 	
+	glUseProgram(windowDepthProg->id);
+	glexit("");
 	
 	
 	
@@ -153,18 +156,19 @@ void renderUIPicking(XStuff* xs, GameState* gs) {
 
 
 // shitty temporary function for rendering ui
-void renderWindowTmp(float x, float y, int index) {
+void renderWindowTmp(float x, float y, int index, float glow) {
 	
 	
 	msPush(&uiMat);
 	
 	msTrans3f(x, y, 0, &uiMat);
-	
 	msScale3f(50, 50, 50, &uiMat);
 	
-
-
+	
 	glUniform1i(glGetUniformLocation(windowProg->id, "texIndex"), index);
+	glexit("");
+	
+	glUniform1f(glGetUniformLocation(windowProg->id, "glow"), glow);
 	glexit("");
 	
 	GLuint zz = glGetUniformLocation(windowProg->id, "mMVP");
@@ -195,21 +199,19 @@ The ui is drawn on the actual framebuffer.
 void renderUI(XStuff* xs, GameState* gs) {
 	
 	glUseProgram(windowProg->id);
-	// set uniforms
+	
 	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, icons->tex_id);
 	glexit("");
-
+	
 	glUniform1i(glGetUniformLocation(windowProg->id, "sTexture"), 3);
 	glexit("");
 	
-	// mess with matrices
+	renderWindowTmp(550, 10, 2, gs->activeTool == 2 ? .5 : 0);
+	renderWindowTmp(550, 60, 0, gs->activeTool == 0 ? .5 : 0);
+	renderWindowTmp(550, 110, 1, gs->activeTool == 1 ? .5 : 0);
 	
-	renderWindowTmp(550, 10, 0);
-	renderWindowTmp(550, 60, 1);
-	renderWindowTmp(550, 110, 2);
-	
-
 }
 
 

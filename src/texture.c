@@ -259,6 +259,7 @@ TexArray* loadTexArray(char** files) {
 	
 	
 	glGenTextures(1, &ta->tex_id);
+	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, ta->tex_id);
 	glexit("failed to create texture array 1");
 	
@@ -270,7 +271,7 @@ TexArray* loadTexArray(char** files) {
 	
 	glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-// 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE); 
+	glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE); 
 	glexit("failed to create texture array 3");
 	
 	// squash the data in
@@ -288,7 +289,6 @@ TexArray* loadTexArray(char** files) {
 	
 	for(i = 0; i < len; i++) {
 		if(!bmps[i]) continue;
-		
 		
 		glTexSubImage3D(GL_TEXTURE_2D_ARRAY, // target
 			0,  // mip level, 0 = base, no mipmap,

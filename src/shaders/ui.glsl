@@ -32,16 +32,18 @@ void main() {
 // fragment shader
 uniform sampler2DArray sTexture;
 uniform int texIndex; 
+uniform float glow; 
 
 in vec2 texCoord;
 
+layout(location = 0) out vec4 out_Color;
 
 
 void main(void) {
 	
-	vec4 tc = texture(sTexture, vec3(texCoord.xy, texIndex));
+	vec4 tc = texture(sTexture, vec3(texCoord.xy, texIndex)).rgba;
 	
-	gl_FragColor = tc;
+	out_Color = tc + vec4(glow, glow, glow, 1);
 	
 }
 

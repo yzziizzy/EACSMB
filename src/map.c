@@ -67,9 +67,10 @@ void initMap(MapInfo* mi) {
 	memset(&mi->zoneColors, 0, 256);
 	
 	// TODO: load zone colors
-	mi->zoneColors[0] = 0xFFFFFFFF;
-	mi->zoneColors[1] = 0xFFFF00FF;
-	mi->zoneColors[2] = 0xFFFF0000;
+	mi->zoneColors[0] = 0x00000000;
+	mi->zoneColors[1] = 0x0000ff00;
+	mi->zoneColors[2] = 0x00ff0000;
+	mi->zoneColors[3] = 0x0000FFFF;
 	
 	glGenTextures(1, &mi->zoneColorTex);
 	glBindTexture(GL_TEXTURE_1D, mi->zoneColorTex);

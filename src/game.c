@@ -156,6 +156,8 @@ void initGame(XStuff* xs, GameState* gs) {
 	glerr("left over error on game init");
 	
 	
+	gs->activeTool = 0;
+	
 	gs->debugMode = 0;
 	gs->sunSpeed = 0;
 	
@@ -372,13 +374,16 @@ void handleInput(GameState* gs, InputState* is) {
 			gs->cursorPos.y - 5,
 			gs->cursorPos.x + 5,
 			gs->cursorPos.y + 5,
-			1
+			gs->activeTool + 1
 		);
 		
 		
 		checkMapDirty(&gs->map);
 	}
 	
+	if(is->clickButton == 2) {
+		gs->activeTool = (gs->activeTool + 1) % 3;
+	}
 	
 	// look direction
 	if(is->keyState[38] & IS_KEYDOWN) {
@@ -650,8 +655,6 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	glexit("text vbo bind");
 	glDrawArrays(GL_TRIANGLES, 0, strRI->vertexCnt);
 	glexit("text drawing");
-	
-	
 	
 }
 
