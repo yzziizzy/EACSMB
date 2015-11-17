@@ -3,6 +3,8 @@ SOONER:
 -------------------
 
 
+fix resolution/buffer sizing and handle window resizes
+
 building generator
 
 decal mesh generation
@@ -16,8 +18,6 @@ clean up text rendering function
 spaces in fonts don't work right
 gui toolkit
 
-object picking
-
 cursors
 
 rebuild eye/view code
@@ -27,14 +27,14 @@ terrain texture blending
 proper terrain scaling
 simplex noise
 
-get lighting working
-
-use fontconfig to find fonts by name
+implement real lighting
 
 dummy textures
 
 extrusion of a 2d shape along a spline
 	perhaps the shape is a spline, alling even better LoD
+
+adjust shader log text for real line numbers
 
 
 
@@ -43,14 +43,13 @@ LATER:
 
 
 error reporting on max_events being insufficient, possibly somethign to dump the queue
-clean up shader loading code
 
 make all functions static that need to be
 
 volumetric clouds and ground fog with projected translucent shadows
 
 LOD tessellation on terrain
-implement z culling prepass combined with picking
+try to reuse color buffers for object picking to eliminate a dedicated selection buffer
 
 
 

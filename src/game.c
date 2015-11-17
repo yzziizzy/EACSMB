@@ -456,6 +456,8 @@ void setUpView(GameState* gs) {
 void depthPrepass(XStuff* xs, GameState* gs, InputState* is) {
 	
 	// draw UI
+	renderUIPicking(xs, gs);
+	
 	
 	// draw terrain
 	// TODO: factor all the math into the frame setup function
@@ -735,26 +737,30 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	setUpView(gs);
 	
 	// update world state
-	glerr("pre shader create a");
+	
+	
 	// depth and picking pre-pass
-	glDepthFunc(GL_LESS);glerr("pre shader create b");
+	glDepthFunc(GL_LESS);
 	glBindFramebuffer(GL_FRAMEBUFFER, gs->framebuffer);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
-	glerr("pre shader create c");
+	
 	depthPrepass(xs, gs, is);
 	
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, gs->framebuffer);
+	
 	checkCursor(gs, is);
+	
 	glBindFramebuffer(GL_FRAMEBUFFER, gs->framebuffer);
 	
 	
 	// clear color buffer for actual rendering
-	glClear(GL_COLOR_BUFFER_BIT);
+	//glClear(GL_COLOR_BUFFER_BIT);
 	glerr("pre shader create 1d");
 	glDepthFunc(GL_LEQUAL);
 	glerr("pre shader create e");
+	
 	renderFrame(xs, gs, is);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -767,6 +773,7 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	
 	shadingPass(gs);
 	
+	renderUI(xs, gs);
 	
 	glXSwapBuffers(xs->display, xs->clientWin);
 

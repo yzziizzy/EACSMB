@@ -15,7 +15,10 @@
 #include "text/text.h"
 
 #include "utilities.h"
+#include "map.h"
 #include "shader.h"
+#include "window.h"
+#include "game.h"
 #include "texture.h"
 #include "ui.h"
 
@@ -25,6 +28,7 @@ UIWindow uiRootWin;
 
 ShaderProgram* windowProg;
 GLuint windowVAO;
+GLuint windowVBO;
 TexArray* icons;
 
 char* iconFiles[] = {
@@ -40,6 +44,7 @@ void initRootWin();
 
 void initUI() {
 	
+	initRootWin();
 	windowProg = loadCombinedProgram("ui");
 	
 	// uniform locations
@@ -64,7 +69,28 @@ void initUI() {
 	glVertexAttribIPointer(2, 1, GL_UNSIGNED_INT, sizeof(WindowVertex), (void*)offsetof(WindowVertex, texIndex));
 	
 	
-	initRootWin();
+
+	
+	
+	
+	float vertices[] = {
+		-1.0, -1.0, 0.0,
+		-1.0, 1.0, 0.0,
+		1.0, -1.0, 0.0,
+		1.0, 1.0, 0.0
+	};
+
+	glGenBuffers(1, &windowVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, windowVBO);
+	
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 12, 0);
+
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+	
 	
 /*	
 	UIIcon* resIcon = malloc(sizeof(UIIcon));
@@ -128,7 +154,7 @@ void uiPreRenderSetup() {
 }
 
 
-void renderUIPicking() {
+void renderUIPicking(XStuff* xs, GameState* gs) {
 	
 	
 	
@@ -141,13 +167,25 @@ void renderUIPicking() {
 The ui is drawn on the actual framebuffer.
 
 */
-void renderUI() {
+void renderUI(XStuff* xs, GameState* gs) {
+	
 	
 	// mess with matrices
+	Matrix world;
+	
+	world = IDENT_MATRIX;
+	
 	// set uniforms
 	// activate vbo's
-	// draw geometry
 	
+	
+	// draw geometry
+	glBindVertexArray(windowVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, windowVBO);
+	glexit("ui vbo");
+	
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glexit("ui draw");
 	
 }
 
