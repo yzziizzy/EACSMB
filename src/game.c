@@ -277,7 +277,8 @@ void initGame(XStuff* xs, GameState* gs) {
 	initMap(&gs->map);
 	updateTerrainTexture(gs->map.tb);
 	
-
+	initUI();
+	
 	// text rendering stuff
 	arial = LoadFont("Arial", 64, NULL);
 	glerr("clearing before text program load");
@@ -718,7 +719,7 @@ void checkCursor(GameState* gs, InputState* is) {
 	gs->cursorPos.x = rgb[0];
 	gs->cursorPos.y = rgb[1];
 	
-	printf("mx: %d, my: %d, x: %d, y: %d\n", (int)is->cursorPosPixels.x, (int)is->cursorPosPixels.y, rgb[0], rgb[1]);
+// 	printf("mx: %d, my: %d, x: %d, y: %d\n", (int)is->cursorPosPixels.x, (int)is->cursorPosPixels.y, rgb[0], rgb[1]);
 	
 	if(is->clickButton == 3 && rgb[2] == 1) {
 		gs->lookCenter.x = gs->cursorPos.x;

@@ -31,6 +31,8 @@ GLuint windowVAO;
 GLuint windowVBO;
 TexArray* icons;
 
+MatrixStack uiMat;
+
 char* iconFiles[] = {
 	"./assets/ui/icons/res.png",
 	"./assets/ui/icons/com.png",
@@ -44,6 +46,12 @@ void initRootWin();
 
 void initUI() {
 	
+	
+	msAlloc(20, &uiMat);
+	msIdent(&uiMat);
+	msOrtho(0, 600, 0, 600, -1, 100, &uiMat);
+	
+	
 	initRootWin();
 	windowProg = loadCombinedProgram("ui");
 	
@@ -56,17 +64,10 @@ void initUI() {
 	glGenVertexArrays(1, &windowVAO);
 	glBindVertexArray(windowVAO);
 
-	// position
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(WindowVertex), 0);
 	
-	// texture coords
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(WindowVertex), (void*)offsetof(WindowVertex, u));
-	
-	// texture index
-	glEnableVertexAttribArray(2);
-	glVertexAttribIPointer(2, 1, GL_UNSIGNED_INT, sizeof(WindowVertex), (void*)offsetof(WindowVertex, texIndex));
+// 	// texture index
+// 	glEnableVertexAttribArray(2);
+// 	glVertexAttribIPointer(2, 1, GL_UNSIGNED_INT, sizeof(WindowVertex), (void*)offsetof(WindowVertex, texIndex));
 	
 	
 
@@ -74,17 +75,23 @@ void initUI() {
 	
 	
 	float vertices[] = {
-		-1.0, -1.0, 0.0,
-		-1.0, 1.0, 0.0,
-		1.0, -1.0, 0.0,
-		1.0, 1.0, 0.0
+		 0.0,  0.0, 0.0,  0,0,
+		 0.0,  1.0, 0.0,  0,1,
+		 1.0,  0.0, 0.0,  1,0,
+		 1.0,  1.0, 0.0,  1,1
 	};
 
 	glGenBuffers(1, &windowVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, windowVBO);
 	
+	// position
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 12, 0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(WindowVertex), 0);
+	
+	// texture coords
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(WindowVertex), (void*)offsetof(WindowVertex, u));
+
 
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
@@ -92,24 +99,6 @@ void initUI() {
 	glBindVertexArray(0);
 	
 	
-/*	
-	UIIcon* resIcon = malloc(sizeof(UIIcon));
-	UIIcon* comIcon = malloc(sizeof(UIIcon));
-	UIIcon* indIcon = malloc(sizeof(UIIcon));
-	
-	resIcon->texID = resTex->tex_id;
-	comIcon->texID = comTex->tex_id;
-	indIcon->texID = indTex->tex_id;
-	
-	resIcon->win.dims.x = 128;
-	resIcon->win.dims.y = 128;
-	comIcon->win.dims.x = 128;
-	comIcon->win.dims.y = 128;
-	indIcon->win.dims.x = 128;
-	indIcon->win.dims.y = 128;
-	
-	resIcon->win.pos.x = .8;
-	resIcon->win.pos.y = .8;*/
 	
 }
 
@@ -162,6 +151,42 @@ void renderUIPicking(XStuff* xs, GameState* gs) {
 }
 
 
+
+// shitty temporary function for rendering ui
+void renderWindowTmp(float x, float y, int index) {
+	
+	
+	msPush(&uiMat);
+	
+	msTrans3f(x, y, 0, &uiMat);
+	
+	msScale3f(50, 50, 50, &uiMat);
+	
+
+
+	glUniform1i(glGetUniformLocation(windowProg->id, "texIndex"), index);
+	glexit("");
+	
+	GLuint zz = glGetUniformLocation(windowProg->id, "mMVP");
+	glexit("");
+	glUniformMatrix4fv(zz, 1, GL_FALSE, msGetTop(&uiMat));
+	glexit("");
+	
+	// activate vbo's
+	glBindVertexArray(windowVAO);
+	glexit("");
+	glBindBuffer(GL_ARRAY_BUFFER, windowVBO);
+	glexit("ui vbo");
+	
+	// draw geometry
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glexit("ui draw");
+	
+	
+	msPop(&uiMat);
+}
+
+
 /*
 
 The ui is drawn on the actual framebuffer.
@@ -169,24 +194,22 @@ The ui is drawn on the actual framebuffer.
 */
 void renderUI(XStuff* xs, GameState* gs) {
 	
+	glUseProgram(windowProg->id);
+	// set uniforms
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, icons->tex_id);
+	glexit("");
+
+	glUniform1i(glGetUniformLocation(windowProg->id, "sTexture"), 3);
+	glexit("");
 	
 	// mess with matrices
-	Matrix world;
 	
-	world = IDENT_MATRIX;
+	renderWindowTmp(550, 10, 0);
+	renderWindowTmp(550, 60, 1);
+	renderWindowTmp(550, 110, 2);
 	
-	// set uniforms
-	// activate vbo's
-	
-	
-	// draw geometry
-	glBindVertexArray(windowVAO);
-	glBindBuffer(GL_ARRAY_BUFFER, windowVBO);
-	glexit("ui vbo");
-	
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-	glexit("ui draw");
-	
+
 }
 
 

@@ -95,14 +95,13 @@ typedef union UIWin {
 typedef struct WindowVertex {
 	float x,y,z;
 	float u,v;
-	unsigned int texIndex;
 } WindowVertex;
 
 
 
 extern UIWindow uiRootWin;
 
-
+void initUI();
 
 
 #endif // __ui_h__
