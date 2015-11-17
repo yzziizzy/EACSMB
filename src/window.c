@@ -11,6 +11,7 @@
 #include <GL/glx.h>
 #include <GL/glu.h>
 
+#include "utilities.h"
 #include "c3dlas/c3dlas.h"
 #include "window.h"
 

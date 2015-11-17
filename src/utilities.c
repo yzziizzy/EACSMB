@@ -16,16 +16,16 @@
 
 
 
-void glexit(char* msg) {
+void _glexit(char* msg, char* file, int line, char* func) {
 	GLenum err = glGetError();
 	if (err != GL_NO_ERROR) {
-		fprintf(stderr, "GL ERROR: %s: %s \n", msg, gluErrorString(err));
+		fprintf(stderr, "GL ERROR at %s:%d (%s): %s: %s \n", file, line, func, msg, gluErrorString(err));
 		exit(-1);
 	}
 }
 
 
-char* glerr(char* msg) {
+char* _glerr(char* msg, char* file, int line, char* func) {
 	char* errstr;
 	GLenum err;
 	
@@ -34,7 +34,7 @@ char* glerr(char* msg) {
 	
 	if (err != GL_NO_ERROR) { 
 		errstr = (char*)gluErrorString(err);
-		fprintf(stderr, "GL ERROR: %s: %s \n", msg, errstr);
+		fprintf(stderr, "GL ERROR at %s:%d (%s): %s: %s \n", file, line, func, msg, errstr);
 	}
 	
 	return errstr;
