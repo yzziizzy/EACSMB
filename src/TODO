@@ -21,6 +21,7 @@ gui toolkit
 cursors
 
 rebuild eye/view code
+calculate pixel position from inverse projection matrix in shading pass
 
 fix lines
 terrain texture blending
@@ -32,10 +33,13 @@ implement real lighting
 dummy textures
 
 extrusion of a 2d shape along a spline
-	perhaps the shape is a spline, alling even better LoD
+	perhaps the shape is a spline, allowing even better LoD
 
 adjust shader log text for real line numbers
+add KHR_debug
 
+add dragging support to input handling
+build real input handling code
 
 
 LATER:

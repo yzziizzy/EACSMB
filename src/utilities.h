@@ -22,5 +22,13 @@ char* readFile(char* path, int* srcLen);
 
 
 
+typedef struct VAOConfig {
+	int sz;
+	GLenum type;
+	
+} VAOConfig;
+
+
+
 
 #endif

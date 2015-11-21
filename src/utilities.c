@@ -76,7 +76,38 @@ char* readFile(char* path, int* srcLen) {
 
 
 
-
+GLuint makeVAO(VAOConfig* details, int stride) {
+	int i, offset; // packed data is expected
+	GLuint vao;
+	
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+	
+	for(i = 0; details[i].sz != 0; i++) {
+		GLenum t;
+		int ds;
+		
+		glEnableVertexAttribArray(i);
+		
+		t = details[i].type;
+		if(t == GL_FLOAT) { // works only for my usage
+			
+			glVertexAttribPointer(i, details[i].sz, t, GL_FALSE, stride, (void*)offset);
+		}
+		else {
+			glVertexAttribIPointer(i, details[i].sz, t, stride, (void*)offset);
+		}
+		glerr("vao init");
+		
+		if(t == GL_UNSIGNED_BYTE || t == GL_BYTE) ds = 1;
+		else if(t == GL_UNSIGNED_SHORT || t == GL_SHORT) ds = 2;
+		else ds = 4;
+		
+		offset += ds * details[i].sz;
+	}
+	
+	return vao;
+}
 
 
 
