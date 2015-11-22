@@ -107,6 +107,11 @@ void areaStats(TerrainBlock* tb, int x1, int y1, int x2, int y2, AreaStats* ass)
 void flattenArea(TerrainBlock *tb, int x1, int y1, int x2, int y2);
 void updateMapTextures(MapBlock* mb);
 void setZone(MapInfo *mi, int x1, int y1, int x2, int y2, int zone);
+
+void getTerrainHeight(MapInfo* map, Vector2i* coords, int coordLen, float* heightsOut); 
+
+
+
 // stuff below is too complicated for now. more knowledge is needed about the game to proceed.
 
 

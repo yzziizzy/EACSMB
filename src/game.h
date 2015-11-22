@@ -13,7 +13,7 @@ typedef struct GameState {
 	
 	MapInfo map;
 	
-	MatrixStack model;
+	MatrixStack model; // the terrain mesh, should be moved
 	MatrixStack view;
 	MatrixStack proj;
 	

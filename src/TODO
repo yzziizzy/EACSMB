@@ -2,6 +2,7 @@
 SOONER:
 -------------------
 
+some sort of generic 3d marker utility
 
 fix resolution/buffer sizing and handle window resizes
 
