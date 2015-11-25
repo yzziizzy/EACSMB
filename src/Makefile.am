@@ -8,6 +8,7 @@ eacsmb_SOURCES = main.c \
 	shader.c \
 	game.c \
 	ui.c \
+	cursor.c \
 	scene.c \
 	map.c \
 	texture.c \

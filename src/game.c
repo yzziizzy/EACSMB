@@ -275,6 +275,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	updateTerrainTexture(gs->map.tb);
 	
 	initUI();
+	initMarker();
 	
 	// text rendering stuff
 	arial = LoadFont("Arial", 64, NULL);
@@ -481,6 +482,7 @@ void depthPrepass(XStuff* xs, GameState* gs, InputState* is) {
 	
 	// y-up to z-up rotation
 	msRot3f(1, 0, 0, 3.1415/2, &gs->view);
+	msScale3f(1, 1, -1, &gs->view);
 
 
 	
@@ -545,6 +547,7 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	// y-up to z-up rotation
 	msRot3f(1, 0, 0, 3.1415/2, &gs->view);
+	msScale3f(1, 1, -1, &gs->view);
 	
 	
 	// calculate cursor position
@@ -594,7 +597,7 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 // 	drawTerrainBlock(&gs->map, msGetTop(&gs->model), msGetTop(&gs->view), msGetTop(&gs->proj), &gs->cursorPos);
 	drawTerrain(&gs->map, msGetTop(&gs->view), msGetTop(&gs->proj), &gs->cursorPos);
 	
-	
+	renderMarker(gs, 0,0);
 
 	msPop(&gs->view);
 	msPop(&gs->proj);
