@@ -37,7 +37,6 @@ extrusion of a 2d shape along a spline
 	perhaps the shape is a spline, allowing even better LoD
 
 adjust shader log text for real line numbers
-add KHR_debug
 
 add dragging support to input handling
 build real input handling code
@@ -56,6 +55,7 @@ volumetric clouds and ground fog with projected translucent shadows
 LOD tessellation on terrain
 try to reuse color buffers for object picking to eliminate a dedicated selection buffer
 
+particle system
 
 
 IDEAS:

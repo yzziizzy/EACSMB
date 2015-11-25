@@ -16,7 +16,7 @@
 
 
 
-void _glexit(char* msg, char* file, int line, char* func) {
+void _glexit(char* msg, const char* file, int line, const char* func) {
 	GLenum err = glGetError();
 	if (err != GL_NO_ERROR) {
 		fprintf(stderr, "GL ERROR at %s:%d (%s): %s: %s \n", file, line, func, msg, gluErrorString(err));
@@ -25,7 +25,7 @@ void _glexit(char* msg, char* file, int line, char* func) {
 }
 
 
-char* _glerr(char* msg, char* file, int line, char* func) {
+char* _glerr(char* msg, const char* file, int line, const char* func) {
 	char* errstr;
 	GLenum err;
 	
@@ -34,14 +34,40 @@ char* _glerr(char* msg, char* file, int line, char* func) {
 	
 	if (err != GL_NO_ERROR) { 
 		errstr = (char*)gluErrorString(err);
-		fprintf(stderr, "GL ERROR at %s:%d (%s): %s: %s \n", file, line, func, msg, errstr);
+#ifndef NO_GL_GET_ERR_DEBUG
+		fprintf(
+			stderr, 
+				TERM_BOLD TERM_COLOR_RED "GL ERROR:" TERM_RESET TERM_COLOR_RED 
+				"GL ERROR at %s:%d (%s): %s: %s \n", 
+			file, line, func, msg, errstr);
+#endif
 	}
 	
 	return errstr;
 }
 
 
+void _khr_debug_callback( // i hate this stype of formatting, but this function has too many damn arguments 
+	GLenum source, 
+	GLenum type, 
+	GLuint id, 
+	GLenum severity, 
+	GLsizei length, 
+	const GLchar *message, 
+	GLvoid *userParam) {
 
+	printf(TERM_BOLD TERM_COLOR_RED "GL ERROR:" TERM_RESET TERM_COLOR_RED " %s\n" TERM_RESET, message);
+	
+}
+
+void initKHRDebug() {
+	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_LOW, 0, NULL, GL_FALSE);
+	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL, GL_FALSE);
+	
+	glDebugMessageCallback(_khr_debug_callback , NULL);
+	
+
+}
 
 char* readFile(char* path, int* srcLen) {
 	

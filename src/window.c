@@ -25,7 +25,10 @@ glXCreateContextAttribsARBProc glXCreateContextAttribsARB = 0;
 
 const int context_attr[] = {
 	GLX_CONTEXT_MAJOR_VERSION_ARB, 4,
-	GLX_CONTEXT_MINOR_VERSION_ARB, 0,
+	GLX_CONTEXT_MINOR_VERSION_ARB, 3,
+#ifdef USE_KHR_DEBUG
+	GLX_CONTEXT_FLAGS_ARB, GLX_CONTEXT_DEBUG_BIT_ARB,
+#endif
 	None
 };
 
@@ -63,10 +66,11 @@ int xErrorHandler(Display *dpy, XErrorEvent *ev) {
 }
 
 
+
  
 // this function will exit() on fatal errors. what good is error handling then?
 int initXWindow(XStuff* xs) {
- 
+	
 	GLXFBConfig* fbconfigs;
 	GLXFBConfig chosenFBC;
 	int fbcount, i;
@@ -156,6 +160,14 @@ int initXWindow(XStuff* xs) {
 	// have to have a current GLX context before initializing GLEW
 	initGLEW();
 	
+	
+	int myData;
+
+	// set myData  as the user data
+	
+#ifdef USE_KHR_DEBUG
+	initKHRDebug();
+#endif
 	
 }
 
