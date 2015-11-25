@@ -245,22 +245,17 @@ void initGame(XStuff* xs, GameState* gs) {
 	
 	
 	// set up matrix stacks
-	MatrixStack* model, *view, *proj;
+	MatrixStack* view, *proj;
 	
-	model = &gs->model;
 	view = &gs->view;
 	proj = &gs->proj;
 	
-	msAlloc(30, model);
 	msAlloc(2, view);
 	msAlloc(2, proj);
 
-	msIdent(model);
 	msIdent(view);
 	msIdent(proj);
 	
-	msScale3f(1024,1024,1024, model);
-
 
 	
 	
@@ -482,17 +477,13 @@ void depthPrepass(XStuff* xs, GameState* gs, InputState* is) {
 	msTrans3f(0, -1, gs->zoom, &gs->view);
 	msRot3f(1, 0, 0, 3.1415/6, &gs->view);
 	msRot3f(0,1,0, angle, &gs->view);
-	msTrans3f(-gs->lookCenter.x + 512, 0, -gs->lookCenter.y + 512, &gs->view);
-	// TODO: fix coordinates
-
-	
- 	msPush(&gs->model);
-	
-	// move it to the middle of the screen
- 	msTrans3f(-.5, 0, -.5, &gs->model);
+	msTrans3f(-gs->lookCenter.x, 0, -gs->lookCenter.y, &gs->view);
 	
 	// y-up to z-up rotation
-	msRot3f(1, 0, 0, 3.1415/2, &gs->model);
+	msRot3f(1, 0, 0, 3.1415/2, &gs->view);
+
+
+	
 	
 	// calculate cursor position
 	Vector eyeCoord;
@@ -516,10 +507,9 @@ void depthPrepass(XStuff* xs, GameState* gs, InputState* is) {
 	vNorm(&worldCoord, &worldCoord);
 
 	// draw terrain
-	drawTerrainBlockDepth(&gs->map, msGetTop(&gs->model), msGetTop(&gs->view), msGetTop(&gs->proj));
+// 	drawTerrainBlockDepth(&gs->map, msGetTop(&gs->model), msGetTop(&gs->view), msGetTop(&gs->proj));
+	drawTerrainDepth(&gs->map, msGetTop(&gs->view), msGetTop(&gs->proj));
 	
-	
-	msPop(&gs->model);
 	msPop(&gs->view);
 	msPop(&gs->proj);
 	
@@ -546,25 +536,17 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	msPush(&gs->view);
 	
 	
-	
+
 	// order matters! don't mess with this.
 	msTrans3f(0, -1, gs->zoom, &gs->view);
 	msRot3f(1, 0, 0, 3.1415/6, &gs->view);
 	msRot3f(0,1,0, angle, &gs->view);
-	msTrans3f(-gs->lookCenter.x + 512, 0, -gs->lookCenter.y + 512, &gs->view);
-	// TODO: fix coordinates
-
-	
- 	msPush(&gs->model);
-	
-	// move it to the middle of the screen
- 	msTrans3f(-.5, 0, -.5, &gs->model);
+	msTrans3f(-gs->lookCenter.x, 0, -gs->lookCenter.y, &gs->view);
 	
 	// y-up to z-up rotation
-	msRot3f(1, 0, 0, 3.1415/2, &gs->model);
+	msRot3f(1, 0, 0, 3.1415/2, &gs->view);
 	
 	
-
 	// calculate cursor position
 	Vector cursorp;
 	Vector eyeCoord;
@@ -609,10 +591,11 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	
 	// draw terrain
-	drawTerrainBlock(&gs->map, msGetTop(&gs->model), msGetTop(&gs->view), msGetTop(&gs->proj), &gs->cursorPos);
+// 	drawTerrainBlock(&gs->map, msGetTop(&gs->model), msGetTop(&gs->view), msGetTop(&gs->proj), &gs->cursorPos);
+	drawTerrain(&gs->map, msGetTop(&gs->view), msGetTop(&gs->proj), &gs->cursorPos);
 	
 	
-	msPop(&gs->model);
+
 	msPop(&gs->view);
 	msPop(&gs->proj);
 	

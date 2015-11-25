@@ -173,7 +173,7 @@ void renderWindowTmp(float x, float y, int index, float glow) {
 	
 	GLuint zz = glGetUniformLocation(windowProg->id, "mMVP");
 	glexit("");
-	glUniformMatrix4fv(zz, 1, GL_FALSE, msGetTop(&uiMat));
+	glUniformMatrix4fv(zz, 1, GL_FALSE, (float*)msGetTop(&uiMat));
 	glexit("");
 	
 	// activate vbo's

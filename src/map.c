@@ -35,6 +35,7 @@ ShaderProgram* terrDepthProg;
 GLuint MaxPatchVertices;
 GLuint MaxTessGenLevel;
 
+static MatrixStack model;
 
 char* tmpSavePath;
 char* tmpSaveName = "EACSMB-map-cache";
@@ -58,6 +59,12 @@ void initMap(MapInfo* mi) {
 	
 	
 	initTerrain();
+	
+	// HACK: should probably be scaled by data from mapinfo
+	msAlloc(4, &model);
+	msIdent(&model);
+	msScale3f(1024,1024,1024, &model);
+	msPush(&model);
 	
 	mi->tb = allocTerrainBlock(0, 0);
 	mi->mb = allocMapBlock(0, 0);
@@ -444,6 +451,20 @@ void updateTerrainTexture(TerrainBlock* tb) {
 
 
 
+
+void drawTerrainDepth(MapInfo* mi, Matrix* mView, Matrix* mProj) {
+	
+	drawTerrainBlockDepth(mi, msGetTop(&model), mView, mProj);
+}
+
+
+
+void drawTerrain(MapInfo* mi, Matrix* mView, Matrix* mProj, Vector2* cursor) {
+	
+	drawTerrainBlock(mi, msGetTop(&model), mView, mProj, cursor);
+}
+
+
 void drawTerrainBlock(MapInfo* mi, Matrix* mModel, Matrix* mView, Matrix* mProj, Vector2* cursor) {
 	
 	TerrainBlock* tb = mi->tb;
@@ -457,7 +478,6 @@ void drawTerrainBlock(MapInfo* mi, Matrix* mModel, Matrix* mView, Matrix* mProj,
 	glUniformMatrix4fv(view_ul, 1, GL_FALSE, mView->m);
 	glUniformMatrix4fv(proj_ul, 1, GL_FALSE, mProj->m);
 	glexit("terrain matrix uniforms");
-	
 	
 	
 	glUniform2f(winsize_ul, 600, 600);
@@ -512,7 +532,7 @@ void drawTerrainBlock(MapInfo* mi, Matrix* mModel, Matrix* mView, Matrix* mProj,
 
 
 
-void drawTerrainBlockDepth(MapInfo* mi, Matrix* mModel, Matrix* mView, Matrix* mProj, Vector2* cursor) {
+void drawTerrainBlockDepth(MapInfo* mi, Matrix* mModel, Matrix* mView, Matrix* mProj) {
 	
 	TerrainBlock* tb = mi->tb;
 	
@@ -796,6 +816,16 @@ void getTerrainHeight(MapInfo* map, Vector2i* coords, int coordLen, float* heigh
 	
 	
 };
+
+
+// calculate a tile's center point in world coordinates
+void tileCenterWorld(MapInfo* map, int tx, int ty, Vector* out) {
+	
+	
+	
+	
+}
+
 
 /* complicated premature optimization below
 

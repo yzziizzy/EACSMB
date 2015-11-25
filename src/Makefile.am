@@ -13,6 +13,7 @@ eacsmb_SOURCES = main.c \
 	texture.c \
 	perlin.c \
 	c3dlas/c3dlas.c \
+	c3dlas/meshgen.c \
 	text/text.c \
 	text/fcfg.c
 
@@ -21,7 +22,7 @@ eacsmb_LDADD =  \
 	-lX11 -lfreetype -lfontconfig -lpng \
 	-lGL -lGLU -lGLEW 
 	 
-AM_CFLAGS = "-I/usr/include/freetype2" -g -DLINUX -Wno-unused-result -O0
+AM_CFLAGS = "-I/usr/include/freetype2" -g -DLINUX -Wno-unused-result
 AM_CXXFLAGS = $(AM_CFLAGS)
 
 

@@ -100,7 +100,10 @@ MapBlock* allocMapBlock(int llx, int lly);
 
 void updateTerrainTexture(TerrainBlock* tb);
 
+void drawTerrain(MapInfo* tb, Matrix* mView, Matrix* mProj, Vector2* cursor);
+void drawTerrainDepth(MapInfo* tb, Matrix* mView, Matrix* mProj);
 void drawTerrainBlock(MapInfo* tb, Matrix* mModel, Matrix* mView, Matrix* mProj, Vector2* cursor);
+void drawTerrainBlockDepth(MapInfo* tb, Matrix* mModel, Matrix* mView, Matrix* mProj);
 void checkMapDirty(MapInfo* mi);
 void areaStats(TerrainBlock* tb, int x1, int y1, int x2, int y2, AreaStats* ass);
 
