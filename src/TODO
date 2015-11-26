@@ -19,15 +19,14 @@ clean up text rendering function
 spaces in fonts don't work right
 gui toolkit
 
-cursors
-
+standard base set of uniforms for all shaders (depends on #include partially)
 rebuild eye/view code
 calculate pixel position from inverse projection matrix in shading pass
 
 fix lines
 terrain texture blending
-proper terrain scaling
-simplex noise
+proper terrain scaling (kinda done)
+simplex noise (perlin artifacts look terrible)
 
 implement real lighting
 
@@ -37,6 +36,7 @@ extrusion of a 2d shape along a spline
 	perhaps the shape is a spline, allowing even better LoD
 
 adjust shader log text for real line numbers
+add #include support to shaders
 
 add dragging support to input handling
 build real input handling code
@@ -45,6 +45,11 @@ build real input handling code
 LATER:
 --------------------
 
+prevent zooming through the terrain
+
+trees
+
+mouse pointer cursors
 
 error reporting on max_events being insufficient, possibly somethign to dump the queue
 
