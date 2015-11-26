@@ -104,7 +104,7 @@ void main(void){
 	
 	float t = texture2D(sHeightMap, ttmp.xy, 0).r;
 	
-	tmp.z = t * .05; // .01 *  sin(gl_TessCoord.y*12) + .01 *sin(gl_TessCoord.x*12);
+	tmp.z = t / 1024; //* .05; // .01 *  sin(gl_TessCoord.y*12) + .01 *sin(gl_TessCoord.x*12);
 
 	gl_Position = (mProj * mView * mModel) * tmp;
 	t_tile =  tltmp; 

@@ -122,7 +122,7 @@ void main(void){
 	te_normal = normalize(vec4(sx*32, sy*32 ,1.0,1.0));
 	
 
-	tmp.z = t * .05; // .01 *  sin(gl_TessCoord.y*12) + .01 *sin(gl_TessCoord.x*12);
+	tmp.z = t / 1024; // .01 *  sin(gl_TessCoord.y*12) + .01 *sin(gl_TessCoord.x*12);
 
 	gl_Position = (mProj * mView * mModel) * tmp;
 	t_tile =  tltmp; 

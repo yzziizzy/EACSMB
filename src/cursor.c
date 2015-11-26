@@ -121,6 +121,8 @@ void initMarker() {
 	
 	// mesh data
 	Matrix mat = IDENT_MATRIX;
+	mRot3f(1,1,0,F_PI/4, &mat); // BUG: seems a bit off, meh
+	
 	markerMesh = makeCube(&mat, 1);
 	
 	
@@ -146,8 +148,17 @@ void renderMarker(GameState* gs, int tx, int ty) {
 	
 	mMul(msGetTop(&gs->proj), &m);
 	mMul(msGetTop(&gs->view), &m);
-	mTrans3f(512, 512, 70, &m);  
-	mScale3f(40,40,40, &m);
+	
+	Vector p;
+	
+// 	printf("x: %f, y: %f\n", gs->cursorPos.x, gs->cursorPos.y);
+	
+	tileCenterWorld(&gs->map, (int)gs->cursorPos.x, (int)gs->cursorPos.y, &p);
+	
+// 	printf("z: %f\n", p.z);
+	
+	mTrans3f(gs->cursorPos.x, gs->cursorPos.y, p.z+1.1, &m);  
+// 	mScale3f(4,4,4, &m);
 	
 	
 	// set uniforms
@@ -159,7 +170,7 @@ void renderMarker(GameState* gs, int tx, int ty) {
 	glBindBuffer(GL_ARRAY_BUFFER, markerVBO);
 	
 	// draw elements
-	glDrawElements(GL_TRIANGLES, 3*8, GL_UNSIGNED_SHORT, markerMesh->indices);
+	glDrawElements(GL_TRIANGLES, markerMesh->indexCnt, GL_UNSIGNED_SHORT, markerMesh->indices);
 	
 }
 

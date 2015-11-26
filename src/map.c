@@ -307,7 +307,7 @@ TerrainBlock* allocTerrainBlock(int cx, int cy) {
 				//tb->zs[x + (y * TERR_TEX_SZ)] = sin(x * .1) * .1;
 				float f = PerlinNoise_2D(x / 512.0, y / 512.0, .1, 6); // slow-ass function, disable except for noise testing
 	// 			printf("[%d,%d] %f\n", x,y,f);
-				tb->zs[x + (y * TERR_TEX_SZ)] = fabs(f * 4);
+				tb->zs[x + (y * TERR_TEX_SZ)] = fabs(1-f) * 150;
 			}
 		}
 		
@@ -819,10 +819,16 @@ void getTerrainHeight(MapInfo* map, Vector2i* coords, int coordLen, float* heigh
 
 
 // calculate a tile's center point in world coordinates
-void tileCenterWorld(MapInfo* map, int tx, int ty, Vector* out) {
+int tileCenterWorld(MapInfo* map, int tx, int ty, Vector* out) {
 	
+	tx = MAX(MIN(tx, TERR_TEX_SZ), 0);
+	ty = MAX(MIN(ty, TERR_TEX_SZ), 0);
 	
+	float z = map->tb->zs[tx + (ty * TERR_TEX_SZ)];
 	
+	out->x = tx;
+	out->y = ty;
+	out->z = z; // .05
 	
 }
 
