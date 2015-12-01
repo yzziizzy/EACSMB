@@ -23,8 +23,7 @@ standard base set of uniforms for all shaders (depends on #include partially)
 rebuild eye/view code
 calculate pixel position from inverse projection matrix in shading pass
 
-fix lines
-terrain texture blending
+
 proper terrain scaling (kinda done)
 simplex noise (perlin artifacts look terrible)
 
@@ -45,6 +44,8 @@ build real input handling code
 LATER:
 --------------------
 
+move view setup code to its own function
+
 prevent zooming through the terrain
 
 trees
@@ -62,6 +63,8 @@ try to reuse color buffers for object picking to eliminate a dedicated selection
 
 particle system
 
+fix lines
+terrain texture blending
 
 IDEAS:
 --------------------
@@ -110,6 +113,7 @@ red dawn
 tsunami
 full apocalypse of john
 health fad outbreak (gluten intolerance, atkins diet, etc)
+collapse of socialism
 
 
 power plants:
@@ -170,7 +174,7 @@ B/R/T livestock
 B/R/T pets
 B/R/T home businesses
 B/R/T a zillion different occupations
-
+a million kinds of socialism
 
 
 

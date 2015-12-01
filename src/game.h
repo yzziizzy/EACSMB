@@ -21,6 +21,8 @@ typedef struct GameState {
 	
 	Vector2 cursorPos;
 	
+	Vector2 mouseDownPos;
+	
 	int debugMode;
 	
 	float zoom;

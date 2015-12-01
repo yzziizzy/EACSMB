@@ -24,30 +24,30 @@ ShaderProgram* cursorProg;
 Texture* cursorTex;
 
 
-// void initCursors() {
-// 	
-// 	
-// 	// shader program
-// 	cursorProg = loadCombinedProgram("cursor");
-// 	
-// 	// uniform locations
-// 	MVP_ul = glGetUniformLocation(cursorProg->id, "mMVP");
-// 
-// 	// vao
-// 	VAOConfig opts[] = {
-// 		{3, GL_FLOAT}, // position
-// 		{2, GL_FLOAT}, // tex coords
-// 		{0, 0}
-// 	};
-// 	
-// 	selectionVAO = makeVAO(opts, 2*3*4);
-// 	
-// 	
-// 	// texture
-// 	cursorTex = loadBitmapTexture("./assets/textures/cursorFire.png");
-// 
-// 	
-// }
+void initCursors() {
+	
+	
+	// shader program
+	cursorProg = loadCombinedProgram("cursor");
+	
+	// uniform locations
+	//MVP_ul = glGetUniformLocation(cursorProg->id, "mMVP");
+
+	// vao
+	VAOConfig opts[] = {
+		{3, GL_FLOAT}, // position
+		{2, GL_FLOAT}, // tex coords
+		{0, 0}
+	};
+	
+	selectionVAO = makeVAO(opts, 2*3*4);
+	
+	
+	// texture
+	cursorTex = loadBitmapTexture("./assets/textures/cursorFire.png");
+
+	
+}
 
 
 

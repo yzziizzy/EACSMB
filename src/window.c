@@ -160,11 +160,6 @@ int initXWindow(XStuff* xs) {
 	// have to have a current GLX context before initializing GLEW
 	initGLEW();
 	
-	
-	int myData;
-
-	// set myData  as the user data
-	
 #ifdef USE_KHR_DEBUG
 	initKHRDebug();
 #endif
@@ -243,10 +238,17 @@ void processEvents(XStuff* xs, InputState* st, int max_events) {
 		}
 		
 		// mouse events
+		if(xev.type == ButtonPress) {
+// 			st->clickPos.x = xev.xbutton.x / (float)xs->winAttr.width;
+// 			st->clickPos.y = (xs->winAttr.height - xev.xbutton.y) / (float)xs->winAttr.height;
+// 			st->clickButton = xev.xbutton.button;
+			st->buttonDown = xev.xbutton.button;
+		}
 		if(xev.type == ButtonRelease) {
 			st->clickPos.x = xev.xbutton.x / (float)xs->winAttr.width;
 			st->clickPos.y = (xs->winAttr.height - xev.xbutton.y) / (float)xs->winAttr.height;
 			st->clickButton = xev.xbutton.button;
+			st->buttonUp = xev.xbutton.button;
 			
 		}
 		
@@ -270,6 +272,8 @@ void clearInputState(InputState* st) {
 	st->clickPos.y = -1;
 	st->clickPos.x = -1;
 	st->clickButton = 0;
+	st->buttonUp = 0;
+	st->buttonDown = 0;
 	
 }
 

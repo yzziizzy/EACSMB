@@ -357,7 +357,7 @@ void handleInput(GameState* gs, InputState* is) {
 	
 	
 	if(is->clickButton == 1) {
-		
+		/*
 		flattenArea(gs->map.tb, 
 			gs->cursorPos.x - 5,
 			gs->cursorPos.y - 5,
@@ -375,6 +375,17 @@ void handleInput(GameState* gs, InputState* is) {
 		
 		
 		checkMapDirty(&gs->map);
+		*/
+	}
+	
+	if(is->buttonDown == 1) {
+		gs->mouseDownPos.x = gs->cursorPos.x;
+		gs->mouseDownPos.y = gs->cursorPos.y;
+		printf("start dragging at (%d,%d)\n", (int)gs->cursorPos.x, (int)gs->cursorPos.y);
+	}
+	if(is->buttonUp == 1) {
+		//vCopy(&gs->cursorPos, &gs->mouseDownPos);
+		printf("stopped dragging at (%d,%d)\n", (int)gs->cursorPos.x, (int)gs->cursorPos.y);
 	}
 	
 	if(is->clickButton == 2) {

@@ -763,6 +763,88 @@ int tileCenterWorld(MapInfo* map, int tx, int ty, Vector* out) {
 }
 
 
+
+void slopeBetween(MapInfo* map, Vector2* p1, Vector2* p2, float width) {
+	
+	
+	float* zs = map->tb->zs;
+	
+	// step 1: calculate exact corner coordinates
+	Vector2 corners[4];
+	Vector2 d, p;
+	
+	vSub2(p1, p2, &d);
+	
+	// get a perpendicular vector
+	p.x = d.y;
+	p.y = -d.x;
+	
+	vNorm2(&p);
+	vScale2(&p, width / 2, &p);
+	
+	vAdd2(p1, &p, &corners[0]);
+	vSub2(p1, &p, &corners[1]);
+	vAdd2(p2, &p, &corners[2]);
+	vSub2(p2, &p, &corners[3]);
+	
+	// step 2: get bounding corner tile coordinates
+	
+	
+	// step 3: get start/stop heights
+	float h1 = zs[MCOORD(p1->x,p1->y)];
+	float h2 = zs[MCOORD(p2->x,p2->y)];
+	
+	// step 4: set new heights of affected tiles
+	float rise = h1 - h2;
+	float dx = rise / (p1.x - p2.x);
+	float dy = rise / (p1.y - p2.y);
+	
+	
+	
+	// this is effectively a quad rasterizer
+	
+	int ytop, ybottom;
+	int l_mid, r_mid;
+	float lt_slope, lb_slope;
+	float rt_slope, rb_slope;
+	
+	int xleft, xright;
+	
+	
+	ytop = .5 + fmax(fmax(corners[0].y, corners[1].y), fmax(corners[2].y, corners[3].y));
+	ybottom = -0.5 + fmin(fmin(corners[0].y, corners[1].y), fmin(corners[2].y, corners[3].y));
+	
+	// midpoints are y coords of the left- and right-most vertices
+	int i, j;
+	for(i = j = 0; i < 4; i++)
+		if(corners[i].x < corners[j].x) j = i;
+	l_mid = corners[j].y;
+	
+	
+	for(i = j = 0; i < 4; i++)
+		if(corners[i].x > corners[j].x) j = i;
+	r_mid = corners[j].y;
+	
+	// more magic from the diagram
+	
+	
+	int x, y;
+	for(y = ytop; y <= ybottom; y--) {
+		
+		// switch slopes here
+		
+		for(x = xleft; x <= xright; x++) {
+			
+			// stuff
+			
+		}
+		
+	}
+	
+}
+
+
+
 /* complicated premature optimization below
 
 static MapNode* allocMapNode(MapNode* parent, int ix, int iy);

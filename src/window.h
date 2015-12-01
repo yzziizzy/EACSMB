@@ -33,6 +33,13 @@ typedef struct XStuff {
 #define IS_TUX        0x20 // aka "windows key"
 
 
+enum InputMode {
+	CLICK_MODE,
+	DRAG_MODE
+	
+};
+
+
 typedef struct {
 	
 	// shitty for now
@@ -40,8 +47,12 @@ typedef struct {
 	Vector2 cursorPos;
 	Vector2 cursorPosPixels;
 	char clickButton;
+	char buttonUp;
+	char buttonDown;
 	
 	unsigned char keyState[256];
+	
+	enum InputMode mode;
 	
 } InputState;
 
