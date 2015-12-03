@@ -15,6 +15,7 @@ typedef struct OBJContents {
 	OBJDataBuffer v, vn, vt, vp;
 	
 	int* f;
+	int f_cnt;
 	int* fn;
 	int* ft;
 	int* fp;

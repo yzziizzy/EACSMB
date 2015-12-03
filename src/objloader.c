@@ -49,6 +49,10 @@ void loadOBJFile(char* path, int four_d_verts, OBJContents* contents) {
 	
 	FILE* f;
 	int line = 0;
+	int cur_pos = 0;
+	int cur_norm = 0;
+	int cur_tex = 0;
+	int cur_param = 0;
 	
 	f = fopen(path, "r");
 	if(!f) return;
@@ -88,15 +92,23 @@ void loadOBJFile(char* path, int four_d_verts, OBJContents* contents) {
 			
 			// read face data into the index buffer
 			for(vi = 0; vi < 4; vi++) {
-				n = fscanf(f, "%d", &ind[vi][0]);
+				n = fscanf(f, "%d", &ind[0][vi]);
 				if(!n) break;
 				ci = 1;
-				while(fgetc(f) == '/' && fscanf(f, "%d", &ind[vi][ci++]));
+				while(fgetc(f) == '/' && fscanf(f, "%d", &ind[ci++][vi]));
 			}
 			
 			// all indices are 1-based; convert to 0-based
 			// resolve negative (relative) indices to absolute indices 
+			contents->f[f_cnt++] = ind[0][0] - 1;
+			contents->f[f_cnt++] = ind[0][1] - 1;
+			contents->f[f_cnt++] = ind[0][2] - 1;
 			
+			if(vi > 2) { // triangulate the quad
+				contents->f[f_cnt++] = ind[0][0] - 1;
+				contents->f[f_cnt++] = ind[0][2] - 1;
+				contents->f[f_cnt++] = ind[0][3] - 1;
+			}
 			
 		}
 		 
@@ -110,7 +122,7 @@ void loadOBJFile(char* path, int four_d_verts, OBJContents* contents) {
 			
 			if(c == ' ') { // position
 				if(n < 3) {
-					fprintf(stderr, "OBJ: only %d coordinates for vertice on line %d\n", n, line);
+					fprintf(stderr, "OBJ: only %d coordinates for vertex on line %d\n", n, line);
 					return;
 				}
 				
