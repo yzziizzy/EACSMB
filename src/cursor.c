@@ -113,10 +113,12 @@ void initMarker() {
 	// VAO
 	VAOConfig opts[] = {
 		{3, GL_FLOAT}, // position
+		{3, GL_FLOAT}, // normals
+		{2, GL_UNSIGNED_SHORT}, // tex
 		{0, 0}
 	};
 	
-	markerVAO = makeVAO(opts, 3*4);
+	markerVAO = makeVAO(opts, ((3+3)*4) + (2+2));
 	
 	
 	// mesh data
@@ -126,7 +128,7 @@ void initMarker() {
 	markerMesh = makeCube(&mat, 1);
 	
 	
-	glBufferData(GL_ARRAY_BUFFER, markerMesh->vertexCnt * sizeof(Vector), markerMesh->vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, markerMesh->vertexCnt * sizeof(MeshVertex), markerMesh->vertices, GL_STATIC_DRAW);
 	glerr("");
 	
 	glBindBuffer(GL_ARRAY_BUFFER, 0);

@@ -763,6 +763,31 @@ int tileCenterWorld(MapInfo* map, int tx, int ty, Vector* out) {
 }
 
 
+// sort y low to high, then x low to high
+// terrible function name, can't think of a better one
+void vSortLtoH42i(Vector2i* v) {
+	
+#define SWAP(v, p, a, b) \
+	if(v[a].p > v[b].p) vSwap2i(&v[a], &v[b])
+	
+	// sort on y first
+	// sorting networks are awesome
+	SWAP(v, y, 0, 1);
+	SWAP(v, y, 2, 3);
+	SWAP(v, y, 0, 2);
+	SWAP(v, y, 1, 3);
+	SWAP(v, y, 1, 2);
+	
+	// this function never has to handle pathological degenerate cases of quads - points or lines
+	// therefore more than two points will never be on the same axis
+	if(v[0].y == v[1].y) SWAP(v, x, 0, 1);
+	if(v[1].y == v[2].y) SWAP(v, x, 1, 2);
+	if(v[2].y == v[3].y) SWAP(v, x, 2, 3);
+	
+#undef SWAP
+}
+
+/*
 
 void slopeBetween(MapInfo* map, Vector2* p1, Vector2* p2, float width) {
 	
@@ -772,6 +797,7 @@ void slopeBetween(MapInfo* map, Vector2* p1, Vector2* p2, float width) {
 	// step 1: calculate exact corner coordinates
 	Vector2 corners[4];
 	Vector2 d, p;
+	Quad2i ci;
 	
 	vSub2(p1, p2, &d);
 	
@@ -779,15 +805,44 @@ void slopeBetween(MapInfo* map, Vector2* p1, Vector2* p2, float width) {
 	p.x = d.y;
 	p.y = -d.x;
 	
-	vNorm2(&p);
+	vNorm2(&p, &p);
 	vScale2(&p, width / 2, &p);
 	
+	//BUG: winding is probably wrong
 	vAdd2(p1, &p, &corners[0]);
 	vSub2(p1, &p, &corners[1]);
-	vAdd2(p2, &p, &corners[2]);
-	vSub2(p2, &p, &corners[3]);
+	vSub2(p2, &p, &corners[2]);
+	vAdd2(p2, &p, &corners[3]);
 	
 	// step 2: get bounding corner tile coordinates
+	quadRoundOutward2((Quad2*)corners, &ci);
+	
+	
+	
+	// check for degenerate cases
+	
+	// just a point, do nothing
+	if(quadIsPoint2i(&ci)) {
+		
+		
+		return;
+	}
+	
+	
+	// check for axis-aligned rectangles
+	if(quadIsAARect2i(&ci)) {
+		for() {
+			for() {
+			
+			
+			}
+		}
+		
+		
+		return;
+	}
+	
+	// anything past here will be roughly diamond shaped
 	
 	
 	// step 3: get start/stop heights
@@ -807,6 +862,7 @@ void slopeBetween(MapInfo* map, Vector2* p1, Vector2* p2, float width) {
 	int l_mid, r_mid;
 	float lt_slope, lb_slope;
 	float rt_slope, rb_slope;
+	float l_slope, r_slope;
 	
 	int xleft, xright;
 	
@@ -828,10 +884,16 @@ void slopeBetween(MapInfo* map, Vector2* p1, Vector2* p2, float width) {
 	// more magic from the diagram
 	
 	
+	
+	l_slope = lt_slope;
+	r_slope = rt_slope;
+	
 	int x, y;
 	for(y = ytop; y <= ybottom; y--) {
 		
-		// switch slopes here
+		// switch slopes at the midpoint
+		if(y == r_mid) r_slope = rb_slope;
+		if(y == l_mid) l_slope = lb_slope;
 		
 		for(x = xleft; x <= xright; x++) {
 			
@@ -842,7 +904,7 @@ void slopeBetween(MapInfo* map, Vector2* p1, Vector2* p2, float width) {
 	}
 	
 }
-
+*/
 
 
 /* complicated premature optimization below

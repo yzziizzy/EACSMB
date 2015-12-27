@@ -10,15 +10,18 @@ typedef struct OBJDataBuffer {
 } OBJDataBuffer;
 
 
+typedef struct OBJFace {
+	int v, vt, vn;
+} OBJFace;
+
+
 typedef struct OBJContents {
 	
-	OBJDataBuffer v, vn, vt, vp;
+	OBJDataBuffer v, vn, vt;
 	
-	int* f;
+	OBJFace* f;
 	int f_cnt;
-	int* fn;
-	int* ft;
-	int* fp;
+	int f_sz;
 	
 	char* o;
 } OBJContents;

@@ -3,10 +3,15 @@ SOONER:
 -------------------
 
 some sort of generic 3d marker utility
+3d axis indicators
 
 fix resolution/buffer sizing and handle window resizes
 
 building generator
+	pedestals
+	courtyards
+	fences and walls
+	
 
 decal mesh generation
 	triangle clipping
@@ -43,6 +48,9 @@ build real input handling code
 
 LATER:
 --------------------
+
+texture projection
+fancy thin coverage-to-alpha wires
 
 move view setup code to its own function
 

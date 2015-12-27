@@ -100,9 +100,11 @@ void loadOBJFile(char* path, int four_d_verts, OBJContents* contents) {
 			
 			// all indices are 1-based; convert to 0-based
 			// resolve negative (relative) indices to absolute indices 
-			contents->f[f_cnt++] = ind[0][0] - 1;
-			contents->f[f_cnt++] = ind[0][1] - 1;
-			contents->f[f_cnt++] = ind[0][2] - 1;
+			contents->f[f_cnt].v  = ind[0][0] - 1;
+			contents->f[f_cnt].vn = ind[0][1] - 1;
+			contents->f[f_cnt].vt = ind[0][2] - 1;
+			
+			f_cnt++;
 			
 			if(vi > 2) { // triangulate the quad
 				contents->f[f_cnt++] = ind[0][0] - 1;
@@ -137,9 +139,9 @@ void loadOBJFile(char* path, int four_d_verts, OBJContents* contents) {
 			else if(c == 't') { // texture coordinates
 				append_vector(&contents->vt, fbuf);
 			}
-			else if(c == 'p') { // "freeform geometry coordinates"
-				append_vector(&contents->vp, fbuf);
-			}
+// 			else if(c == 'p') { // "freeform geometry coordinates"
+// 				append_vector(&contents->vp, fbuf);
+// 			}
 			
 			skip_line(f);
 			line++;
