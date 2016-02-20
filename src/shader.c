@@ -11,7 +11,18 @@
 #include "shader.h"
 
 
+const int BUFFER_SZ = 1024 * 8;
 const char* SHADER_BASE_PATH = "./src/shaders/";
+
+
+
+struct ShaderBuf {
+	char** buffers;
+	int allocSz;
+	int count; 
+	
+};
+ 
 
 
 
@@ -138,6 +149,191 @@ int extractShader(char** source, GLuint progID) {
 	return 0;
 }
 
+int shaderPreProcess(char* path) { // TODO pass in some context
+	
+	struct ShaderBuf sb;
+	FILE* f;
+	char readBuf[4096];
+	
+	// an array of strings is fed to GL
+	sb.buffers = calloc(1, sizeof(char*) * 64);
+	sb.buffers[0] = malloc(sizeof(char) * BUFFER_SZ);
+	sb.buffers[0][0] = 0;
+	sb.allocSz = 64;
+	sb.count = 1;
+	
+	
+	f = fopen(path, "rb");
+	if(!f) {
+		fprintf(stderr, "Could not open file \"%s\"\n", path);
+		return NULL;
+	}
+	
+	// append lines to the main buffers
+	while(!feof(f)) {
+		char* s;
+		
+		s = fgets(readBuf, 4096, f);
+		
+		if(s == NULL) { // eof or error
+			if(ferror(f)) {
+				fprintf(stderr, "Error reading file \"%s\"\n", path);
+				return NULL;
+			}
+			
+			//eof, readBuf unchanged
+			return NULL; // BUG TODO ???
+		}
+		
+		// scan the line for preprocessor directives
+		
+		// end of this shader, start of another -- ignore for now
+		end = strstr(base, "#shader"); 
+		end = strstr(base, "#include \"%s\""); 
+		
+		
+		ws = strspn(readBuf, " \t");
+		if(readBuf[ws] == '#') 
+		
+	}
+	
+	
+
+	
+}
+
+
+struct sourceFile;
+
+// a piece of a file, between others
+struct sourceFragment {
+	int srcLen; // if -1, it's a sourceFile struct
+	char* src;
+	
+	char* basePath;
+	char* filename;
+	
+	int srcStartingLine; // where the first line of this fragment is in the original source file
+	int shaderStartingLine; // where the first line of this fragment falls in the final concatenated source
+	int lineCount; // number of lines in this fragment
+	GLuint shaderType;
+	
+	struct sourceFragment* next; 
+	struct sourceFragment* prev; 
+}
+/* deprecated in favor of just a list of fragments
+struct sourceFile {
+	char* basePath;
+	char* filename;
+	int startingLine; // where the first line of this file falls in the final concatenated source
+	int endingLine;
+	
+	struct sourceFragment* frags;
+}
+*/
+
+
+
+
+struct sourceFile* preloadFile(char* basePath, char* filename) {
+	
+	struct sourceFile* sf;
+	char* source, *base, *end;
+	int srcLen;
+	
+	char includeName[256];
+	
+	sf = calloc(1, sizeof(struct sourceFile));
+	
+	sf->basePath = basePath;
+	sf->filename = filename;
+	
+	// TODO: basename shit
+	
+	sf->source = readFile(filename, &srcLen);
+	if(!sf->source) {
+		free(spath); // TODO copypasta, fix this
+		return NULL;
+	}
+	
+	base = sf->source;
+	
+	while() {
+		struct sourceFragment* frag, *fileFrag;
+		
+		// walk over the source looking for #include directives
+		end = strstr(base, "\n#include");
+		if(end == NULL) { // we got to the end
+			end = *sf->source + strlen(*sf->source);
+			break;
+		}
+		
+		// extract the file name
+		cnt = sscanf(end + 9, " \"%255s\"", &includeName); // != 1 for failure
+		if(cnt == EOF || cnt == 0) {
+			return 2; // invalid parse 
+		}
+		
+		fileFrag->srcLen = -1;
+		fileFrag->sf = preloadFile(basePath, strdup(includeName))
+		
+		
+		// skip #include line
+		base = strchr(base + 1, '\n');
+		
+		
+	}
+}
+
+static struct sourceFrag* nibble(char** source) {
+	
+	struct sourceFragment* frag, *fileFrag;
+	
+	char* s;
+	
+	// walk over the source looking for directives
+	s = strstr(*source, "\n#");
+	if(s == NULL) { // we got to the end
+		*source = *source + strlen(*source);
+		
+		// load up the chunk
+		
+		return frag;
+	}
+	
+	s += 2; // skip the newline and pound
+	
+	if(0 == strncmp(s, "include", strlen("include"))) {
+		return nibbleFile();
+		
+	}
+	else if(0 == strncmp(s, "shader", strlen("shader"))) {
+		// split it here, new shader
+		
+	}
+	else {
+		// unknown directive
+		
+	}
+
+}
+
+static struct sourceFrag* nibbleFile(char** source) {
+	struct sourceFragment* frag, *fileFrag;
+	int cnt;
+	
+	frag = calloc(1, sizeof(struct sourceFragment));
+	
+	// extract the file name
+	cnt = sscanf(*source + 9, " \"%255s\"", &includeName); // != 1 for failure
+	if(cnt == EOF || cnt == 0) {
+		return 2; // invalid parse 
+	}
+	
+	fileFrag->srcLen = -1;
+	fileFrag->sf = preloadFile(basePath, strdup(includeName))
+}
+
 
 
 ShaderProgram* loadCombinedProgram(char* path) {
@@ -148,6 +344,7 @@ ShaderProgram* loadCombinedProgram(char* path) {
 	char typeName[24];
 	GLenum type; 
 	GLuint id;
+	
 	
 	int bplen = strlen(SHADER_BASE_PATH);
 	
