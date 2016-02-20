@@ -235,54 +235,46 @@ struct sourceFile {
 
 
 
-struct sourceFile* preloadFile(char* basePath, char* filename) {
+struct sourceFragment* preloadFile(char* basePath, char* filename) {
 	
-	struct sourceFile* sf;
+	struct sourceFragment* sf, *tail;
 	char* source, *base, *end;
 	int srcLen;
 	
 	char includeName[256];
 	
-	sf = calloc(1, sizeof(struct sourceFile));
+	sf = calloc(1, sizeof(struct sourceFragment));
 	
 	sf->basePath = basePath;
 	sf->filename = filename;
 	
 	// TODO: basename shit
 	
-	sf->source = readFile(filename, &srcLen);
+	source = readFile(filename, &srcLen);
 	if(!sf->source) {
 		free(spath); // TODO copypasta, fix this
 		return NULL;
 	}
 	
-	base = sf->source;
+	base = source;
+	tail = sf;
 	
-	while() {
-		struct sourceFragment* frag, *fileFrag;
+	while(*base) {
+		struct sourceFragment* frag;
 		
-		// walk over the source looking for #include directives
-		end = strstr(base, "\n#include");
-		if(end == NULL) { // we got to the end
-			end = *sf->source + strlen(*sf->source);
-			break;
-		}
+		frag = nibble(&base);
+		if(frag == NULL) break;
 		
-		// extract the file name
-		cnt = sscanf(end + 9, " \"%255s\"", &includeName); // != 1 for failure
-		if(cnt == EOF || cnt == 0) {
-			return 2; // invalid parse 
-		}
+		frag->prev = tail;
+		tail->next = frag;
 		
-		fileFrag->srcLen = -1;
-		fileFrag->sf = preloadFile(basePath, strdup(includeName))
-		
-		
-		// skip #include line
-		base = strchr(base + 1, '\n');
-		
-		
+		// nibble may return a list
+		while(tail->next) tail = tail->next;
 	}
+	
+	// walk the list and fill in line numbers
+	
+	return sf;
 }
 
 static struct sourceFrag* nibble(char** source) {
@@ -291,21 +283,37 @@ static struct sourceFrag* nibble(char** source) {
 	
 	char* s;
 	
+	if(!**source) return NULL;
+	
+	frag = calloc(1, sizeof(struct sourceFrag));
+	
 	// walk over the source looking for directives
 	s = strstr(*source, "\n#");
 	if(s == NULL) { // we got to the end
-		*source = *source + strlen(*source);
+		s = *source + strlen(*source);
 		
-		// load up the chunk
+		frag->srcLen = s - *source;
+		frag->src = strndup(*source, frag->srcLen);
+		
+		*source = s;
 		
 		return frag;
 	}
 	
+	// take the stuff in between *source and s
+	
+	frag->srcLen = s - *source + 1;
+	frag->src = strndup(*source, frag->srcLen);
+	
 	s += 2; // skip the newline and pound
 	
 	if(0 == strncmp(s, "include", strlen("include"))) {
-		return nibbleFile();
+		*source = s; 
 		
+		fileFrag = nibbleFile(source);
+		
+		frag->next = fileFrag;
+		fileFrag->prev = frag;
 	}
 	else if(0 == strncmp(s, "shader", strlen("shader"))) {
 		// split it here, new shader
@@ -315,7 +323,13 @@ static struct sourceFrag* nibble(char** source) {
 		// unknown directive
 		
 	}
-
+	
+	// move to the next line
+	s = strstr(s, '\n');
+	if(s == NULL) *source = *source + strlen(*source);
+	else *source = s + 1;
+	
+	return frag
 }
 
 static struct sourceFrag* nibbleFile(char** source) {
@@ -330,8 +344,14 @@ static struct sourceFrag* nibbleFile(char** source) {
 		return 2; // invalid parse 
 	}
 	
-	fileFrag->srcLen = -1;
-	fileFrag->sf = preloadFile(basePath, strdup(includeName))
+	frag->srcLen = -1;
+	frag->sf = preloadFile(basePath, strdup(includeName))
+	if(frag->sf == NULL) {
+		
+		
+	}
+	
+	return frag;
 }
 
 
