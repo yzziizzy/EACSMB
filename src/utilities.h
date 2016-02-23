@@ -19,6 +19,22 @@
 #define MINE(a,b) ((a) <= (b) ?  (a) : (b))
 
 
+
+#define LIST(x) \
+	struct x; \
+	typedef struct x##List { \
+		struct x* d; \
+		struct x##List* next; \
+	} x##List;
+
+#define LISTU(x) \
+	union x; \
+	typedef struct x##List { \
+		union x* d; \
+		struct x##List* next; \
+	} x##List;
+
+
 #ifndef NO_TERM_COLORS
 	#define TERM_COLOR_BLACK   "\x1b[30m"
 	#define TERM_COLOR_RED     "\x1b[31m"

@@ -113,7 +113,7 @@ int extractShader(char** source, GLuint progID) {
 	}
 	
 	
-	cnt = sscanf(base + 8, " %23s", &typeName); // != 1 for failure
+	cnt = sscanf(base + 8, " %23s", typeName); // != 1 for failure
 	if(cnt == EOF || cnt == 0) {
 		return 2; // 
 	}
@@ -148,7 +148,7 @@ int extractShader(char** source, GLuint progID) {
 	
 	return 0;
 }
-
+/*
 int shaderPreProcess(char* path) { // TODO pass in some context
 	
 	struct ShaderBuf sb;
@@ -178,11 +178,11 @@ int shaderPreProcess(char* path) { // TODO pass in some context
 		if(s == NULL) { // eof or error
 			if(ferror(f)) {
 				fprintf(stderr, "Error reading file \"%s\"\n", path);
-				return NULL;
+				return 0;
 			}
 			
 			//eof, readBuf unchanged
-			return NULL; // BUG TODO ???
+			return 0; // BUG TODO ???
 		}
 		
 		// scan the line for preprocessor directives
@@ -202,7 +202,7 @@ int shaderPreProcess(char* path) { // TODO pass in some context
 	
 }
 
-
+*/
 struct sourceFile;
 
 // a piece of a file, between others
@@ -220,7 +220,7 @@ struct sourceFragment {
 	
 	struct sourceFragment* next; 
 	struct sourceFragment* prev; 
-}
+};
 /* deprecated in favor of just a list of fragments
 struct sourceFile {
 	char* basePath;
@@ -233,7 +233,8 @@ struct sourceFile {
 */
 
 
-
+static struct sourceFragment* nibble(char** source);
+static struct sourceFragment* nibbleFile(char** source, struct sourceFragment* prev);
 
 struct sourceFragment* preloadFile(char* basePath, char* filename) {
 	
@@ -241,20 +242,21 @@ struct sourceFragment* preloadFile(char* basePath, char* filename) {
 	char* source, *base, *end;
 	int srcLen;
 	
-	char includeName[256];
+	
+	
+	
+	// TODO: basename shit
+	
+	source = readFile(filename, &srcLen);
+	if(!sf->src) {
+		// TODO copypasta, fix this
+		return NULL;
+	}
 	
 	sf = calloc(1, sizeof(struct sourceFragment));
 	
 	sf->basePath = basePath;
 	sf->filename = filename;
-	
-	// TODO: basename shit
-	
-	source = readFile(filename, &srcLen);
-	if(!sf->source) {
-		free(spath); // TODO copypasta, fix this
-		return NULL;
-	}
 	
 	base = source;
 	tail = sf;
@@ -277,15 +279,18 @@ struct sourceFragment* preloadFile(char* basePath, char* filename) {
 	return sf;
 }
 
-static struct sourceFrag* nibble(char** source) {
+static struct sourceFragment* nibble(char** source) {
 	
 	struct sourceFragment* frag, *fileFrag;
+	int cnt;
+	GLenum type;
+	char typeName[24];
 	
 	char* s;
 	
 	if(!**source) return NULL;
 	
-	frag = calloc(1, sizeof(struct sourceFrag));
+	frag = calloc(1, sizeof(struct sourceFragment));
 	
 	// walk over the source looking for directives
 	s = strstr(*source, "\n#");
@@ -310,14 +315,36 @@ static struct sourceFrag* nibble(char** source) {
 	if(0 == strncmp(s, "include", strlen("include"))) {
 		*source = s; 
 		
-		fileFrag = nibbleFile(source);
+		fileFrag = nibbleFile(source, frag);
 		
 		frag->next = fileFrag;
 		fileFrag->prev = frag;
 	}
 	else if(0 == strncmp(s, "shader", strlen("shader"))) {
 		// split it here, new shader
+		cnt = sscanf(s + 8, " %23s", typeName); // != 1 for failure
+		if(cnt == EOF || cnt == 0) {
+			free(frag->src);
+			free(frag);
+			return NULL; // 
+		}
 		
+		type = nameToEnum(typeName);
+		if(type == -1) {
+			free(frag->src);
+			free(frag);
+			fprintf(stderr, "Invalid shader type %s\n", typeName);
+			return NULL;
+		}
+		
+		// sentinel for shader type change 
+		fileFrag = calloc(1, sizeof(struct sourceFragment));
+		fileFrag->shaderType = type;
+		fileFrag->src = "";
+		fileFrag->srcLen = 0;
+		
+		frag->next = fileFrag;
+		fileFrag->prev = frag;
 	}
 	else {
 		// unknown directive
@@ -325,33 +352,29 @@ static struct sourceFrag* nibble(char** source) {
 	}
 	
 	// move to the next line
-	s = strstr(s, '\n');
+	s = strstr(s, "\n");
 	if(s == NULL) *source = *source + strlen(*source);
 	else *source = s + 1;
 	
-	return frag
+	return frag;
 }
 
-static struct sourceFrag* nibbleFile(char** source) {
+static struct sourceFragment* nibbleFile(char** source, struct sourceFragment* prev) {
 	struct sourceFragment* frag, *fileFrag;
 	int cnt;
 	
-	frag = calloc(1, sizeof(struct sourceFragment));
+	char includeName[256];
 	
 	// extract the file name
 	cnt = sscanf(*source + 9, " \"%255s\"", &includeName); // != 1 for failure
 	if(cnt == EOF || cnt == 0) {
-		return 2; // invalid parse 
+		return NULL; // invalid parse 
 	}
 	
-	frag->srcLen = -1;
-	frag->sf = preloadFile(basePath, strdup(includeName))
-	if(frag->sf == NULL) {
-		
-		
-	}
 	
-	return frag;
+	// TODO: basename magic here
+	
+	return preloadFile(prev->basePath, strdup(includeName));
 }
 
 
