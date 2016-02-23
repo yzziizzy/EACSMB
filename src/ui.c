@@ -54,7 +54,7 @@ void initUI() {
 	
 	initRootWin();
 	windowProg = loadCombinedProgram("ui");
-	windowDepthProg = loadCombinedProgram("uiDepth");
+	// windowDepthProg = loadCombinedProgram("uiDepth");
 	
 	// uniform locations
 
@@ -146,7 +146,7 @@ void uiPreRenderSetup() {
 
 void renderUIPicking(XStuff* xs, GameState* gs) {
 	
-	glUseProgram(windowDepthProg->id);
+	// glUseProgram(windowDepthProg->id);
 	glexit("");
 	
 	
