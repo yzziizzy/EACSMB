@@ -35,10 +35,12 @@ uniform int debugMode;
 
 uniform vec3 sunNormal;
 
+uniform vec2 resolution;
+
 out vec4 FragColor;
 
 void main() {
-	vec2 tex = gl_FragCoord.xy / 600;
+	vec2 tex = gl_FragCoord.xy / resolution.xy;
 	
 	if(debugMode == 0) {
 		// normal rendering
@@ -59,11 +61,11 @@ void main() {
 	else if(debugMode == 3) {
 		// diffuse
 		FragColor = vec4(texture(sDepth, tex).rrr,  1.0);
-	} 
+	}
 	else if(debugMode == 4) {
 		// diffuse
 		FragColor = vec4(texture(sSelection, tex).rgb / 1024,  1.0);
 	}
 
 //	FragColor = vec4(texture(sNormals, tex).rgb,  1.0);
-} 
+}

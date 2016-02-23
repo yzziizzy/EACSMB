@@ -44,12 +44,12 @@ void initRootWin();
 
 
 
-void initUI() {
+void initUI(GameState* gs) {
 	
 	
 	msAlloc(20, &uiMat);
 	msIdent(&uiMat);
-	msOrtho(0, 600, 0, 600, -1, 100, &uiMat);
+	msOrtho(0, gs->viewWH.x, 0, gs->viewWH.y, -1, 100, &uiMat);
 	
 	
 	initRootWin();
@@ -208,9 +208,11 @@ void renderUI(XStuff* xs, GameState* gs) {
 	glUniform1i(glGetUniformLocation(windowProg->id, "sTexture"), 3);
 	glexit("");
 	
-	renderWindowTmp(550, 10, 2, gs->activeTool == 2 ? .5 : 0);
-	renderWindowTmp(550, 60, 0, gs->activeTool == 0 ? .5 : 0);
-	renderWindowTmp(550, 110, 1, gs->activeTool == 1 ? .5 : 0);
+	// something odd is going on here with resizing, ui disappears if window is
+	// resized larger, but squishes on resize smaller
+	renderWindowTmp(gs->viewWH.x - 50, 10, 2, gs->activeTool == 2 ? .5 : 0);
+	renderWindowTmp(gs->viewWH.x - 50, 60, 0, gs->activeTool == 0 ? .5 : 0);
+	renderWindowTmp(gs->viewWH.x - 50, 110, 1, gs->activeTool == 1 ? .5 : 0);
 	
 }
 

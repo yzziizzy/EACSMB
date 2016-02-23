@@ -32,7 +32,6 @@ XStuff xs;
 GameState game;
 InputState input;
 
-
 int main(int argc, char* argv[]) {
 	int first = 1;
 	
@@ -43,18 +42,32 @@ int main(int argc, char* argv[]) {
 	
 	initXWindow(&xs);
 	
+	game.viewWH.x = 0;
+	game.viewWH.y = 0;
 	
 	while(1) {
 		processEvents(&xs, &input, -1);
 		
-		if(first && xs.ready) {
+		if (xs.ready && (
+			game.viewWH.x != xs.winAttr.width
+			|| game.viewWH.y != xs.winAttr.height
+		)) {
+			game.viewWH.x = xs.winAttr.width;
+			game.viewWH.y = xs.winAttr.height;
+			
+			printf("resetting view dimensions\n");
+		}
+		
+		if (first && xs.ready) {
 			initGame(&xs, &game);
 			first = 0;
 		}
 		
-		if(xs.ready)
+		if(xs.ready) {
+			
+			
 			gameLoop(&xs, &game, &input);
-		
+		}
 		
 		
 		if(game.frameSpan < 1.0/60.0) {
