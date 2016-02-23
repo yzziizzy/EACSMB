@@ -28,7 +28,7 @@
 #include "game.h"
 
 
-GLuint proj_ul, view_ul, model_ul; 
+GLuint proj_ul, view_ul, model_ul;
 
 Matrix mProj, mView, mModel;
 
@@ -162,27 +162,25 @@ void initGame(XStuff* xs, GameState* gs) {
 	gs->sunSpeed = 0;
 	
 	
-	gs->viewW = ww = xs->winAttr.width;
-	gs->viewH = wh = xs->winAttr.height;
-
+	gs->viewWH.x = ww = xs->winAttr.width;
+	gs->viewWH.y = wh = xs->winAttr.height;
+	
 	printf("w: %d, h: %d\n", ww, wh);
 	
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	
-
-	
 	printf("0\n");
-	gs->diffuseTexBuffer = initTexBufferRGBA(ww, wh); 
+	gs->diffuseTexBuffer = initTexBufferRGBA(ww, wh);
 	printf("1\n");
-	gs->normalTexBuffer = initTexBufferRGBA(ww, wh); 
+	gs->normalTexBuffer = initTexBufferRGBA(ww, wh);
 	printf("2\n");
 	gs->selectionTexBuffer = initTexBuffer(ww, wh, GL_RGB16I, GL_RGB_INTEGER, GL_SHORT);
 	printf("2\n");
-	gs->depthTexBuffer = initTexBufferDepth(ww, wh); 
+	gs->depthTexBuffer = initTexBufferDepth(ww, wh);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -192,16 +190,16 @@ void initGame(XStuff* xs, GameState* gs) {
 	glexit("fbo creation");
 	
 	// The depth buffer
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gs->diffuseTexBuffer, 0); 
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gs->normalTexBuffer, 0);  
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gs->selectionTexBuffer, 0);  
- 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, gs->depthTexBuffer, 0);  
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gs->diffuseTexBuffer, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gs->normalTexBuffer, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gs->selectionTexBuffer, 0);
+ 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, gs->depthTexBuffer, 0);
 	glexit("fb tex2d");
 	
 //glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, gs->depthTexBuffer, 0);
 	
 	GLenum DrawBuffers[] = {
-		GL_COLOR_ATTACHMENT0, 
+		GL_COLOR_ATTACHMENT0,
 		GL_COLOR_ATTACHMENT1,
 		GL_COLOR_ATTACHMENT2
 	};
@@ -274,7 +272,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	initMap(&gs->map);
 	updateTerrainTexture(gs->map.tb);
 	
-	initUI();
+	initUI(gs);
 	initMarker();
 	
 	// text rendering stuff
@@ -300,7 +298,7 @@ double getCurrentTime() {
 	struct timespec ts;
 	static double offset = 0;
 	
-	// CLOCK_MONOTONIC_RAW is linux-specific. 
+	// CLOCK_MONOTONIC_RAW is linux-specific.
 	clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
 	
 	now = (double)ts.tv_sec + ((double)ts.tv_nsec / 1000000000.0);
@@ -358,14 +356,14 @@ void handleInput(GameState* gs, InputState* is) {
 	
 	if(is->clickButton == 1) {
 		/*
-		flattenArea(gs->map.tb, 
+		flattenArea(gs->map.tb,
 			gs->cursorPos.x - 5,
 			gs->cursorPos.y - 5,
 			gs->cursorPos.x + 5,
 			gs->cursorPos.y + 5
 		);
 		
-		setZone(&gs->map, 
+		setZone(&gs->map,
 			gs->cursorPos.x - 5,
 			gs->cursorPos.y - 5,
 			gs->cursorPos.x + 5,
@@ -406,29 +404,29 @@ void handleInput(GameState* gs, InputState* is) {
  		gs->zoom = fmin(gs->zoom, -10.0);
 	}
 	if(is->keyState[53] & IS_KEYDOWN) {
-		gs->zoom -=  150 * te; 
+		gs->zoom -=  150 * te;
 	}
 	if(is->clickButton == 4) {
 		gs->zoom +=  50;
  		gs->zoom = fmin(gs->zoom, -10.0);
 	}
 	if(is->clickButton == 5) {
-		gs->zoom -=  50; 
+		gs->zoom -=  50;
 	}
 
 	// movement
 	if(is->keyState[113] & IS_KEYDOWN) {
-		gs->lookCenter.x +=  250 * te; 
+		gs->lookCenter.x +=  250 * te;
 	}
 	if(is->keyState[114] & IS_KEYDOWN) {
-		gs->lookCenter.x -=  250 * te; 
+		gs->lookCenter.x -=  250 * te;
 	}
 	
 	if(is->keyState[111] & IS_KEYDOWN) {
 		gs->lookCenter.y +=  250 * te;
 	}
 	if(is->keyState[116] & IS_KEYDOWN) {
-		gs->lookCenter.y -=  250 * te; 
+		gs->lookCenter.y -=  250 * te;
 	}
 	
 	if(is->keyState[110] & IS_KEYDOWN) {
@@ -436,7 +434,7 @@ void handleInput(GameState* gs, InputState* is) {
 		printf("near: %f, far: %f\n", nearPlane, farPlane);
 	}
 	if(is->keyState[115] & IS_KEYDOWN) {
-		nearPlane -= 50 * te; 
+		nearPlane -= 50 * te;
 		printf("near: %f, far: %f\n", nearPlane, farPlane);
 	}
 	if(is->keyState[112] & IS_KEYDOWN) {
@@ -444,14 +442,14 @@ void handleInput(GameState* gs, InputState* is) {
 		printf("near: %f, far: %f\n", nearPlane, farPlane);
 	}
 	if(is->keyState[117] & IS_KEYDOWN) {
-		farPlane -= 250 * te; 
+		farPlane -= 250 * te;
 		printf("near: %f, far: %f\n", nearPlane, farPlane);
 	}
 	
 	static lastChange = 0;
 	if(is->keyState[119] & IS_KEYDOWN) {
 		if(gs->frameTime > lastChange + 1) {
-			gs->debugMode = (gs->debugMode + 1) % 5; 
+			gs->debugMode = (gs->debugMode + 1) % 5;
 			lastChange = gs->frameTime;
 		}
 	}
@@ -521,7 +519,7 @@ void depthPrepass(XStuff* xs, GameState* gs, InputState* is) {
 
 	// draw terrain
 // 	drawTerrainBlockDepth(&gs->map, msGetTop(&gs->model), msGetTop(&gs->view), msGetTop(&gs->proj));
-	drawTerrainDepth(&gs->map, msGetTop(&gs->view), msGetTop(&gs->proj));
+	drawTerrainDepth(&gs->map, msGetTop(&gs->view), msGetTop(&gs->proj), &gs->viewWH);
 	
 	msPop(&gs->view);
 	msPop(&gs->proj);
@@ -606,7 +604,7 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	// draw terrain
 // 	drawTerrainBlock(&gs->map, msGetTop(&gs->model), msGetTop(&gs->view), msGetTop(&gs->proj), &gs->cursorPos);
-	drawTerrain(&gs->map, msGetTop(&gs->view), msGetTop(&gs->proj), &gs->cursorPos);
+	drawTerrain(&gs->map, msGetTop(&gs->view), msGetTop(&gs->proj), &gs->cursorPos, &gs->viewWH);
 	
 	renderMarker(gs, 0,0);
 
@@ -693,6 +691,7 @@ void shadingPass(GameState* gs) {
 
 	glUniform3fv(glGetUniformLocation(shadingProg->id, "sunNormal"), 1, (float*)&gs->sunNormal);
 	
+	glUniform2fv(glGetUniformLocation(shadingProg->id, "resolution"), 1, (float*)&gs->viewWH);
 	
 	drawFSQuad();
 	glexit("post quad draw");

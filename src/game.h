@@ -5,7 +5,7 @@
 
 typedef struct GameState {
 	
-	float viewW, viewH;
+	Vector2 viewWH;
 	
 	GLuint diffuseTexBuffer, normalTexBuffer, depthTexBuffer, selectionTexBuffer;
 	GLuint framebuffer;
