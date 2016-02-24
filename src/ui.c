@@ -48,8 +48,8 @@ void initUI(GameState* gs) {
 	
 	
 	msAlloc(20, &uiMat);
-	msIdent(&uiMat);
-	msOrtho(0, gs->viewWH.x, 0, gs->viewWH.y, -1, 100, &uiMat);
+	
+	resizeUI(gs);
 	
 	
 	initRootWin();
@@ -103,7 +103,10 @@ void initUI(GameState* gs) {
 	
 }
 
-
+void resizeUI(GameState* gs) {
+	msIdent(&uiMat);
+	msOrtho(0, gs->viewWH.x, 0, gs->viewWH.y, -1, 100.0f, &uiMat);
+}
 
 
 void handleClick(int button, Vector2 pos) {
@@ -147,7 +150,7 @@ void uiPreRenderSetup() {
 void renderUIPicking(XStuff* xs, GameState* gs) {
 	
 	// glUseProgram(windowDepthProg->id);
-	glexit("");
+	// glexit("");
 	
 	
 	

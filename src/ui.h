@@ -101,7 +101,7 @@ typedef struct WindowVertex {
 
 extern UIWindow uiRootWin;
 
-void initUI();
-
+void initUI(GameState* gs);
+void resizeUI(GameState* gs);
 
 #endif // __ui_h__

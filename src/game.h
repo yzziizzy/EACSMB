@@ -31,7 +31,7 @@ typedef struct GameState {
 	Vector2 mapCenter;
 	
 	float timeOfDay; // radians of earth spin. 0 = midnight, pi/2 = morning
-	// need time of year for sun angle
+	// need time of year and latitude for sun angle
 	Vector sunNormal;
 	float sunSpeed;
 	

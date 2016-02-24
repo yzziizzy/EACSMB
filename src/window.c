@@ -19,7 +19,7 @@
 void initGLEW();
  
  
-typedef GLXContext (*glXCreateContextAttribsARBProc)(Display*, GLXFBConfig, GLXContext, Bool, const int*); 
+typedef GLXContext (*glXCreateContextAttribsARBProc)(Display*, GLXFBConfig, GLXContext, Bool, const int*);
 glXCreateContextAttribsARBProc glXCreateContextAttribsARB = 0;
 
 
@@ -188,7 +188,7 @@ void processEvents(XStuff* xs, InputState* st, int max_events) {
 	
 	if(max_events <= 0) max_events = INT_MAX;
 	
-	// bottleneck :) 
+	// bottleneck :)
 	clearInputState(st);
 	
 	if(XQueryPointer(xs->display, xs->clientWin, &rootReturn, &clientReturn, &rootX, &rootY, &clientX, &clientY, &mouseMask)) {
@@ -222,7 +222,7 @@ void processEvents(XStuff* xs, InputState* st, int max_events) {
 		}
 		
 		if(xev.type == KeyPress) {
-			KeySym s; 
+			KeySym s;
 			
 			int keycode = ((XKeyEvent*)&xev)->keycode;
 			//s = XLookupKeysym((XKeyEvent*)&xev, 0);

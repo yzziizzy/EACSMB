@@ -32,6 +32,7 @@
 *.hex
 
 # Debug files
+*.dirstamp
 *.dSYM/
 
 /autom4te.cache

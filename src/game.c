@@ -466,6 +466,8 @@ void setUpView(GameState* gs) {
 
 void depthPrepass(XStuff* xs, GameState* gs, InputState* is) {
 	
+	float aspectRatio = gs->viewWH.x / gs->viewWH.y;
+	
 	// draw UI
 	renderUIPicking(xs, gs);
 	
@@ -476,7 +478,7 @@ void depthPrepass(XStuff* xs, GameState* gs, InputState* is) {
 	//mScale3f(10, 10, 10, &mModel);
 	//mRot3f(0, 1, 0, angle, &mModel);
 	msPush(&gs->proj);
-	msPerspective(60, 1.0, nearPlane, farPlane, &gs->proj);
+	msPerspective(60, aspectRatio, nearPlane, farPlane, &gs->proj);
 
 	
 	msPush(&gs->view);
@@ -528,6 +530,8 @@ void depthPrepass(XStuff* xs, GameState* gs, InputState* is) {
 
 void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
+	float aspectRatio = gs->viewWH.x / gs->viewWH.y;
+	
 	//mModel = IDENT_MATRIX;
 	
 	
@@ -541,7 +545,7 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	//mScale3f(10, 10, 10, &mModel);
 	//mRot3f(0, 1, 0, angle, &mModel);
 	msPush(&gs->proj);
-	msPerspective(60, 1.0, nearPlane, farPlane, &gs->proj);
+	msPerspective(60, aspectRatio, nearPlane, farPlane, &gs->proj);
 
 	
 	msPush(&gs->view);
@@ -619,10 +623,11 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	textProj = IDENT_MATRIX;
 	textModel = IDENT_MATRIX;
 	
-	mOrtho(0, 1, 0, 1, -1, 100, &textProj);
+	mOrtho(0, aspectRatio, 0, 1, -1, 100, &textProj);
 	//mScale3f(.5,.5,.5, &textProj);
 	
-	mScale3f(.06, .06, .06, &textModel);
+	// this maintains font proportion, but causes blocky edges
+	mScale3f(.06 / aspectRatio, .06, .06, &textModel);
 	
 	GLuint tp_ul = glGetUniformLocation(textProg->id, "mProj");
 	GLuint tm_ul = glGetUniformLocation(textProg->id, "mModel");
