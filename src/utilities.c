@@ -135,6 +135,11 @@ GLuint makeVAO(VAOConfig* details, int stride) {
 	return vao;
 }
 
-
-
+// strdup a line
+char* strlndup(const char* s) {
+	int n;
+	n = strchr(s, '\n');
+	if(!n) return strdup(s);
+	return strndup(s, n);
+}
 
