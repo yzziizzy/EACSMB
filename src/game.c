@@ -415,18 +415,31 @@ void handleInput(GameState* gs, InputState* is) {
 	}
 
 	// movement
-	if(is->keyState[113] & IS_KEYDOWN) {
-		gs->lookCenter.x +=  250 * te;
-	}
-	if(is->keyState[114] & IS_KEYDOWN) {
-		gs->lookCenter.x -=  250 * te;
-	}
+	float moveSpeed = 250.0f * te; // should load from config
+	Vector move = {
+		.x = moveSpeed * sin(F_PI - rot * DEG2RAD),
+		.y = moveSpeed * cos(F_PI - rot * DEG2RAD),
+		.z = 0.0f
+	};
 	
 	if(is->keyState[111] & IS_KEYDOWN) {
-		gs->lookCenter.y +=  250 * te;
+		vAdd(&gs->lookCenter,&move,&gs->lookCenter);
 	}
 	if(is->keyState[116] & IS_KEYDOWN) {
-		gs->lookCenter.y -=  250 * te;
+		vSub(&gs->lookCenter,&move,&gs->lookCenter);
+	}
+	
+	// flip x and y to get ccw normal, using move.z as the temp
+	move.z = move.x;
+	move.x = -move.y;
+	move.y = move.z;
+	move.z = 0.0f;
+	
+	if(is->keyState[113] & IS_KEYDOWN) {
+		vSub(&gs->lookCenter,&move,&gs->lookCenter);
+	}
+	if(is->keyState[114] & IS_KEYDOWN) {
+		vAdd(&gs->lookCenter,&move,&gs->lookCenter);
 	}
 	
 	if(is->keyState[110] & IS_KEYDOWN) {
