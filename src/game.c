@@ -423,10 +423,10 @@ void handleInput(GameState* gs, InputState* is) {
 	};
 	
 	if(is->keyState[111] & IS_KEYDOWN) {
-		vAdd(&gs->lookCenter,&move,&gs->lookCenter);
+		vAdd(&gs->lookCenter, &move, &gs->lookCenter);
 	}
 	if(is->keyState[116] & IS_KEYDOWN) {
-		vSub(&gs->lookCenter,&move,&gs->lookCenter);
+		vSub(&gs->lookCenter, &move, &gs->lookCenter);
 	}
 	
 	// flip x and y to get ccw normal, using move.z as the temp
@@ -436,10 +436,10 @@ void handleInput(GameState* gs, InputState* is) {
 	move.z = 0.0f;
 	
 	if(is->keyState[113] & IS_KEYDOWN) {
-		vSub(&gs->lookCenter,&move,&gs->lookCenter);
+		vSub(&gs->lookCenter, &move, &gs->lookCenter);
 	}
 	if(is->keyState[114] & IS_KEYDOWN) {
-		vAdd(&gs->lookCenter,&move,&gs->lookCenter);
+		vAdd(&gs->lookCenter, &move, &gs->lookCenter);
 	}
 	
 	if(is->keyState[110] & IS_KEYDOWN) {
