@@ -75,4 +75,7 @@ typedef struct VAOConfig {
 void initKHRDebug();
 
 
+
+char* strlndup(const char* s);
+
 #endif
