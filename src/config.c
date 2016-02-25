@@ -64,6 +64,8 @@ UserConfig* loadConfigFile(char* path) {
 		
 	}
 	
+	fclose(f);
+	
 	return cfg;
 };
 
