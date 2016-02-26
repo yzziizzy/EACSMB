@@ -32,7 +32,7 @@ GLuint proj_ul, view_ul, model_ul;
 
 Matrix mProj, mView, mModel;
 
-float angle, zoom;
+float zoom;
 
 double nearPlane = 20;
 double farPlane = 1700;
@@ -262,8 +262,7 @@ void initGame(XStuff* xs, GameState* gs) {
 // 		msOrtho(0, 1, 0, 1, .01, 100000, proj);
 
 	gs->zoom = -960.0;
-	gs->direction = 0.0;
-	angle = 0.2;
+	gs->direction = 0.0f;
 	gs->lookCenter.x = 512;
 	gs->lookCenter.y = 512;
 	
@@ -308,10 +307,6 @@ double getCurrentTime() {
 }
 
 
-float rot = 0;
-
-
-
 void preFrame(GameState* gs) {
 	
 	// update timers
@@ -353,6 +348,8 @@ void preFrame(GameState* gs) {
 void handleInput(GameState* gs, InputState* is) {
 	double te = gs->frameSpan;
 	
+	float moveSpeed = 250.0f * te; // should load from config
+	float rotateSpeed = 0.3630f * te; // 20.8 degrees
 	
 	if(is->clickButton == 1) {
 		/*
@@ -392,11 +389,13 @@ void handleInput(GameState* gs, InputState* is) {
 	
 	// look direction
 	if(is->keyState[38] & IS_KEYDOWN) {
-		rot +=  20.8 * te;
+		gs->direction +=  rotateSpeed;
 	}
 	if(is->keyState[39] & IS_KEYDOWN) {
-		rot -=  20.8 * te;
+		gs->direction -=  rotateSpeed;
 	}
+	// keep rotation in [0,F_2PI)
+	gs->direction = fmodf(F_2PI + gs->direction, F_2PI);
 	
 	// zoom
 	if(is->keyState[52] & IS_KEYDOWN) {
@@ -415,10 +414,9 @@ void handleInput(GameState* gs, InputState* is) {
 	}
 
 	// movement
-	float moveSpeed = 250.0f * te; // should load from config
 	Vector move = {
-		.x = moveSpeed * sin(F_PI - rot * DEG2RAD),
-		.y = moveSpeed * cos(F_PI - rot * DEG2RAD),
+		.x = moveSpeed * sin(F_PI - gs->direction),
+		.y = moveSpeed * cos(F_PI - gs->direction),
 		.z = 0.0f
 	};
 	
@@ -487,9 +485,8 @@ void depthPrepass(XStuff* xs, GameState* gs, InputState* is) {
 	
 	// draw terrain
 	// TODO: factor all the math into the frame setup function
-	angle = (rot * 3.14159265358979) / 180 ;
 	//mScale3f(10, 10, 10, &mModel);
-	//mRot3f(0, 1, 0, angle, &mModel);
+	//mRot3f(0, 1, 0, gs->direction, &mModel);
 	msPush(&gs->proj);
 	msPerspective(60, aspectRatio, nearPlane, farPlane, &gs->proj);
 
@@ -500,12 +497,12 @@ void depthPrepass(XStuff* xs, GameState* gs, InputState* is) {
 	
 	// order matters! don't mess with this.
 	msTrans3f(0, -1, gs->zoom, &gs->view);
-	msRot3f(1, 0, 0, 3.1415/6, &gs->view);
-	msRot3f(0,1,0, angle, &gs->view);
+	msRot3f(1, 0, 0, F_PI / 6, &gs->view);
+	msRot3f(0,1,0, gs->direction, &gs->view);
 	msTrans3f(-gs->lookCenter.x, 0, -gs->lookCenter.y, &gs->view);
 	
 	// y-up to z-up rotation
-	msRot3f(1, 0, 0, 3.1415/2, &gs->view);
+	msRot3f(1, 0, 0, F_PI_2, &gs->view);
 	msScale3f(1, 1, -1, &gs->view);
 
 
@@ -554,9 +551,8 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	gs->sunNormal.z = 0.0;
 	
 	
-	angle = (rot * 3.14159265358979) / 180 ;
 	//mScale3f(10, 10, 10, &mModel);
-	//mRot3f(0, 1, 0, angle, &mModel);
+	//mRot3f(0, 1, 0, gs->direction, &mModel);
 	msPush(&gs->proj);
 	msPerspective(60, aspectRatio, nearPlane, farPlane, &gs->proj);
 
@@ -567,12 +563,12 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 
 	// order matters! don't mess with this.
 	msTrans3f(0, -1, gs->zoom, &gs->view);
-	msRot3f(1, 0, 0, 3.1415/6, &gs->view);
-	msRot3f(0,1,0, angle, &gs->view);
+	msRot3f(1, 0, 0, F_PI / 6, &gs->view);
+	msRot3f(0,1,0, gs->direction, &gs->view);
 	msTrans3f(-gs->lookCenter.x, 0, -gs->lookCenter.y, &gs->view);
 	
 	// y-up to z-up rotation
-	msRot3f(1, 0, 0, 3.1415/2, &gs->view);
+	msRot3f(1, 0, 0, F_PI_2, &gs->view);
 	msScale3f(1, 1, -1, &gs->view);
 	
 	
