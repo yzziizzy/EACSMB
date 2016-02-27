@@ -1,11 +1,20 @@
 
 
+typedef struct GameScreen {
+	
+	float aspect;
+	Vector2 wh;
+	
+	int resized;
+	
+} GameScreen;
+
 
 
 
 typedef struct GameState {
 	
-	Vector2 viewWH;
+	GameScreen screen;
 	
 	GLuint diffuseTexBuffer, normalTexBuffer, depthTexBuffer, selectionTexBuffer;
 	GLuint framebuffer;

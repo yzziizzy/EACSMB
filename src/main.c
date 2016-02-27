@@ -32,10 +32,6 @@ XStuff xs;
 GameState game;
 InputState input;
 
-Vector2i viewWH = {
-	.x = 0,
-	.y = 0
-};
 
 int main(int argc, char* argv[]) {
 	int first = 1;
@@ -47,29 +43,8 @@ int main(int argc, char* argv[]) {
 	
 	initXWindow(&xs);
 	
-	game.viewWH.x = 0;
-	game.viewWH.y = 0;
-	
 	while(1) {
 		processEvents(&xs, &input, -1);
-		
-		// should probably move into processEvents,
-		// may need to have a way of checking first
-		// to do that, before calling resizeUI
-		if (!first && xs.ready && (
-			viewWH.x != xs.winAttr.width
-			|| viewWH.y != xs.winAttr.height
-		)) {
-			viewWH.x = xs.winAttr.width;
-			viewWH.y = xs.winAttr.height;
-			
-			game.viewWH.x = (float)xs.winAttr.width;
-			game.viewWH.y = (float)xs.winAttr.height;
-			
-			resizeUI(&game);
-			
-			printf("resetting view dimensions\n");
-		}
 		
 		if (first && xs.ready) {
 			initGame(&xs, &game);
@@ -77,8 +52,6 @@ int main(int argc, char* argv[]) {
 		}
 		
 		if(xs.ready) {
-			
-			
 			gameLoop(&xs, &game, &input);
 		}
 		

@@ -105,7 +105,7 @@ void initUI(GameState* gs) {
 
 void resizeUI(GameState* gs) {
 	msIdent(&uiMat);
-	msOrtho(0, gs->viewWH.x, 0, gs->viewWH.y, -1, 100.0f, &uiMat);
+	msOrtho(0, gs->screen.wh.x, 0, gs->screen.wh.y, -1, 100.0f, &uiMat);
 }
 
 
@@ -201,6 +201,10 @@ The ui is drawn on the actual framebuffer.
 */
 void renderUI(XStuff* xs, GameState* gs) {
 	
+	if (gs->screen.resized) {
+		resizeUI(gs);
+	}
+	
 	glUseProgram(windowProg->id);
 	
 	glActiveTexture(GL_TEXTURE3);
@@ -213,9 +217,9 @@ void renderUI(XStuff* xs, GameState* gs) {
 	
 	// something odd is going on here with resizing, ui disappears if window is
 	// resized larger, but squishes on resize smaller
-	renderWindowTmp(gs->viewWH.x - 50, 10, 2, gs->activeTool == 2 ? .5 : 0);
-	renderWindowTmp(gs->viewWH.x - 50, 60, 0, gs->activeTool == 0 ? .5 : 0);
-	renderWindowTmp(gs->viewWH.x - 50, 110, 1, gs->activeTool == 1 ? .5 : 0);
+	renderWindowTmp(gs->screen.wh.x - 50, 10, 2, gs->activeTool == 2 ? .5 : 0);
+	renderWindowTmp(gs->screen.wh.x - 50, 60, 0, gs->activeTool == 0 ? .5 : 0);
+	renderWindowTmp(gs->screen.wh.x - 50, 110, 1, gs->activeTool == 1 ? .5 : 0);
 	
 }
 

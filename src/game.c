@@ -162,8 +162,15 @@ void initGame(XStuff* xs, GameState* gs) {
 	gs->sunSpeed = 0;
 	
 	
-	gs->viewWH.x = ww = xs->winAttr.width;
-	gs->viewWH.y = wh = xs->winAttr.height;
+	ww = xs->winAttr.width;
+	wh = xs->winAttr.height;
+	
+	gs->screen.wh.x = (float)ww;
+	gs->screen.wh.y = (float)wh;
+	
+	gs->screen.aspect = gs->screen.wh.x / gs->screen.wh.y;
+	gs->screen.resized = 0;
+	
 	
 	printf("w: %d, h: %d\n", ww, wh);
 	
@@ -477,8 +484,6 @@ void setUpView(GameState* gs) {
 
 void depthPrepass(XStuff* xs, GameState* gs, InputState* is) {
 	
-	float aspectRatio = gs->viewWH.x / gs->viewWH.y;
-	
 	// draw UI
 	renderUIPicking(xs, gs);
 	
@@ -488,7 +493,7 @@ void depthPrepass(XStuff* xs, GameState* gs, InputState* is) {
 	//mScale3f(10, 10, 10, &mModel);
 	//mRot3f(0, 1, 0, gs->direction, &mModel);
 	msPush(&gs->proj);
-	msPerspective(60, aspectRatio, nearPlane, farPlane, &gs->proj);
+	msPerspective(60, gs->screen.aspect, nearPlane, farPlane, &gs->proj);
 
 	
 	msPush(&gs->view);
@@ -531,7 +536,7 @@ void depthPrepass(XStuff* xs, GameState* gs, InputState* is) {
 
 	// draw terrain
 // 	drawTerrainBlockDepth(&gs->map, msGetTop(&gs->model), msGetTop(&gs->view), msGetTop(&gs->proj));
-	drawTerrainDepth(&gs->map, msGetTop(&gs->view), msGetTop(&gs->proj), &gs->viewWH);
+	drawTerrainDepth(&gs->map, msGetTop(&gs->view), msGetTop(&gs->proj), &gs->screen.wh);
 	
 	msPop(&gs->view);
 	msPop(&gs->proj);
@@ -539,8 +544,6 @@ void depthPrepass(XStuff* xs, GameState* gs, InputState* is) {
 }
 
 void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
-	
-	float aspectRatio = gs->viewWH.x / gs->viewWH.y;
 	
 	//mModel = IDENT_MATRIX;
 	
@@ -554,7 +557,7 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	//mScale3f(10, 10, 10, &mModel);
 	//mRot3f(0, 1, 0, gs->direction, &mModel);
 	msPush(&gs->proj);
-	msPerspective(60, aspectRatio, nearPlane, farPlane, &gs->proj);
+	msPerspective(60, gs->screen.aspect, nearPlane, farPlane, &gs->proj);
 
 	
 	msPush(&gs->view);
@@ -617,7 +620,7 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	// draw terrain
 // 	drawTerrainBlock(&gs->map, msGetTop(&gs->model), msGetTop(&gs->view), msGetTop(&gs->proj), &gs->cursorPos);
-	drawTerrain(&gs->map, msGetTop(&gs->view), msGetTop(&gs->proj), &gs->cursorPos, &gs->viewWH);
+	drawTerrain(&gs->map, msGetTop(&gs->view), msGetTop(&gs->proj), &gs->cursorPos, &gs->screen.wh);
 	
 	renderMarker(gs, 0,0);
 
@@ -632,11 +635,11 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	textProj = IDENT_MATRIX;
 	textModel = IDENT_MATRIX;
 	
-	mOrtho(0, aspectRatio, 0, 1, -1, 100, &textProj);
+	mOrtho(0, gs->screen.aspect, 0, 1, -1, 100, &textProj);
 	//mScale3f(.5,.5,.5, &textProj);
 	
 	// this maintains font proportion, but causes blocky edges
-	mScale3f(.06 / aspectRatio, .06, .06, &textModel);
+	mScale3f(.06 / gs->screen.aspect, .06, .06, &textModel);
 	
 	GLuint tp_ul = glGetUniformLocation(textProg->id, "mProj");
 	GLuint tm_ul = glGetUniformLocation(textProg->id, "mModel");
@@ -705,7 +708,9 @@ void shadingPass(GameState* gs) {
 
 	glUniform3fv(glGetUniformLocation(shadingProg->id, "sunNormal"), 1, (float*)&gs->sunNormal);
 	
-	glUniform2fv(glGetUniformLocation(shadingProg->id, "resolution"), 1, (float*)&gs->viewWH);
+	if (gs->screen.resized) {
+		glUniform2fv(glGetUniformLocation(shadingProg->id, "resolution"), 1, (float*)&gs->screen.wh);
+	}
 	
 	drawFSQuad();
 	glexit("post quad draw");
@@ -741,8 +746,30 @@ void checkCursor(GameState* gs, InputState* is) {
 	
 }
 
+Vector2i viewWH = {
+	.x = 0,
+	.y = 0
+};
+void checkResize(XStuff* xs, GameState* gs) {
+	if (viewWH.x != xs->winAttr.width || viewWH.y != xs->winAttr.height) {
+		printf("screen 0 resized\n");
+		
+		viewWH.x = xs->winAttr.width;
+		viewWH.y = xs->winAttr.height;
+		
+		gs->screen.wh.x = (float)xs->winAttr.width;
+		gs->screen.wh.y = (float)xs->winAttr.height;
+		
+		gs->screen.aspect = gs->screen.wh.x / gs->screen.wh.y;
+		
+		gs->screen.resized = 1;
+	}
+}
+
 
 void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
+	
+	checkResize(xs,gs);
 	
 	preFrame(gs);
 	
@@ -788,6 +815,8 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	shadingPass(gs);
 	
 	renderUI(xs, gs);
+	
+	gs->screen.resized = 0;
 	
 	glXSwapBuffers(xs->display, xs->clientWin);
 
