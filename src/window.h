@@ -1,5 +1,5 @@
-#ifndef __window_h__
-#define __window_h__
+#ifndef __EACSMB_WINDOW_H__
+#define __EACSMB_WINDOW_H__
 
 
 
@@ -66,4 +66,4 @@ void processEvents(XStuff* xs, InputState* st, int max_events);
 void clearInputState(InputState* st);
 
 
-#endif
+#endif // __EACSMB_WINDOW_H__

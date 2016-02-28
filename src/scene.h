@@ -1,5 +1,5 @@
-#ifndef __scene_h__
-#define __scene_h__
+#ifndef __EACSMB_SCENE_H__
+#define __EACSMB_SCENE_H__
 
 
 
@@ -72,4 +72,4 @@ void qtInsertItem(QuadTree* qt, Renderable* r);
 
 
 
-#endif // __scene_h__
+#endif // __EACSMB_SCENE_H__

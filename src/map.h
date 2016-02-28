@@ -1,5 +1,5 @@
-#ifndef __map_h__
-#define __map_h__
+#ifndef __EACSMB_MAP_H__
+#define __EACSMB_MAP_H__
 
 
 // terrain textures must always be a power of two
@@ -174,4 +174,4 @@ void printMapMemoryStats();
 
 */
 
-#endif // __map_h__
+#endif // __EACSMB_MAP_H__

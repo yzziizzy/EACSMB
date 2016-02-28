@@ -1,5 +1,5 @@
-#ifndef __shader_h__
-#define __shader_h__
+#ifndef __EACSMB_SHADER_H__
+#define __EACSMB_SHADER_H__
 
  
 
@@ -28,5 +28,4 @@ ShaderProgram* loadProgram(char* vname, char* fname, char* gname, char* tcname, 
 ShaderProgram* loadCombinedProgram(char* path);
 
 
- 
-#endif
+#endif // __EACSMB_SHADER_H__

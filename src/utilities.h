@@ -1,14 +1,14 @@
 
-#ifndef __utilities_h__
-#define __utilities_h__
+#ifndef __EACSMB_UTILITIES_H__
+#define __EACSMB_UTILITIES_H__
 
 #define USE_KHR_DEBUG
 #define NO_GL_GET_ERR_DEBUG
 
-// i pronounce this one like "Grexit", greece's only smart move which they won't make cause they're greedy, short-sighted and dumb. just like the rest of us. 
+// i pronounce this one like "Grexit", greece's only smart move which they won't make cause they're greedy, short-sighted and dumb. just like the rest of us.
 #define glexit(msg) _glexit(msg, __FILE__, __LINE__, __func__)
 
-// returns NULL for no error, a human error string otherwise. the error is printed to stderr. 
+// returns NULL for no error, a human error string otherwise. the error is printed to stderr.
 #define glerr(msg) _glerr(msg, __FILE__, __LINE__, __func__)
 
 
@@ -78,4 +78,4 @@ void initKHRDebug();
 
 char* strlndup(const char* s);
 
-#endif
+#endif // __EACSMB_UTILITIES_H__
