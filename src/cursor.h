@@ -24,7 +24,7 @@ typedef struct Selection {
 void initMarker();
 
 
-void renderMarker(GameState* gs, int tx, int ty); 
+void renderMarker(GameState* gs, int tx, int ty);
 
 
 
