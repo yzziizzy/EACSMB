@@ -708,7 +708,7 @@ void shadingPass(GameState* gs) {
 
 	glUniform3fv(glGetUniformLocation(shadingProg->id, "sunNormal"), 1, (float*)&gs->sunNormal);
 	
-	if (gs->screen.resized) {
+	if(gs->screen.resized) {
 		glUniform2fv(glGetUniformLocation(shadingProg->id, "resolution"), 1, (float*)&gs->screen.wh);
 	}
 	
@@ -751,7 +751,7 @@ Vector2i viewWH = {
 	.y = 0
 };
 void checkResize(XStuff* xs, GameState* gs) {
-	if (viewWH.x != xs->winAttr.width || viewWH.y != xs->winAttr.height) {
+	if(viewWH.x != xs->winAttr.width || viewWH.y != xs->winAttr.height) {
 		printf("screen 0 resized\n");
 		
 		viewWH.x = xs->winAttr.width;

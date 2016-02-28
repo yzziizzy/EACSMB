@@ -1,4 +1,8 @@
 
+#ifndef __EACSMB_GAME_H__
+#define __EACSMB_GAME_H__
+
+#include "config.h" // UserConfig
 
 typedef struct GameScreen {
 	
@@ -10,11 +14,25 @@ typedef struct GameScreen {
 } GameScreen;
 
 
+typedef struct GameSettings {
+	
+	float keyRotateSensitivity;
+	float keyScrollSensitivity;
+	float keyZoomSensitivity;
+	
+	float mouseRotateSensitivity;
+	float mouseScrollSensitivity;
+	float mouseZoomSensitivity;
+	
+} GameSettings;
 
 
 typedef struct GameState {
 	
 	GameScreen screen;
+	
+	GameSettings settings;
+	UserConfig uSettings;
 	
 	GLuint diffuseTexBuffer, normalTexBuffer, depthTexBuffer, selectionTexBuffer;
 	GLuint framebuffer;
@@ -70,4 +88,4 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is);
 
 
 
-
+#endif // __EACSMB_GAME_H__
