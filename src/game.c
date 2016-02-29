@@ -28,11 +28,11 @@
 #include "game.h"
 
 
-GLuint proj_ul, view_ul, model_ul; 
+GLuint proj_ul, view_ul, model_ul;
 
 Matrix mProj, mView, mModel;
 
-float angle, zoom;
+float zoom;
 
 double nearPlane = 20;
 double farPlane = 1700;
@@ -162,27 +162,32 @@ void initGame(XStuff* xs, GameState* gs) {
 	gs->sunSpeed = 0;
 	
 	
-	gs->viewW = ww = xs->winAttr.width;
-	gs->viewH = wh = xs->winAttr.height;
-
+	ww = xs->winAttr.width;
+	wh = xs->winAttr.height;
+	
+	gs->screen.wh.x = (float)ww;
+	gs->screen.wh.y = (float)wh;
+	
+	gs->screen.aspect = gs->screen.wh.x / gs->screen.wh.y;
+	gs->screen.resized = 0;
+	
+	
 	printf("w: %d, h: %d\n", ww, wh);
 	
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	
-
-	
 	printf("0\n");
-	gs->diffuseTexBuffer = initTexBufferRGBA(ww, wh); 
+	gs->diffuseTexBuffer = initTexBufferRGBA(ww, wh);
 	printf("1\n");
-	gs->normalTexBuffer = initTexBufferRGBA(ww, wh); 
+	gs->normalTexBuffer = initTexBufferRGBA(ww, wh);
 	printf("2\n");
 	gs->selectionTexBuffer = initTexBuffer(ww, wh, GL_RGB16I, GL_RGB_INTEGER, GL_SHORT);
 	printf("2\n");
-	gs->depthTexBuffer = initTexBufferDepth(ww, wh); 
+	gs->depthTexBuffer = initTexBufferDepth(ww, wh);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -192,16 +197,16 @@ void initGame(XStuff* xs, GameState* gs) {
 	glexit("fbo creation");
 	
 	// The depth buffer
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gs->diffuseTexBuffer, 0); 
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gs->normalTexBuffer, 0);  
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gs->selectionTexBuffer, 0);  
- 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, gs->depthTexBuffer, 0);  
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gs->diffuseTexBuffer, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gs->normalTexBuffer, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gs->selectionTexBuffer, 0);
+ 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, gs->depthTexBuffer, 0);
 	glexit("fb tex2d");
 	
 //glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, gs->depthTexBuffer, 0);
 	
 	GLenum DrawBuffers[] = {
-		GL_COLOR_ATTACHMENT0, 
+		GL_COLOR_ATTACHMENT0,
 		GL_COLOR_ATTACHMENT1,
 		GL_COLOR_ATTACHMENT2
 	};
@@ -264,8 +269,7 @@ void initGame(XStuff* xs, GameState* gs) {
 // 		msOrtho(0, 1, 0, 1, .01, 100000, proj);
 
 	gs->zoom = -960.0;
-	gs->direction = 0.0;
-	angle = 0.2;
+	gs->direction = 0.0f;
 	gs->lookCenter.x = 512;
 	gs->lookCenter.y = 512;
 	
@@ -274,7 +278,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	initMap(&gs->map);
 	updateTerrainTexture(gs->map.tb);
 	
-	initUI();
+	initUI(gs);
 	initMarker();
 	
 	// text rendering stuff
@@ -300,7 +304,7 @@ double getCurrentTime() {
 	struct timespec ts;
 	static double offset = 0;
 	
-	// CLOCK_MONOTONIC_RAW is linux-specific. 
+	// CLOCK_MONOTONIC_RAW is linux-specific.
 	clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
 	
 	now = (double)ts.tv_sec + ((double)ts.tv_nsec / 1000000000.0);
@@ -308,10 +312,6 @@ double getCurrentTime() {
 	
 	return now - offset;
 }
-
-
-float rot = 0;
-
 
 
 void preFrame(GameState* gs) {
@@ -353,19 +353,24 @@ void preFrame(GameState* gs) {
 
 
 void handleInput(GameState* gs, InputState* is) {
+	
 	double te = gs->frameSpan;
 	
+	float moveSpeed = gs->settings.keyScroll * te; // should load from config
+	float rotateSpeed = gs->settings.keyRotate * te; // 20.8 degrees
+	float keyZoom = gs->settings.keyZoom * te;
+	float mouseZoom = gs->settings.mouseZoom * te;
 	
 	if(is->clickButton == 1) {
 		/*
-		flattenArea(gs->map.tb, 
+		flattenArea(gs->map.tb,
 			gs->cursorPos.x - 5,
 			gs->cursorPos.y - 5,
 			gs->cursorPos.x + 5,
 			gs->cursorPos.y + 5
 		);
 		
-		setZone(&gs->map, 
+		setZone(&gs->map,
 			gs->cursorPos.x - 5,
 			gs->cursorPos.y - 5,
 			gs->cursorPos.x + 5,
@@ -394,41 +399,55 @@ void handleInput(GameState* gs, InputState* is) {
 	
 	// look direction
 	if(is->keyState[38] & IS_KEYDOWN) {
-		rot +=  20.8 * te;
+		gs->direction += rotateSpeed;
 	}
 	if(is->keyState[39] & IS_KEYDOWN) {
-		rot -=  20.8 * te;
+		gs->direction -= rotateSpeed;
 	}
+	// keep rotation in [0,F_2PI)
+	gs->direction = fmodf(F_2PI + gs->direction, F_2PI);
 	
 	// zoom
 	if(is->keyState[52] & IS_KEYDOWN) {
-		gs->zoom +=  150 * te;
+		gs->zoom += keyZoom;
  		gs->zoom = fmin(gs->zoom, -10.0);
 	}
 	if(is->keyState[53] & IS_KEYDOWN) {
-		gs->zoom -=  150 * te; 
+		gs->zoom -= keyZoom;
 	}
 	if(is->clickButton == 4) {
-		gs->zoom +=  50;
+		gs->zoom += mouseZoom;
  		gs->zoom = fmin(gs->zoom, -10.0);
 	}
 	if(is->clickButton == 5) {
-		gs->zoom -=  50; 
+		gs->zoom -= mouseZoom;
 	}
 
 	// movement
-	if(is->keyState[113] & IS_KEYDOWN) {
-		gs->lookCenter.x +=  250 * te; 
-	}
-	if(is->keyState[114] & IS_KEYDOWN) {
-		gs->lookCenter.x -=  250 * te; 
-	}
+	Vector move = {
+		.x = moveSpeed * sin(F_PI - gs->direction),
+		.y = moveSpeed * cos(F_PI - gs->direction),
+		.z = 0.0f
+	};
 	
 	if(is->keyState[111] & IS_KEYDOWN) {
-		gs->lookCenter.y +=  250 * te;
+		vAdd(&gs->lookCenter, &move, &gs->lookCenter);
 	}
 	if(is->keyState[116] & IS_KEYDOWN) {
-		gs->lookCenter.y -=  250 * te; 
+		vSub(&gs->lookCenter, &move, &gs->lookCenter);
+	}
+	
+	// flip x and y to get ccw normal, using move.z as the temp
+	move.z = move.x;
+	move.x = -move.y;
+	move.y = move.z;
+	move.z = 0.0f;
+	
+	if(is->keyState[113] & IS_KEYDOWN) {
+		vSub(&gs->lookCenter, &move, &gs->lookCenter);
+	}
+	if(is->keyState[114] & IS_KEYDOWN) {
+		vAdd(&gs->lookCenter, &move, &gs->lookCenter);
 	}
 	
 	if(is->keyState[110] & IS_KEYDOWN) {
@@ -436,7 +455,7 @@ void handleInput(GameState* gs, InputState* is) {
 		printf("near: %f, far: %f\n", nearPlane, farPlane);
 	}
 	if(is->keyState[115] & IS_KEYDOWN) {
-		nearPlane -= 50 * te; 
+		nearPlane -= 50 * te;
 		printf("near: %f, far: %f\n", nearPlane, farPlane);
 	}
 	if(is->keyState[112] & IS_KEYDOWN) {
@@ -444,17 +463,41 @@ void handleInput(GameState* gs, InputState* is) {
 		printf("near: %f, far: %f\n", nearPlane, farPlane);
 	}
 	if(is->keyState[117] & IS_KEYDOWN) {
-		farPlane -= 250 * te; 
+		farPlane -= 250 * te;
 		printf("near: %f, far: %f\n", nearPlane, farPlane);
 	}
 	
 	static lastChange = 0;
 	if(is->keyState[119] & IS_KEYDOWN) {
 		if(gs->frameTime > lastChange + 1) {
-			gs->debugMode = (gs->debugMode + 1) % 5; 
+			gs->debugMode = (gs->debugMode + 1) % 5;
 			lastChange = gs->frameTime;
 		}
 	}
+	
+}
+
+
+void setGameSettings(GameSettings* g, UserConfig* u) {
+	
+	const float rotateFactor = 0.7260f;
+	const float scrollFactor = 300.0f;
+	const float zoomFactor = 600.0f;
+	
+	g->keyRotate = rotateFactor * fclampNorm(u->keyRotateSensitivity);
+	g->keyScroll = scrollFactor * fclampNorm(u->keyScrollSensitivity);
+	g->keyZoom = zoomFactor * fclampNorm(u->keyZoomSensitivity);
+	
+	g->mouseRotate = rotateFactor * fclampNorm(u->mouseRotateSensitivity);
+	g->mouseScroll = scrollFactor * fclampNorm(u->mouseScrollSensitivity);
+	g->mouseZoom = 4 * zoomFactor * fclampNorm(u->mouseZoomSensitivity);
+	
+	printf("keyRotate %.3f\n", g->keyRotate);
+	printf("keyScroll %.3f\n", g->keyScroll);
+	printf("keyZoom %.3f\n", g->keyZoom);
+	printf("mouseRotate %.3f\n", g->mouseRotate);
+	printf("mouseScroll %.3f\n", g->mouseScroll);
+	printf("mouseZoom %.3f\n", g->mouseZoom);
 	
 }
 
@@ -474,11 +517,10 @@ void depthPrepass(XStuff* xs, GameState* gs, InputState* is) {
 	
 	// draw terrain
 	// TODO: factor all the math into the frame setup function
-	angle = (rot * 3.14159265358979) / 180 ;
 	//mScale3f(10, 10, 10, &mModel);
-	//mRot3f(0, 1, 0, angle, &mModel);
+	//mRot3f(0, 1, 0, gs->direction, &mModel);
 	msPush(&gs->proj);
-	msPerspective(60, 1.0, nearPlane, farPlane, &gs->proj);
+	msPerspective(60, gs->screen.aspect, nearPlane, farPlane, &gs->proj);
 
 	
 	msPush(&gs->view);
@@ -487,12 +529,12 @@ void depthPrepass(XStuff* xs, GameState* gs, InputState* is) {
 	
 	// order matters! don't mess with this.
 	msTrans3f(0, -1, gs->zoom, &gs->view);
-	msRot3f(1, 0, 0, 3.1415/6, &gs->view);
-	msRot3f(0,1,0, angle, &gs->view);
+	msRot3f(1, 0, 0, F_PI / 6, &gs->view);
+	msRot3f(0,1,0, gs->direction, &gs->view);
 	msTrans3f(-gs->lookCenter.x, 0, -gs->lookCenter.y, &gs->view);
 	
 	// y-up to z-up rotation
-	msRot3f(1, 0, 0, 3.1415/2, &gs->view);
+	msRot3f(1, 0, 0, F_PI_2, &gs->view);
 	msScale3f(1, 1, -1, &gs->view);
 
 
@@ -521,7 +563,7 @@ void depthPrepass(XStuff* xs, GameState* gs, InputState* is) {
 
 	// draw terrain
 // 	drawTerrainBlockDepth(&gs->map, msGetTop(&gs->model), msGetTop(&gs->view), msGetTop(&gs->proj));
-	drawTerrainDepth(&gs->map, msGetTop(&gs->view), msGetTop(&gs->proj));
+	drawTerrainDepth(&gs->map, msGetTop(&gs->view), msGetTop(&gs->proj), &gs->screen.wh);
 	
 	msPop(&gs->view);
 	msPop(&gs->proj);
@@ -539,11 +581,10 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	gs->sunNormal.z = 0.0;
 	
 	
-	angle = (rot * 3.14159265358979) / 180 ;
 	//mScale3f(10, 10, 10, &mModel);
-	//mRot3f(0, 1, 0, angle, &mModel);
+	//mRot3f(0, 1, 0, gs->direction, &mModel);
 	msPush(&gs->proj);
-	msPerspective(60, 1.0, nearPlane, farPlane, &gs->proj);
+	msPerspective(60, gs->screen.aspect, nearPlane, farPlane, &gs->proj);
 
 	
 	msPush(&gs->view);
@@ -552,12 +593,12 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 
 	// order matters! don't mess with this.
 	msTrans3f(0, -1, gs->zoom, &gs->view);
-	msRot3f(1, 0, 0, 3.1415/6, &gs->view);
-	msRot3f(0,1,0, angle, &gs->view);
+	msRot3f(1, 0, 0, F_PI / 6, &gs->view);
+	msRot3f(0,1,0, gs->direction, &gs->view);
 	msTrans3f(-gs->lookCenter.x, 0, -gs->lookCenter.y, &gs->view);
 	
 	// y-up to z-up rotation
-	msRot3f(1, 0, 0, 3.1415/2, &gs->view);
+	msRot3f(1, 0, 0, F_PI_2, &gs->view);
 	msScale3f(1, 1, -1, &gs->view);
 	
 	
@@ -606,7 +647,7 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	// draw terrain
 // 	drawTerrainBlock(&gs->map, msGetTop(&gs->model), msGetTop(&gs->view), msGetTop(&gs->proj), &gs->cursorPos);
-	drawTerrain(&gs->map, msGetTop(&gs->view), msGetTop(&gs->proj), &gs->cursorPos);
+	drawTerrain(&gs->map, msGetTop(&gs->view), msGetTop(&gs->proj), &gs->cursorPos, &gs->screen.wh);
 	
 	renderMarker(gs, 0,0);
 
@@ -621,10 +662,11 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	textProj = IDENT_MATRIX;
 	textModel = IDENT_MATRIX;
 	
-	mOrtho(0, 1, 0, 1, -1, 100, &textProj);
+	mOrtho(0, gs->screen.aspect, 0, 1, -1, 100, &textProj);
 	//mScale3f(.5,.5,.5, &textProj);
 	
-	mScale3f(.06, .06, .06, &textModel);
+	// this maintains font proportion, but causes blocky edges
+	mScale3f(.06 / gs->screen.aspect, .06, .06, &textModel);
 	
 	GLuint tp_ul = glGetUniformLocation(textProg->id, "mProj");
 	GLuint tm_ul = glGetUniformLocation(textProg->id, "mModel");
@@ -693,6 +735,9 @@ void shadingPass(GameState* gs) {
 
 	glUniform3fv(glGetUniformLocation(shadingProg->id, "sunNormal"), 1, (float*)&gs->sunNormal);
 	
+	if(gs->screen.resized) {
+		glUniform2fv(glGetUniformLocation(shadingProg->id, "resolution"), 1, (float*)&gs->screen.wh);
+	}
 	
 	drawFSQuad();
 	glexit("post quad draw");
@@ -728,8 +773,30 @@ void checkCursor(GameState* gs, InputState* is) {
 	
 }
 
+Vector2i viewWH = {
+	.x = 0,
+	.y = 0
+};
+void checkResize(XStuff* xs, GameState* gs) {
+	if(viewWH.x != xs->winAttr.width || viewWH.y != xs->winAttr.height) {
+		printf("screen 0 resized\n");
+		
+		viewWH.x = xs->winAttr.width;
+		viewWH.y = xs->winAttr.height;
+		
+		gs->screen.wh.x = (float)xs->winAttr.width;
+		gs->screen.wh.y = (float)xs->winAttr.height;
+		
+		gs->screen.aspect = gs->screen.wh.x / gs->screen.wh.y;
+		
+		gs->screen.resized = 1;
+	}
+}
+
 
 void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
+	
+	checkResize(xs,gs);
 	
 	preFrame(gs);
 	
@@ -775,6 +842,8 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	shadingPass(gs);
 	
 	renderUI(xs, gs);
+	
+	gs->screen.resized = 0;
 	
 	glXSwapBuffers(xs->display, xs->clientWin);
 

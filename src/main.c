@@ -21,6 +21,7 @@
 #include "text/text.h"
 
 #include "utilities.h"
+#include "config.h"
 #include "shader.h"
 #include "window.h"
 #include "map.h"
@@ -35,6 +36,20 @@ InputState input;
 
 int main(int argc, char* argv[]) {
 	int first = 1;
+	int configStatus = 0;
+	
+	zeroConfig(&game.uSettings);
+	configStatus = updateConfigFromFile(&game.uSettings, "defaults.ini");
+	if(configStatus) {
+		printf("failed to load defaults.ini [code %d]\n",configStatus);
+	}
+	
+	configStatus = updateConfigFromFile(&game.uSettings, "settings.ini");
+	if(configStatus) {
+		printf("failed to load settings.ini [code %d]\n",configStatus);
+	}
+	
+	setGameSettings(&game.settings,&game.uSettings);
 	
 	memset(&xs, 0, sizeof(XStuff));
 	
@@ -43,18 +58,17 @@ int main(int argc, char* argv[]) {
 	
 	initXWindow(&xs);
 	
-	
 	while(1) {
 		processEvents(&xs, &input, -1);
 		
-		if(first && xs.ready) {
+		if (first && xs.ready) {
 			initGame(&xs, &game);
 			first = 0;
 		}
 		
-		if(xs.ready)
+		if(xs.ready) {
 			gameLoop(&xs, &game, &input);
-		
+		}
 		
 		
 		if(game.frameSpan < 1.0/60.0) {

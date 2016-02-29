@@ -1,5 +1,5 @@
-#ifndef __map_h__
-#define __map_h__
+#ifndef __EACSMB_MAP_H__
+#define __EACSMB_MAP_H__
 
 
 // terrain textures must always be a power of two
@@ -63,7 +63,7 @@ typedef struct VirtualTerrainBlock { // used for planning, renders as wireframe,
 	GLuint vbo;
 	int vertices;
 	
-	TerrainBlock** blocks; 
+	TerrainBlock** blocks;
 	
 } VirtualTerrainBlock;
 
@@ -94,16 +94,16 @@ typedef struct AreaStats {
 } AreaStats;
 
 
-void initTerrain(); 
+void initTerrain();
 TerrainBlock* allocTerrainBlock(int cx, int cy);
 MapBlock* allocMapBlock(int llx, int lly);
 
 void updateTerrainTexture(TerrainBlock* tb);
 
-void drawTerrain(MapInfo* tb, Matrix* mView, Matrix* mProj, Vector2* cursor);
-void drawTerrainDepth(MapInfo* tb, Matrix* mView, Matrix* mProj);
-void drawTerrainBlock(MapInfo* tb, Matrix* mModel, Matrix* mView, Matrix* mProj, Vector2* cursor);
-void drawTerrainBlockDepth(MapInfo* tb, Matrix* mModel, Matrix* mView, Matrix* mProj);
+void drawTerrain(MapInfo* tb, Matrix* mView, Matrix* mProj, Vector2* cursor, Vector2* viewWH);
+void drawTerrainDepth(MapInfo* tb, Matrix* mView, Matrix* mProj, Vector2* viewWH);
+void drawTerrainBlock(MapInfo* tb, Matrix* mModel, Matrix* mView, Matrix* mProj, Vector2* cursor, Vector2* viewWH);
+void drawTerrainBlockDepth(MapInfo* tb, Matrix* mModel, Matrix* mView, Matrix* mProj, Vector2* viewWH);
 void checkMapDirty(MapInfo* mi);
 void areaStats(TerrainBlock* tb, int x1, int y1, int x2, int y2, AreaStats* ass);
 
@@ -111,7 +111,7 @@ void flattenArea(TerrainBlock *tb, int x1, int y1, int x2, int y2);
 void updateMapTextures(MapBlock* mb);
 void setZone(MapInfo *mi, int x1, int y1, int x2, int y2, int zone);
 
-void getTerrainHeight(MapInfo* map, Vector2i* coords, int coordLen, float* heightsOut); 
+void getTerrainHeight(MapInfo* map, Vector2i* coords, int coordLen, float* heightsOut);
 
 
 
@@ -174,4 +174,4 @@ void printMapMemoryStats();
 
 */
 
-#endif // __map_h__
+#endif // __EACSMB_MAP_H__

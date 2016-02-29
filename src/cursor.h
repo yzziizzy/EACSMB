@@ -1,5 +1,5 @@
-#ifndef __cursor_h__
-#define __cursor_h__
+#ifndef __EACSMB_CURSOR_H__
+#define __EACSMB_CURSOR_H__
 
 
 
@@ -24,7 +24,7 @@ typedef struct Selection {
 void initMarker();
 
 
-void renderMarker(GameState* gs, int tx, int ty); 
+void renderMarker(GameState* gs, int tx, int ty);
 
 
 
@@ -37,4 +37,4 @@ void renderMarker(GameState* gs, int tx, int ty);
 
 
 
-#endif // __cursor_h__
+#endif // __EACSMB_CURSOR_H__

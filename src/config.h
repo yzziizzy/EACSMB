@@ -1,5 +1,5 @@
-#ifndef __config_h__
-#define __config_h__
+#ifndef __EACSMB_CONFIG_H__
+#define __EACSMB_CONFIG_H__
 
 
 
@@ -8,9 +8,13 @@
 
 typedef struct UserConfig {
 	
-	float scrollSpeed;
+	float keyRotateSensitivity;
+	float keyScrollSensitivity;
+	float keyZoomSensitivity;
 	
-	
+	float mouseRotateSensitivity;
+	float mouseScrollSensitivity;
+	float mouseZoomSensitivity;
 	
 } UserConfig;
 
@@ -18,6 +22,9 @@ typedef struct UserConfig {
 
 UserConfig* loadConfigFile(char* path);
 
+int updateConfigFromFile(UserConfig* config, char* path);
+
+void zeroConfig(UserConfig* config);
 
 
 
@@ -31,8 +38,4 @@ UserConfig* loadConfigFile(char* path);
 
 
 
-
-
-
-
-#endif // __config_h__
+#endif // __EACSMB_CONFIG_H__

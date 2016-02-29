@@ -1,5 +1,5 @@
-#ifndef __ui_h__
-#define __ui_h__
+#ifndef __EACSMB_UI_H__
+#define __EACSMB_UI_H__
 
 
 
@@ -101,7 +101,7 @@ typedef struct WindowVertex {
 
 extern UIWindow uiRootWin;
 
-void initUI();
+void initUI(GameState* gs);
+void resizeUI(GameState* gs);
 
-
-#endif // __ui_h__
+#endif // __EACSMB_UI_H__
