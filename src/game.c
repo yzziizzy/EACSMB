@@ -477,13 +477,6 @@ void handleInput(GameState* gs, InputState* is) {
 	
 }
 
-float fclamp(float val, float min, float max) {
-	return fmin(max, fmax(min, val));
-}
-
-float fclampNorm(float val) {
-	return fclamp(val, 0.0f, 1.0f);
-}
 
 void setGameSettings(GameSettings* g, UserConfig* u) {
 	

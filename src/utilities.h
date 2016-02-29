@@ -74,7 +74,8 @@ typedef struct VAOConfig {
 
 void initKHRDebug();
 
-
+float fclamp(float val, float min, float max);
+float fclampNorm(float val);
 
 char* strlndup(const char* s);
 

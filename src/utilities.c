@@ -30,15 +30,15 @@ char* _glerr(char* msg, const char* file, int line, const char* func) {
 	GLenum err;
 	
 	err = glGetError();
-	errstr = NULL; 
+	errstr = NULL;
 	
-	if (err != GL_NO_ERROR) { 
+	if (err != GL_NO_ERROR) {
 		errstr = (char*)gluErrorString(err);
 #ifndef NO_GL_GET_ERR_DEBUG
 		fprintf(
-			stderr, 
-				TERM_BOLD TERM_COLOR_RED "GL ERROR:" TERM_RESET TERM_COLOR_RED 
-				"GL ERROR at %s:%d (%s): %s: %s \n", 
+			stderr,
+				TERM_BOLD TERM_COLOR_RED "GL ERROR:" TERM_RESET TERM_COLOR_RED
+				"GL ERROR at %s:%d (%s): %s: %s \n",
 			file, line, func, msg, errstr);
 #endif
 	}
@@ -47,13 +47,13 @@ char* _glerr(char* msg, const char* file, int line, const char* func) {
 }
 
 
-void _khr_debug_callback( // i hate this stype of formatting, but this function has too many damn arguments 
-	GLenum source, 
-	GLenum type, 
-	GLuint id, 
-	GLenum severity, 
-	GLsizei length, 
-	const GLchar *message, 
+void _khr_debug_callback( // i hate this stype of formatting, but this function has too many damn arguments
+	GLenum source,
+	GLenum type,
+	GLuint id,
+	GLenum severity,
+	GLsizei length,
+	const GLchar *message,
 	GLvoid *userParam) {
 
 	printf(TERM_BOLD TERM_COLOR_RED "GL ERROR:" TERM_RESET TERM_COLOR_RED " %s\n" TERM_RESET, message);
@@ -134,6 +134,16 @@ GLuint makeVAO(VAOConfig* details, int stride) {
 	
 	return vao;
 }
+
+
+float fclamp(float val, float min, float max) {
+	return fmin(max, fmax(min, val));
+}
+
+float fclampNorm(float val) {
+	return fclamp(val, 0.0f, 1.0f);
+}
+
 
 // strdup a line
 char* strlndup(const char* s) {
