@@ -353,10 +353,13 @@ void preFrame(GameState* gs) {
 
 
 void handleInput(GameState* gs, InputState* is) {
+	
 	double te = gs->frameSpan;
 	
-	float moveSpeed = 250.0f * te; // should load from config
-	float rotateSpeed = 0.3630f * te; // 20.8 degrees
+	float moveSpeed = gs->settings.keyScroll * te; // should load from config
+	float rotateSpeed = gs->settings.keyRotate * te; // 20.8 degrees
+	float keyZoom = gs->settings.keyZoom * te;
+	float mouseZoom = gs->settings.mouseZoom * te;
 	
 	if(is->clickButton == 1) {
 		/*
@@ -396,28 +399,28 @@ void handleInput(GameState* gs, InputState* is) {
 	
 	// look direction
 	if(is->keyState[38] & IS_KEYDOWN) {
-		gs->direction +=  rotateSpeed;
+		gs->direction += rotateSpeed;
 	}
 	if(is->keyState[39] & IS_KEYDOWN) {
-		gs->direction -=  rotateSpeed;
+		gs->direction -= rotateSpeed;
 	}
 	// keep rotation in [0,F_2PI)
 	gs->direction = fmodf(F_2PI + gs->direction, F_2PI);
 	
 	// zoom
 	if(is->keyState[52] & IS_KEYDOWN) {
-		gs->zoom +=  150 * te;
+		gs->zoom += keyZoom;
  		gs->zoom = fmin(gs->zoom, -10.0);
 	}
 	if(is->keyState[53] & IS_KEYDOWN) {
-		gs->zoom -=  150 * te;
+		gs->zoom -= keyZoom;
 	}
 	if(is->clickButton == 4) {
-		gs->zoom +=  50;
+		gs->zoom += mouseZoom;
  		gs->zoom = fmin(gs->zoom, -10.0);
 	}
 	if(is->clickButton == 5) {
-		gs->zoom -=  50;
+		gs->zoom -= mouseZoom;
 	}
 
 	// movement
@@ -471,6 +474,37 @@ void handleInput(GameState* gs, InputState* is) {
 			lastChange = gs->frameTime;
 		}
 	}
+	
+}
+
+float fclamp(float val, float min, float max) {
+	return fmin(max, fmax(min, val));
+}
+
+float fclampNorm(float val) {
+	return fclamp(val, 0.0f, 1.0f);
+}
+
+void setGameSettings(GameSettings* g, UserConfig* u) {
+	
+	const float rotateFactor = 0.7260f;
+	const float scrollFactor = 300.0f;
+	const float zoomFactor = 600.0f;
+	
+	g->keyRotate = rotateFactor * fclampNorm(u->keyRotateSensitivity);
+	g->keyScroll = scrollFactor * fclampNorm(u->keyScrollSensitivity);
+	g->keyZoom = zoomFactor * fclampNorm(u->keyZoomSensitivity);
+	
+	g->mouseRotate = rotateFactor * fclampNorm(u->mouseRotateSensitivity);
+	g->mouseScroll = scrollFactor * fclampNorm(u->mouseScrollSensitivity);
+	g->mouseZoom = 4 * zoomFactor * fclampNorm(u->mouseZoomSensitivity);
+	
+	printf("keyRotate %.3f\n", g->keyRotate);
+	printf("keyScroll %.3f\n", g->keyScroll);
+	printf("keyZoom %.3f\n", g->keyZoom);
+	printf("mouseRotate %.3f\n", g->mouseRotate);
+	printf("mouseScroll %.3f\n", g->mouseScroll);
+	printf("mouseZoom %.3f\n", g->mouseZoom);
 	
 }
 

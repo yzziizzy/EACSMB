@@ -16,13 +16,13 @@ typedef struct GameScreen {
 
 typedef struct GameSettings {
 	
-	float keyRotateSensitivity;
-	float keyScrollSensitivity;
-	float keyZoomSensitivity;
+	float keyRotate;
+	float keyScroll;
+	float keyZoom;
 	
-	float mouseRotateSensitivity;
-	float mouseScrollSensitivity;
-	float mouseZoomSensitivity;
+	float mouseRotate;
+	float mouseScroll;
+	float mouseZoom;
 	
 } GameSettings;
 
@@ -84,7 +84,7 @@ typedef struct GameState {
 void renderFrame(XStuff* xs, GameState* gs, InputState* is);
 void gameLoop(XStuff* xs, GameState* gs, InputState* is);
 
-
+void setGameSettings(GameSettings* g, UserConfig* u);
 
 
 
