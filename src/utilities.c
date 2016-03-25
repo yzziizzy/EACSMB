@@ -103,7 +103,8 @@ char* readFile(char* path, int* srcLen) {
 
 
 GLuint makeVAO(VAOConfig* details, int stride) {
-	int i, offset; // packed data is expected
+	int i; // packed data is expected
+	uintptr_t offset = 0;
 	GLuint vao;
 	
 	glGenVertexArrays(1, &vao);
@@ -136,6 +137,14 @@ GLuint makeVAO(VAOConfig* details, int stride) {
 }
 
 
+int iclamp(int val, int min, int max) {
+	return MIN(max, MAX(min, val));
+}
+
+int iclampNorm(int val) {
+	return iclamp(val, 0, 1);
+}
+
 float fclamp(float val, float min, float max) {
 	return fmin(max, fmax(min, val));
 }
@@ -147,9 +156,13 @@ float fclampNorm(float val) {
 
 // strdup a line
 char* strlndup(const char* s) {
-	int n;
+	char* n;
+	
 	n = strchr(s, '\n');
-	if(!n) return strdup(s);
-	return strndup(s, n);
+	if(!n) {
+		return strdup(s);
+	}
+	
+	return strndup(s, n-s);
 }
 

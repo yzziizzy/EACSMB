@@ -3,9 +3,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#define MAX(a,b) ((a) > (b) ? a : b)
-#define MIN(a,b) ((a) < (b) ? a : b)
-
 #include <GL/glew.h>
 
 
@@ -263,7 +260,7 @@ TextRenderInfo* prepareText(TextRes* font, const char* str, int len, unsigned in
 	unsigned int defaultColor[] = {0xBADA55FF, INT_MAX}; // you have serious problems if the string is longer than INT_MAX
 	
 	if(!colors)
-		colors = &defaultColor;
+		colors = &defaultColor[0];
 	
 	//TODO:
 	// normalize uv's
@@ -291,15 +288,15 @@ TextRenderInfo* prepareText(TextRes* font, const char* str, int len, unsigned in
 	
 	// vertex
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(TextVertex), 0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(TextVertex), (void*)0);
 	glerr("pos attrib");
 	// uvs
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(TextVertex), 3*4);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(TextVertex), (void*)(3*4));
 	glerr("uv attrib");
 
 	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(TextVertex), 5*4);
+	glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(TextVertex), (void*)(5*4));
 	glerr("color attrib");
 
 	
@@ -492,15 +489,15 @@ void updateText(TextRenderInfo* tri, const char* str, int len, unsigned int* col
 	
 		// vertex
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(TextVertex), 0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(TextVertex), (void*)0);
 	glerr("pos attrib");
 	// uvs
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(TextVertex), 3*4);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(TextVertex), (void*)(3*4));
 	glerr("uv attrib");
 
 	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(TextVertex), 5*4);
+	glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(TextVertex), (void*)(5*4));
 	glerr("color attrib");
 
 

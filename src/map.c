@@ -749,10 +749,10 @@ void getTerrainHeight(MapInfo* map, Vector2i* coords, int coordLen, float* heigh
 
 
 // calculate a tile's center point in world coordinates
-int tileCenterWorld(MapInfo* map, int tx, int ty, Vector* out) {
+void tileCenterWorld(MapInfo* map, int tx, int ty, Vector* out) {
 	
-	tx = MAX(MIN(tx, TERR_TEX_SZ), 0);
-	ty = MAX(MIN(ty, TERR_TEX_SZ), 0);
+	tx = iclamp(tx, 0, TERR_TEX_SZ);
+	ty = iclamp(ty, 0, TERR_TEX_SZ);
 	
 	float z = map->tb->zs[tx + (ty * TERR_TEX_SZ)];
 	

@@ -46,7 +46,7 @@ Texture* loadDataTexture(unsigned char* data, short width, short height) {
 
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE); 
+	//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
 	// squash the data in
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
@@ -138,8 +138,9 @@ BitmapRGBA8* readPNG(char* path) {
 	
 	rowPtrs = (png_bytep*)malloc(sizeof(png_bytep) * b->height);
 	
-	for(i = 0; i < b->height; i++)
-		rowPtrs[i] = (png_bytep*)(b->data + (b->width * i));
+	for(i = 0; i < b->height; i++) {
+		rowPtrs[i] = (png_bytep)(b->data + (b->width * i));
+	}
 
 	png_read_image(readStruct, rowPtrs);
 
@@ -157,7 +158,7 @@ BitmapRGBA8* readPNG(char* path) {
 
 Texture* loadBitmapTexture(char* path) {
 
-	BitmapRGBA8* png; 
+	BitmapRGBA8* png;
 	
 	
 	
@@ -186,7 +187,7 @@ Texture* loadBitmapTexture(char* path) {
 
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE); 
+	//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
 	// squash the data in
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
@@ -271,17 +272,17 @@ TexArray* loadTexArray(char** files) {
 	
 	glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE); 
+	glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 	glexit("failed to create texture array 3");
 	
 	// squash the data in
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	
-	glTexStorage3D(GL_TEXTURE_2D_ARRAY, 
+	glTexStorage3D(GL_TEXTURE_2D_ARRAY,
 		1,  // mips, flat
-		GL_RGBA8, 
-		w, h, 
+		GL_RGBA8,
+		w, h,
 		len); // layers
 	
 	glexit("failed to create texture array 4");
