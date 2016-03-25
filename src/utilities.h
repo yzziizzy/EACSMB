@@ -12,7 +12,6 @@
 #define glerr(msg) _glerr(msg, __FILE__, __LINE__, __func__)
 
 
-// yeah yeah double evaluation. i'm only using them with variables and constants so shut up.
 #define MAX(a,b) ({ \
 	__typeof__ (a) _a = (a); \
 	__typeof__ (b) _b = (b); \
