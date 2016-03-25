@@ -137,13 +137,6 @@ GLuint makeVAO(VAOConfig* details, int stride) {
 }
 
 
-int iclamp(int val, int min, int max) {
-	return MIN(max, MAX(min, val));
-}
-
-int iclampNorm(int val) {
-	return iclamp(val, 0, 1);
-}
 
 float fclamp(float val, float min, float max) {
 	return fmin(max, fmax(min, val));
@@ -151,6 +144,14 @@ float fclamp(float val, float min, float max) {
 
 float fclampNorm(float val) {
 	return fclamp(val, 0.0f, 1.0f);
+}
+
+int iclamp(int val, int min, int max) {
+	return MIN(max, MAX(min, val));
+}
+
+int iclampNorm(int val) {
+	return iclamp(val, 0, 1);
 }
 
 
