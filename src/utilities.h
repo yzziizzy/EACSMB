@@ -12,11 +12,26 @@
 #define glerr(msg) _glerr(msg, __FILE__, __LINE__, __func__)
 
 
-// yeah yeah double evaluation. i'm only using them with variables and constants so shut up.
-#define MAX(a,b) ((a) > (b) ?  (a) : (b))
-#define MIN(a,b) ((a) < (b) ?  (a) : (b))
-#define MAXE(a,b) ((a) >= (b) ?  (a) : (b))
-#define MINE(a,b) ((a) <= (b) ?  (a) : (b))
+#define MAX(a,b) ({ \
+	__typeof__ (a) _a = (a); \
+	__typeof__ (b) _b = (b); \
+	_a > _b ? _a : _b; \
+})
+#define MIN(a,b) ({ \
+	__typeof__ (a) _a = (a); \
+	__typeof__ (b) _b = (b); \
+	_a < _b ? _a : _b; \
+})
+#define MAXE(a,b) ({ \
+	__typeof__ (a) _a = (a); \
+	__typeof__ (b) _b = (b); \
+	_a >= _b ? _a : _b; \
+})
+#define MINE(a,b) ({ \
+	__typeof__ (a) _a = (a); \
+	__typeof__ (b) _b = (b); \
+	_a <= _b ? _a : _b; \
+})
 
 
 
@@ -76,6 +91,9 @@ void initKHRDebug();
 
 float fclamp(float val, float min, float max);
 float fclampNorm(float val);
+
+int iclamp(int val, int min, int max);
+int iclampNorm(int val);
 
 char* strlndup(const char* s);
 

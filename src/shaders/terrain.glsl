@@ -39,19 +39,19 @@ void main() {
     
 //     gl_TessLevelOuter[0] = tess_in[gl_InvocationID].x; // x
 //     gl_TessLevelOuter[1] = tess_in[gl_InvocationID].y; // y
-//     gl_TessLevelOuter[2] = tess_in[gl_InvocationID].x; // x 
+//     gl_TessLevelOuter[2] = tess_in[gl_InvocationID].x; // x
 //     gl_TessLevelOuter[3] = tess_in[gl_InvocationID].y; // y
-//     
+//
 //     gl_TessLevelInner[0] = tess_in[gl_InvocationID].x;
 //     gl_TessLevelInner[1] = tess_in[gl_InvocationID].y;
-//     
+//
 //     gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
-//     
+//
 	if(gl_InvocationID == 0) {
-		gl_TessLevelOuter[0] = 64; 
-		gl_TessLevelOuter[1] = 64; 
-		gl_TessLevelOuter[2] = 64; 
-		gl_TessLevelOuter[3] = 64; 
+		gl_TessLevelOuter[0] = 64;
+		gl_TessLevelOuter[1] = 64;
+		gl_TessLevelOuter[2] = 64;
+		gl_TessLevelOuter[3] = 64;
 	
 		gl_TessLevelInner[0] = 64;
 		gl_TessLevelInner[1] = 64;
@@ -61,7 +61,7 @@ void main() {
 	te_tile[gl_InvocationID] = vs_tile[gl_InvocationID];
 	gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
 	
-} 
+}
 
 
 #shader TESS_EVALUATION
@@ -119,14 +119,14 @@ void main(void){
 	float sx = (xp1 - xm1);
 	float sy = (yp1 - ym1);
 
-	te_normal = normalize(vec4(sx*32, sy*32 ,1.0,1.0));
+	te_normal = normalize(vec4(sx*32, sy*32 ,1.0, 1.0));
 	
 
 	tmp.z = t / 1024; // .01 *  sin(gl_TessCoord.y*12) + .01 *sin(gl_TessCoord.x*12);
 
 	gl_Position = (mProj * mView * mModel) * tmp;
-	t_tile =  tltmp; 
-	texCoord = ttmp; 
+	t_tile =  tltmp;
+	texCoord = ttmp;
 }
 
 

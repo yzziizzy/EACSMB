@@ -19,7 +19,7 @@ const char* SHADER_BASE_PATH = "./src/shaders/";
 struct ShaderBuf {
 	char** buffers;
 	int allocSz;
-	int count; 
+	int count;
 	
 };
  
@@ -115,7 +115,7 @@ int extractShader(char** source, GLuint progID) {
 	
 	cnt = sscanf(base + 8, " %23s", typeName); // != 1 for failure
 	if(cnt == EOF || cnt == 0) {
-		return 2; // 
+		return 2; //
 	}
 	
 	
@@ -127,7 +127,7 @@ int extractShader(char** source, GLuint progID) {
 		end = *source + strlen(*source);
 	}
 	
-	printf(" %s", typeName); 
+	printf(" %s", typeName);
 	
 	*source = end;
 	
@@ -188,12 +188,12 @@ int shaderPreProcess(char* path) { // TODO pass in some context
 		// scan the line for preprocessor directives
 		
 		// end of this shader, start of another -- ignore for now
-		end = strstr(base, "#shader"); 
-		end = strstr(base, "#include \"%s\""); 
+		end = strstr(base, "#shader");
+		end = strstr(base, "#include \"%s\"");
 		
 		
 		ws = strspn(readBuf, " \t");
-		if(readBuf[ws] == '#') 
+		if(readBuf[ws] == '#')
 		
 	}
 	
@@ -218,8 +218,8 @@ struct sourceFragment {
 	int lineCount; // number of lines in this fragment
 	GLuint shaderType;
 	
-	struct sourceFragment* next; 
-	struct sourceFragment* prev; 
+	struct sourceFragment* next;
+	struct sourceFragment* prev;
 };
 /* deprecated in favor of just a list of fragments
 struct sourceFile {
@@ -313,7 +313,7 @@ static struct sourceFragment* nibble(char** source) {
 	s += 2; // skip the newline and pound
 	
 	if(0 == strncmp(s, "include", strlen("include"))) {
-		*source = s; 
+		*source = s;
 		
 		fileFrag = nibbleFile(source, frag);
 		
@@ -326,7 +326,7 @@ static struct sourceFragment* nibble(char** source) {
 		if(cnt == EOF || cnt == 0) {
 			free(frag->src);
 			free(frag);
-			return NULL; // 
+			return NULL; //
 		}
 		
 		type = nameToEnum(typeName);
@@ -337,7 +337,7 @@ static struct sourceFragment* nibble(char** source) {
 			return NULL;
 		}
 		
-		// sentinel for shader type change 
+		// sentinel for shader type change
 		fileFrag = calloc(1, sizeof(struct sourceFragment));
 		fileFrag->shaderType = type;
 		fileFrag->src = "";
@@ -366,9 +366,9 @@ static struct sourceFragment* nibbleFile(char** source, struct sourceFragment* p
 	char includeName[256];
 	
 	// extract the file name
-	cnt = sscanf(*source + 9, " \"%255s\"", &includeName); // != 1 for failure
+	cnt = sscanf(*source + 9, " \"%255s\"", includeName); // != 1 for failure
 	if(cnt == EOF || cnt == 0) {
-		return NULL; // invalid parse 
+		return NULL; // invalid parse
 	}
 	
 	
@@ -385,7 +385,7 @@ ShaderProgram* loadCombinedProgram(char* path) {
 	char* source, *spath, *end, *base;
 	int srcLen;
 	char typeName[24];
-	GLenum type; 
+	GLenum type;
 	GLuint id;
 	
 	
