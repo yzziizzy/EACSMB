@@ -101,7 +101,7 @@ int _getPrintGLEnumMin(GLenum e, char* name, char* message) {
 
 
 
-GLuint initTexBuffer(int w, int h, GLuint id, GLenum internalType, GLenum format, GLenum size) {
+GLuint initTexBuffer(GLuint id, int w, int h, GLenum internalType, GLenum format, GLenum size) {
 	if(!id) {
 		glGenTextures(1, &id);
 	}
@@ -118,10 +118,10 @@ GLuint initTexBuffer(int w, int h, GLuint id, GLenum internalType, GLenum format
 	
 	return id;
 }
-GLuint initTexBufferRGBA(int w, int h, GLuint id) {
-	return initTexBuffer(w, h, id, GL_RGB, GL_RGB, GL_UNSIGNED_BYTE);
+GLuint initTexBufferRGBA(GLuint id, int w, int h) {
+	return initTexBuffer(id, w, h, GL_RGB, GL_RGB, GL_UNSIGNED_BYTE);
 }
-GLuint initTexBufferDepth(int w, int h, GLuint id) {
+GLuint initTexBufferDepth(GLuint id, int w, int h) {
 	//GLuint id = initTexBuffer(w, h, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
 	
 	if(!id) {
@@ -163,13 +163,13 @@ void initTexBuffers(GameState* gs, int resized) {
 	}
 	
 	printf("tex 0\n");
-	gs->diffuseTexBuffer = initTexBufferRGBA(ww, wh, gs->diffuseTexBuffer);
+	gs->diffuseTexBuffer = initTexBufferRGBA(gs->diffuseTexBuffer, ww, wh);
 	printf("tex 1\n");
-	gs->normalTexBuffer = initTexBufferRGBA(ww, wh, gs->normalTexBuffer);
+	gs->normalTexBuffer = initTexBufferRGBA(gs->normalTexBuffer, ww, wh);
 	printf("tex 2\n");
-	gs->selectionTexBuffer = initTexBuffer(ww, wh, gs->selectionTexBuffer, GL_RGB16I, GL_RGB_INTEGER, GL_SHORT);
+	gs->selectionTexBuffer = initTexBuffer(gs->selectionTexBuffer, ww, wh, GL_RGB16I, GL_RGB_INTEGER, GL_SHORT);
 	printf("tex 3\n");
-	gs->depthTexBuffer = initTexBufferDepth(ww, wh, gs->depthTexBuffer);
+	gs->depthTexBuffer = initTexBufferDepth(gs->depthTexBuffer, ww, wh);
 	printf("tex 4\n");
 }
 
