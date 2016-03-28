@@ -101,10 +101,10 @@ int _getPrintGLEnumMin(GLenum e, char* name, char* message) {
 
 
 
-GLuint initTexBuffer(int w, int h, GLenum internalType, GLenum format, GLenum size) {
-	GLuint id;
-	
-	glGenTextures(1, &id);
+GLuint initTexBuffer(int w, int h, GLuint id, GLenum internalType, GLenum format, GLenum size) {
+	if(!id) {
+		glGenTextures(1, &id);
+	}
 	glBindTexture(GL_TEXTURE_2D, id);
 		glexit(" -- tex buffer creation");
 
@@ -118,17 +118,18 @@ GLuint initTexBuffer(int w, int h, GLenum internalType, GLenum format, GLenum si
 	
 	return id;
 }
-GLuint initTexBufferRGBA(int w, int h) {
-	return initTexBuffer(w, h, GL_RGB, GL_RGB, GL_UNSIGNED_BYTE);
+GLuint initTexBufferRGBA(int w, int h, GLuint id) {
+	return initTexBuffer(w, h, id, GL_RGB, GL_RGB, GL_UNSIGNED_BYTE);
 }
-GLuint initTexBufferDepth(int w, int h) {
+GLuint initTexBufferDepth(int w, int h, GLuint id) {
 	//GLuint id = initTexBuffer(w, h, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
-
-		GLuint id;
 	
-	glGenTextures(1, &id);
+	if(!id) {
+		glGenTextures(1, &id);
+	}
+	
 	glBindTexture(GL_TEXTURE_2D, id);
-		glexit(" -- tex buffer creation");
+	glexit(" -- tex buffer creation");
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -148,6 +149,28 @@ GLuint initTexBufferDepth(int w, int h) {
 
 	//glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_LUMINANCE);
 	return id;
+}
+
+void initTexBuffers(GameState* gs, int resized) {
+	int ww = gs->screen.wh.x;
+	int wh = gs->screen.wh.y;
+	
+	if(!resized) {
+		gs->diffuseTexBuffer = 0;
+		gs->normalTexBuffer = 0;
+		gs->selectionTexBuffer = 0;
+		gs->depthTexBuffer = 0;
+	}
+	
+	printf("tex 0\n");
+	gs->diffuseTexBuffer = initTexBufferRGBA(ww, wh, gs->diffuseTexBuffer);
+	printf("tex 1\n");
+	gs->normalTexBuffer = initTexBufferRGBA(ww, wh, gs->normalTexBuffer);
+	printf("tex 2\n");
+	gs->selectionTexBuffer = initTexBuffer(ww, wh, gs->selectionTexBuffer, GL_RGB16I, GL_RGB_INTEGER, GL_SHORT);
+	printf("tex 3\n");
+	gs->depthTexBuffer = initTexBufferDepth(ww, wh, gs->depthTexBuffer);
+	printf("tex 4\n");
 }
 
 void initGame(XStuff* xs, GameState* gs) {
@@ -180,15 +203,8 @@ void initGame(XStuff* xs, GameState* gs) {
 	
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	
-	printf("0\n");
-	gs->diffuseTexBuffer = initTexBufferRGBA(ww, wh);
-	printf("1\n");
-	gs->normalTexBuffer = initTexBufferRGBA(ww, wh);
-	printf("2\n");
-	gs->selectionTexBuffer = initTexBuffer(ww, wh, GL_RGB16I, GL_RGB_INTEGER, GL_SHORT);
-	printf("2\n");
-	gs->depthTexBuffer = initTexBufferDepth(ww, wh);
-
+	initTexBuffers(gs, 0);
+	
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	
@@ -665,8 +681,7 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	mOrtho(0, gs->screen.aspect, 0, 1, -1, 100, &textProj);
 	//mScale3f(.5,.5,.5, &textProj);
 	
-	// this maintains font proportion, but causes blocky edges
-	mScale3f(.06 / gs->screen.aspect, .06, .06, &textModel);
+	mScale3f(.06, .06, .06, &textModel);
 	
 	GLuint tp_ul = glGetUniformLocation(textProg->id, "mProj");
 	GLuint tm_ul = glGetUniformLocation(textProg->id, "mModel");
@@ -790,6 +805,8 @@ void checkResize(XStuff* xs, GameState* gs) {
 		gs->screen.aspect = gs->screen.wh.x / gs->screen.wh.y;
 		
 		gs->screen.resized = 1;
+		
+		initTexBuffers(gs, 1);
 	}
 }
 
