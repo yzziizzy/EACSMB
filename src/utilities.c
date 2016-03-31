@@ -137,9 +137,41 @@ GLuint makeVAO(VAOConfig* details, int stride) {
 
 // strdup a line
 char* strlndup(const char* s) {
-	int n;
+	char* n;
 	n = strchr(s, '\n');
 	if(!n) return strdup(s);
 	return strndup(s, n);
+}
+
+// line count;
+int strlinecnt(const char* s) {
+	int n;
+
+	if(!*s) return 0;
+	
+	n = 1;
+	while(*s) // just to make you cringe
+		if(*s++ == '\n') 
+			n++;
+	
+	return n;
+}
+
+char* pathJoin(const char* a, const char* b) {
+	int alen, blen;
+	char* o;
+	
+	
+	alen = a ? strlen(a) : 0;
+	blen = b ? strlen(b) : 0;
+	
+	o = malloc(alen + blen + 2);
+	
+	strcpy(o, a ? a : "");
+	o[alen] = '/'; // TODO: fix the concat here
+	strcpy(o + alen + 1, b ? b : "");
+	o[alen + blen + 1] = 0; 
+	
+	return o;
 }
 

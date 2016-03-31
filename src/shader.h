@@ -28,5 +28,8 @@ ShaderProgram* loadProgram(char* vname, char* fname, char* gname, char* tcname, 
 ShaderProgram* loadCombinedProgram(char* path);
 
 
- 
+struct sourceFragment* preloadFile(char* basePath, char* filename);
+Shader* preloadShader(char* basePath, char* filename);
+int newTopLevel(char* file);
+
 #endif

@@ -20,6 +20,7 @@
 #include "text/text.h"
 
 #include "utilities.h"
+#include "config.h"
 #include "shader.h"
 #include "texture.h"
 #include "window.h"
@@ -281,6 +282,12 @@ void initGame(XStuff* xs, GameState* gs) {
 	arial = LoadFont("Arial", 64, NULL);
 	glerr("clearing before text program load");
 	textProg = loadCombinedProgram("text");
+	
+	
+	//loadConfigFile("eacsmb.ini");
+	printf("preloading file\n");
+// 	newTopLevel("src/shaders/includeTest.glsl");
+	newTopLevel("src/shaders/text.glsl");
 	
 	unsigned int colors[] = {
 		0xFF0000FF, 2,

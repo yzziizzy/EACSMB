@@ -77,5 +77,7 @@ void initKHRDebug();
 
 
 char* strlndup(const char* s);
+int   strlinecnt(const char* s);
+char* pathJoin(const char* a, const char* b); 
 
 #endif

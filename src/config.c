@@ -15,7 +15,7 @@
 
 // struct name, prop name, type
 #define grabVal(s, p, t) \
-	if(strcmp(str, #p) == 0) { \
+	if(strncmp(str, #p, strlen(#p)) == 0) { \
 		s->p = grab_##t(strchr(str, '=') + 1); \
 		continue; \
 	}
