@@ -32,6 +32,7 @@
 *.hex
 
 # Debug files
+*.dirstamp
 *.dSYM/
 
 /autom4te.cache
@@ -50,10 +51,10 @@ Makefile
 .deps
 
 /config.*
-
+/settings.ini
 /src/eacsmb
 
 
 # ignore the external libs for now, i'll figure something out later for it
-/src/c3dlas 
-#/src/text #merged into this project for now 
+/src/c3dlas
+#/src/text #merged into this project for now

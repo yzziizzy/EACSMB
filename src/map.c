@@ -21,9 +21,9 @@
 
 static GLuint patchVAO;
 static GLuint patchVBO;
-static GLuint proj_ul, view_ul, model_ul, heightmap_ul, winsize_ul, basetex_ul; 
-static GLuint proj_d_ul, view_d_ul, model_d_ul, heightmap_d_ul; 
-static GLuint map_ul, zoneColors_ul; 
+static GLuint proj_ul, view_ul, model_ul, heightmap_ul, winsize_ul, basetex_ul;
+static GLuint proj_d_ul, view_d_ul, model_d_ul, heightmap_d_ul;
+static GLuint map_ul, zoneColors_ul;
 static totalPatches;
 Texture* cnoise;
 
@@ -84,7 +84,7 @@ void initMap(MapInfo* mi) {
 	
 // 	glTexParameteri(GL_TEXTURE_1D, GL_GENERATE_MIPMAP, GL_FALSE);
 	
-	// need to switch to nearest later on 
+	// need to switch to nearest later on
 	glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
@@ -345,21 +345,21 @@ void updateMapTextures(MapBlock* mb) {
 		
 		glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-// 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE); 
+// 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 		glexit("failed to create map textures a");
 		
 		// squash the data in
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		
-		glTexStorage3D(GL_TEXTURE_2D_ARRAY, 
+		glTexStorage3D(GL_TEXTURE_2D_ARRAY,
 			1,  // mips, flat
-			GL_R8UI, 
-			MAP_TEX_SZ, MAP_TEX_SZ, 
+			GL_R8UI,
+			MAP_TEX_SZ, MAP_TEX_SZ,
 			2); // layers
 		
 		glexit("failed to create map textures");
-	} 
+	}
 	else {
 		glBindTexture(GL_TEXTURE_2D_ARRAY, mb->tex);
 	}
@@ -412,13 +412,13 @@ void updateTerrainTexture(TerrainBlock* tb) {
 	
 // 	glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
 	
-	// need to switch to nearest later on 
+	// need to switch to nearest later on
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE); 
+	//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
 	// squash the data in
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
@@ -441,20 +441,20 @@ void updateTerrainTexture(TerrainBlock* tb) {
 
 
 
-void drawTerrainDepth(MapInfo* mi, Matrix* mView, Matrix* mProj) {
+void drawTerrainDepth(MapInfo* mi, Matrix* mView, Matrix* mProj, Vector2* viewWH) {
 	
-	drawTerrainBlockDepth(mi, msGetTop(&model), mView, mProj);
+	drawTerrainBlockDepth(mi, msGetTop(&model), mView, mProj, viewWH);
 }
 
 
 
-void drawTerrain(MapInfo* mi, Matrix* mView, Matrix* mProj, Vector2* cursor) {
+void drawTerrain(MapInfo* mi, Matrix* mView, Matrix* mProj, Vector2* cursor, Vector2* viewWH) {
 	
-	drawTerrainBlock(mi, msGetTop(&model), mView, mProj, cursor);
+	drawTerrainBlock(mi, msGetTop(&model), mView, mProj, cursor, viewWH);
 }
 
 
-void drawTerrainBlock(MapInfo* mi, Matrix* mModel, Matrix* mView, Matrix* mProj, Vector2* cursor) {
+void drawTerrainBlock(MapInfo* mi, Matrix* mModel, Matrix* mView, Matrix* mProj, Vector2* cursor, Vector2* viewWH) {
 	
 	TerrainBlock* tb = mi->tb;
 	
@@ -467,7 +467,7 @@ void drawTerrainBlock(MapInfo* mi, Matrix* mModel, Matrix* mView, Matrix* mProj,
 	glUniformMatrix4fv(proj_ul, 1, GL_FALSE, mProj->m);
 	
 	
-	glUniform2f(winsize_ul, 600, 600);
+	glUniform2f(winsize_ul, viewWH->x, viewWH->y);
 	
 	
 	glActiveTexture(GL_TEXTURE0);
@@ -501,7 +501,7 @@ void drawTerrainBlock(MapInfo* mi, Matrix* mModel, Matrix* mView, Matrix* mProj,
 
 
 
-void drawTerrainBlockDepth(MapInfo* mi, Matrix* mModel, Matrix* mView, Matrix* mProj) {
+void drawTerrainBlockDepth(MapInfo* mi, Matrix* mModel, Matrix* mView, Matrix* mProj, Vector2* viewWH) {
 	
 	TerrainBlock* tb = mi->tb;
 	
@@ -513,7 +513,7 @@ void drawTerrainBlockDepth(MapInfo* mi, Matrix* mModel, Matrix* mView, Matrix* m
 	glUniformMatrix4fv(view_d_ul, 1, GL_FALSE, mView->m);
 	glUniformMatrix4fv(proj_d_ul, 1, GL_FALSE, mProj->m);
 	
-	glUniform2f(winsize_ul, 600, 600);
+	glUniform2f(winsize_ul, viewWH->x, viewWH->y);
 	
 	
 	glActiveTexture(GL_TEXTURE0);
@@ -562,7 +562,7 @@ void genDecalMesh(Quad* q, float zOffset) {
 
 
 
-// coordinates are in game tiles. 
+// coordinates are in game tiles.
 void areaStats(TerrainBlock* tb, int x1, int y1, int x2, int y2, AreaStats* ass) {
 	int x, y, xmin, ymin, xmax, ymax, count;
 	float min, max, total;
@@ -630,8 +630,8 @@ void areaStats(TerrainBlock* tb, int x1, int y1, int x2, int y2, AreaStats* ass)
 			float p2ba = M_SQRT2 * (((h2 - p2min) + (h3 - p2min)) * .5);
 			
 			//               height     base area
-			float p1_v = ((M_SQRT2 * .5 * p1ba) / 3.0);  
-			float p2_v = ((M_SQRT2 * .5 * p2ba) / 3.0);  
+			float p1_v = ((M_SQRT2 * .5 * p1ba) / 3.0);
+			float p2_v = ((M_SQRT2 * .5 * p2ba) / 3.0);
 			
 			// add it all up
 			ass->volume += p1_v + p2_v + rtp1_v + rtp2_v;
@@ -665,10 +665,10 @@ void invalidateTerrain(TerrainBlock *tb, int x1, int y1, int x2, int y2) {
 		return;
 	}
 	
-	tb->dirtyBox.min.x = MIN(tb->dirtyBox.min.x, xmin); 
-	tb->dirtyBox.min.y = MIN(tb->dirtyBox.min.y, ymin); 
-	tb->dirtyBox.max.x = MAX(tb->dirtyBox.max.x, xmax); 
-	tb->dirtyBox.max.y = MAX(tb->dirtyBox.max.y, ymax); 
+	tb->dirtyBox.min.x = MIN(tb->dirtyBox.min.x, xmin);
+	tb->dirtyBox.min.y = MIN(tb->dirtyBox.min.y, ymin);
+	tb->dirtyBox.max.x = MAX(tb->dirtyBox.max.x, xmax);
+	tb->dirtyBox.max.y = MAX(tb->dirtyBox.max.y, ymax);
 }
 
 
@@ -690,7 +690,7 @@ void flattenArea(TerrainBlock *tb, int x1, int y1, int x2, int y2) {
 	areaStats(tb, x1,y1,x2,y2, &ass);
 	
 	printf("flattening: %d,%d|%d,%d to %f\n",xmin,ymin,xmax,ymax, ass.avg);
-	// something seems off here, there might be a mismatch in resolution 
+	// something seems off here, there might be a mismatch in resolution
 	for(y = ymin; y <= ymax; y++) {
 		for(x = xmin; x <= xmax; x++) {
 			tb->zs[TCOORD(x,y)] = ass.avg;
@@ -749,10 +749,10 @@ void getTerrainHeight(MapInfo* map, Vector2i* coords, int coordLen, float* heigh
 
 
 // calculate a tile's center point in world coordinates
-int tileCenterWorld(MapInfo* map, int tx, int ty, Vector* out) {
+void tileCenterWorld(MapInfo* map, int tx, int ty, Vector* out) {
 	
-	tx = MAX(MIN(tx, TERR_TEX_SZ), 0);
-	ty = MAX(MIN(ty, TERR_TEX_SZ), 0);
+	tx = iclamp(tx, 0, TERR_TEX_SZ);
+	ty = iclamp(ty, 0, TERR_TEX_SZ);
 	
 	float z = map->tb->zs[tx + (ty * TERR_TEX_SZ)];
 	

@@ -64,20 +64,20 @@ void updateCursorMesh(AABB* box) {
 
 
 // void renderCursor(GameState* gs) {
-// 	
+//
 // 	// fiddle with matrices and variables
-// 	
-// 	
+//
+//
 // 	// activate program
 // 	glUseProgram(cursorProg->id);
 // 	glexit("");
-// 	
+//
 // 	// set uniforms
 // 	glUniformMatrix4fv(model_ul, 1, GL_FALSE, mModel->m);
-// 	
+//
 // 	// draw elements
-// 	
-// 	
+//
+//
 // }
 
 
@@ -103,8 +103,8 @@ void initMarker() {
 	markerProg = loadCombinedProgram("marker");
 	
 	// uniform locations
-	markerMVP_ul = glGetUniformLocation(markerProg->id, "mMVP");	
-	markerColor_ul = glGetUniformLocation(markerProg->id, "color");	
+	markerMVP_ul = glGetUniformLocation(markerProg->id, "mMVP");
+	markerColor_ul = glGetUniformLocation(markerProg->id, "color");
 	
 	// VBO
 	glGenBuffers(1, &markerVBO);
@@ -159,7 +159,7 @@ void renderMarker(GameState* gs, int tx, int ty) {
 	
 // 	printf("z: %f\n", p.z);
 	
-	mTrans3f(gs->cursorPos.x, gs->cursorPos.y, p.z+1.1, &m);  
+	mTrans3f(gs->cursorPos.x, gs->cursorPos.y, p.z+1.1, &m);
 // 	mScale3f(4,4,4, &m);
 	
 	

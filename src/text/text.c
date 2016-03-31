@@ -3,9 +3,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#define MAX(a,b) ((a) > (b) ? a : b)
-#define MIN(a,b) ((a) < (b) ? a : b)
-
 #include <GL/glew.h>
 
 
@@ -26,8 +23,8 @@ static void makeVertices(TextRenderInfo* tri, unsigned int* colors);
 A Note About Charsets:
 
 All characters specified will be packed into a texture then shoved into video ram.
-There is a limit to the size of textures. A large font size and large character 
-set may not fit in the largest texture available. Even if it does, precious vram 
+There is a limit to the size of textures. A large font size and large character
+set may not fit in the largest texture available. Even if it does, precious vram
 is used for every character added. This is not the place to be a unicode twat;
 specify only the characters you will actually use. And for God's sake, don't try
 to render traditional Chinese at 64pt... you'd use 80+mb of ram.
@@ -124,7 +121,7 @@ TextRes* LoadFont(char* fontName, int size, char* chars) {
 	height = 0;
 	
 	// first find how wide of a texture we need
-	for(i = 0; i < charlen; i++) { 
+	for(i = 0; i < charlen; i++) {
 		int ymin;
 		err = FT_Load_Char(res->fontFace, chars[i], FT_LOAD_DEFAULT);
 		
@@ -134,7 +131,7 @@ TextRes* LoadFont(char* fontName, int size, char* chars) {
 		printf("bearingY: %d \n", slot->metrics.horiBearingY >> 6);
 		printf("width: %d \n", slot->metrics.width >> 6);
 		printf("height: %d \n\n", slot->metrics.height >> 6);
-*/		
+*/
 		
 		width += f2f(slot->metrics.width);
 		h_above = MAX(h_above, slot->metrics.horiBearingY >> 6);
@@ -171,7 +168,7 @@ TextRes* LoadFont(char* fontName, int size, char* chars) {
 	// render the glyphs into the texture
 	
 	xoffset = 0;
-	for(i = 0; i < charlen; i++) { 
+	for(i = 0; i < charlen; i++) {
 		int paddedw, charHeight, bearingY;
 		
 		
@@ -183,7 +180,7 @@ TextRes* LoadFont(char* fontName, int size, char* chars) {
 		
 		res->charWidths[i] = paddedw + padding;
 		
-/*		printf("meh: %d\n", height - charHeight); 
+/*		printf("meh: %d\n", height - charHeight);
 		printf("index: %d, char: %c, xoffset: %d, pitch: %d \n", i, chars[i], xoffset, slot->bitmap.pitch);
 		printf("m.width: %d, m.height: %d, hbearing: %d, habove: %d \n\n", slot->metrics.width >> 6, slot->metrics.height >> 6, slot->metrics.horiBearingY >> 6, h_above);
 */		blit(
@@ -238,7 +235,7 @@ TextRes* LoadFont(char* fontName, int size, char* chars) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0); // no mipmaps for this; it'll get fucked up
 	glerr("param font tex");
 	
-	printf("width: %d, height: %d \n", width, height);
+	printf("text width: %d, height: %d \n", width, height);
 	
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, res->texture);
 	glerr("load font tex");
@@ -263,9 +260,9 @@ TextRenderInfo* prepareText(TextRes* font, const char* str, int len, unsigned in
 	unsigned int defaultColor[] = {0xBADA55FF, INT_MAX}; // you have serious problems if the string is longer than INT_MAX
 	
 	if(!colors)
-		colors = &defaultColor;
+		colors = &defaultColor[0];
 	
-	//TODO: 
+	//TODO:
 	// normalize uv's
 	// investigate and fix kerning, it seems off
 	// move VAO to a better spot
@@ -291,15 +288,15 @@ TextRenderInfo* prepareText(TextRes* font, const char* str, int len, unsigned in
 	
 	// vertex
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(TextVertex), 0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(TextVertex), (void*)0);
 	glerr("pos attrib");
 	// uvs
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(TextVertex), 3*4);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(TextVertex), (void*)(3*4));
 	glerr("uv attrib");
 
 	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(TextVertex), 5*4);
+	glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(TextVertex), (void*)(5*4));
 	glerr("color attrib");
 
 	
@@ -326,8 +323,8 @@ static void makeVertices(TextRenderInfo* tri, unsigned int* colors) {
 	str = tri->text;
 	font = tri->font;
 	
-	uscale = 1.0 / font->texWidth; 
-	vscale = 1.0 / font->texHeight; 
+	uscale = 1.0 / font->texWidth;
+	vscale = 1.0 / font->texHeight;
 	scale = 1.0 / font->maxHeight;
 	
 	offset = 0;
@@ -356,7 +353,7 @@ static void makeVertices(TextRenderInfo* tri, unsigned int* colors) {
 		
 		offset -= (font->padding * 2) * vscale;
 		offset -= kerning;
-	/*	
+	/*
 		printf("kerning: %f\n", kerning);
 		
 		printf("index: %d, char: %c\n", index, str[i]);
@@ -370,7 +367,7 @@ static void makeVertices(TextRenderInfo* tri, unsigned int* colors) {
 
 		// add quad, set uv's
 		// triangle 1
-		tri->vertices[v].x = width + offset; 
+		tri->vertices[v].x = width + offset;
 		tri->vertices[v].y = 1.0 + valign;
 		tri->vertices[v].z = 0.0;
 		tri->vertices[v].rgba = color;
@@ -378,7 +375,7 @@ static void makeVertices(TextRenderInfo* tri, unsigned int* colors) {
 		tri->vertices[v++].v = 1.0;
 		
 		// top left
-		tri->vertices[v].x = width + offset; 
+		tri->vertices[v].x = width + offset;
 		tri->vertices[v].y = 0.0 + valign;
 		tri->vertices[v].z = 0.0;
 		tri->vertices[v].rgba = color;
@@ -386,7 +383,7 @@ static void makeVertices(TextRenderInfo* tri, unsigned int* colors) {
 		tri->vertices[v++].v = 0.0;
 
 		// top right
-		tri->vertices[v].x = 0.0 + offset; 
+		tri->vertices[v].x = 0.0 + offset;
 		tri->vertices[v].y = 1.0 + valign;
 		tri->vertices[v].z = 0.0;
 		tri->vertices[v].rgba = color;
@@ -395,7 +392,7 @@ static void makeVertices(TextRenderInfo* tri, unsigned int* colors) {
 		
 		
 		// triangle 2
-		tri->vertices[v].x = 0.0 + offset; 
+		tri->vertices[v].x = 0.0 + offset;
 		tri->vertices[v].y = 1.0 + valign;
 		tri->vertices[v].z = 0.0;
 		tri->vertices[v].rgba = color;
@@ -403,7 +400,7 @@ static void makeVertices(TextRenderInfo* tri, unsigned int* colors) {
 		tri->vertices[v++].v = 1.0;
 		
 		// top right
-		tri->vertices[v].x = width + offset; 
+		tri->vertices[v].x = width + offset;
 		tri->vertices[v].y = 0.0 + valign;
 		tri->vertices[v].z = 0.0;
 		tri->vertices[v].rgba = color;
@@ -411,7 +408,7 @@ static void makeVertices(TextRenderInfo* tri, unsigned int* colors) {
 		tri->vertices[v++].v = 0.0;
 		
 		// bottom right
-		tri->vertices[v].x = 0.0 + offset; 
+		tri->vertices[v].x = 0.0 + offset;
 		tri->vertices[v].y = 0.0 + valign;
 		tri->vertices[v].z = 0.0;
 		tri->vertices[v].rgba = color;
@@ -477,7 +474,7 @@ void updateText(TextRenderInfo* tri, const char* str, int len, unsigned int* col
 	
 	// i've read that trying to update a vbo when opengl is rendering can force a
 	// disasterous gpu<->cpu sync. here the old vbo is released (hopefully async)
-	// and the next frame will get the new vbo (all hopefully async). this has not 
+	// and the next frame will get the new vbo (all hopefully async). this has not
 	// been comparatively tested.
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	GLuint oldvbo = tri->vbo;
@@ -492,15 +489,15 @@ void updateText(TextRenderInfo* tri, const char* str, int len, unsigned int* col
 	
 		// vertex
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(TextVertex), 0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(TextVertex), (void*)0);
 	glerr("pos attrib");
 	// uvs
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(TextVertex), 3*4);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(TextVertex), (void*)(3*4));
 	glerr("uv attrib");
 
 	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(TextVertex), 5*4);
+	glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(TextVertex), (void*)(5*4));
 	glerr("color attrib");
 
 

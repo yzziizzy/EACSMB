@@ -42,16 +42,33 @@ char* grab_string(char* s) {
 
 UserConfig* loadConfigFile(char* path) {
 	
+	UserConfig* cfg = malloc(sizeof(UserConfig));
+	int status;
+	
+	zeroConfig(cfg);
+	status = updateConfigFromFile(cfg, path);
+	
+	if(status) {
+		free(cfg);
+		cfg = NULL;
+	}
+	
+	return cfg;
+};
+
+
+int updateConfigFromFile(UserConfig* config, char* path) {
+	
 	FILE* f;
-	UserConfig* cfg;
 	char str[2048];
 	char* meh;
 	
+	if (config == NULL) return 1;
+	
+	if (path == NULL) return 2;
 	
 	f = fopen(path, "rb");
-	if(!f) return NULL;
-	
-	cfg = calloc(1, sizeof(UserConfig));
+	if(!f) return 3;
 	
 	while(!feof(f)) {
 		
@@ -60,15 +77,34 @@ UserConfig* loadConfigFile(char* path) {
 		
 		if(str[0] == '#') continue;
 		
-		grabVal(cfg, scrollSpeed, float);
+		grabVal(config, keyRotateSensitivity, float);
+		grabVal(config, keyScrollSensitivity, float);
+		grabVal(config, keyZoomSensitivity, float);
+
+		grabVal(config, mouseRotateSensitivity, float);
+		grabVal(config, mouseScrollSensitivity, float);
+		grabVal(config, mouseZoomSensitivity, float);
 		
 	}
 	
 	fclose(f);
 	
-	return cfg;
-};
+	return 0;
+	
+}
 
+
+void zeroConfig(UserConfig* config) {
+	
+	config->keyRotateSensitivity = 0.0f;
+	config->keyScrollSensitivity = 0.0f;
+	config->keyZoomSensitivity   = 0.0f;
+
+	config->mouseRotateSensitivity = 0.0f;
+	config->mouseScrollSensitivity = 0.0f;
+	config->mouseZoomSensitivity   = 0.0f;
+	
+}
 
 
 #undef grabVal

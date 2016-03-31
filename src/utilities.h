@@ -1,22 +1,37 @@
 
-#ifndef __utilities_h__
-#define __utilities_h__
+#ifndef __EACSMB_UTILITIES_H__
+#define __EACSMB_UTILITIES_H__
 
 #define USE_KHR_DEBUG
 #define NO_GL_GET_ERR_DEBUG
 
-// i pronounce this one like "Grexit", greece's only smart move which they won't make cause they're greedy, short-sighted and dumb. just like the rest of us. 
+// i pronounce this one like "Grexit", greece's only smart move which they won't make cause they're greedy, short-sighted and dumb. just like the rest of us.
 #define glexit(msg) _glexit(msg, __FILE__, __LINE__, __func__)
 
-// returns NULL for no error, a human error string otherwise. the error is printed to stderr. 
+// returns NULL for no error, a human error string otherwise. the error is printed to stderr.
 #define glerr(msg) _glerr(msg, __FILE__, __LINE__, __func__)
 
 
-// yeah yeah double evaluation. i'm only using them with variables and constants so shut up.
-#define MAX(a,b) ((a) > (b) ?  (a) : (b))
-#define MIN(a,b) ((a) < (b) ?  (a) : (b))
-#define MAXE(a,b) ((a) >= (b) ?  (a) : (b))
-#define MINE(a,b) ((a) <= (b) ?  (a) : (b))
+#define MAX(a,b) ({ \
+	__typeof__ (a) _a = (a); \
+	__typeof__ (b) _b = (b); \
+	_a > _b ? _a : _b; \
+})
+#define MIN(a,b) ({ \
+	__typeof__ (a) _a = (a); \
+	__typeof__ (b) _b = (b); \
+	_a < _b ? _a : _b; \
+})
+#define MAXE(a,b) ({ \
+	__typeof__ (a) _a = (a); \
+	__typeof__ (b) _b = (b); \
+	_a >= _b ? _a : _b; \
+})
+#define MINE(a,b) ({ \
+	__typeof__ (a) _a = (a); \
+	__typeof__ (b) _b = (b); \
+	_a <= _b ? _a : _b; \
+})
 
 
 
@@ -74,10 +89,14 @@ typedef struct VAOConfig {
 
 void initKHRDebug();
 
+float fclamp(float val, float min, float max);
+float fclampNorm(float val);
 
+int iclamp(int val, int min, int max);
+int iclampNorm(int val);
 
 char* strlndup(const char* s);
 int   strlinecnt(const char* s);
 char* pathJoin(const char* a, const char* b); 
 
-#endif
+#endif // __EACSMB_UTILITIES_H__

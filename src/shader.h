@@ -1,5 +1,5 @@
-#ifndef __shader_h__
-#define __shader_h__
+#ifndef __EACSMB_SHADER_H__
+#define __EACSMB_SHADER_H__
 
  
 
@@ -32,4 +32,6 @@ struct sourceFragment* preloadFile(char* basePath, char* filename);
 Shader* preloadShader(char* basePath, char* filename);
 int newTopLevel(char* file);
 
-#endif
+
+#endif // __EACSMB_SHADER_H__
+

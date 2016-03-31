@@ -1,5 +1,5 @@
-#ifndef __objloader_h__ 
-#define __objloader_h__ 
+#ifndef __EACSMB_OBJLOADER_H__
+#define __EACSMB_OBJLOADER_H__
 
 
 
@@ -46,4 +46,4 @@ typedef struct OBJContents {
 
 
 
-#endif 
+#endif // __EACSMB_OBJLOADER_H__

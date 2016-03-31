@@ -44,17 +44,17 @@ void initRootWin();
 
 
 
-void initUI() {
+void initUI(GameState* gs) {
 	
 	
 	msAlloc(20, &uiMat);
-	msIdent(&uiMat);
-	msOrtho(0, 600, 0, 600, -1, 100, &uiMat);
+	
+	resizeUI(gs);
 	
 	
 	initRootWin();
 	windowProg = loadCombinedProgram("ui");
-	windowDepthProg = loadCombinedProgram("uiDepth");
+	// windowDepthProg = loadCombinedProgram("uiDepth");
 	
 	// uniform locations
 
@@ -103,7 +103,10 @@ void initUI() {
 	
 }
 
-
+void resizeUI(GameState* gs) {
+	msIdent(&uiMat);
+	msOrtho(0, gs->screen.wh.x, 0, gs->screen.wh.y, -1, 100.0f, &uiMat);
+}
 
 
 void handleClick(int button, Vector2 pos) {
@@ -146,8 +149,8 @@ void uiPreRenderSetup() {
 
 void renderUIPicking(XStuff* xs, GameState* gs) {
 	
-	glUseProgram(windowDepthProg->id);
-	glexit("");
+	// glUseProgram(windowDepthProg->id);
+	// glexit("");
 	
 	
 	
@@ -198,6 +201,10 @@ The ui is drawn on the actual framebuffer.
 */
 void renderUI(XStuff* xs, GameState* gs) {
 	
+	if (gs->screen.resized) {
+		resizeUI(gs);
+	}
+	
 	glUseProgram(windowProg->id);
 	
 	glActiveTexture(GL_TEXTURE3);
@@ -208,9 +215,11 @@ void renderUI(XStuff* xs, GameState* gs) {
 	glUniform1i(glGetUniformLocation(windowProg->id, "sTexture"), 3);
 	glexit("");
 	
-	renderWindowTmp(550, 10, 2, gs->activeTool == 2 ? .5 : 0);
-	renderWindowTmp(550, 60, 0, gs->activeTool == 0 ? .5 : 0);
-	renderWindowTmp(550, 110, 1, gs->activeTool == 1 ? .5 : 0);
+	// something odd is going on here with resizing, ui disappears if window is
+	// resized larger, but squishes on resize smaller
+	renderWindowTmp(gs->screen.wh.x - 50, 10, 2, gs->activeTool == 2 ? .5 : 0);
+	renderWindowTmp(gs->screen.wh.x - 50, 60, 0, gs->activeTool == 0 ? .5 : 0);
+	renderWindowTmp(gs->screen.wh.x - 50, 110, 1, gs->activeTool == 1 ? .5 : 0);
 	
 }
 
