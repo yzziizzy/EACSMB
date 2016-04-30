@@ -95,6 +95,7 @@ float fclampNorm(float val);
 int iclamp(int val, int min, int max);
 int iclampNorm(int val);
 
+size_t strlnlen(const char* s);
 char* strlndup(const char* s);
 int   strlinecnt(const char* s);
 char* pathJoin(const char* a, const char* b); 

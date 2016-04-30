@@ -155,16 +155,19 @@ int iclampNorm(int val) {
 }
 
 
-// strdup a line
-char* strlndup(const char* s) {
+// length of the line, or length of the string if no \n found
+size_t strlnlen(const char* s) {
 	char* n;
 	
 	n = strchr(s, '\n');
-	if(!n) {
-		return strdup(s);
-	}
+	if(!n) return strlen(s);
 	
-	return strndup(s, n-s);
+	return n - s;
+}
+
+// strdup a line
+char* strlndup(const char* s) {
+	return strndup(s, strlnlen(s));
 }
 
 // line count;
