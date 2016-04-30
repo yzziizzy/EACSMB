@@ -303,12 +303,6 @@ void initGame(XStuff* xs, GameState* gs) {
 	glerr("clearing before text program load");
 	textProg = loadCombinedProgram("text");
 	
-	
-	//loadConfigFile("eacsmb.ini");
-	printf("preloading file\n");
-// 	newTopLevel("src/shaders/includeTest.glsl");
-	newTopLevel("src/shaders/text.glsl");
-	
 	unsigned int colors[] = {
 		0xFF0000FF, 2,
 		0x00FF00FF, 4,
