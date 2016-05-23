@@ -21,6 +21,7 @@
 
 #include "utilities.h"
 #include "config.h"
+#include "objloader.h"
 #include "shader.h"
 #include "texture.h"
 #include "window.h"
@@ -311,7 +312,8 @@ void initGame(XStuff* xs, GameState* gs) {
 	
 	strRI = prepareText(arial, "FPS: --", -1, colors);
 	
-	
+	OBJContents cube;
+	loadOBJFile("assets/models/untitled.obj", 0, &cube);
 	
 }
 

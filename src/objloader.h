@@ -10,25 +10,26 @@ typedef struct OBJDataBuffer {
 } OBJDataBuffer;
 
 
-typedef struct OBJFace {
+typedef struct OBJVertex { // Face vertex
 	int v, vt, vn;
-} OBJFace;
+} OBJVertex;
 
 
 typedef struct OBJContents {
 	
 	OBJDataBuffer v, vn, vt;
 	
-	OBJFace* f;
-	int f_cnt;
-	int f_sz;
+	// only supports one mesh atm
+	OBJVertex* f;
+	int fv_cnt;
+	int fv_sz;
 	
 	char* o;
 } OBJContents;
 
 
 
-
+void loadOBJFile(char* path, int four_d_verts, OBJContents* contents);
 
 
 
