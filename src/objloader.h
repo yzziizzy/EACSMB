@@ -30,6 +30,7 @@ typedef struct OBJContents {
 
 
 void loadOBJFile(char* path, int four_d_verts, OBJContents* contents);
+Mesh* OBJtoMesh(OBJContents* obj);
 
 
 

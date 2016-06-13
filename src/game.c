@@ -286,15 +286,15 @@ void initGame(XStuff* xs, GameState* gs) {
 // 	msPerspective(60, 1.0, 01000.0f, 100000.0f, proj);
 // 		msOrtho(0, 1, 0, 1, .01, 100000, proj);
 
-	gs->zoom = -960.0;
+	gs->zoom = -760.0;
 	gs->direction = 0.0f;
-	gs->lookCenter.x = 512;
-	gs->lookCenter.y = 512;
+	gs->lookCenter.x = 128;
+	gs->lookCenter.y = 128;
 	
 	
 	// initialize all those magic globals
 	initMap(&gs->map);
-	updateTerrainTexture(gs->map.tb);
+	updateTerrainTexture(&gs->map.originMB->tb);
 	
 	initUI(gs);
 	initMarker();
@@ -311,9 +311,11 @@ void initGame(XStuff* xs, GameState* gs) {
 	};
 	
 	strRI = prepareText(arial, "FPS: --", -1, colors);
-	
+	/*
 	OBJContents cube;
 	loadOBJFile("assets/models/untitled.obj", 0, &cube);
+	Mesh* cubem = OBJtoMesh(&cube);
+	*/
 	
 }
 

@@ -9,6 +9,9 @@
 #include <GL/glx.h>
 #include <GL/glu.h>
 
+#include "c3dlas/c3dlas.h"
+#include "c3dlas/meshgen.h"
+
 #include "utilities.h"
 #include "objloader.h"
 
@@ -134,6 +137,15 @@ void loadOBJFile(char* path, int four_d_verts, OBJContents* contents) {
 	
 	memset(contents, 0, sizeof(OBJContents));
 	contents->v.dims = four_d_verts ? 4 : 3;
+	
+	
+	// count everything
+	
+	// alloc everything
+	
+	// read each thing into the mesh
+	
+	
 	
 	//HACk BUG 
 	contents->f = malloc(sizeof(OBJVertex) * 1337);
@@ -303,7 +315,32 @@ void loadOBJFile(char* path, int four_d_verts, OBJContents* contents) {
 }
 	
 
-
+Mesh* OBJtoMesh(OBJContents* obj) {
+	
+	Mesh* m;
+	int i;
+	
+	m = calloc(1, sizeof(Mesh));
+	
+	// vertex arrays are the number of unique vertices. obj's do not enforce this.
+	// all vertices are created new for simplicity sake
+	m->szVertices = obj->fv_cnt;
+	m->vertexCnt = obj->fv_cnt;
+	m->indices = malloc(sizeof(obj->fv_cnt) * sizeof(unsigned short));
+	m->vertices = malloc(sizeof(MeshVertex) * obj->fv_cnt);
+	
+	for(i = 0; i < obj->fv_cnt; i++) {
+		vCopy(&obj->v.buf[obj->f[i].v], &m->vertices[i].v); 
+		vCopy(&obj->vn.buf[obj->f[i].vn], &m->vertices[i].n); 
+		m->vertices[i].t.u = obj->vn.buf[obj->f[i].vt]; 
+		m->vertices[i].t.v = obj->vn.buf[obj->f[i].vt+1]; 
+		m->indices[i] = i;
+	}
+	
+	
+	
+	return m;
+}
 
 
 

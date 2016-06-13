@@ -3,31 +3,16 @@
 
 
 // terrain textures must always be a power of two
-#define TERR_TEX_SZ 1024
+#define TERR_TEX_SZ 256
 // terrain blocks must always be a power of two minus one
-#define TERR_BLOCK_SZ (TERR_TEX_SZ - 2)
+#define TERR_BLOCK_SZ (TERR_TEX_SZ)
 
-#define MAP_TEX_SZ (TERR_TEX_SZ - 1)
+#define MAP_TEX_SZ (TERR_TEX_SZ)
 
 
 
 #define TCOORD(x,y) ((y * TERR_TEX_SZ) + x)
 #define MCOORD(x,y) ((y * MAP_TEX_SZ) + x)
-
-
-typedef struct MapBlock {
-	unsigned char surface[MAP_TEX_SZ * MAP_TEX_SZ];
-	unsigned char zones[MAP_TEX_SZ * MAP_TEX_SZ];
-	
-	AABB2i bounds; // in world tiles
-	
-	int dirtyZone, dirtySurface;
-	
-	GLuint tex;
-	
-} MapBlock;
-
-
 
 
 
@@ -54,6 +39,30 @@ typedef struct TerrainBlock {
 
 
 
+typedef struct MapBlock {
+	int32_t bix, biy; // location in blocks. max world size is 2^32 blocks square ~5.6e8 km2 ~1.1x earth surface area  
+	
+	struct MapBlock* n_xp, *n_xm, *n_yp, *n_ym;
+	
+	unsigned char surface[TERR_TEX_SZ * TERR_TEX_SZ];
+	unsigned char zones[TERR_TEX_SZ * TERR_TEX_SZ];
+	
+	int dirtyZone, dirtySurface;
+	
+
+	TerrainBlock tb;
+	
+} MapBlock;
+
+typedef struct MapBlockTreeLeaf {
+	MapBlock* c[8][8];
+	uint32_t minx, miny;
+} MapBlockTreeLeaf;
+
+
+
+
+
 
 //TODO: mark some regular terrain tiles as transparent... to see excavations
 typedef struct VirtualTerrainBlock { // used for planning, renders as wireframe, usually
@@ -68,15 +77,47 @@ typedef struct VirtualTerrainBlock { // used for planning, renders as wireframe,
 } VirtualTerrainBlock;
 
 
+/*
+
+in general:
+
+render opaque buildings
+render terrain
+render infrastructure
+render ui
+
+
+
+conservative frustum culling/selection
+sort by distance
+render front to back
+
+
+*/
+
+
 typedef struct MapInfo {
 	// will be replaced by expandable structures later
-	TerrainBlock* tb;
-	MapBlock* mb;
+	//TerrainBlock* tb;
+	MapBlock** blocks;
+	int blocksSz;
+	int blocksLen;
+	MapBlock* originMB;
 	
 	
 	int scale; // how many terrain tiles are along an edge of one game tile. SC3k would be 1.
 	
-	GLuint zoneColorTex;
+	//GLuint zoneColorTex;
+	
+	GLuint tex;
+	GLuint terrainTex;
+	
+	MapBlock* texIndexMap[32]; // indices align to gl tex array
+	
+	MapBlock** blocksToRender;
+	int blocksToRenderSz;
+	int blocksToRenderCnt;
+	
 	
 	// probably don'y need to keep these around
 	unsigned int zoneColors[256];
@@ -95,15 +136,15 @@ typedef struct AreaStats {
 
 
 void initTerrain();
-TerrainBlock* allocTerrainBlock(int cx, int cy);
+void initTerrainBlock(MapBlock* mb, int cx, int cy);
 MapBlock* allocMapBlock(int llx, int lly);
 
 void updateTerrainTexture(TerrainBlock* tb);
 
-void drawTerrain(MapInfo* tb, Matrix* mView, Matrix* mProj, Vector2* cursor, Vector2* viewWH);
-void drawTerrainDepth(MapInfo* tb, Matrix* mView, Matrix* mProj, Vector2* viewWH);
-void drawTerrainBlock(MapInfo* tb, Matrix* mModel, Matrix* mView, Matrix* mProj, Vector2* cursor, Vector2* viewWH);
-void drawTerrainBlockDepth(MapInfo* tb, Matrix* mModel, Matrix* mView, Matrix* mProj, Vector2* viewWH);
+void drawTerrain(MapInfo* mi, Matrix* mView, Matrix* mProj, Vector2* cursor, Vector2* viewWH);
+void drawTerrainDepth(MapInfo* mi, Matrix* mView, Matrix* mProj, Vector2* viewWH);
+void drawTerrainBlock(MapInfo* mi, TerrainBlock* tb, Matrix* mModel, Matrix* mView, Matrix* mProj, Vector2* cursor, Vector2* viewWH);
+void drawTerrainBlockDepth(MapInfo* mi, TerrainBlock* tb, Matrix* mModel, Matrix* mView, Matrix* mProj, Vector2* viewWH);
 void checkMapDirty(MapInfo* mi);
 void areaStats(TerrainBlock* tb, int x1, int y1, int x2, int y2, AreaStats* ass);
 

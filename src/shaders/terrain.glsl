@@ -122,7 +122,7 @@ void main(void){
 	te_normal = normalize(vec4(sx*32, sy*32 ,1.0, 1.0));
 	
 
-	tmp.z = t / 1024; // .01 *  sin(gl_TessCoord.y*12) + .01 *sin(gl_TessCoord.x*12);
+	tmp.z = t / 256; // .01 *  sin(gl_TessCoord.y*12) + .01 *sin(gl_TessCoord.x*12);
 
 	gl_Position = (mProj * mView * mModel) * tmp;
 	t_tile =  tltmp;
@@ -161,7 +161,7 @@ uniform sampler1D sZoneColors;
 
 void main(void) {
 	
-	ivec2 tile = ivec2(floor(texCoord * 1024));
+	ivec2 tile = ivec2(floor(texCoord * 256));
 	
 	int zoneIndex = texelFetch(sMap, ivec3(tile.xy,0), 0).r;
 	vec4 zoneColor = texelFetch(sZoneColors, zoneIndex, 0);
@@ -169,11 +169,11 @@ void main(void) {
 	float scaleNear = 4;
 	float scaleFar = 32;
 	
-	float q = mod(texCoord.x * 1024, scaleFar) / scaleFar;
-	float r = mod(texCoord.y * 1024, scaleFar) / scaleFar;
+	float q = mod(texCoord.x * 256, scaleFar) / scaleFar;
+	float r = mod(texCoord.y * 256, scaleFar) / scaleFar;
 	
-	float qn = mod(texCoord.x * 1024, scaleNear) / scaleNear;
-	float rn = mod(texCoord.y * 1024, scaleNear) / scaleNear;
+	float qn = mod(texCoord.x * 256, scaleNear) / scaleNear;
+	float rn = mod(texCoord.y * 256, scaleNear) / scaleNear;
 	
 	float d = distance(t_tile, cursorPos);
 	if(d < 200) {
