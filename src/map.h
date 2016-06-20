@@ -104,6 +104,7 @@ typedef struct MapInfo {
 	int blocksLen;
 	MapBlock* originMB;
 	
+	MapBlockTreeLeaf* root;
 	
 	int scale; // how many terrain tiles are along an edge of one game tile. SC3k would be 1.
 	
@@ -138,18 +139,21 @@ typedef struct AreaStats {
 void initTerrain();
 void initTerrainBlock(MapBlock* mb, int cx, int cy);
 MapBlock* allocMapBlock(int llx, int lly);
+MapBlockTreeLeaf* allocMapBlockTreeLeaf(int llx, int lly);
+MapBlock* spawnMapBlock(MapInfo* mi, int bix, int biy);
+MapBlockTreeLeaf* spawnMapBlockTreeLeaf(MapInfo* mi, int llbix, int llbiy);
 
-void updateTerrainTexture(TerrainBlock* tb);
+void updateTerrainTexture(MapInfo* mi);
 
 void drawTerrain(MapInfo* mi, Matrix* mView, Matrix* mProj, Vector2* cursor, Vector2* viewWH);
 void drawTerrainDepth(MapInfo* mi, Matrix* mView, Matrix* mProj, Vector2* viewWH);
-void drawTerrainBlock(MapInfo* mi, TerrainBlock* tb, Matrix* mModel, Matrix* mView, Matrix* mProj, Vector2* cursor, Vector2* viewWH);
+void drawTerrainBlock(MapInfo* mi, MapBlock* mb, MatrixStack* msModel);
 void drawTerrainBlockDepth(MapInfo* mi, TerrainBlock* tb, Matrix* mModel, Matrix* mView, Matrix* mProj, Vector2* viewWH);
 void checkMapDirty(MapInfo* mi);
 void areaStats(TerrainBlock* tb, int x1, int y1, int x2, int y2, AreaStats* ass);
 
 void flattenArea(TerrainBlock *tb, int x1, int y1, int x2, int y2);
-void updateMapTextures(MapBlock* mb);
+void updateMapTextures(MapInfo* mi);
 void setZone(MapInfo *mi, int x1, int y1, int x2, int y2, int zone);
 
 void getTerrainHeight(MapInfo* map, Vector2i* coords, int coordLen, float* heightsOut);

@@ -206,9 +206,8 @@ void initGame(XStuff* xs, GameState* gs) {
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	
 	initTexBuffers(gs, 0);
-	
-	glBindTexture(GL_TEXTURE_2D, 0);
 
+	glBindTexture(GL_TEXTURE_2D, 0);
 	
 	glGenFramebuffers(1, &gs->framebuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, gs->framebuffer);
@@ -294,7 +293,6 @@ void initGame(XStuff* xs, GameState* gs) {
 	
 	// initialize all those magic globals
 	initMap(&gs->map);
-	updateTerrainTexture(&gs->map.originMB->tb);
 	
 	initUI(gs);
 	initMarker();

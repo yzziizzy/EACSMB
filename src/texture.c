@@ -174,26 +174,21 @@ Texture* loadBitmapTexture(char* path) {
 	dt->width = png->width;
 	dt->height = png->height;
 	
-	
-	glEnable(GL_TEXTURE_2D);
 
 	glGenTextures(1, &dt->tex_id);
+	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, dt->tex_id);
-	
-	glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
-	
+
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
 	// squash the data in
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-	
 	glTexImage2D(GL_TEXTURE_2D, // target
 		0,  // level, 0 = base, no minimap,
 		GL_RGBA8, // internalformat
@@ -204,10 +199,11 @@ Texture* loadBitmapTexture(char* path) {
 		GL_UNSIGNED_BYTE, // input type
 		png->data);
 	
-	
-	
+	glGenerateMipmap(GL_TEXTURE_2D);
+		
 	glBindTexture(GL_TEXTURE_2D, 0);
 	
+	glexit("failed to load texture");
 	return dt;
 }
 

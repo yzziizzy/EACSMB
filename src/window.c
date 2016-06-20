@@ -25,7 +25,7 @@ glXCreateContextAttribsARBProc glXCreateContextAttribsARB = 0;
 
 const int context_attr[] = {
 	GLX_CONTEXT_MAJOR_VERSION_ARB, 4,
-	GLX_CONTEXT_MINOR_VERSION_ARB, 3,
+	GLX_CONTEXT_MINOR_VERSION_ARB, 5,
 #ifdef USE_KHR_DEBUG
 	GLX_CONTEXT_FLAGS_ARB, GLX_CONTEXT_DEBUG_BIT_ARB,
 #endif

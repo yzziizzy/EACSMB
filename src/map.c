@@ -90,6 +90,7 @@ void initMap(MapInfo* mi) {
 	mi->zoneColors[2] = 0x00ff0000;
 	mi->zoneColors[3] = 0x0000FFFF;
 	
+	/*
 	glGenTextures(1, &mi->zoneColorTex);
 	glBindTexture(GL_TEXTURE_1D, mi->zoneColorTex);
 	
@@ -115,11 +116,13 @@ void initMap(MapInfo* mi) {
 		mi->zoneColors);
 	
 	glerr("zone color map");
+	*/
 	
+	mi->root = spawnMapBlockTreeLeaf(mi, -8, -8);
 	
+	updateTerrainTexture(mi);
 
 }
-
 
 
 void initTerrain() {
@@ -142,8 +145,11 @@ void initTerrain() {
 	
 	cnoise = loadBitmapTexture("./assets/textures/grass_texture-256.png");
 	
+	glexit("before terrain progs");
 	terrProg = loadCombinedProgram("terrain");
+	glexit("mid terrain progs");
 	terrDepthProg = loadCombinedProgram("terrainDepth");
+	glexit("after terrain progs");
 	
 	model_ul = glGetUniformLocation(terrProg->id, "mModel");
 	view_ul = glGetUniformLocation(terrProg->id, "mView");
@@ -228,7 +234,7 @@ void initTerrain() {
 // 	GLuint tm_ul = glGetUniformLocation(textProg->id, "mModel");
 // 	GLuint ts_ul = glGetUniformLocation(textProg->id, "fontTex");
 
-	
+	glexit("before terrain patch");
 	glPatchParameteri(GL_PATCH_VERTICES, 4);
 	
 	glGenVertexArrays(1, &patchVAO);
@@ -272,16 +278,16 @@ MapBlockTreeLeaf* allocMapBlockTreeLeaf(int minx, int miny) {
 }
 
 
-MapBlockLeaf* spawnMapBlockLeaf(Mapinfo*mi, int llbix, llbiy) {
+MapBlockTreeLeaf* spawnMapBlockTreeLeaf(MapInfo* mi, int llbix, int llbiy) {
 	int x, y;
-	MapBlockLeaf* mbl;
+	MapBlockTreeLeaf* mbl;
 	
-	mbl = allocMapBlockLeaf(mi, llbix, llbix);
+	mbl = allocMapBlockTreeLeaf(llbix, llbix);
 	
 	
-	for(y = 0; y < 16; y++) {
-		for(x = 0; x < 16; x++) {
-			mbl->c[x][y] = spawnMapBlock(mi, mbl, llbix + x, llbiy + y);
+	for(y = 0; y < 2; y++) {
+		for(x = 0; x < 2; x++) {
+			mbl->c[x][y] = spawnMapBlock(mi, llbix + x, llbiy + y);
 		}
 	}
 	
@@ -498,18 +504,26 @@ void updateTerrainTexture(MapInfo* mi) {
 		mb->zones);
 	*/
 	
-	int i;
-	for(i = 0; i < 32; i++) {
-		glTexSubImage3D(GL_TEXTURE_2D_ARRAY, // target
-			0,  // mip level, 0 = base, no mipmap,
-			0, 0, i,// offset
-			MAP_TEX_SZ,
-			MAP_TEX_SZ,
-			1,
-			GL_RED,  // format
-			GL_FLOAT, // input type
-			mi->texIndexMap[i]->zs);
-	}
+
+	glTexSubImage3D(GL_TEXTURE_2D_ARRAY, // target
+		0,  // mip level, 0 = base, no mipmap,
+		0, 0, 0,// offset
+		MAP_TEX_SZ,
+		MAP_TEX_SZ,
+		1,
+		GL_RED,  // format
+		GL_FLOAT, // input type
+		mi->root->c[0][0]->tb.zs);
+	
+	glTexSubImage3D(GL_TEXTURE_2D_ARRAY, // target
+		0,  // mip level, 0 = base, no mipmap,
+		0, 0, 1,// offset
+		MAP_TEX_SZ,
+		MAP_TEX_SZ,
+		1,
+		GL_RED,  // format
+		GL_FLOAT, // input type
+		mi->root->c[0][1]->tb.zs);
 	
 	
 	glerr("updating terrain tex info");
@@ -580,12 +594,17 @@ void updateTerrainTexture(MapInfo* mi) {
 
 */
 
+
+
+
 void drawTerrainDepth(MapInfo* mi, Matrix* mView, Matrix* mProj, Vector2* viewWH) {
-	
+	/*
 	glUseProgram(terrDepthProg->id);
 	glEnable(GL_DEPTH_TEST);
 	
 	drawTerrainBlockDepth(mi, &mi->originMB->tb, msGetTop(&model), mView, mProj, viewWH);
+
+	*/
 }
 
 
@@ -603,7 +622,7 @@ void drawTerrain(MapInfo* mi, Matrix* mView, Matrix* mProj, Vector2* cursor, Vec
 	glUniform2f(winsize_ul, viewWH->x, viewWH->y);
 	
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D_ARRAY, tb->tex);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, mi->tex);
 	
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, cnoise->tex_id);
@@ -620,24 +639,28 @@ void drawTerrain(MapInfo* mi, Matrix* mView, Matrix* mProj, Vector2* cursor, Vec
 	glPatchParameteri(GL_PATCH_VERTICES, 4);
 	glBindBuffer(GL_ARRAY_BUFFER, patchVBO);
 	
-	for(i = 0; i < 32; i++) {
-		if(!mi->texIndexMap[i]) continue;
+
+//		msPush(&msModel);
+		//msTrans3f(mb->bix * 256.0f, mb->biy * 256.0f , 0, &msModel);
 		
-		drawTerrainBlock(mi, i, msGetTop(&model), mView, mProj, cursor, viewWH);
 		
-	}
+
+		glUniformMatrix4fv(model_ul, 1, GL_FALSE, msGetTop(&model)->m);
+			
+
+		glDrawArraysInstanced(GL_PATCHES, 0, totalPatches * totalPatches * 4, 2);
+
 }
 
 
-void drawTerrainBlock(MapInfo* mi, TerrainBlock* tb, Matrix* mModel, Matrix* mView, Matrix* mProj, Vector2* cursor, Vector2* viewWH) {
+void drawTerrainBlock(MapInfo* mi, MapBlock* mb, MatrixStack* msModel) {
 	
 	
 	// move the model matrix around
+	
 
-	glUniformMatrix4fv(model_ul, 1, GL_FALSE, mModel->m);
 
-
-	glDrawArrays(GL_PATCHES, 0, totalPatches * totalPatches * 4);
+	glDrawArraysInstanced(GL_PATCHES, 0, totalPatches * totalPatches * 4, 2);
 }
 
 

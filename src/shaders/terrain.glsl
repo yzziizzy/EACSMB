@@ -11,11 +11,13 @@ layout (location = 2) in vec2 tile_in;
 
 out vec2 vs_tex;
 out vec2 vs_tile;
+out int vs_InstanceID;
 
 void main() {
 	vs_tex = tex_in;
 	vs_tile = tile_in;
-	gl_Position = vec4(pos_in.xyz, 1.0);
+	vs_InstanceID = gl_InstanceID;
+	gl_Position = vec4(pos_in.x  + gl_InstanceID, pos_in.yz, 1.0);
 }
 
 
@@ -30,9 +32,11 @@ layout (vertices = 4) out;
 
 in vec2 vs_tex[];
 in vec2 vs_tile[];
+in int vs_InstanceID[];
 
 out vec2 te_tex[];
 out vec2 te_tile[];
+out int te_InstanceID[];
 
 void main() {
 
@@ -59,6 +63,7 @@ void main() {
 		
 	te_tex[gl_InvocationID] = vs_tex[gl_InvocationID];
 	te_tile[gl_InvocationID] = vs_tile[gl_InvocationID];
+	te_InstanceID[gl_InvocationID] = vs_InstanceID[gl_InvocationID];
 	gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
 	
 }
@@ -73,8 +78,9 @@ layout (quads, equal_spacing, ccw) in;
 
 in vec2 te_tex[];
 in vec2 te_tile[];
+in int te_InstanceID[];
 
-uniform sampler2D sHeightMap;
+uniform sampler2DArray sHeightMap;
 
 
 uniform mat4 mView;
@@ -107,14 +113,15 @@ void main(void){
 	vec2 tlp2 = mix(te_tile[2], te_tile[3], gl_TessCoord.x);
 	vec2 tltmp = mix(tlp1, tlp2, gl_TessCoord.y);
 	
+// 	vec3 ttmpt = vec3(ttmp.xy, gl_InstanceID);
 	
-	float t = texture2D(sHeightMap, ttmp.xy, 0).r;
+	float t = texture(sHeightMap, vec3(ttmp.xy, te_InstanceID[0]), 0).r;
 	
 	// normals. remember that z is still up at this point
-	float xm1 = textureOffset(sHeightMap, ttmp.xy, off.xy).x;
-	float xp1 = textureOffset(sHeightMap, ttmp.xy, off.zy).x;
-	float ym1 = textureOffset(sHeightMap, ttmp.xy, off.yx).x;
-	float yp1 = textureOffset(sHeightMap, ttmp.xy, off.yz).x;
+	float xm1 = textureOffset(sHeightMap, vec3(ttmp.xy, te_InstanceID[0]), off.xy).x;
+	float xp1 = textureOffset(sHeightMap, vec3(ttmp.xy, te_InstanceID[0]), off.zy).x;
+	float ym1 = textureOffset(sHeightMap, vec3(ttmp.xy, te_InstanceID[0]), off.yx).x;
+	float yp1 = textureOffset(sHeightMap, vec3(ttmp.xy, te_InstanceID[0]), off.yz).x;
 
 	float sx = (xp1 - xm1);
 	float sy = (yp1 - ym1);
