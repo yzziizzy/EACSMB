@@ -113,15 +113,15 @@ void main(void){
 	vec2 tlp2 = mix(te_tile[2], te_tile[3], gl_TessCoord.x);
 	vec2 tltmp = mix(tlp1, tlp2, gl_TessCoord.y);
 	
-// 	vec3 ttmpt = vec3(ttmp.xy, gl_InstanceID);
+	vec3 terrCoords = vec3(ttmp.xy, te_InstanceID[0]);
 	
-	float t = texture(sHeightMap, vec3(ttmp.xy, te_InstanceID[0]), 0).r;
+	float t = texture(sHeightMap, terrCoords, 0).r;
 	
 	// normals. remember that z is still up at this point
-	float xm1 = textureOffset(sHeightMap, vec3(ttmp.xy, te_InstanceID[0]), off.xy).x;
-	float xp1 = textureOffset(sHeightMap, vec3(ttmp.xy, te_InstanceID[0]), off.zy).x;
-	float ym1 = textureOffset(sHeightMap, vec3(ttmp.xy, te_InstanceID[0]), off.yx).x;
-	float yp1 = textureOffset(sHeightMap, vec3(ttmp.xy, te_InstanceID[0]), off.yz).x;
+	float xm1 = textureOffset(sHeightMap, terrCoords, off.xy).x;
+	float xp1 = textureOffset(sHeightMap, terrCoords, off.zy).x;
+	float ym1 = textureOffset(sHeightMap, terrCoords, off.yx).x;
+	float yp1 = textureOffset(sHeightMap, terrCoords, off.yz).x;
 
 	float sx = (xp1 - xm1);
 	float sy = (yp1 - ym1);

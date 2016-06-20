@@ -10,10 +10,12 @@ layout (location = 2) in vec2 tile_in;
 
 out vec2 vs_tex;
 out vec2 vs_tile;
+out int vs_InstanceID;
 
 void main() {
 	vs_tex = tex_in;
 	vs_tile = tile_in;
+	vs_InstanceID = gl_InstanceID;
 	gl_Position = vec4(pos_in.xyz, 1.0);
 }
 
@@ -31,9 +33,11 @@ layout (vertices = 4) out;
 
 in vec2 vs_tex[];
 in vec2 vs_tile[];
+in int vs_InstanceID[];
 
 out vec2 te_tex[];
 out vec2 te_tile[];;
+out int te_InstanceID[];
 
 void main() {
 
@@ -60,6 +64,7 @@ void main() {
 	
 	te_tile[gl_InvocationID] = vs_tile[gl_InvocationID];
 	te_tex[gl_InvocationID] = vs_tex[gl_InvocationID];
+	te_InstanceID[gl_InvocationID] = vs_InstanceID[gl_InvocationID];
 	gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
 	
 } 
@@ -74,8 +79,9 @@ layout (quads, equal_spacing, ccw) in;
 
 in vec2 te_tile[];
 in vec2 te_tex[];
+in int te_InstanceID[];
 
-uniform sampler2D sHeightMap;
+uniform sampler2DArray sHeightMap;
 
 
 uniform mat4 mView;
@@ -102,7 +108,7 @@ void main(void){
 	vec2 tltmp = mix(tlp1, tlp2, gl_TessCoord.y);
 	
 	
-	float t = texture2D(sHeightMap, ttmp.xy, 0).r;
+	float t = texture(sHeightMap, vec3(ttmp.xy, te_InstanceID[0]), 0).r;
 	
 	tmp.z = t / 256; //* .05; // .01 *  sin(gl_TessCoord.y*12) + .01 *sin(gl_TessCoord.x*12);
 
