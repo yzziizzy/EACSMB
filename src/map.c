@@ -118,7 +118,7 @@ void initMap(MapInfo* mi) {
 	glerr("zone color map");
 	*/
 	
-	mi->root = spawnMapBlockTreeLeaf(mi, -8, -8);
+	mi->root = spawnMapBlockTreeLeaf(mi, 0, 0);
 	
 	updateTerrainTexture(mi);
 
@@ -351,7 +351,7 @@ void initTerrainBlock(MapBlock* mb, int cx, int cy) {
 	}
 	else {
 		// generate new data and save it
-		printf("Generating new terrain... ");
+		printf("Generating new terrain [%d, %d]... \n", cx, cy);
 		int x, y;
 		for(y = 0; y < TERR_TEX_SZ ; y++) {
 			for(x = 0; x < TERR_TEX_SZ ; x++) {
@@ -401,9 +401,6 @@ void updateMapTextures(MapInfo* mi) {
 		glBindTexture(GL_TEXTURE_2D_ARRAY, mi->tex);
 		glexit("failed to create map textures b");
 		
-// 		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_GENERATE_MIPMAP, GL_FALSE);
-		glexit("failed to create map textures c");
-
 		glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		
@@ -465,9 +462,6 @@ void updateTerrainTexture(MapInfo* mi) {
 		glBindTexture(GL_TEXTURE_2D_ARRAY, mi->terrainTex);
 		glexit("failed to create map textures b");
 		
-// 		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_GENERATE_MIPMAP, GL_FALSE);
-		glexit("failed to create map textures c");
-
 		glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		
@@ -487,6 +481,7 @@ void updateTerrainTexture(MapInfo* mi) {
 			32); // layers
 		
 		glexit("failed to create map textures");
+		printf("created terrain tex\n");
 	}
 	else {
 		glBindTexture(GL_TEXTURE_2D_ARRAY, mi->terrainTex);
@@ -504,7 +499,7 @@ void updateTerrainTexture(MapInfo* mi) {
 		mb->zones);
 	*/
 	
-
+printf("loading terrain data\n");
 	glTexSubImage3D(GL_TEXTURE_2D_ARRAY, // target
 		0,  // mip level, 0 = base, no mipmap,
 		0, 0, 0,// offset
@@ -514,6 +509,8 @@ void updateTerrainTexture(MapInfo* mi) {
 		GL_RED,  // format
 		GL_FLOAT, // input type
 		mi->root->c[0][0]->tb.zs);
+
+glexit("");
 	
 	glTexSubImage3D(GL_TEXTURE_2D_ARRAY, // target
 		0,  // mip level, 0 = base, no mipmap,
@@ -622,7 +619,7 @@ void drawTerrain(MapInfo* mi, Matrix* mView, Matrix* mProj, Vector2* cursor, Vec
 	glUniform2f(winsize_ul, viewWH->x, viewWH->y);
 	
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D_ARRAY, mi->tex);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, mi->terrainTex);
 	
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, cnoise->tex_id);

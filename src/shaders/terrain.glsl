@@ -17,7 +17,7 @@ void main() {
 	vs_tex = tex_in;
 	vs_tile = tile_in;
 	vs_InstanceID = gl_InstanceID;
-	gl_Position = vec4(pos_in.x  + gl_InstanceID, pos_in.yz, 1.0);
+	gl_Position = vec4(pos_in.x, pos_in.y +  gl_InstanceID, pos_in.z, 1.0);
 }
 
 
