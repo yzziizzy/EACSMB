@@ -56,7 +56,7 @@ typedef struct MapBlock {
 
 typedef struct MapBlockTreeLeaf {
 	MapBlock* c[8][8];
-	uint32_t minx, miny;
+	int32_t minx, miny;
 } MapBlockTreeLeaf;
 
 
@@ -159,7 +159,8 @@ void setZone(MapInfo *mi, int x1, int y1, int x2, int y2, int zone);
 void getTerrainHeight(MapInfo* map, Vector2i* coords, int coordLen, float* heightsOut);
 
 
-
+void saveMapBlockTreeLeaf(FILE* f, MapBlockTreeLeaf* mbl);
+MapBlockTreeLeaf* loadMapBlockTreeLeaf(FILE* f);
 // stuff below is too complicated for now. more knowledge is needed about the game to proceed.
 
 

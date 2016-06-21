@@ -117,8 +117,24 @@ void initMap(MapInfo* mi) {
 	
 	glerr("zone color map");
 	*/
+	FILE* f;
+	f = fopen(tmpSavePath, "rb");
+	if(f) {
+		// load data
+		printf("Loading saved terrain from %s\n", tmpSavePath);
+		
+		mi->root = loadMapBlockTreeLeaf(f);
+	} 
+	else {
+		
+		mi->root = spawnMapBlockTreeLeaf(mi, 0, 0);
+		
+		f = fopen(tmpSavePath, "wb");
+		
+		saveMapBlockTreeLeaf(f, mi->root);
+	}
 	
-	mi->root = spawnMapBlockTreeLeaf(mi, 0, 0);
+	fclose(f);
 	
 	updateTerrainTexture(mi);
 
@@ -282,11 +298,11 @@ MapBlockTreeLeaf* spawnMapBlockTreeLeaf(MapInfo* mi, int llbix, int llbiy) {
 	int x, y;
 	MapBlockTreeLeaf* mbl;
 	
-	mbl = allocMapBlockTreeLeaf(llbix, llbix);
+	mbl = allocMapBlockTreeLeaf(llbix, llbiy);
 	
 	
-	for(y = 0; y < 2; y++) {
-		for(x = 0; x < 2; x++) {
+	for(y = 0; y < 8; y++) {
+		for(x = 0; x < 8; x++) {
 			mbl->c[x][y] = spawnMapBlock(mi, llbix + x, llbiy + y);
 		}
 	}
@@ -316,6 +332,42 @@ MapBlock* allocMapBlock(int bix, int biy) {
 }
 
 
+MapBlockTreeLeaf* loadMapBlockTreeLeaf(FILE* f) {
+	int x, y, i;
+	int32_t llx, lly;
+	MapBlockTreeLeaf* mbl;
+	MapBlock* mb;
+	
+	fread(&llx, sizeof(int32_t), 1, f);
+	fread(&lly, sizeof(int32_t), 1, f);
+	
+	mbl = allocMapBlockTreeLeaf(llx, lly);
+	
+	for(y = 0; y < 8; y++) {
+		for(x = 0; x < 8; x++) {
+			mb = allocMapBlock(llx + x, lly + y);
+			fread(mb->tb.zs, sizeof(float), TERR_TEX_SZ * TERR_TEX_SZ, f);
+			mbl->c[x][y] = mb;
+		}
+	}
+	
+	return mbl;
+}
+
+void saveMapBlockTreeLeaf(FILE* f, MapBlockTreeLeaf* mbl) {
+	int x, y;
+	MapBlock* mb;
+	
+	fwrite(&mbl->minx, sizeof(int32_t), 1, f);
+	fwrite(&mbl->miny, sizeof(int32_t), 1, f);
+	
+	for(y = 0; y < 8; y++) {
+		for(x = 0; x < 8; x++) {
+			fwrite(mbl->c[x][y]->tb.zs, sizeof(float), TERR_TEX_SZ * TERR_TEX_SZ, f);
+		}
+	}
+}
+
 
 void initTerrainBlock(MapBlock* mb, int cx, int cy) {
 	
@@ -340,37 +392,18 @@ void initTerrainBlock(MapBlock* mb, int cx, int cy) {
 	
 	tb->tex = 0;
 	
-	f = fopen(tmpSavePath, "rb");
+
 	
-	if(0 && f) {
-		// load data
-		printf("Loading saved terrain from %s\n", tmpSavePath);
-		fread(tb->zs, sizeof(float), TERR_TEX_SZ * TERR_TEX_SZ, f);
-		
-		fclose(f);
-	}
-	else {
 		// generate new data and save it
-		printf("Generating new terrain [%d, %d]... \n", cx, cy);
-		int x, y;
-		for(y = 0; y < TERR_TEX_SZ ; y++) {
-			for(x = 0; x < TERR_TEX_SZ ; x++) {
-				//tb->zs[x + (y * TERR_TEX_SZ)] = sin(x * .1) * .1;
-				float f = PerlinNoise_2D((offx + x) / 128.0, (offy + y) / 128.0, .1, 6); // slow-ass function, disable except for noise testing
-	// 			printf("[%d,%d] %f\n", x,y,f);
-				tb->zs[x + (y * TERR_TEX_SZ)] = fabs(1-f) * 100;
-			}
+	printf("Generating new terrain [%d, %d]... \n", cx, cy);
+	int x, y;
+	for(y = 0; y < TERR_TEX_SZ ; y++) {
+		for(x = 0; x < TERR_TEX_SZ ; x++) {
+			//tb->zs[x + (y * TERR_TEX_SZ)] = sin(x * .1) * .1;
+			float f = PerlinNoise_2D((offx + x) / 128.0, (offy + y) / 128.0, .1, 6); // slow-ass function, disable except for noise testing
+// 			printf("[%d,%d] %f\n", x,y,f);
+			tb->zs[x + (y * TERR_TEX_SZ)] = fabs(1-f) * 100;
 		}
-		
-		/*
-		printf("done.\nSaving terrain to %s\n", tmpSavePath);
-		f = fopen(tmpSavePath, "wb");
-		if(!f) return tb;
-		
-		fwrite(tb->zs, sizeof(float), TERR_TEX_SZ * TERR_TEX_SZ, f);
-		
-		fclose(f);
-		*/
 	}
 	
 	
