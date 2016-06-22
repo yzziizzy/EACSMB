@@ -8,6 +8,7 @@ layout (location = 0) in vec3 pos_in;
 layout (location = 1) in vec2 tex_in;
 layout (location = 2) in vec2 tile_in;
 
+uniform sampler2D sOffsetLookup;
 
 out vec2 vs_tex;
 out vec2 vs_tile;
@@ -17,7 +18,8 @@ void main() {
 	vs_tex = tex_in;
 	vs_tile = tile_in;
 	vs_InstanceID = gl_InstanceID;
-	gl_Position = vec4(pos_in.x, pos_in.y +  gl_InstanceID, pos_in.z, 1.0);
+	vec4 off = texelFetch(sOffsetLookup, ivec2(gl_InstanceID, 0), 0); 
+	gl_Position = vec4(pos_in.x + (off.g * 255), pos_in.y + (off.r * 255), pos_in.z, 1.0);
 }
 
 

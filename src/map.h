@@ -95,6 +95,10 @@ render front to back
 
 */
 
+struct sGL_RG8 {
+	unsigned char x, y;
+};
+
 
 typedef struct MapInfo {
 	// will be replaced by expandable structures later
@@ -112,8 +116,11 @@ typedef struct MapInfo {
 	
 	GLuint tex;
 	GLuint terrainTex;
+	GLuint locationTex;
 	
-	MapBlock* texIndexMap[32]; // indices align to gl tex array
+	MapBlock* texIndexMap[64]; // indices align to gl tex array
+	struct sGL_RG8* offsetData;
+	int numBlocksToRender;
 	
 	MapBlock** blocksToRender;
 	int blocksToRenderSz;
@@ -136,7 +143,7 @@ typedef struct AreaStats {
 } AreaStats;
 
 
-void initTerrain();
+void initTerrain(MapInfo* mi);
 void initTerrainBlock(MapBlock* mb, int cx, int cy);
 MapBlock* allocMapBlock(int llx, int lly);
 MapBlockTreeLeaf* allocMapBlockTreeLeaf(int llx, int lly);

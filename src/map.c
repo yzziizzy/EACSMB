@@ -21,7 +21,7 @@
 
 static GLuint patchVAO;
 static GLuint patchVBO;
-static GLuint proj_ul, view_ul, model_ul, heightmap_ul, winsize_ul, basetex_ul;
+static GLuint proj_ul, view_ul, model_ul, heightmap_ul, offset_ul, winsize_ul, basetex_ul;
 static GLuint proj_d_ul, view_d_ul, model_d_ul, heightmap_d_ul;
 static GLuint map_ul, zoneColors_ul;
 static totalPatches;
@@ -42,7 +42,7 @@ char* tmpSaveName = "EACSMB-map-cache";
 
 
 void initMap(MapInfo* mi) {
-	
+	int x, y, i;
 	char* tmpDir;
 	
 	
@@ -58,7 +58,7 @@ void initMap(MapInfo* mi) {
 	
 	
 	
-	initTerrain();
+	initTerrain(mi);
 	
 	// HACK: should probably be scaled by data from mapinfo
 	msAlloc(4, &model);
@@ -126,7 +126,6 @@ void initMap(MapInfo* mi) {
 		mi->root = loadMapBlockTreeLeaf(f);
 	} 
 	else {
-		
 		mi->root = spawnMapBlockTreeLeaf(mi, 0, 0);
 		
 		f = fopen(tmpSavePath, "wb");
@@ -137,11 +136,35 @@ void initMap(MapInfo* mi) {
 	fclose(f);
 	
 	updateTerrainTexture(mi);
-
+	
+	// HACK: this should be moved to a per-frame function later
+	
+	i = 0;
+	for(y = 0; y < 8; y++) {
+		for(x = 0; x < 8; x++) {
+			mi->offsetData[i].x = x;
+			mi->offsetData[i].y = y;
+			i++;
+		}
+	}
+	
+ 	glBindTexture(GL_TEXTURE_2D, mi->locationTex);
+	glexit("");
+	glTexSubImage2D(GL_TEXTURE_2D, // target
+		0,  // level, 0 = base, no minimap,
+		0, 0, // offset
+		64,
+		1,
+		GL_RG,  // format
+		GL_UNSIGNED_BYTE, // input type
+		mi->offsetData);
+	glexit("");
+	
+	mi->numBlocksToRender = 4;
 }
 
 
-void initTerrain() {
+void initTerrain(MapInfo* mi) {
 	
 	
  	GLint MaxPatchVertices = 0;
@@ -171,6 +194,7 @@ void initTerrain() {
 	view_ul = glGetUniformLocation(terrProg->id, "mView");
 	proj_ul = glGetUniformLocation(terrProg->id, "mProj");
 
+	offset_ul = glGetUniformLocation(terrProg->id, "sOffsetLookup");
 	heightmap_ul = glGetUniformLocation(terrProg->id, "sHeightMap");
 	basetex_ul = glGetUniformLocation(terrProg->id, "sBaseTex");
 	winsize_ul = glGetUniformLocation(terrProg->id, "winSize");
@@ -275,6 +299,34 @@ void initTerrain() {
 	
 	glBufferData(GL_ARRAY_BUFFER, sizeof(TerrainPatchVertex) * 4 * patchCnt, patchVertices, GL_STATIC_DRAW);
 	glexit("buffering terrain patch vertex data");
+	
+	// ---- location offsets ----
+	glGenTextures(1, &mi->locationTex);
+	glBindTexture(GL_TEXTURE_2D, mi->locationTex);
+	glexit("failed to create offset textures b");
+	
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+// 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	glexit("failed to create offset textures a");
+	
+	// squash the data in
+	glPixelStorei(GL_PACK_ALIGNMENT, 1);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	
+	glTexStorage2D(GL_TEXTURE_2D,
+		1,  // mips, flat
+		GL_RG8,
+		64, 1
+		); 
+	
+	glexit("failed to create offset textures");
+	
+	mi->offsetData = calloc(1, sizeof(struct sGL_RG8) * 64);
+	mi->numBlocksToRender = 0;
 }
 
 
@@ -659,9 +711,13 @@ void drawTerrain(MapInfo* mi, Matrix* mView, Matrix* mProj, Vector2* cursor, Vec
 	
 // 	glActiveTexture(GL_TEXTURE3);
 // 	glBindTexture(GL_TEXTURE_2D_ARRAY, mi->originMB->tex);
+
+	glActiveTexture(GL_TEXTURE4);
+	glBindTexture(GL_TEXTURE_2D, mi->locationTex);
 	
 	glUniform1i(heightmap_ul, 0);
 	glUniform1i(basetex_ul, 1);
+	glUniform1i(offset_ul, 4);
 	
 	glUniform2f(glGetUniformLocation(terrProg->id, "cursorPos"), cursor->x, cursor->y);
 	glBindVertexArray(patchVAO);
@@ -678,7 +734,7 @@ void drawTerrain(MapInfo* mi, Matrix* mView, Matrix* mProj, Vector2* cursor, Vec
 		glUniformMatrix4fv(model_ul, 1, GL_FALSE, msGetTop(&model)->m);
 			
 
-		glDrawArraysInstanced(GL_PATCHES, 0, totalPatches * totalPatches * 4, 2);
+		glDrawArraysInstanced(GL_PATCHES, 0, totalPatches * totalPatches * 4, mi->numBlocksToRender);
 
 }
 
