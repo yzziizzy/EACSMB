@@ -22,7 +22,7 @@
 static GLuint patchVAO;
 static GLuint patchVBO;
 static GLuint proj_ul, view_ul, model_ul, heightmap_ul, offset_ul, winsize_ul, basetex_ul;
-static GLuint proj_d_ul, view_d_ul, model_d_ul, heightmap_d_ul;
+static GLuint proj_d_ul, view_d_ul, model_d_ul, heightmap_d_ul, offset_d_ul, winsize_d_ul;
 static GLuint map_ul, zoneColors_ul;
 static totalPatches;
 Texture* cnoise;
@@ -206,8 +206,9 @@ void initTerrain(MapInfo* mi) {
 	model_d_ul = glGetUniformLocation(terrDepthProg->id, "mModel");
 	view_d_ul = glGetUniformLocation(terrDepthProg->id, "mView");
 	proj_d_ul = glGetUniformLocation(terrDepthProg->id, "mProj");
+	offset_d_ul = glGetUniformLocation(terrDepthProg->id, "sOffsetLookup");
 	heightmap_d_ul = glGetUniformLocation(terrDepthProg->id, "sHeightMap");
-
+	winsize_d_ul = glGetUniformLocation(terrDepthProg->id, "winSize");
 	
 	
 	// in one dimension
@@ -678,13 +679,35 @@ void updateTerrainTexture(MapInfo* mi) {
 
 
 void drawTerrainDepth(MapInfo* mi, Matrix* mView, Matrix* mProj, Vector2* viewWH) {
-	/*
+	int i;
+	
 	glUseProgram(terrDepthProg->id);
 	glEnable(GL_DEPTH_TEST);
 	
-	drawTerrainBlockDepth(mi, &mi->originMB->tb, msGetTop(&model), mView, mProj, viewWH);
+	glUniformMatrix4fv(view_d_ul, 1, GL_FALSE, mView->m);
+	glexit("");
+	glUniformMatrix4fv(proj_d_ul, 1, GL_FALSE, mProj->m);
+	glexit("");
+	glUniform2f(winsize_d_ul, viewWH->x, viewWH->y);
+	glexit("");
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, mi->terrainTex);
 
-	*/
+	glActiveTexture(GL_TEXTURE4);
+	glBindTexture(GL_TEXTURE_2D, mi->locationTex);
+	
+	glUniform1i(heightmap_d_ul, 0);
+	glUniform1i(offset_d_ul, 4);
+glexit("");	
+	glBindVertexArray(patchVAO);
+	
+	glPatchParameteri(GL_PATCH_VERTICES, 4);
+	glBindBuffer(GL_ARRAY_BUFFER, patchVBO);
+	
+
+	glUniformMatrix4fv(model_d_ul, 1, GL_FALSE, msGetTop(&model)->m);
+glexit("");
+	glDrawArraysInstanced(GL_PATCHES, 0, totalPatches * totalPatches * 4, mi->numBlocksToRender);
 }
 
 
