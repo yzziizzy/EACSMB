@@ -19,7 +19,7 @@ void main() {
 	vs_tile = tile_in;
 	vs_InstanceID = gl_InstanceID;
 	vec4 off = texelFetch(sOffsetLookup, ivec2(gl_InstanceID, 0), 0); 
-	gl_Position = vec4(pos_in.x + (off.g * 255), pos_in.y + (off.r * 255), pos_in.z, 1.0);
+	gl_Position = vec4(pos_in.x + (off.r * 255), pos_in.y + (off.g * 255), pos_in.z, 1.0);
 }
 
 

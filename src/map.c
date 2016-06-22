@@ -160,7 +160,7 @@ void initMap(MapInfo* mi) {
 		mi->offsetData);
 	glexit("");
 	
-	mi->numBlocksToRender = 4;
+	mi->numBlocksToRender = 64;
 }
 
 
@@ -541,6 +541,8 @@ void updateMapTextures(MapInfo* mi) {
 
 
 void updateTerrainTexture(MapInfo* mi) {
+	int x, y, i;
+	
 	if(!mi->terrainTex) {
 		
 		glGenTextures(1, &mi->terrainTex);
@@ -563,7 +565,7 @@ void updateTerrainTexture(MapInfo* mi) {
 			1,  // mips, flat
 			GL_R32F,
 			MAP_TEX_SZ, MAP_TEX_SZ,
-			32); // layers
+			64); // layers
 		
 		glexit("failed to create map textures");
 		printf("created terrain tex\n");
@@ -585,27 +587,23 @@ void updateTerrainTexture(MapInfo* mi) {
 	*/
 	
 printf("loading terrain data\n");
-	glTexSubImage3D(GL_TEXTURE_2D_ARRAY, // target
-		0,  // mip level, 0 = base, no mipmap,
-		0, 0, 0,// offset
-		MAP_TEX_SZ,
-		MAP_TEX_SZ,
-		1,
-		GL_RED,  // format
-		GL_FLOAT, // input type
-		mi->root->c[0][0]->tb.zs);
 
+	i = 0;
+	for(y = 0; y < 8; y++) {
+		for(x = 0; x < 8; x++) {
+			glTexSubImage3D(GL_TEXTURE_2D_ARRAY, // target
+				0,  // mip level, 0 = base, no mipmap,
+				0, 0, i++,// offset
+				MAP_TEX_SZ,
+				MAP_TEX_SZ,
+				1,
+				GL_RED,  // format
+				GL_FLOAT, // input type
+				mi->root->c[x][y]->tb.zs);
+		}
+	}
 glexit("");
-	
-	glTexSubImage3D(GL_TEXTURE_2D_ARRAY, // target
-		0,  // mip level, 0 = base, no mipmap,
-		0, 0, 1,// offset
-		MAP_TEX_SZ,
-		MAP_TEX_SZ,
-		1,
-		GL_RED,  // format
-		GL_FLOAT, // input type
-		mi->root->c[0][1]->tb.zs);
+
 	
 	
 	glerr("updating terrain tex info");
