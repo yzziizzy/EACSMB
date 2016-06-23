@@ -169,7 +169,8 @@ void initTexBuffers(GameState* gs, int resized) {
 	printf("tex 1\n");
 	gs->normalTexBuffer = initTexBufferRGBA(gs->normalTexBuffer, ww, wh);
 	printf("tex 2\n");
-	gs->selectionTexBuffer = initTexBuffer(gs->selectionTexBuffer, ww, wh, GL_RGB16I, GL_RGB_INTEGER, GL_SHORT);
+// 	gs->selectionTexBuffer = initTexBuffer(gs->selectionTexBuffer, ww, wh, GL_RGB16I, GL_RGB_INTEGER, GL_SHORT);
+	gs->selectionTexBuffer = initTexBuffer(gs->selectionTexBuffer, ww, wh, GL_RGB8I, GL_RGB_INTEGER, GL_BYTE);
 	printf("tex 3\n");
 	gs->depthTexBuffer = initTexBufferDepth(gs->depthTexBuffer, ww, wh);
 	printf("tex 4\n");
@@ -763,7 +764,7 @@ void shadingPass(GameState* gs) {
 
 void checkCursor(GameState* gs, InputState* is) {
 	
-	unsigned short rgb[4];
+	unsigned char rgb[4];
 	glexit("pre selection buff");
 	
 	glReadBuffer(GL_COLOR_ATTACHMENT2);
@@ -775,12 +776,15 @@ void checkCursor(GameState* gs, InputState* is) {
 		1,
 		1,
 		GL_RGB_INTEGER,
-		GL_UNSIGNED_SHORT,
+		GL_UNSIGNED_BYTE,
 		&rgb);
 	glexit("read selection");
 	
 	gs->cursorPos.x = rgb[0];
 	gs->cursorPos.y = rgb[1];
+	gs->cursorIndex = rgb[2];
+	
+	printf("cursor index: %d %d %d\n", (int)gs->cursorPos.x, (int)gs->cursorPos.y, gs->cursorIndex);
 	
 // 	printf("mx: %d, my: %d, x: %d, y: %d\n", (int)is->cursorPosPixels.x, (int)is->cursorPosPixels.y, rgb[0], rgb[1]);
 	

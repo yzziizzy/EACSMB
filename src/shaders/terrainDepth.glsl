@@ -84,6 +84,7 @@ in vec2 te_tile[];
 in vec2 te_tex[];
 in int te_InstanceID[];
 
+
 uniform sampler2DArray sHeightMap;
 
 
@@ -92,7 +93,8 @@ uniform mat4 mProj;
 uniform mat4 mModel;
 
 
-out vec2 t_tile;
+out vec3 t_tile;
+out int ps_InstanceID;
 
 
 
@@ -116,7 +118,8 @@ void main(void){
 	tmp.z = t / 256; //* .05; // .01 *  sin(gl_TessCoord.y*12) + .01 *sin(gl_TessCoord.x*12);
 
 	gl_Position = (mProj * mView * mModel) * tmp;
-	t_tile =  tltmp; 
+	t_tile =  vec3(tltmp.xy, te_InstanceID[0]); 
+	ps_InstanceID = te_InstanceID[0];
 }
 
 
@@ -128,7 +131,8 @@ void main(void){
 
 
 
-in vec2 t_tile;
+in vec3 t_tile;
+in int ps_InstanceID;
 
 layout(location = 2) out ivec4 out_Selection;
 
@@ -136,6 +140,6 @@ layout(location = 2) out ivec4 out_Selection;
 
 void main(void) {
 	
-	out_Selection = ivec4(floor(t_tile.x) , floor(t_tile.y)  , 1, 1);
+	out_Selection = ivec4(floor(t_tile.x), floor(t_tile.y), floor(t_tile.z), 1);
 }
 
