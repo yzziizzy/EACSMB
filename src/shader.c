@@ -51,6 +51,28 @@ void printLogOnFail(id) {
 	free(log);
 }
 
+void printProgLogOnFail(id) {
+	
+	GLint success, logSize;
+	GLsizei len;
+	GLchar* log;
+	
+	if(!glIsProgram(id)) {
+		fprintf(stderr, "id is not a program!\n");
+		return;
+	}
+	
+	glGetProgramiv(id, GL_LINK_STATUS, &success);
+	if(success) return;
+	
+	glGetProgramiv(id, GL_INFO_LOG_LENGTH, &logSize);
+	log = (GLchar*)malloc(logSize);
+	
+	glGetProgramInfoLog(id, logSize, &len, log);
+	fprintf(stderr, "Program Log:\n%s", (char*)log);
+	
+	free(log);
+}
 
 
 
@@ -634,13 +656,14 @@ ShaderProgram* loadCombinedProgram(char* path) {
 	int c = 0;
 	
 	printf("Loading %s:\n   ", spath);
-	while(!extractShader(&base, prog->id));
+	while(!extractShader(&base, prog->id)) glexit("");
 	printf("\n");
 	
 	free(source);
 	free(spath);
 	
 	glLinkProgram(prog->id);
+	printProgLogOnFail(prog->id);
 	glerr("linking program");
 	
 	return prog;

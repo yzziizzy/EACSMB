@@ -200,7 +200,7 @@ void initTerrain(MapInfo* mi) {
 	winsize_ul = glGetUniformLocation(terrProg->id, "winSize");
 	zoneColors_ul = glGetUniformLocation(terrProg->id, "sZoneColors");
 	map_ul = glGetUniformLocation(terrProg->id, "sMap");
-
+	glexit("");
 
 
 	model_d_ul = glGetUniformLocation(terrDepthProg->id, "mModel");
@@ -209,7 +209,7 @@ void initTerrain(MapInfo* mi) {
 	offset_d_ul = glGetUniformLocation(terrDepthProg->id, "sOffsetLookup");
 	heightmap_d_ul = glGetUniformLocation(terrDepthProg->id, "sHeightMap");
 	winsize_d_ul = glGetUniformLocation(terrDepthProg->id, "winSize");
-	
+	glexit("");
 	
 	// in one dimension
 	totalPatches = TERR_TEX_SZ / MaxTessGenLevel; //wholePatches + (fracPatchSize > 0 ? 1 : 0);

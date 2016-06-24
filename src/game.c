@@ -170,7 +170,7 @@ void initTexBuffers(GameState* gs, int resized) {
 	gs->normalTexBuffer = initTexBufferRGBA(gs->normalTexBuffer, ww, wh);
 	printf("tex 2\n");
 // 	gs->selectionTexBuffer = initTexBuffer(gs->selectionTexBuffer, ww, wh, GL_RGB16I, GL_RGB_INTEGER, GL_SHORT);
-	gs->selectionTexBuffer = initTexBuffer(gs->selectionTexBuffer, ww, wh, GL_RGB8I, GL_RGB_INTEGER, GL_BYTE);
+	gs->selectionTexBuffer = initTexBuffer(gs->selectionTexBuffer, ww, wh, GL_RGB8UI, GL_RGB_INTEGER, GL_BYTE);
 	printf("tex 3\n");
 	gs->depthTexBuffer = initTexBufferDepth(gs->depthTexBuffer, ww, wh);
 	printf("tex 4\n");

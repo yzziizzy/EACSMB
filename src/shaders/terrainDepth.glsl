@@ -94,7 +94,7 @@ uniform mat4 mModel;
 
 
 out vec3 t_tile;
-out int ps_InstanceID;
+flat out int ps_InstanceID;
 
 
 
@@ -118,7 +118,7 @@ void main(void){
 	tmp.z = t / 256; //* .05; // .01 *  sin(gl_TessCoord.y*12) + .01 *sin(gl_TessCoord.x*12);
 
 	gl_Position = (mProj * mView * mModel) * tmp;
-	t_tile =  vec3(tltmp.xy, te_InstanceID[0]); 
+	t_tile =  vec3(tltmp.xy, 1); 
 	ps_InstanceID = te_InstanceID[0];
 }
 
@@ -132,7 +132,7 @@ void main(void){
 
 
 in vec3 t_tile;
-in int ps_InstanceID;
+flat in int ps_InstanceID;
 
 layout(location = 2) out ivec4 out_Selection;
 
@@ -140,6 +140,6 @@ layout(location = 2) out ivec4 out_Selection;
 
 void main(void) {
 	
-	out_Selection = ivec4(floor(t_tile.x), floor(t_tile.y), floor(t_tile.z), 1);
+	out_Selection = ivec4(floor(t_tile.x), floor(t_tile.y), ps_InstanceID, 1);
 }
 
