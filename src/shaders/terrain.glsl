@@ -99,7 +99,7 @@ const ivec3 off = ivec3(-1,0,1);
 out vec2 texCoord;
 out vec2 t_tile;
 out vec4 te_normal;
-
+flat out int ps_InstanceID;
 
 void main(void){
 
@@ -136,6 +136,7 @@ void main(void){
 	gl_Position = (mProj * mView * mModel) * tmp;
 	t_tile =  tltmp;
 	texCoord = ttmp;
+	ps_InstanceID = te_InstanceID[0];
 }
 
 
@@ -146,14 +147,15 @@ void main(void){
 
 
 
-uniform vec2 cursorPos;
+uniform vec3 cursorPos;
+
 // uniform float cursorRad;
 
 
 in vec2 texCoord;
 in vec2 t_tile;
 in vec4 te_normal;
-
+flat in int ps_InstanceID;
 
 const vec2 eye = vec2(500,500);
 
@@ -184,7 +186,7 @@ void main(void) {
 	float qn = mod(texCoord.x * 256, scaleNear) / scaleNear;
 	float rn = mod(texCoord.y * 256, scaleNear) / scaleNear;
 	
-	float d = distance(t_tile, cursorPos);
+	float d = distance(t_tile, cursorPos.xy);
 	if(d < 200) {
 		float s = clamp((d - 190) / 10, 0.0, 1.0);
 		q = mix(qn , q, s);
@@ -203,13 +205,15 @@ void main(void) {
  	vec4 tc = texture2D(sBaseTex, texCoord);
 //  	vec4 tc = vec4(texture(sMap, vec3(texCoord, 1)).rgb * 128, 1.0);
  	
+ 	// "in cursor"
  	bool incx = t_tile.x > cursorPos.x && t_tile.x < cursorPos.x + UNIT;
  	bool incy = t_tile.y > cursorPos.y && t_tile.y < cursorPos.y + UNIT;
+ 	bool inct = ps_InstanceID == floor(cursorPos.z);
  	
 	//float distToCursor = length(gl_TessCoord.xy - cursorPos);
-	vec4 cursorIntensity = (incx && incy ) ? vec4(0,10.0,10.0, 1.0) : vec4(1,1,1,1) ;//0 cursorRad - exp2(-1.0*distToCursor*distToCursor);
+	vec4 cursorIntensity = (incx && incy && inct) ? vec4(0,10.0,10.0, 1.0) : vec4(1,1,1,1) ;//0 cursorRad - exp2(-1.0*distToCursor*distToCursor);
 	
-	out_Selection = ivec4(floor(t_tile.x), floor(t_tile.y) , 1, 1);
+	out_Selection = ivec4(floor(t_tile.x), floor(t_tile.y), ps_InstanceID, 1);
 	out_Normal = vec4(te_normal.xyz, 1);
 	out_Color =  (zoneColor * .2 + tc) * cursorIntensity * vec4(min(min(ei1, ei2), min(ei3, ei4)), 0,0,1).rrra; //(1.0, 0, .5, .6);
 }

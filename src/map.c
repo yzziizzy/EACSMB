@@ -712,7 +712,7 @@ glexit("");
 
 
 
-void drawTerrain(MapInfo* mi, Matrix* mView, Matrix* mProj, Vector2* cursor, Vector2* viewWH) {
+void drawTerrain(MapInfo* mi, Matrix* mView, Matrix* mProj, Vector* cursor, Vector2* viewWH) {
 	
 	int i;
 	
@@ -740,7 +740,7 @@ void drawTerrain(MapInfo* mi, Matrix* mView, Matrix* mProj, Vector2* cursor, Vec
 	glUniform1i(basetex_ul, 1);
 	glUniform1i(offset_ul, 4);
 	
-	glUniform2f(glGetUniformLocation(terrProg->id, "cursorPos"), cursor->x, cursor->y);
+	glUniform3f(glGetUniformLocation(terrProg->id, "cursorPos"), cursor->x, cursor->y, cursor->z);
 	glBindVertexArray(patchVAO);
 	
 	glPatchParameteri(GL_PATCH_VERTICES, 4);

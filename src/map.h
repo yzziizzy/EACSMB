@@ -152,7 +152,7 @@ MapBlockTreeLeaf* spawnMapBlockTreeLeaf(MapInfo* mi, int llbix, int llbiy);
 
 void updateTerrainTexture(MapInfo* mi);
 
-void drawTerrain(MapInfo* mi, Matrix* mView, Matrix* mProj, Vector2* cursor, Vector2* viewWH);
+void drawTerrain(MapInfo* mi, Matrix* mView, Matrix* mProj, Vector* cursor, Vector2* viewWH);
 void drawTerrainDepth(MapInfo* mi, Matrix* mView, Matrix* mProj, Vector2* viewWH);
 void drawTerrainBlock(MapInfo* mi, MapBlock* mb, MatrixStack* msModel);
 void drawTerrainBlockDepth(MapInfo* mi, TerrainBlock* tb, Matrix* mModel, Matrix* mView, Matrix* mProj, Vector2* viewWH);
