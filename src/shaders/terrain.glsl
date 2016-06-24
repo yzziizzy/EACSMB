@@ -31,6 +31,7 @@ void main() {
 
 layout (vertices = 4) out;
 
+uniform vec3 eyePos;
 
 in vec2 vs_tex[];
 in vec2 vs_tile[];
@@ -53,15 +54,20 @@ void main() {
 //
 //     gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
 //
-	if(gl_InvocationID == 0) {
-		gl_TessLevelOuter[0] = 64;
-		gl_TessLevelOuter[1] = 64;
-		gl_TessLevelOuter[2] = 64;
-		gl_TessLevelOuter[3] = 64;
+
+	int tl = 62 - clamp(int(floor(length(gl_in[gl_InvocationID].gl_Position) * 4)), 2, 64);
+	gl_TessLevelOuter[gl_InvocationID] = tl;
 	
-		gl_TessLevelInner[0] = 64;
-		gl_TessLevelInner[1] = 64;
+	if(gl_InvocationID == 0) {
+		/*gl_TessLevelOuter[0] = tl; 
+		gl_TessLevelOuter[1] = tl; 
+		gl_TessLevelOuter[2] = tl; 
+		gl_TessLevelOuter[3] = tl; */
+	
+		gl_TessLevelInner[0] = tl;
+		gl_TessLevelInner[1] = tl;
 	}
+	
 		
 	te_tex[gl_InvocationID] = vs_tex[gl_InvocationID];
 	te_tile[gl_InvocationID] = vs_tile[gl_InvocationID];
