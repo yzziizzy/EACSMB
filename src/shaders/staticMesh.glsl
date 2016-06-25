@@ -44,7 +44,7 @@ layout(location = 1) out vec4 out_Normal;
 
 void main(void) {
 	
-	out_Color = vec4(1,0, 0, 1); //vs_norm;
+	out_Color = vec4(vs_tex.xy, 0, 1); //vs_norm;
 	out_Normal = vs_norm;
 }
 

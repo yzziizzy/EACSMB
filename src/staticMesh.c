@@ -88,8 +88,8 @@ StaticMesh* StaticMeshFromOBJ(OBJContents* obj) {
 		vCopy(&obj->faces[i].v, &m->vertices[i].v);
 		vCopy(&obj->faces[i].n, &m->vertices[i].n);
 		
-		m->vertices[i].t.u = obj->faces[i].t.x * 65536;
-		m->vertices[i].t.v = obj->faces[i].t.y * 65536;
+		m->vertices[i].t.u = obj->faces[i].t.x * 65535;
+		m->vertices[i].t.v = obj->faces[i].t.y * 65535;
 	}
 	
 	glexit("before static mesh vbo load");

@@ -136,7 +136,7 @@ void loadOBJFile(char* path, int four_d_verts, OBJContents* contents) {
 					fprintf(stderr, "error reading vertex\n");
 				}
 				
-				printf("got vertex: %f %f %f\n",vertices[vc].x,vertices[vc].y,vertices[vc].z);
+				//printf("got vertex: %f %f %f\n",vertices[vc].x,vertices[vc].y,vertices[vc].z);
 				
 				f += chars_read;
 				vc++;
@@ -168,6 +168,8 @@ void loadOBJFile(char* path, int four_d_verts, OBJContents* contents) {
 				if(n < 2) {
 					fprintf(stderr, "error reading tex coord\n");
 				}
+				
+				//printf("got tex coords: %f %f\n", texCoords[tc].x, texCoords[tc].y);
 				
 				f += chars_read;
 				tc++;
