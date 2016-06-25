@@ -31,7 +31,10 @@ void main() {
 
 layout (vertices = 4) out;
 
-uniform vec3 eyePos;
+
+uniform mat4 mView;
+uniform mat4 mProj;
+uniform mat4 mModel;
 
 in vec2 vs_tex[];
 in vec2 vs_tile[];
@@ -43,31 +46,34 @@ out int te_InstanceID[];
 
 void main() {
 
-    
-//     gl_TessLevelOuter[0] = tess_in[gl_InvocationID].x; // x
-//     gl_TessLevelOuter[1] = tess_in[gl_InvocationID].y; // y
-//     gl_TessLevelOuter[2] = tess_in[gl_InvocationID].x; // x
-//     gl_TessLevelOuter[3] = tess_in[gl_InvocationID].y; // y
-//
-//     gl_TessLevelInner[0] = tess_in[gl_InvocationID].x;
-//     gl_TessLevelInner[1] = tess_in[gl_InvocationID].y;
-//
-//     gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
-//
-
-	int tl = 62 - clamp(int(floor(length(gl_in[gl_InvocationID].gl_Position) * 4)), 2, 64);
-	gl_TessLevelOuter[gl_InvocationID] = tl;
-	
 	if(gl_InvocationID == 0) {
-		/*gl_TessLevelOuter[0] = tl; 
-		gl_TessLevelOuter[1] = tl; 
-		gl_TessLevelOuter[2] = tl; 
-		gl_TessLevelOuter[3] = tl; */
+		mat4 mvp = mProj * mView * mModel;
+		vec4 w0 = mvp * gl_in[0].gl_Position;
+		vec4 w1 = mvp * gl_in[1].gl_Position;
+		vec4 w2 = mvp * gl_in[2].gl_Position;
+		vec4 w3 = mvp * gl_in[3].gl_Position;
+		
+		w0 /= w0.w;
+		w1 /= w1.w;
+		w2 /= w2.w;
+		w3 /= w3.w;
+
+		float lod = 128;
+		
+		float f0 = clamp(distance(w1, w2) * lod, 1, 64);
+		float f1 = clamp(distance(w0, w1) * lod, 1, 64);
+		float f2 = clamp(distance(w3, w0) * lod, 1, 64);
+		float f3 = clamp(distance(w2, w3) * lod, 1, 64);
 	
-		gl_TessLevelInner[0] = tl;
-		gl_TessLevelInner[1] = tl;
+
+		gl_TessLevelOuter[0] = f0; 
+		gl_TessLevelOuter[1] = f1; 
+		gl_TessLevelOuter[2] = f2; 
+		gl_TessLevelOuter[3] = f3;
+	
+		gl_TessLevelInner[0] = mix(f1, f2, 0.5);
+		gl_TessLevelInner[1] = mix(f2, f3, 0.5);
 	}
-	
 		
 	te_tex[gl_InvocationID] = vs_tex[gl_InvocationID];
 	te_tile[gl_InvocationID] = vs_tile[gl_InvocationID];
