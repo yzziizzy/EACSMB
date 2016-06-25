@@ -25,6 +25,7 @@
 #include "shader.h"
 #include "texture.h"
 #include "window.h"
+#include "staticMesh.h"
 #include "map.h"
 #include "scene.h"
 #include "game.h"
@@ -46,6 +47,8 @@ ShaderProgram* textProg;
 Matrix textProj, textModel;
 TextRenderInfo* strRI;
 Texture* cnoise;
+
+StaticMesh* testmesh;
 
 // MapBlock* map;
 // TerrainBlock* terrain;
@@ -310,11 +313,16 @@ void initGame(XStuff* xs, GameState* gs) {
 	};
 	
 	strRI = prepareText(arial, "FPS: --", -1, colors);
-	/*
+	
+	initStaticMeshes();
+	
 	OBJContents cube;
 	loadOBJFile("assets/models/untitled.obj", 0, &cube);
-	Mesh* cubem = OBJtoMesh(&cube);
-	*/
+	//Mesh* cubem = OBJtoMesh(&cube);
+	testmesh = StaticMeshFromOBJ(&cube);
+	
+
+	
 	
 }
 
@@ -671,6 +679,9 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	renderMarker(gs, 0,0);
 
+	drawStaticMesh(testmesh, msGetTop(&gs->view), msGetTop(&gs->proj));
+	
+	
 	msPop(&gs->view);
 	msPop(&gs->proj);
 	

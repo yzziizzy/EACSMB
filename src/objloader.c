@@ -136,6 +136,8 @@ void loadOBJFile(char* path, int four_d_verts, OBJContents* contents) {
 					fprintf(stderr, "error reading vertex\n");
 				}
 				
+				printf("got vertex: %f %f %f\n",vertices[vc].x,vertices[vc].y,vertices[vc].z);
+				
 				f += chars_read;
 				vc++;
 			}

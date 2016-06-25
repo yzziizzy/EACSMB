@@ -6,6 +6,7 @@ eacsmb_SOURCES = main.c \
 	utilities.c \
 	config.c \
 	objloader.c \
+	staticMesh.c \
 	window.c \
 	shader.c \
 	game.c \

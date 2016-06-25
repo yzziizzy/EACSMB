@@ -55,16 +55,16 @@ void main() {
 		FragColor = vec4(texture(sDiffuse, tex).rgb,  1.0);
 	}
 	else if(debugMode == 2) {
-		// diffuse
+		// normals
 		FragColor = vec4(texture(sNormals, tex).rgb,  1.0);
 	}
 	else if(debugMode == 3) {
-		// diffuse
+		// depth
 		FragColor = vec4(texture(sDepth, tex).rrr,  1.0);
 	}
 	else if(debugMode == 4) {
-		// diffuse
-		FragColor = vec4(texture(sSelection, tex).rgb / 1024,  1.0);
+		// selection buffer
+		FragColor = vec4(texture(sSelection, tex).rgb,  1.0);
 	}
 
 //	FragColor = vec4(texture(sNormals, tex).rgb,  1.0);
