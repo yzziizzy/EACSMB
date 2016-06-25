@@ -16,6 +16,175 @@
 #include "objloader.h"
 
 
+
+
+
+void loadOBJFile(char* path, int four_d_verts, OBJContents* contents) {
+	
+	
+	char* f, *raw;
+	int line = 0;
+	int cur_pos = 0;
+	int cur_norm = 0;
+	int cur_tex = 0;
+	int cur_param = 0;
+	
+	int current_vertex_index = 0;
+	
+	raw = readFile(path, NULL);
+	if(!raw) return;
+	
+	memset(contents, 0, sizeof(OBJContents));
+	
+	int numVertices = 0;
+	int numNormals = 0;
+	int numTexCoords = 0;
+	int numFaces = 0;
+	
+
+	f = raw;
+	while(*f) {
+		char c;
+		
+		c = *f;
+		f++;
+		
+		if(c == 'f') { // faces
+			numFaces++;
+		}
+		else if(c == 'v') { 
+			c = *f;
+			if(c == ' ') numVertices++;
+			else if(c == 'n') numNormals++;
+			else if(c == 't') numTexCoords++;
+		}
+		
+		while(*f++ != '\n');
+	}
+	
+	printf("Vertices: %d\n", numVertices);
+	printf("Normals: %d\n", numNormals);
+	printf("TexCoords: %d\n", numTexCoords);
+	printf("Faces: %d\n", numFaces);
+	
+	Vector* vertices;
+	Vector* normals;
+	Vector2* texCoords;
+	OBJVertex* faces;
+	
+	int vc = 0;
+	int nc = 0;
+	int tc = 0;
+	int fc = 0;
+	
+	vertices = malloc(numVertices * sizeof(Vector));
+	normals = malloc(numNormals * sizeof(Vector));
+	texCoords = malloc(numTexCoords * sizeof(Vector2));
+	// only triangles are supported atm
+	faces = malloc(numFaces * 3 * sizeof(OBJVertex));
+	
+	
+	f = raw;
+	while(*f) {
+		char c;
+		int chars_read, n, j;
+		int fd[3][3];
+		
+		//printf("looping \n");
+		c = *f;
+		f++;
+		
+		if(c == 'f') { // faces. currently only triangles and quite hacky
+			//  f v[/t[/n]] v[/t[/n]] v[/t[/n]] [v[/t[/n]]]
+			n = sscanf(f, " %d/%d/%d %d/%d/%d %d/%d/%d%n", 
+				&fd[0][0], &fd[0][1], &fd[0][2],
+				&fd[1][0], &fd[1][1], &fd[1][2],
+				&fd[2][0], &fd[2][1], &fd[2][2],
+				&chars_read);
+			
+			vCopy(  &vertices[fd[0][0]-1], &faces[fc].v);
+			vCopy2(&texCoords[fd[0][1]-1], &faces[fc].t);
+			vCopy(   &normals[fd[0][2]-1], &faces[fc].n);
+			fc++;
+			
+			vCopy(  &vertices[fd[1][0]-1], &faces[fc].v);
+			vCopy2(&texCoords[fd[1][1]-1], &faces[fc].t);
+			vCopy(   &normals[fd[1][2]-1], &faces[fc].n);
+			fc++;
+			
+			vCopy(  &vertices[fd[2][0]-1], &faces[fc].v);
+			vCopy2(&texCoords[fd[2][1]-1], &faces[fc].t);
+			vCopy(   &normals[fd[2][2]-1], &faces[fc].n);
+			fc++;
+			
+			f += chars_read;
+		}
+		else if(c == 'v') {
+			
+			c = *f;
+			f++;
+			if(c == ' ') {
+				chars_read = 0;
+				n = sscanf(f, 
+					" %f %f %f%n",
+					&vertices[vc].x,
+					&vertices[vc].y,
+					&vertices[vc].z,
+					&chars_read);
+				
+				if(n < 3) {
+					fprintf(stderr, "error reading vertex\n");
+				}
+				
+				f += chars_read;
+				vc++;
+			}
+			else if(c == 'n') {
+				chars_read = 0;
+				n = sscanf(f, 
+					" %f %f %f%n",
+					&normals[nc].x,
+					&normals[nc].y,
+					&normals[nc].z,
+					&chars_read);
+				
+				if(n < 3) {
+					fprintf(stderr, "error reading normal\n");
+				}
+				
+				f += chars_read;
+				nc++;
+			}
+			else if(c == 't') {
+				chars_read = 0;
+				n = sscanf(f, 
+					" %f %f%n",
+					&texCoords[tc].x,
+					&texCoords[tc].y,
+					&chars_read);
+				
+				if(n < 2) {
+					fprintf(stderr, "error reading tex coord\n");
+				}
+				
+				f += chars_read;
+				tc++;
+			}
+		}
+		
+		while(*f++ != '\n');
+	}
+	
+	
+	contents->faces = faces;
+	contents->faceCnt = numFaces;
+}
+
+
+
+
+/*
+
 static int sgrabfloat(char** s, float* f) {
 	int num = 0;
 	
@@ -102,7 +271,7 @@ static char* strscandup(FILE* f) {
 	return strdup(buf);
 }
 
-static inline void append_vector(OBJDataBuffer* c, float* fs) {
+static void append_vector(OBJDataBuffer* c, float* fs) {
 	
 	if(!c->buf) {
 		c->sz = 64;
@@ -120,7 +289,7 @@ static inline void append_vector(OBJDataBuffer* c, float* fs) {
 }
 
 
-void loadOBJFile(char* path, int four_d_verts, OBJContents* contents) {
+void old_loadOBJFile(char* path, int four_d_verts, OBJContents* contents) {
 	
 	
 	char* f;
@@ -234,7 +403,7 @@ void loadOBJFile(char* path, int four_d_verts, OBJContents* contents) {
 				contents->f[f_cnt++] = ind[0][2] - 1;
 				contents->f[f_cnt++] = ind[0][3] - 1;
 			}
-			*/
+			* /
 		}
 		 
 		// vertex data
@@ -258,7 +427,7 @@ void loadOBJFile(char* path, int four_d_verts, OBJContents* contents) {
 				j = sscanf(f, " %f%n", &fbuf[j++], &chars);
 				f += chars;
 			} while(j);
-			*/
+			* /
 			if(c == ' ') { // position
 				if(n < 3) {
 					fprintf(stderr, "OBJ: only %d coordinates for vertex on line %d\n", n, line);
@@ -313,8 +482,8 @@ void loadOBJFile(char* path, int four_d_verts, OBJContents* contents) {
 		
 	}
 }
-	
-
+*/
+/*
 Mesh* OBJtoMesh(OBJContents* obj) {
 	
 	Mesh* m;
@@ -342,7 +511,7 @@ Mesh* OBJtoMesh(OBJContents* obj) {
 	return m;
 }
 
-
+*/
 
 
 
