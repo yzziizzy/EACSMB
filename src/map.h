@@ -52,6 +52,8 @@ typedef struct MapBlock {
 
 	TerrainBlock tb;
 	
+	
+	
 } MapBlock;
 
 typedef struct MapBlockTreeLeaf {

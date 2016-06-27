@@ -140,7 +140,7 @@ void main(void){
 	float sx = (xp1 - xm1);
 	float sy = (yp1 - ym1);
 
-	te_normal = normalize(vec4(sx*32, sy*32 ,1.0, 1.0));
+	te_normal = normalize(vec4(sx*32, sy*32 ,-1.0, 1.0));
 	
 
 	tmp.z = t / 256; // .01 *  sin(gl_TessCoord.y*12) + .01 *sin(gl_TessCoord.x*12);

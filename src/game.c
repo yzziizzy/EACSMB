@@ -26,6 +26,7 @@
 #include "texture.h"
 #include "window.h"
 #include "staticMesh.h"
+#include "road.h"
 #include "map.h"
 #include "scene.h"
 #include "game.h"
@@ -315,6 +316,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	strRI = prepareText(arial, "FPS: --", -1, colors);
 	
 	initStaticMeshes();
+	initRoads();
 	
 	OBJContents cube;
 	loadOBJFile("assets/models/untitled.obj", 0, &cube);
@@ -679,7 +681,8 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	renderMarker(gs, 0,0);
 
-	drawStaticMesh(testmesh, msGetTop(&gs->view), msGetTop(&gs->proj));
+	//drawStaticMesh(testmesh, msGetTop(&gs->view), msGetTop(&gs->proj));
+	drawRoad(0, msGetTop(&gs->view), msGetTop(&gs->proj));
 	
 	
 	msPop(&gs->view);
