@@ -125,7 +125,7 @@ void main(void){
 	
 	float t = texture(sHeightMap, vec3(ttmp.xy, te_InstanceID[0]), 0).r;
 	
-	tmp.z = t / 256; //* .05; // .01 *  sin(gl_TessCoord.y*12) + .01 *sin(gl_TessCoord.x*12);
+	tmp.z = t; //* .05; // .01 *  sin(gl_TessCoord.y*12) + .01 *sin(gl_TessCoord.x*12);
 
 	gl_Position = (mProj * mView * mModel) * tmp;
 	t_tile =  vec3(tltmp.xy, 1); 

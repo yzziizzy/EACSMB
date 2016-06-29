@@ -8,7 +8,7 @@ layout (location = 0) in vec4 pos_tex_in;
 layout (location = 1) in vec4 cp02_in;
 layout (location = 2) in vec2 cp1_in;
 
-
+uniform sampler2DArray sHeightMap;
 
 uniform mat4 mModel;
 uniform mat4 mView;
@@ -17,6 +17,9 @@ uniform mat4 mProj;
 // out vec4 vs_pos;
 out vec4 vs_norm;
 out vec2 vs_tex;
+out vec2 vs_cp0;
+out vec2 vs_cp1;
+out vec2 vs_cp2;
 
 
 
@@ -56,14 +59,21 @@ void main() {
 	sdt = sdt.yx;
 	sdt.x *= -1;
 	
-	sdt *= -hwidth;
+	sdt.x *= -hwidth * 20;
+	sdt.y *= -hwidth * 20;
 	
+	vec4 pos = (spline + vec4(sdt.xy, 0, 1));
+	
+	pos.z = texture(sHeightMap, vec3(pos.x/128, pos.y/128, 0) , 0).r ;
 	//spline.x += hwidth;
 
 //	gl_Position = (mProj * mView * mModel) * vec4(pos_tex_in.xy, 0, 1);
-	gl_Position = (mProj * mView * mModel) * (spline + vec4(sdt.xy, 0, 1));
+	gl_Position = (mProj * mView * mModel) * pos;
 	vs_norm =  normalize(vec4(1,1,1,0));
 	vs_tex = pos_tex_in.zw;
+	vs_cp0 = cp0;
+	vs_cp1 = cp1;
+	vs_cp2 = cp2;
 }
 
 
@@ -76,9 +86,13 @@ void main() {
 // in vec4 vs_pos;
 in vec4 vs_norm;
 in vec2 vs_tex;
+in vec2 vs_cp0;
+in vec2 vs_cp1;
+in vec2 vs_cp2;
 
 // fragment shader
 uniform vec4 color;
+
 
 
 layout(location = 0) out vec4 out_Color;
@@ -87,7 +101,7 @@ layout(location = 1) out vec4 out_Normal;
 
 void main(void) {
 	
-	out_Color = vec4(1,0, 0, 1); //vs_norm;
+	out_Color = vec4(1, abs(0.5 - vs_tex.x), 0, 1); //vs_norm;
 	out_Normal = vs_norm;
 }
 

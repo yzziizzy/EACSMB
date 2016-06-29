@@ -15,6 +15,7 @@
 #include "shader.h"
 #include "texture.h"
 #include "map.h"
+#include "road.h"
 #include "perlin.h"
 
 
@@ -24,7 +25,7 @@ static GLuint patchVBO;
 static GLuint proj_ul, view_ul, model_ul, heightmap_ul, offset_ul, winsize_ul, basetex_ul;
 static GLuint proj_d_ul, view_d_ul, model_d_ul, heightmap_d_ul, offset_d_ul, winsize_d_ul;
 static GLuint map_ul, zoneColors_ul;
-static totalPatches;
+static int totalPatches;
 Texture* cnoise;
 
 static TerrainPatchVertex* patchVertices;
@@ -63,7 +64,7 @@ void initMap(MapInfo* mi) {
 	// HACK: should probably be scaled by data from mapinfo
 	msAlloc(4, &model);
 	msIdent(&model);
-	msScale3f(TERR_TEX_SZ,TERR_TEX_SZ,TERR_TEX_SZ, &model);
+	msScale3f(TERR_TEX_SZ,TERR_TEX_SZ,1, &model);
 	msPush(&model);
 	
 	mi->blocksSz = 32 * 32;
@@ -213,7 +214,9 @@ void initTerrain(MapInfo* mi) {
 	
 	// in one dimension
 	totalPatches = TERR_TEX_SZ / MaxTessGenLevel; //wholePatches + (fracPatchSize > 0 ? 1 : 0);
-		
+	
+	
+	
 	int patchCnt = (totalPatches * totalPatches);
 	patchVertices = malloc(sizeof(TerrainPatchVertex) * 4 * patchCnt);
 	
@@ -221,6 +224,12 @@ void initTerrain(MapInfo* mi) {
 	float sideUnit = 1.0 / TERR_TEX_SZ; // size of a square, the smallest tessellation level
 	float wpSide = sideUnit * MaxTessGenLevel; // total length of a whole patch side
 	
+	printf("TERR_TEX_SZ: %d ", TERR_TEX_SZ);
+	printf("MaxTessGenLevel: %d ", MaxTessGenLevel);
+	printf("totalPatches: %d ", totalPatches);
+	printf("patchCnt: %d ", patchCnt);
+	printf("sideUnit: %f ", sideUnit);
+	printf("wpSide: %f \n", wpSide);
 	
 	TerrainPatchVertex* pv = patchVertices;
 	
@@ -284,7 +293,7 @@ void initTerrain(MapInfo* mi) {
 	glGenBuffers(1, &patchVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, patchVBO);
 
-			// position
+	// position
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(TerrainPatchVertex), 0);
 	
@@ -750,13 +759,13 @@ void drawTerrain(MapInfo* mi, Matrix* mView, Matrix* mProj, Vector* cursor, Vect
 //		msPush(&msModel);
 		//msTrans3f(mb->bix * 256.0f, mb->biy * 256.0f , 0, &msModel);
 		
-		
+	glUniformMatrix4fv(model_ul, 1, GL_FALSE, msGetTop(&model)->m);
 
-		glUniformMatrix4fv(model_ul, 1, GL_FALSE, msGetTop(&model)->m);
-			
+	glDrawArraysInstanced(GL_PATCHES, 0, totalPatches * totalPatches * 4, mi->numBlocksToRender);
 
-		glDrawArraysInstanced(GL_PATCHES, 0, totalPatches * totalPatches * 4, mi->numBlocksToRender);
-
+	
+	
+	drawRoad(mi->terrainTex, mView, mProj);
 }
 
 

@@ -593,7 +593,7 @@ void depthPrepass(XStuff* xs, GameState* gs, InputState* is) {
 
 	// draw terrain
 // 	drawTerrainBlockDepth(&gs->map, msGetTop(&gs->model), msGetTop(&gs->view), msGetTop(&gs->proj));
-	drawTerrainDepth(&gs->map, msGetTop(&gs->view), msGetTop(&gs->proj), &gs->screen.wh);
+	//drawTerrainDepth(&gs->map, msGetTop(&gs->view), msGetTop(&gs->proj), &gs->screen.wh);
 	
 	msPop(&gs->view);
 	msPop(&gs->proj);
@@ -682,7 +682,7 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	renderMarker(gs, 0,0);
 
 	//drawStaticMesh(testmesh, msGetTop(&gs->view), msGetTop(&gs->proj));
-	drawRoad(0, msGetTop(&gs->view), msGetTop(&gs->proj));
+//	drawRoad(0, msGetTop(&gs->view), msGetTop(&gs->proj));
 	
 	
 	msPop(&gs->view);
