@@ -758,7 +758,11 @@ void drawTerrain(MapInfo* mi, Matrix* mView, Matrix* mProj, Vector* cursor, Vect
 
 //		msPush(&msModel);
 		//msTrans3f(mb->bix * 256.0f, mb->biy * 256.0f , 0, &msModel);
-		
+	
+	//Matrix mm;
+	//mIdent(&mm);
+	
+	//glUniformMatrix4fv(model_ul, 1, GL_FALSE, &mm.m);
 	glUniformMatrix4fv(model_ul, 1, GL_FALSE, msGetTop(&model)->m);
 
 	glDrawArraysInstanced(GL_PATCHES, 0, totalPatches * totalPatches * 4, mi->numBlocksToRender);

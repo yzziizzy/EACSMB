@@ -59,12 +59,12 @@ void main() {
 	sdt = sdt.yx;
 	sdt.x *= -1;
 	
-	sdt.x *= -hwidth * 20;
-	sdt.y *= -hwidth * 20;
+	sdt.x *= hwidth * 10;
+	sdt.y *= hwidth * 10;
 	
 	vec4 pos = (spline + vec4(sdt.xy, 0, 1));
 	
-	pos.z = texture(sHeightMap, vec3(pos.x/128, pos.y/128, 0) , 0).r ;
+	pos.z = texture(sHeightMap, vec3(pos.x/256, pos.y/256, 0) , 0).r ;
 	//spline.x += hwidth;
 
 //	gl_Position = (mProj * mView * mModel) * vec4(pos_tex_in.xy, 0, 1);

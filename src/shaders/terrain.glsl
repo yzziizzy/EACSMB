@@ -144,7 +144,7 @@ void main(void){
 	
 
 	tmp.z = t; // .01 *  sin(gl_TessCoord.y*12) + .01 *sin(gl_TessCoord.x*12);
-
+	
 	gl_Position = (mProj * mView * mModel) * tmp;
 	t_tile =  tltmp;
 	texCoord = ttmp;
