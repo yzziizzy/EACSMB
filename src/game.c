@@ -348,7 +348,7 @@ void preFrame(GameState* gs) {
 	
 	// update timers
 	char frameCounterBuf[128];
-	unsigned int fpsColors[] = {0xeeeeeeff, 4, 0xeeee22ff, INT_MAX};
+	unsigned int fpsColors[] = {0xeeeeeeff, 6, 0xeeee22ff, INT_MAX};
 	
 	static int frameCounter = 0;
 	static double last_frame = 0;
@@ -357,7 +357,7 @@ void preFrame(GameState* gs) {
 	double now;
 	
 	gs->frameTime = now = getCurrentTime();
-
+	
 	if (last_frame == 0)
 		last_frame = now;
 	
@@ -370,7 +370,7 @@ void preFrame(GameState* gs) {
 	if(frameCounter == 0) {
 		float fps = 60.0f / (gs->frameTime - lastPoint);
 		
-		snprintf(frameCounterBuf, 128, "FPS:  %.2f", fps);
+		snprintf(frameCounterBuf, 128, "dtime:  %.2fms", gs->drawTime * 1000);
 		
 		//printf("--->%s\n", frameCounterBuf);
 		
@@ -380,6 +380,15 @@ void preFrame(GameState* gs) {
 	}
 }
 
+
+void postFrame(GameState* gs) {
+	
+	double now;
+	
+	now = getCurrentTime();
+	
+	gs->drawTime = now - gs->frameTime;
+}
 
 
 void handleInput(GameState* gs, InputState* is) {
@@ -593,7 +602,7 @@ void depthPrepass(XStuff* xs, GameState* gs, InputState* is) {
 
 	// draw terrain
 // 	drawTerrainBlockDepth(&gs->map, msGetTop(&gs->model), msGetTop(&gs->view), msGetTop(&gs->proj));
-	//drawTerrainDepth(&gs->map, msGetTop(&gs->view), msGetTop(&gs->proj), &gs->screen.wh);
+//	drawTerrainDepth(&gs->map, msGetTop(&gs->view), msGetTop(&gs->proj), &gs->screen.wh);
 	
 	msPop(&gs->view);
 	msPop(&gs->proj);
@@ -880,9 +889,13 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	renderUI(xs, gs);
 	
 	gs->screen.resized = 0;
+
+	postFrame(gs);
+
 	
 	glXSwapBuffers(xs->display, xs->clientWin);
 
+	
 }
 
 

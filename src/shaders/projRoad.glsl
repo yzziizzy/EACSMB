@@ -59,8 +59,8 @@ void main() {
 	sdt = sdt.yx;
 	sdt.x *= -1;
 	
-	sdt.x *= hwidth * 10;
-	sdt.y *= hwidth * 10;
+	sdt.x *= hwidth * 2;
+	sdt.y *= hwidth * 2;
 	
 	vec4 pos = (spline + vec4(sdt.xy, 0, 1));
 	
