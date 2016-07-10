@@ -36,9 +36,10 @@ void main() {
 	float t = pos_tex_in.y; 
 	float omt = 1 - t;
 	
-	// x is the length to scale the normal vector;
+	// x is 1 for the top corner, 2 for the bottom corner
 	// the sign of x indicates which side this vertex is for
-	float hwidth = pos_tex_in.x;
+	float hwidth = sign(pos_tex_in.x);
+	float voffset = abs(pos_tex_in.x) > 1.5 ? -1.0 : 0.0; 
 	
 	const vec2 cp0 = cp02_in.xy;
 	const vec2 cp1 = cp1_in;
@@ -57,14 +58,15 @@ void main() {
 	
 	// normal vector from the curve
 	sdt = sdt.yx;
-	sdt.x *= -1;
+	sdt.x *= -0.5;
 	
 	sdt.x *= hwidth * 2;
 	sdt.y *= hwidth * 2;
 	
 	vec4 pos = (spline + vec4(sdt.xy, 0, 1));
 	
-	pos.z = texture(sHeightMap, vec3(pos.x/256, pos.y/256, 0) , 0).r ;
+	pos.z = texture(sHeightMap, vec3(pos.x/256, pos.y/256, 0) , 0).r + (voffset * 4) + 2;
+	//pos.z = (voffset * 3) + 200;
 	//spline.x += hwidth;
 
 //	gl_Position = (mProj * mView * mModel) * vec4(pos_tex_in.xy, 0, 1);
@@ -101,7 +103,7 @@ layout(location = 1) out vec4 out_Normal;
 
 void main(void) {
 	
-	out_Color = vec4(1, abs(0.5 - vs_tex.x), 0, 1); //vs_norm;
+	out_Color = vec4(1, abs(0.5 - vs_tex.x), vs_tex.y, 1); //vs_norm;
 	out_Normal = vs_norm;
 }
 
