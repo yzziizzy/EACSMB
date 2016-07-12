@@ -107,86 +107,11 @@ int _getPrintGLEnumMin(GLenum e, char* name, char* message) {
 
 
 
-GLuint initTexBuffer(GLuint id, int w, int h, GLenum internalType, GLenum format, GLenum size) {
-	if(!id) {
-		glGenTextures(1, &id);
-	}
-	glBindTexture(GL_TEXTURE_2D, id);
-		glexit(" -- tex buffer creation");
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glexit("pre tex buffer creation");
-	glTexImage2D(GL_TEXTURE_2D, 0, internalType, w, h, 0, format, size, NULL);
-	glexit("tex buffer creation");
-	
-	return id;
-}
-GLuint initTexBufferRGBA(GLuint id, int w, int h) {
-	return initTexBuffer(id, w, h, GL_RGB, GL_RGB, GL_UNSIGNED_BYTE);
-}
-GLuint initTexBufferDepth(GLuint id, int w, int h) {
-	//GLuint id = initTexBuffer(w, h, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
-	
-	if(!id) {
-		glGenTextures(1, &id);
-	}
-	
-	glBindTexture(GL_TEXTURE_2D, id);
-	glexit(" -- tex buffer creation");
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
-	glexit("a pre tex buffer creation");
-	//glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_RED);
-	
-// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
-
-	glexit("b pre tex buffer creation");
-//	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, w, h, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
- 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, w, h, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-	glexit("tex buffer creation");
-	
-
-	//glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_LUMINANCE);
-	return id;
-}
-
 void initTexBuffers(GameState* gs, int resized) {
 	int ww = gs->screen.wh.x;
 	int wh = gs->screen.wh.y;
 	
 	
-	if(!resized) {
-		gs->diffuseTexBuffer = 0;
-		gs->normalTexBuffer = 0;
-		gs->selectionTexBuffer = 0;
-		gs->depthTexBuffer = 0;
-	}
-	
-	printf("tex 0\n");
-	//gs->diffuseTexBuffer = initTexBufferRGBA(gs->diffuseTexBuffer, ww, wh);
-	printf("diffuse: %d\n",gs->diffuseTexBuffer);
-	printf("tex 1\n");
-	//gs->normalTexBuffer = initTexBufferRGBA(gs->normalTexBuffer, ww, wh);
-	printf("tex 2\n");
-// 	gs->selectionTexBuffer = initTexBuffer(gs->selectionTexBuffer, ww, wh, GL_RGB16I, GL_RGB_INTEGER, GL_SHORT);
-	//gs->selectionTexBuffer = initTexBuffer(gs->selectionTexBuffer, ww, wh, GL_RGB8UI, GL_RGB_INTEGER, GL_BYTE);
-	printf("tex 3\n");
-	gs->depthTexBuffer = initTexBufferDepth(gs->depthTexBuffer, ww, wh);
-	printf("tex 4\n");
-	//*/
-	
-	printf("it %d, f %d, s %d \n", GL_RGB,  GL_RGB, GL_UNSIGNED_BYTE);
-	printf("it %d, f %d, s %d \n", GL_RGB,  GL_RGB, GL_UNSIGNED_BYTE);
-	printf("it %d, f %d, s %d \n", GL_RGB8UI, GL_RGB_INTEGER, GL_UNSIGNED_BYTE);
-	printf("it %d, f %d, s %d \n", GL_DEPTH_COMPONENT32,  GL_DEPTH_COMPONENT, GL_FLOAT);
-	//*
 	FBOTexConfig texcfg[] = {
 		{GL_RGB, GL_RGB, GL_UNSIGNED_BYTE},
 		{GL_RGB, GL_RGB, GL_UNSIGNED_BYTE},
@@ -200,8 +125,7 @@ void initTexBuffers(GameState* gs, int resized) {
 	gs->diffuseTexBuffer = texids[0];
 	gs->normalTexBuffer = texids[1];
 	gs->selectionTexBuffer = texids[2];
-	//gs->depthTexBuffer = texids[3];
-	//*/
+	gs->depthTexBuffer = texids[3];
 }
 
 void initGame(XStuff* xs, GameState* gs) {

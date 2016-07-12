@@ -23,31 +23,6 @@
 
 
 
-
-GLuint initTexBuffer2(GLuint id, int w, int h, GLenum internalType, GLenum format, GLenum size) {
-	if(!id) {
-		glGenTextures(1, &id);
-	}
-	glBindTexture(GL_TEXTURE_2D, id);
-		glexit(" -- tex buffer creation");
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glexit("pre tex buffer creation");
-	glTexImage2D(GL_TEXTURE_2D, 0, internalType, w, h, 0, format, size, NULL);
-	glexit("tex buffer creation");
-	
-	return id;
-}
-GLuint initTexBufferRGBA2(GLuint id, int w, int h) {
-	return initTexBuffer2(id, w, h, GL_RGB, GL_RGB, GL_UNSIGNED_BYTE);
-}
-
-
-
-
 //
 GLuint* initFBOTextures(int w, int h, FBOTexConfig* cfg) {
 	int len, i;
@@ -69,9 +44,6 @@ GLuint* initFBOTextures(int w, int h, FBOTexConfig* cfg) {
 	
 	// allocate storage for each texture
 	for(i = 0; i < len; i++) {
-		
-		initTexBufferRGBA2(texids[i],w,h);
-		continue;
 		
 		glBindTexture(GL_TEXTURE_2D, texids[i]);
 		
