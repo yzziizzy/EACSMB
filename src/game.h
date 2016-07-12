@@ -3,6 +3,7 @@
 #define __EACSMB_GAME_H__
 
 #include "config.h" // UserConfig
+#include "fbo.h"
 
 typedef struct GameScreen {
 	
@@ -37,6 +38,8 @@ typedef struct GameState {
 	GLuint diffuseTexBuffer, normalTexBuffer, depthTexBuffer, selectionTexBuffer;
 	GLuint framebuffer;
 	GLuint depthRenderbuffer;
+	
+	Framebuffer gbuf;
 	
 	MapInfo map;
 	

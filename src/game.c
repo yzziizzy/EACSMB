@@ -161,6 +161,7 @@ void initTexBuffers(GameState* gs, int resized) {
 	int ww = gs->screen.wh.x;
 	int wh = gs->screen.wh.y;
 	
+	
 	if(!resized) {
 		gs->diffuseTexBuffer = 0;
 		gs->normalTexBuffer = 0;
@@ -169,15 +170,38 @@ void initTexBuffers(GameState* gs, int resized) {
 	}
 	
 	printf("tex 0\n");
-	gs->diffuseTexBuffer = initTexBufferRGBA(gs->diffuseTexBuffer, ww, wh);
+	//gs->diffuseTexBuffer = initTexBufferRGBA(gs->diffuseTexBuffer, ww, wh);
+	printf("diffuse: %d\n",gs->diffuseTexBuffer);
 	printf("tex 1\n");
-	gs->normalTexBuffer = initTexBufferRGBA(gs->normalTexBuffer, ww, wh);
+	//gs->normalTexBuffer = initTexBufferRGBA(gs->normalTexBuffer, ww, wh);
 	printf("tex 2\n");
 // 	gs->selectionTexBuffer = initTexBuffer(gs->selectionTexBuffer, ww, wh, GL_RGB16I, GL_RGB_INTEGER, GL_SHORT);
-	gs->selectionTexBuffer = initTexBuffer(gs->selectionTexBuffer, ww, wh, GL_RGB8UI, GL_RGB_INTEGER, GL_BYTE);
+	//gs->selectionTexBuffer = initTexBuffer(gs->selectionTexBuffer, ww, wh, GL_RGB8UI, GL_RGB_INTEGER, GL_BYTE);
 	printf("tex 3\n");
 	gs->depthTexBuffer = initTexBufferDepth(gs->depthTexBuffer, ww, wh);
 	printf("tex 4\n");
+	//*/
+	
+	printf("it %d, f %d, s %d \n", GL_RGB,  GL_RGB, GL_UNSIGNED_BYTE);
+	printf("it %d, f %d, s %d \n", GL_RGB,  GL_RGB, GL_UNSIGNED_BYTE);
+	printf("it %d, f %d, s %d \n", GL_RGB8UI, GL_RGB_INTEGER, GL_UNSIGNED_BYTE);
+	printf("it %d, f %d, s %d \n", GL_DEPTH_COMPONENT32,  GL_DEPTH_COMPONENT, GL_FLOAT);
+	//*
+	FBOTexConfig texcfg[] = {
+		{GL_RGB, GL_RGB, GL_UNSIGNED_BYTE},
+		{GL_RGB, GL_RGB, GL_UNSIGNED_BYTE},
+		{GL_RGB8UI, GL_RGB_INTEGER, GL_UNSIGNED_BYTE},
+		{GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_FLOAT},
+		{0,0,0}
+	};
+	
+	GLuint* texids = initFBOTextures(ww, wh, texcfg);
+	
+	gs->diffuseTexBuffer = texids[0];
+	gs->normalTexBuffer = texids[1];
+	gs->selectionTexBuffer = texids[2];
+	//gs->depthTexBuffer = texids[3];
+	//*/
 }
 
 void initGame(XStuff* xs, GameState* gs) {
@@ -214,34 +238,17 @@ void initGame(XStuff* xs, GameState* gs) {
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 	
-	glGenFramebuffers(1, &gs->framebuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, gs->framebuffer);
-	glexit("fbo creation");
-	
-	// The depth buffer
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gs->diffuseTexBuffer, 0);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gs->normalTexBuffer, 0);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gs->selectionTexBuffer, 0);
- 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, gs->depthTexBuffer, 0);
-	glexit("fb tex2d");
-	
-//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, gs->depthTexBuffer, 0);
-	
-	GLenum DrawBuffers[] = {
-		GL_COLOR_ATTACHMENT0,
-		GL_COLOR_ATTACHMENT1,
-		GL_COLOR_ATTACHMENT2
+	printf("diffuse2: %d\n",gs->diffuseTexBuffer);
+	// set up the Geometry Buffer
+	FBOConfig gbufConf[] = {
+		{GL_COLOR_ATTACHMENT0, gs->diffuseTexBuffer },
+		{GL_COLOR_ATTACHMENT1, gs->normalTexBuffer },
+		{GL_COLOR_ATTACHMENT2, gs->selectionTexBuffer },
+		{GL_DEPTH_ATTACHMENT, gs->depthTexBuffer },
+		{0,0,0}
 	};
-	glDrawBuffers(3, DrawBuffers);
-	glexit("drawbuffers");
 	
-	GLenum status;
-	status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-	if(status != GL_FRAMEBUFFER_COMPLETE) {
-		printf("fbo status invalid\n");
-		exit(1);
-	}
-	printf("FBO created.\n");
+	initFBO(&gs->gbuf, gbufConf);
 	
 
 	shadingProg = loadCombinedProgram("shading");
@@ -822,6 +829,10 @@ Vector2i viewWH = {
 };
 void checkResize(XStuff* xs, GameState* gs) {
 	if(viewWH.x != xs->winAttr.width || viewWH.y != xs->winAttr.height) {
+		
+		destroyFBO(&gs->gbuf);
+		// TODO: destroy all the textures too
+		
 		printf("screen 0 resized\n");
 		
 		viewWH.x = xs->winAttr.width;
@@ -835,6 +846,18 @@ void checkResize(XStuff* xs, GameState* gs) {
 		gs->screen.resized = 1;
 		
 		initTexBuffers(gs, 1);
+		
+		printf("diffuse2: %d\n",gs->diffuseTexBuffer);
+		// set up the Geometry Buffer
+		FBOConfig gbufConf[] = {
+			{GL_COLOR_ATTACHMENT0, gs->diffuseTexBuffer },
+			{GL_COLOR_ATTACHMENT1, gs->normalTexBuffer },
+			{GL_COLOR_ATTACHMENT2, gs->selectionTexBuffer },
+			{GL_DEPTH_ATTACHMENT, gs->depthTexBuffer },
+			{0,0,0}
+		};
+		
+		initFBO(&gs->gbuf, gbufConf);
 	}
 }
 
@@ -854,18 +877,18 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	
 	// depth and picking pre-pass
 	glDepthFunc(GL_LESS);
-	glBindFramebuffer(GL_FRAMEBUFFER, gs->framebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, gs->gbuf.fb);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 	
 	depthPrepass(xs, gs, is);
 	
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, gs->framebuffer);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, gs->gbuf.fb);
 	
 	checkCursor(gs, is);
 	
-	glBindFramebuffer(GL_FRAMEBUFFER, gs->framebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, gs->gbuf.fb);
 	
 	
 	// clear color buffer for actual rendering
@@ -877,7 +900,12 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	renderFrame(xs, gs, is);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, gs->framebuffer);
+	
+	// decals
+	// rebind depth as read, color & normal as write
+	
+	
+	//glBindFramebuffer(GL_READ_FRAMEBUFFER, gs->gbuf.fb);
 	
 	
 	// draw to the screen

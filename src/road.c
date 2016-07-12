@@ -86,8 +86,6 @@ void initRoads() {
 			
 			vertices[n].t.u = j < 2 ? 0.0f : 1.0f;
 			vertices[n].t.v = i * (1.0f/(float)(segments-1));
-			
-			printf("i %d  y %f\n",i, vertices[n].v.y);
 		}
 	}
 	
@@ -97,8 +95,6 @@ void initRoads() {
 	// front cap
 	indices[n++] = segments * 3;
 	indices[n++] = segments * 2;
-	indices[n++] = segments * 1;
-	indices[n++] = 0;
 	
 	// left leg
 	for(i = 0; i < segments; i++) {
@@ -207,8 +203,8 @@ void drawRoad(GLuint tex, Matrix* view, Matrix* proj) {
 	glexit("road vbo");
 	
 
-	
-	glDrawElementsInstanced(GL_TRIANGLE_STRIP, 3 * 256 * 2 + 2 + 4 + 2, GL_UNSIGNED_SHORT, indices, 3);
+	//                              3 strips, 2 endcaps, 2 primitive restarts
+	glDrawElementsInstanced(GL_TRIANGLE_STRIP, 3 * 256 * 2 + 2 + 2 + 2, GL_UNSIGNED_SHORT, indices, 3);
 	glexit("road draw");
 	
 }
