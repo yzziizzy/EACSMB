@@ -73,6 +73,17 @@ GLuint* initFBOTextures(int w, int h, FBOTexConfig* cfg) {
 	return texids;
 }
 
+// don't do dumb things like pass in null pointers or empty lists. you get what you deserve if you do.
+void destroyFBOTextures(GLuint* texids) {
+	int len = 0;
+	
+	while(texids[len] != 0) len++;
+	
+	glDeleteTextures(len, texids);
+	glexit("delete fbo textures");
+}
+
+
 
 Framebuffer* allocFBO() {
 	return calloc(1, sizeof(Framebuffer));

@@ -39,6 +39,7 @@ typedef struct GameState {
 	GLuint framebuffer;
 	GLuint depthRenderbuffer;
 	
+	GLuint* fboTextures; 
 	Framebuffer gbuf;
 	
 	MapInfo map;

@@ -107,11 +107,16 @@ int _getPrintGLEnumMin(GLenum e, char* name, char* message) {
 
 
 
-void initTexBuffers(GameState* gs, int resized) {
+void setupFBOs(GameState* gs, int resized) {
 	int ww = gs->screen.wh.x;
 	int wh = gs->screen.wh.y;
 	
+	if(gs->fboTextures) {
+		destroyFBOTextures(gs->fboTextures);
+		free(gs->fboTextures);
+	}
 	
+	// backing textures
 	FBOTexConfig texcfg[] = {
 		{GL_RGB, GL_RGB, GL_UNSIGNED_BYTE},
 		{GL_RGB, GL_RGB, GL_UNSIGNED_BYTE},
@@ -126,6 +131,26 @@ void initTexBuffers(GameState* gs, int resized) {
 	gs->normalTexBuffer = texids[1];
 	gs->selectionTexBuffer = texids[2];
 	gs->depthTexBuffer = texids[3];
+	
+	
+	// main gbuffer setup
+	if(gs->gbuf.fb) { // evil abstraction breaking. meh.
+		destroyFBO(&gs->gbuf);
+	}
+	
+	FBOConfig gbufConf[] = {
+		{GL_COLOR_ATTACHMENT0, gs->diffuseTexBuffer },
+		{GL_COLOR_ATTACHMENT1, gs->normalTexBuffer },
+		{GL_COLOR_ATTACHMENT2, gs->selectionTexBuffer },
+		{GL_DEPTH_ATTACHMENT, gs->depthTexBuffer },
+		{0,0,0}
+	};
+	
+	initFBO(&gs->gbuf, gbufConf);
+	
+	
+	
+	
 }
 
 void initGame(XStuff* xs, GameState* gs) {
@@ -158,22 +183,13 @@ void initGame(XStuff* xs, GameState* gs) {
 	
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	
-	initTexBuffers(gs, 0);
+	setupFBOs(gs, 0);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 	
 	printf("diffuse2: %d\n",gs->diffuseTexBuffer);
 	// set up the Geometry Buffer
-	FBOConfig gbufConf[] = {
-		{GL_COLOR_ATTACHMENT0, gs->diffuseTexBuffer },
-		{GL_COLOR_ATTACHMENT1, gs->normalTexBuffer },
-		{GL_COLOR_ATTACHMENT2, gs->selectionTexBuffer },
-		{GL_DEPTH_ATTACHMENT, gs->depthTexBuffer },
-		{0,0,0}
-	};
-	
-	initFBO(&gs->gbuf, gbufConf);
-	
+
 
 	shadingProg = loadCombinedProgram("shading");
 	initFSQuad();
@@ -754,7 +770,6 @@ Vector2i viewWH = {
 void checkResize(XStuff* xs, GameState* gs) {
 	if(viewWH.x != xs->winAttr.width || viewWH.y != xs->winAttr.height) {
 		
-		destroyFBO(&gs->gbuf);
 		// TODO: destroy all the textures too
 		
 		printf("screen 0 resized\n");
@@ -769,19 +784,9 @@ void checkResize(XStuff* xs, GameState* gs) {
 		
 		gs->screen.resized = 1;
 		
-		initTexBuffers(gs, 1);
+		setupFBOs(gs, 1);
 		
 		printf("diffuse2: %d\n",gs->diffuseTexBuffer);
-		// set up the Geometry Buffer
-		FBOConfig gbufConf[] = {
-			{GL_COLOR_ATTACHMENT0, gs->diffuseTexBuffer },
-			{GL_COLOR_ATTACHMENT1, gs->normalTexBuffer },
-			{GL_COLOR_ATTACHMENT2, gs->selectionTexBuffer },
-			{GL_DEPTH_ATTACHMENT, gs->depthTexBuffer },
-			{0,0,0}
-		};
-		
-		initFBO(&gs->gbuf, gbufConf);
 	}
 }
 

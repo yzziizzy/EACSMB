@@ -4,7 +4,6 @@
 
 
 
-
 typedef struct FBOConfig {
 	GLenum attachment;
 	GLuint texture;
