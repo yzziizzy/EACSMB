@@ -127,7 +127,7 @@ void main(void){
 	vec2 tlp2 = mix(te_tile[2], te_tile[3], gl_TessCoord.x);
 	vec2 tltmp = mix(tlp1, tlp2, gl_TessCoord.y);
 	
-	vec3 terrCoords = vec3(ttmp.xy, 0 /*te_InstanceID[0]*/);
+	vec3 terrCoords = vec3(ttmp.xy, te_InstanceID[0]);
 	
 	float t = texture(sHeightMap, terrCoords, 0).r;
 	

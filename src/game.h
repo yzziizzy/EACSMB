@@ -48,6 +48,9 @@ typedef struct GameState {
 	MatrixStack view;
 	MatrixStack proj;
 	
+	double nearClipPlane;
+	double farClipPlane;
+	
 	Vector eyePos;
 	Vector eyeDir;
 	

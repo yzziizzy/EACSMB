@@ -38,9 +38,6 @@ Matrix mProj, mView, mModel;
 
 float zoom;
 
-double nearPlane = 20;
-double farPlane = 1700;
-
 
 // temp shit
 TextRes* arial;
@@ -132,6 +129,7 @@ void setupFBOs(GameState* gs, int resized) {
 	gs->selectionTexBuffer = texids[2];
 	gs->depthTexBuffer = texids[3];
 	
+	printf("New Main Depth: %d \n", texids[3]);
 	
 	// main gbuffer setup
 	if(gs->gbuf.fb) { // evil abstraction breaking. meh.
@@ -152,7 +150,7 @@ void setupFBOs(GameState* gs, int resized) {
 	FBOConfig decalConf[] = {
 		{GL_COLOR_ATTACHMENT0, gs->diffuseTexBuffer },
 		{GL_COLOR_ATTACHMENT1, gs->normalTexBuffer },
-		{GL_DEPTH_ATTACHMENT, gs->depthTexBuffer },
+		{GL_DEPTH_ATTACHMENT,  gs->depthTexBuffer },
 		{0,0}
 	};
 	// depth buffer is also bound as a texture but disabled for writing
@@ -174,6 +172,9 @@ void initGame(XStuff* xs, GameState* gs) {
 	gs->debugMode = 0;
 	gs->sunSpeed = 0;
 	
+	gs->nearClipPlane = 20;
+	gs->farClipPlane = 1700;
+
 	
 	ww = xs->winAttr.width;
 	wh = xs->winAttr.height;
@@ -447,20 +448,20 @@ void handleInput(GameState* gs, InputState* is) {
 	}
 	
 	if(is->keyState[110] & IS_KEYDOWN) {
-		nearPlane += 50 * te;
-		printf("near: %f, far: %f\n", nearPlane, farPlane);
+		gs->nearClipPlane += 50 * te;
+		printf("near: %f, far: %f\n", gs->nearClipPlane, gs->farClipPlane);
 	}
 	if(is->keyState[115] & IS_KEYDOWN) {
-		nearPlane -= 50 * te;
-		printf("near: %f, far: %f\n", nearPlane, farPlane);
+		gs->nearClipPlane -= 50 * te;
+		printf("near: %f, far: %f\n", gs->nearClipPlane, gs->farClipPlane);
 	}
 	if(is->keyState[112] & IS_KEYDOWN) {
-		farPlane += 250 * te;
-		printf("near: %f, far: %f\n", nearPlane, farPlane);
+		gs->farClipPlane += 250 * te;
+		printf("near: %f, far: %f\n", gs->nearClipPlane, gs->farClipPlane);
 	}
 	if(is->keyState[117] & IS_KEYDOWN) {
-		farPlane -= 250 * te;
-		printf("near: %f, far: %f\n", nearPlane, farPlane);
+		gs->farClipPlane -= 250 * te;
+		printf("near: %f, far: %f\n", gs->nearClipPlane, gs->farClipPlane);
 	}
 	
 	static lastChange = 0;
@@ -512,15 +513,15 @@ void depthPrepass(XStuff* xs, GameState* gs, InputState* is) {
 	
 	
 	
-	updateView(xs, gs, is);
+	//updateView(xs, gs, is);
 	
 
 	// draw terrain
 // 	drawTerrainBlockDepth(&gs->map, msGetTop(&gs->model), msGetTop(&gs->view), msGetTop(&gs->proj));
-//	drawTerrainDepth(&gs->map, msGetTop(&gs->view), msGetTop(&gs->proj), &gs->screen.wh);
+	drawTerrainDepth(&gs->map, msGetTop(&gs->view), msGetTop(&gs->proj), &gs->screen.wh);
 	
-	msPop(&gs->view);
-	msPop(&gs->proj);
+	//msPop(&gs->view);
+	//msPop(&gs->proj);
 	
 }
 
@@ -532,7 +533,7 @@ void updateView(XStuff* xs, GameState* gs, InputState* is) {
 	gs->sunNormal.z = 0.0;
 	
 	msPush(&gs->proj);
-	msPerspective(60, gs->screen.aspect, nearPlane, farPlane, &gs->proj);
+	msPerspective(60, gs->screen.aspect, gs->nearClipPlane, gs->farClipPlane, &gs->proj);
 	
 	
 	msPush(&gs->view);
@@ -573,19 +574,22 @@ void updateView(XStuff* xs, GameState* gs, InputState* is) {
 	
 }
 
+void cleanUpView(XStuff* xs, GameState* gs, InputState* is) {
+	msPop(&gs->view);
+	msPop(&gs->proj);
+	
+}
+
 void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	//mModel = IDENT_MATRIX;
-
-	updateView(xs, gs, is);
-	
 	
 	Vector2 c2;
 	
 	c2.x = 300; //cursorp.x;
 	c2.y = 300; //cursorp.z;
 	
-	
+	//updateView(xs, gs, is);
 	
 	// draw terrain
 // 	drawTerrainBlock(&gs->map, msGetTop(&gs->model), msGetTop(&gs->view), msGetTop(&gs->proj), &gs->cursorPos);
@@ -594,11 +598,8 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	renderMarker(gs, 0,0);
 
 	//drawStaticMesh(testmesh, msGetTop(&gs->view), msGetTop(&gs->proj));
-//	drawRoad(0, msGetTop(&gs->view), msGetTop(&gs->proj));
 	
-	
-	msPop(&gs->view);
-	msPop(&gs->proj);
+
 	
 	glUseProgram(textProg->id);
 	
@@ -648,7 +649,11 @@ void renderDecals(XStuff* xs, GameState* gs, InputState* is) {
 	glexit("shading tex 5");
 	glBindTexture(GL_TEXTURE_2D, gs->depthTexBuffer);
 	glUniform1i(glGetUniformLocation(shadingProg->id, "sDepth"), 8);
+	
 	*/
+	
+	drawTerrainRoads(gs->depthTexBuffer, &gs->map, msGetTop(&gs->view), msGetTop(&gs->proj), &gs->cursorPos, &gs->screen.wh);
+	
 	glexit("render decals");
 }
 
@@ -680,6 +685,7 @@ void shadingPass(GameState* gs) {
 	glexit("shading tex 6");
 	
 	glUniform1i(glGetUniformLocation(shadingProg->id, "debugMode"), gs->debugMode);
+	glUniform2f(glGetUniformLocation(shadingProg->id, "clipPlanes"), gs->nearClipPlane, gs->farClipPlane);
 	glUniform1i(glGetUniformLocation(shadingProg->id, "sDiffuse"), 6);
 	glUniform1i(glGetUniformLocation(shadingProg->id, "sNormals"), 7);
 	glUniform1i(glGetUniformLocation(shadingProg->id, "sDepth"), 8);
@@ -766,7 +772,8 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	
 	handleInput(gs, is);
 	
-	setUpView(gs);
+	//setUpView(gs);
+	updateView(xs, gs, is);
 	
 	// update world state
 	
@@ -795,18 +802,15 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	
 	renderFrame(xs, gs, is);
 
-	/*
-	
 	// decals
-	// rebind depth as read, color & normal as write
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, gs->gbuf.fb);
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, gs->decalbuf.fb);
+	glBindFramebuffer(GL_FRAMEBUFFER, gs->decalbuf.fb);
 	
 	glDepthMask(GL_FALSE); // disable depth writes for decals
 	renderDecals(xs, gs, is);
 	glDepthMask(GL_TRUE);
-	*/
 	
+	
+	cleanUpView(xs, gs, is);
 	
 	// draw to the screen
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);

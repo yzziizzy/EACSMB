@@ -4,7 +4,7 @@
 
 
 
-void drawRoad(GLuint tex, Matrix* view, Matrix* proj);
+void drawRoad(GLuint dtex, Matrix* view, Matrix* proj);
 
 
 

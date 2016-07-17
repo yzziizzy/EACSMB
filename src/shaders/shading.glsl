@@ -32,6 +32,7 @@ uniform sampler2D sDepth;
 uniform sampler2D sSelection;
 
 uniform int debugMode;
+uniform vec2 clipPlanes;
 
 uniform vec3 sunNormal;
 

@@ -20,6 +20,7 @@
 
 
 
+
 static GLuint patchVAO;
 static GLuint patchVBO;
 static GLuint proj_ul, view_ul, model_ul, heightmap_ul, offset_ul, winsize_ul, basetex_ul;
@@ -185,6 +186,9 @@ void initTerrain(MapInfo* mi) {
 	
 	cnoise = loadBitmapTexture("./assets/textures/grass_texture-256.png");
 	
+	// shader setup
+	//-------------
+	
 	glexit("before terrain progs");
 	terrProg = loadCombinedProgram("terrain");
 	glexit("mid terrain progs");
@@ -212,10 +216,19 @@ void initTerrain(MapInfo* mi) {
 	winsize_d_ul = glGetUniformLocation(terrDepthProg->id, "winSize");
 	glexit("");
 	
+	// texture units don't change
+	glProgramUniform1i(terrProg->id, heightmap_ul, 21);
+	glProgramUniform1i(terrProg->id, basetex_ul, 22);
+	glProgramUniform1i(terrProg->id, offset_ul, 20);
+
+	glProgramUniform1i(terrDepthProg->id, heightmap_d_ul, 21);
+	glProgramUniform1i(terrDepthProg->id, offset_d_ul, 20);
+	
+	// generate geometry
+	//------------------
+	
 	// in one dimension
 	totalPatches = TERR_TEX_SZ / MaxTessGenLevel; //wholePatches + (fracPatchSize > 0 ? 1 : 0);
-	
-	
 	
 	int patchCnt = (totalPatches * totalPatches);
 	patchVertices = malloc(sizeof(TerrainPatchVertex) * 4 * patchCnt);
@@ -620,6 +633,20 @@ glexit("");
 }
 
 
+static void bindTerrainTextures(MapInfo* mi) {
+	
+	glActiveTexture(GL_TEXTURE0 + 21);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, mi->terrainTex);
+	
+	glActiveTexture(GL_TEXTURE0 + 22);
+	glBindTexture(GL_TEXTURE_2D, cnoise->tex_id);
+	
+	glActiveTexture(GL_TEXTURE0 + 20);
+	glBindTexture(GL_TEXTURE_2D, mi->locationTex);
+	
+}
+
+
 /*
 void updateTerrainTexture(MapInfo* mi) {
 	
@@ -699,14 +726,9 @@ void drawTerrainDepth(MapInfo* mi, Matrix* mView, Matrix* mProj, Vector2* viewWH
 	glexit("");
 	glUniform2f(winsize_d_ul, viewWH->x, viewWH->y);
 	glexit("");
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D_ARRAY, mi->terrainTex);
-
-	glActiveTexture(GL_TEXTURE4);
-	glBindTexture(GL_TEXTURE_2D, mi->locationTex);
 	
-	glUniform1i(heightmap_d_ul, 0);
-	glUniform1i(offset_d_ul, 4);
+	bindTerrainTextures(mi);
+	
 glexit("");	
 	glBindVertexArray(patchVAO);
 	
@@ -733,21 +755,7 @@ void drawTerrain(MapInfo* mi, Matrix* mView, Matrix* mProj, Vector* cursor, Vect
 	
 	glUniform2f(winsize_ul, viewWH->x, viewWH->y);
 	
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D_ARRAY, mi->terrainTex);
-	
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, cnoise->tex_id);
-	
-// 	glActiveTexture(GL_TEXTURE3);
-// 	glBindTexture(GL_TEXTURE_2D_ARRAY, mi->originMB->tex);
-
-	glActiveTexture(GL_TEXTURE4);
-	glBindTexture(GL_TEXTURE_2D, mi->locationTex);
-	
-	glUniform1i(heightmap_ul, 0);
-	glUniform1i(basetex_ul, 1);
-	glUniform1i(offset_ul, 4);
+	bindTerrainTextures(mi);
 	
 	glUniform3f(glGetUniformLocation(terrProg->id, "cursorPos"), cursor->x, cursor->y, cursor->z);
 	glBindVertexArray(patchVAO);
@@ -762,49 +770,39 @@ void drawTerrain(MapInfo* mi, Matrix* mView, Matrix* mProj, Vector* cursor, Vect
 	glUniformMatrix4fv(model_ul, 1, GL_FALSE, msGetTop(&model)->m);
 
 	glDrawArraysInstanced(GL_PATCHES, 0, totalPatches * totalPatches * 4, mi->numBlocksToRender);
-
 	
-	
-	drawRoad(mi->terrainTex, mView, mProj);
+//	drawRoad(mi->terrainTex, mView, mProj);
 }
 
 
-void drawTerrainBlock(MapInfo* mi, MapBlock* mb, MatrixStack* msModel) {
+void drawTerrainRoads(GLuint dtex, MapInfo* mi, Matrix* mView, Matrix* mProj, Vector* cursor, Vector2* viewWH) {
 	
+	int i;
 	
-	// move the model matrix around
+	glUseProgram(terrProg->id);
+	glEnable(GL_DEPTH_TEST);
 	
-
-
-	glDrawArraysInstanced(GL_PATCHES, 0, totalPatches * totalPatches * 4, 2);
-}
-
-
-
-
-void drawTerrainBlockDepth(MapInfo* mi, TerrainBlock* tb, Matrix* mModel, Matrix* mView, Matrix* mProj, Vector2* viewWH) {
-	
-	
-
-	
-	glUniformMatrix4fv(model_d_ul, 1, GL_FALSE, mModel->m);
-	glUniformMatrix4fv(view_d_ul, 1, GL_FALSE, mView->m);
-	glUniformMatrix4fv(proj_d_ul, 1, GL_FALSE, mProj->m);
+	glUniformMatrix4fv(view_ul, 1, GL_FALSE, mView->m);
+	glUniformMatrix4fv(proj_ul, 1, GL_FALSE, mProj->m);
 	
 	glUniform2f(winsize_ul, viewWH->x, viewWH->y);
 	
+	bindTerrainTextures(mi);
 	
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, tb->tex);
-	glUniform1i(heightmap_d_ul, 0);
-
+	glUniform3f(glGetUniformLocation(terrProg->id, "cursorPos"), cursor->x, cursor->y, cursor->z);
 	glBindVertexArray(patchVAO);
 	
 	glPatchParameteri(GL_PATCH_VERTICES, 4);
 	glBindBuffer(GL_ARRAY_BUFFER, patchVBO);
-	glDrawArrays(GL_PATCHES, 0, totalPatches * totalPatches * 4);
-}
+	
 
+//		msPush(&msModel);
+		//msTrans3f(mb->bix * 256.0f, mb->biy * 256.0f , 0, &msModel);
+	
+	glUniformMatrix4fv(model_ul, 1, GL_FALSE, msGetTop(&model)->m);
+	//printf("Using depth decal tex: %d \n", dtex);
+	drawRoad(dtex, mView, mProj);
+}
 
 
 // interpreted as a vertical projection of the quad

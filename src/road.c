@@ -18,7 +18,8 @@
 
 
 static GLuint vao, mesh_vbo, cp_vbo;
-static GLuint color_ul, model_ul, view_ul, proj_ul, heightmap_ul;
+static GLuint color_ul, model_ul, view_ul, proj_ul, heightmap_ul, heightmap_offset_ul;
+static GLuint screenSize_ul;
 static ShaderProgram* prog;
 unsigned short* indices;
 
@@ -56,8 +57,14 @@ void initRoads() {
 	view_ul = glGetUniformLocation(prog->id, "mView");
 	proj_ul = glGetUniformLocation(prog->id, "mProj");
 	color_ul = glGetUniformLocation(prog->id, "color");
+	screenSize_ul = glGetUniformLocation(prog->id, "screenSize");
 	
 	heightmap_ul = glGetUniformLocation(prog->id, "sHeightMap");
+	heightmap_offset_ul = glGetUniformLocation(prog->id, "sOffsetLookup");
+	
+	glProgramUniform1i(prog->id, heightmap_ul, 21);
+	glProgramUniform1i(prog->id, heightmap_offset_ul, 20);
+//	glProgramUniform1i(prog->id, glGetUniformLocation(prog->id, "sDepth"), 6);
 	
 	glexit("road shader");
 	
@@ -127,7 +134,7 @@ void initRoads() {
 	RoadControlPoint cps[] = {
 		{{10,10}, {255,10}, {100,10}},
 		{{10,10}, {10,255}, {10,100}},
-		{{10,10}, {128,128}, {255,255}}
+		{{10,10}, {255,255}, {128,128}}
 	};
 	
 	
@@ -173,7 +180,7 @@ void initRoads() {
 
 
 
-void drawRoad(GLuint tex, Matrix* view, Matrix* proj) {
+void drawRoad(GLuint dtex, Matrix* view, Matrix* proj) {
 	
 	Matrix model;
 	
@@ -182,6 +189,7 @@ void drawRoad(GLuint tex, Matrix* view, Matrix* proj) {
  	mTrans3f(0,0,.05, &model);
  	mScale3f(2, 2, 2, &model);
 	
+	// should move somewhere higher. primitive restart should probably remain enabled everywhere
 	glEnable(GL_PRIMITIVE_RESTART);
 	glPrimitiveRestartIndex(65535);
 	
@@ -191,17 +199,18 @@ void drawRoad(GLuint tex, Matrix* view, Matrix* proj) {
 	glUniformMatrix4fv(view_ul, 1, GL_FALSE, &view->m);
 	glUniformMatrix4fv(proj_ul, 1, GL_FALSE, &proj->m);
 	glUniform3f(color_ul, .5, .2, .9);
+	
+	glUniform2f(screenSize_ul, 600, 600);
 
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D_ARRAY, tex);
-	
-	glUniform1i(heightmap_ul, 0);
-	
 	glBindVertexArray(vao);
 	glBindBuffer(GL_ARRAY_BUFFER, mesh_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, cp_vbo);
 	glexit("road vbo");
 	
+	glActiveTexture(GL_TEXTURE0 + 33);
+	glexit("shading tex 5");
+	glBindTexture(GL_TEXTURE_2D, dtex);
+	glProgramUniform1i(prog->id, glGetUniformLocation(prog->id, "sDepth"), 33);
 
 	//                              3 strips, 2 endcaps, 2 primitive restarts
 	glDrawElementsInstanced(GL_TRIANGLE_STRIP, 3 * 256 * 2 + 2 + 2 + 2, GL_UNSIGNED_SHORT, indices, 3);
