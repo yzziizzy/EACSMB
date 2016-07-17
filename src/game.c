@@ -143,11 +143,21 @@ void setupFBOs(GameState* gs, int resized) {
 		{GL_COLOR_ATTACHMENT1, gs->normalTexBuffer },
 		{GL_COLOR_ATTACHMENT2, gs->selectionTexBuffer },
 		{GL_DEPTH_ATTACHMENT, gs->depthTexBuffer },
-		{0,0,0}
+		{0,0}
 	};
 	
 	initFBO(&gs->gbuf, gbufConf);
 	
+	// decal pass framebufer
+	FBOConfig decalConf[] = {
+		{GL_COLOR_ATTACHMENT0, gs->diffuseTexBuffer },
+		{GL_COLOR_ATTACHMENT1, gs->normalTexBuffer },
+		{GL_DEPTH_ATTACHMENT, gs->depthTexBuffer },
+		{0,0}
+	};
+	// depth buffer is also bound as a texture but disabled for writing
+	
+	initFBO(&gs->decalbuf, decalConf);
 	
 	
 	
@@ -501,51 +511,9 @@ void depthPrepass(XStuff* xs, GameState* gs, InputState* is) {
 	renderUIPicking(xs, gs);
 	
 	
-	// draw terrain
-	// TODO: factor all the math into the frame setup function
-	//mScale3f(10, 10, 10, &mModel);
-	//mRot3f(0, 1, 0, gs->direction, &mModel);
-	msPush(&gs->proj);
-	msPerspective(60, gs->screen.aspect, nearPlane, farPlane, &gs->proj);
-
 	
-	msPush(&gs->view);
+	updateView(xs, gs, is);
 	
-	
-	
-	// order matters! don't mess with this.
-	msTrans3f(0, -1, gs->zoom, &gs->view);
-	msRot3f(1, 0, 0, F_PI / 6, &gs->view);
-	msRot3f(0,1,0, gs->direction, &gs->view);
-	msTrans3f(-gs->lookCenter.x, 0, -gs->lookCenter.y, &gs->view);
-	
-	// y-up to z-up rotation
-	msRot3f(1, 0, 0, F_PI_2, &gs->view);
-	msScale3f(1, 1, -1, &gs->view);
-
-
-	
-	
-	// calculate cursor position
-	Vector eyeCoord;
-	Vector worldCoord;
-	Matrix p, invp, invv;
-	
-	// device space (-1:1)
-	Vector devCoord;
-	devCoord.x = 0.50;
-	devCoord.y = 0.50;
-	devCoord.z = -1.0;
-	
-	// eye space
-	mInverse(msGetTop(&gs->proj), &invp);
-	vMatrixMul(&devCoord, &invp, &eyeCoord);
-	vNorm(&eyeCoord, &eyeCoord);
-	
-	// world space
-	mInverse(msGetTop(&gs->view), &invv);
-	vMatrixMul(&eyeCoord, &invv, &worldCoord);
-	vNorm(&worldCoord, &worldCoord);
 
 	// draw terrain
 // 	drawTerrainBlockDepth(&gs->map, msGetTop(&gs->model), msGetTop(&gs->view), msGetTop(&gs->proj));
@@ -556,27 +524,19 @@ void depthPrepass(XStuff* xs, GameState* gs, InputState* is) {
 	
 }
 
-void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
-	
-	//mModel = IDENT_MATRIX;
-	
-	
-	 
+
+void updateView(XStuff* xs, GameState* gs, InputState* is) {
+		
 	gs->sunNormal.x = cos(gs->frameTime * gs->sunSpeed);
 	gs->sunNormal.y = sin(gs->frameTime * gs->sunSpeed);
 	gs->sunNormal.z = 0.0;
 	
-	
-	//mScale3f(10, 10, 10, &mModel);
-	//mRot3f(0, 1, 0, gs->direction, &mModel);
 	msPush(&gs->proj);
 	msPerspective(60, gs->screen.aspect, nearPlane, farPlane, &gs->proj);
-
+	
 	
 	msPush(&gs->view);
 	
-	
-
 	// order matters! don't mess with this.
 	msTrans3f(0, -1, gs->zoom, &gs->view);
 	msRot3f(1, 0, 0, F_PI / 6, &gs->view);
@@ -586,6 +546,7 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	// y-up to z-up rotation
 	msRot3f(1, 0, 0, F_PI_2, &gs->view);
 	msScale3f(1, 1, -1, &gs->view);
+	
 	
 	
 	// calculate cursor position
@@ -610,19 +571,14 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	vMatrixMul(&eyeCoord, &invv, &worldCoord);
 	vNorm(&worldCoord, &worldCoord);
 	
+}
+
+void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
+	//mModel = IDENT_MATRIX;
+
+	updateView(xs, gs, is);
 	
-	
-// 	mFastMul(msGetTop(&gs->view), msGetTop(&gs->proj), &mp);
-	
-// 	mInverse(&mp, &invmp);
-	
-	
-	
-	
-// 	vMatrixMul(&devCoord, &invmp, &cursorp);
-	
-	//printf("(%f, %f, %f)\n", worldCoord.x, worldCoord.y, worldCoord.z);
 	
 	Vector2 c2;
 	
@@ -685,6 +641,17 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	glexit("text drawing");
 	
 }
+
+void renderDecals(XStuff* xs, GameState* gs, InputState* is) {
+	/*
+	glActiveTexture(GL_TEXTURE0 + 8);
+	glexit("shading tex 5");
+	glBindTexture(GL_TEXTURE_2D, gs->depthTexBuffer);
+	glUniform1i(glGetUniformLocation(shadingProg->id, "sDepth"), 8);
+	*/
+	glexit("render decals");
+}
+
 
 void shadingPass(GameState* gs) {
 	
@@ -809,7 +776,7 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	glBindFramebuffer(GL_FRAMEBUFFER, gs->gbuf.fb);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
-	
+	// TODO: move selection to g pass, cursor to decal
 	depthPrepass(xs, gs, is);
 	
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -828,16 +795,21 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	
 	renderFrame(xs, gs, is);
 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	/*
 	
 	// decals
 	// rebind depth as read, color & normal as write
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, gs->gbuf.fb);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, gs->decalbuf.fb);
 	
-	
-	//glBindFramebuffer(GL_READ_FRAMEBUFFER, gs->gbuf.fb);
+	glDepthMask(GL_FALSE); // disable depth writes for decals
+	renderDecals(xs, gs, is);
+	glDepthMask(GL_TRUE);
+	*/
 	
 	
 	// draw to the screen
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 	
