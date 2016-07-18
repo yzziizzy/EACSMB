@@ -9,8 +9,6 @@ It's written in pure C using no frameworks. Dependencies are Xlib, FreeType, fon
 
 * `https://github.com/yzziizzy/c3dlas` linked as `src/c3dlas`
 
-* `mkdir m4`
-
 * `sudo apt-get install libx11-dev libglew-dev libfreetype6-dev libfontconfig1-dev libpng-dev`
 
 * `./autogen.sh`
