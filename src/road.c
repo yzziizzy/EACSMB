@@ -207,10 +207,10 @@ void drawRoad(GLuint dtex, Matrix* view, Matrix* proj) {
 	glBindBuffer(GL_ARRAY_BUFFER, cp_vbo);
 	glexit("road vbo");
 	
-	glActiveTexture(GL_TEXTURE0 + 33);
+	glActiveTexture(GL_TEXTURE0 + 2);
 	glexit("shading tex 5");
 	glBindTexture(GL_TEXTURE_2D, dtex);
-	glProgramUniform1i(prog->id, glGetUniformLocation(prog->id, "sDepth"), 33);
+	glProgramUniform1i(prog->id, glGetUniformLocation(prog->id, "sDepth"), 2);
 
 	//                              3 strips, 2 endcaps, 2 primitive restarts
 	glDrawElementsInstanced(GL_TRIANGLE_STRIP, 3 * 256 * 2 + 2 + 2 + 2, GL_UNSIGNED_SHORT, indices, 3);

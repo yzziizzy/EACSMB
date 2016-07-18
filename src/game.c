@@ -201,8 +201,14 @@ void initGame(XStuff* xs, GameState* gs) {
 	printf("diffuse2: %d\n",gs->diffuseTexBuffer);
 	// set up the Geometry Buffer
 
-
+	
 	shadingProg = loadCombinedProgram("shading");
+	
+	glProgramUniform1i(shadingProg->id, glGetUniformLocation(shadingProg->id, "sDiffuse"), 0);
+	glProgramUniform1i(shadingProg->id, glGetUniformLocation(shadingProg->id, "sNormals"), 1);
+	glProgramUniform1i(shadingProg->id, glGetUniformLocation(shadingProg->id, "sDepth"), 2);
+ 	glProgramUniform1i(shadingProg->id, glGetUniformLocation(shadingProg->id, "sSelection"), 3);
+	
 	initFSQuad();
 	
 	// check some prerequisites
@@ -667,29 +673,22 @@ void shadingPass(GameState* gs) {
 	glUseProgram(shadingProg->id);
 	glexit("shading prog");
 
-	glActiveTexture(GL_TEXTURE0 + 6);
-	glexit("shading tex 1");
+	glActiveTexture(GL_TEXTURE0 + 0);
 	glBindTexture(GL_TEXTURE_2D, gs->diffuseTexBuffer);
-	glexit("shading tex 2");
-	glActiveTexture(GL_TEXTURE0 + 7);
-	glexit("shading tex 3");
+	
+	glActiveTexture(GL_TEXTURE0 + 1);
 	glBindTexture(GL_TEXTURE_2D, gs->normalTexBuffer);
-	glexit("shading tex 4");
-	glActiveTexture(GL_TEXTURE0 + 8);
-	glexit("shading tex 5");
+
+	glActiveTexture(GL_TEXTURE0 + 2);
 	glBindTexture(GL_TEXTURE_2D, gs->depthTexBuffer);
-	glexit("shading tex 6");
-	glActiveTexture(GL_TEXTURE0 + 9);
-	glexit("shading tex 5");
+
+	glActiveTexture(GL_TEXTURE0 + 3);
 	glBindTexture(GL_TEXTURE_2D, gs->selectionTexBuffer);
-	glexit("shading tex 6");
+
 	
 	glUniform1i(glGetUniformLocation(shadingProg->id, "debugMode"), gs->debugMode);
 	glUniform2f(glGetUniformLocation(shadingProg->id, "clipPlanes"), gs->nearClipPlane, gs->farClipPlane);
-	glUniform1i(glGetUniformLocation(shadingProg->id, "sDiffuse"), 6);
-	glUniform1i(glGetUniformLocation(shadingProg->id, "sNormals"), 7);
-	glUniform1i(glGetUniformLocation(shadingProg->id, "sDepth"), 8);
- 	glUniform1i(glGetUniformLocation(shadingProg->id, "sSelection"), 9);
+	
 	glexit("shading samplers");
 	
 	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "world"), 1, GL_FALSE, world.m);
