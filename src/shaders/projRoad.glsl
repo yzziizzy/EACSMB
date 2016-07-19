@@ -104,6 +104,7 @@ uniform vec4 color;
 uniform vec2 screenSize;
 
 uniform sampler2D sDepth;
+uniform sampler2D sRoadTex;
 
 uniform mat4 mModel;
 uniform mat4 mView;
@@ -165,8 +166,7 @@ void main(void) {
 	float width = abs(dot(pos.xy - spline.xy, norm));
     if(width > 1) discard;
     
-	out_Color = vec4(width, 0 ,0 , 1); //vs_norm;
-// 	out_Color = vec4(npos.xy, 0, 1); //vs_norm;
+	out_Color = vec4(texture(sRoadTex, vec2((width + 1.0) / 2.0, t)).rgb , 1); //vs_norm;
 	out_Normal = vs_norm;
 }
 

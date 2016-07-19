@@ -14,11 +14,13 @@
 #include "utilities.h"
 #include "objloader.h"
 #include "shader.h"
+#include "texture.h"
 #include "road.h" 
 
 
 static GLuint vao, mesh_vbo, cp_vbo;
 static GLuint color_ul, model_ul, view_ul, proj_ul, heightmap_ul, heightmap_offset_ul;
+static Texture* road_tex;
 static GLuint screenSize_ul;
 static ShaderProgram* prog;
 unsigned short* indices;
@@ -50,6 +52,8 @@ void initRoads() {
 	vao = makeVAO(opts, 4*4 + 4*4 + 2*4);
 	glexit("road vao");
 	
+	
+
 	// shader
 	prog = loadCombinedProgram("projRoad");
 	
@@ -65,6 +69,10 @@ void initRoads() {
 	glProgramUniform1i(prog->id, heightmap_ul, 21);
 	glProgramUniform1i(prog->id, heightmap_offset_ul, 20);
 //	glProgramUniform1i(prog->id, glGetUniformLocation(prog->id, "sDepth"), 6);
+	
+	road_tex = loadBitmapTexture("./assets/textures/road-256.png");
+
+
 	
 	glexit("road shader");
 	
@@ -211,6 +219,11 @@ void drawRoad(GLuint dtex, Matrix* view, Matrix* proj) {
 	glexit("shading tex 5");
 	glBindTexture(GL_TEXTURE_2D, dtex);
 	glProgramUniform1i(prog->id, glGetUniformLocation(prog->id, "sDepth"), 2);
+	
+	glActiveTexture(GL_TEXTURE0 + 25);
+	glBindTexture(GL_TEXTURE_2D, road_tex->tex_id);
+	glProgramUniform1i(prog->id, glGetUniformLocation(prog->id, "sRoadTex"), 25);
+
 
 	//                              3 strips, 2 endcaps, 2 primitive restarts
 	glDrawElementsInstanced(GL_TRIANGLE_STRIP, 3 * 256 * 2 + 2 + 2 + 2, GL_UNSIGNED_SHORT, indices, 3);
