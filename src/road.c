@@ -16,6 +16,7 @@
 #include "shader.h"
 #include "texture.h"
 #include "road.h" 
+#include "sim.h" 
 
 
 static GLuint vao, mesh_vbo, cp_vbo;
@@ -24,18 +25,6 @@ static Texture* road_tex;
 static GLuint screenSize_ul;
 static ShaderProgram* prog;
 unsigned short* indices;
-
-
-typedef struct RoadVertex {
-	Vector2 v;
-	struct { float u, v; } t;
-} RoadVertex;
-
-typedef struct RoadControlPoint {
-	Vector2 cp0;
-	Vector2 cp2;
-	Vector2 cp1;
-} RoadControlPoint;
 
 
 
@@ -187,6 +176,18 @@ void initRoads() {
 }
 
 
+RoadBlock* allocRoadBlock() {
+	RoadBlock* rb = calloc(1, sizeof(RoadBlock));
+	
+	rb->maxRoads = 256;
+	rb->cps = malloc(rb->maxRoads * sizeof(RoadControlPoint));
+	
+	return rb;
+}
+
+int rbAddRoad(RoadControlPoint* rcp, int* out_road_id) {
+	int id 
+	
 
 void drawRoad(GLuint dtex, Matrix* view, Matrix* proj) {
 	
@@ -228,6 +229,14 @@ void drawRoad(GLuint dtex, Matrix* view, Matrix* proj) {
 	//                              3 strips, 2 endcaps, 2 primitive restarts
 	glDrawElementsInstanced(GL_TRIANGLE_STRIP, 3 * 256 * 2 + 2 + 2 + 2, GL_UNSIGNED_SHORT, indices, 3);
 	glexit("road draw");
+	
+}
+
+
+void roadsSyncGraph(TransGraph* tg) {
+	
+	
+	
 	
 }
 

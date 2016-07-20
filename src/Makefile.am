@@ -16,6 +16,7 @@ eacsmb_SOURCES = main.c \
 	cursor.c \
 	scene.c \
 	map.c \
+	sim.c \
 	texture.c \
 	perlin.c \
 	c3dlas/c3dlas.c \
