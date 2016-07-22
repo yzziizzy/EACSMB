@@ -307,6 +307,11 @@ double getCurrentTime() {
 	return now - offset;
 }
 
+double timeSince(double past) {
+	double now = getCurrentTime();
+	return now - past;
+}
+
 
 void preFrame(GameState* gs) {
 	
@@ -334,7 +339,7 @@ void preFrame(GameState* gs) {
 	if(frameCounter == 0) {
 		float fps = 60.0f / (gs->frameTime - lastPoint);
 		
-		snprintf(frameCounterBuf, 128, "dtime:  %.2fms", gs->drawTime * 1000);
+		snprintf(frameCounterBuf, 128, "dtime:  %.2fms", gs->perfTimes.draw * 1000);
 		
 		//printf("--->%s\n", frameCounterBuf);
 		
@@ -351,7 +356,7 @@ void postFrame(GameState* gs) {
 	
 	now = getCurrentTime();
 	
-	gs->drawTime = now - gs->frameTime;
+	gs->perfTimes.draw = now - gs->frameTime;
 }
 
 
@@ -762,12 +767,16 @@ void checkResize(XStuff* xs, GameState* gs) {
 	}
 }
 
+#define PF_START(x) gs->perfTimes.x = getCurrentTime()
+#define PF_STOP(x) gs->perfTimes.x = timeSince(gs->perfTimes.x)
 
 void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	
 	checkResize(xs,gs);
 	
+		PF_START(preframe);
 	preFrame(gs);
+		PF_STOP(preframe);
 	
 	handleInput(gs, is);
 	
@@ -778,6 +787,7 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	
 	
 	// depth and picking pre-pass
+		PF_START(selection);
 	glDepthFunc(GL_LESS);
 	glBindFramebuffer(GL_FRAMEBUFFER, gs->gbuf.fb);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -790,6 +800,9 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	
 	checkCursor(gs, is);
 	
+		PF_STOP(selection);
+		PF_START(draw);
+		
 	glBindFramebuffer(GL_FRAMEBUFFER, gs->gbuf.fb);
 	
 	
@@ -800,6 +813,9 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	glerr("pre shader create e");
 	
 	renderFrame(xs, gs, is);
+	
+		PF_STOP(draw);
+		PF_START(decal);
 
 	// decals
 	glBindFramebuffer(GL_FRAMEBUFFER, gs->decalbuf.fb);
@@ -807,6 +823,8 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	glDepthMask(GL_FALSE); // disable depth writes for decals
 	renderDecals(xs, gs, is);
 	glDepthMask(GL_TRUE);
+		
+		PF_STOP(decal);
 	
 	
 	cleanUpView(xs, gs, is);

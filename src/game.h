@@ -73,8 +73,16 @@ typedef struct GameState {
 	
 	double frameTime; // ever incrementing time of the this frame
 	double frameSpan; // the length of this frame, since last frame
-	
-	double drawTime; // average time spent drawing each frame
+		
+	struct {
+		double preframe;
+		double selection;
+		double draw;
+		double decal;
+		double light;
+		double shade;
+		
+	} perfTimes;
 	
 	int activeTool;
 	
