@@ -54,7 +54,9 @@ typedef struct GameState {
 	Vector eyePos;
 	Vector eyeDir;
 	
-	Vector cursorPos;
+	Vector cursorTilePos;
+	Vector2 cursorPos;
+// 	Vector cursorPos;
 	int cursorIndex;
 
 	Vector2 mouseDownPos;

@@ -399,6 +399,8 @@ void handleInput(GameState* gs, InputState* is) {
 	if(is->buttonUp == 1) {
 		//vCopy(&gs->cursorPos, &gs->mouseDownPos);
 		printf("stopped dragging at (%d,%d)\n", (int)gs->cursorPos.x, (int)gs->cursorPos.y);
+		
+		
 	}
 	
 	if(is->clickButton == 2) {
@@ -727,10 +729,16 @@ void checkCursor(GameState* gs, InputState* is) {
 		&rgb);
 	glexit("read selection");
 	
-	gs->cursorPos.x = rgb[0];
-	gs->cursorPos.y = rgb[1];
-	gs->cursorPos.z = rgb[2];
+	gs->cursorTilePos.x = rgb[0];
+	gs->cursorTilePos.y = rgb[1];
+	gs->cursorTilePos.z = rgb[2];
 	
+	struct sGL_RG8* off = &gs->map.offsetData[(int)gs->cursorTilePos.z]; 
+	
+	gs->cursorPos.x = (off->x * 256.0) + gs->cursorTilePos.x;
+	gs->cursorPos.y = (off->y * 256.0) + gs->cursorTilePos.y;
+	
+	//printf("pos: x: %d, y:%d \n", (int)gs->cursorPos.x, (int)gs->cursorPos.y);
 	/*
  	printf("mx: %d, my: %d, x: %d, y: %d, z: %d\n", 
 		   (int)is->cursorPosPixels.x, 
