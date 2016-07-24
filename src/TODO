@@ -5,8 +5,6 @@ SOONER:
 some sort of generic 3d marker utility
 3d axis indicators
 
-fix resolution/buffer sizing and handle window resizes
-
 building generator
 	pedestals
 	courtyards
@@ -17,7 +15,6 @@ decal mesh generation
 	triangle clipping
 	terrain area stats
 
-organize sampler namespace
 
 fix text rendering and make it match pixel for pixel
 clean up text rendering function
@@ -26,7 +23,6 @@ gui toolkit
 
 standard base set of uniforms for all shaders (depends on #include partially)
 rebuild eye/view code
-calculate pixel position from inverse projection matrix in shading pass
 
 
 proper terrain scaling (kinda done)
@@ -49,10 +45,7 @@ build real input handling code
 LATER:
 --------------------
 
-texture projection
 fancy thin coverage-to-alpha wires
-
-move view setup code to its own function
 
 prevent zooming through the terrain
 
@@ -66,7 +59,6 @@ make all functions static that need to be
 
 volumetric clouds and ground fog with projected translucent shadows
 
-LOD tessellation on terrain
 try to reuse color buffers for object picking to eliminate a dedicated selection buffer
 
 particle system

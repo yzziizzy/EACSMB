@@ -731,7 +731,12 @@ void checkCursor(GameState* gs, InputState* is) {
 	gs->cursorPos.y = rgb[1];
 	gs->cursorPos.z = rgb[2];
 	
-// 	printf("mx: %d, my: %d, x: %d, y: %d\n", (int)is->cursorPosPixels.x, (int)is->cursorPosPixels.y, rgb[0], rgb[1]);
+	/*
+ 	printf("mx: %d, my: %d, x: %d, y: %d, z: %d\n", 
+		   (int)is->cursorPosPixels.x, 
+		   (int)is->cursorPosPixels.y,  
+		   rgb[0], rgb[1], rgb[2]);
+	*/
 	
 	if(is->clickButton == 3 && rgb[2] == 1) {
 		gs->lookCenter.x = gs->cursorPos.x;

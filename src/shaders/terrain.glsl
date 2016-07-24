@@ -13,13 +13,18 @@ uniform sampler2D sOffsetLookup;
 out vec2 vs_tex;
 out vec2 vs_tile;
 out int vs_InstanceID;
+out vec2 vs_rawTileOffset;
+out vec2 vs_tileOffset;
 
 void main() {
 	vs_tex = tex_in;
 	vs_tile = tile_in;
 	vs_InstanceID = gl_InstanceID;
-	vec4 off = texelFetch(sOffsetLookup, ivec2(gl_InstanceID, 0), 0); 
-	gl_Position = vec4(pos_in.x + (off.r * 255), pos_in.y + (off.g * 255), pos_in.z, 1.0);
+	vs_rawTileOffset = texelFetch(sOffsetLookup, ivec2(gl_InstanceID, 0), 0).rg; 
+	vs_tileOffset = vs_rawTileOffset * 255.0;
+
+	
+	gl_Position = vec4(pos_in.x + vs_tileOffset.r, pos_in.y + vs_tileOffset.g, pos_in.z, 1.0);
 }
 
 
@@ -39,10 +44,14 @@ uniform mat4 mModel;
 in vec2 vs_tex[];
 in vec2 vs_tile[];
 in int vs_InstanceID[];
+// in vec2 vs_rawTileOffset[];
+// in vec2 vs_tileOffset[];
 
 out vec2 te_tex[];
 out vec2 te_tile[];
 out int te_InstanceID[];
+// out vec2 te_rawTileOffset[];
+// out vec2 te_tileOffset[];
 
 void main() {
 
@@ -75,6 +84,9 @@ void main() {
 		gl_TessLevelInner[1] = mix(f2, f3, 0.5);
 	}
 		
+// 	te_rawTileOffset[gl_InvocationID] = vs_rawTileOffset[gl_InvocationID];
+// 	te_tileOffset[gl_InvocationID] = vs_rawTileOffset[gl_InvocationID];
+	
 	te_tex[gl_InvocationID] = vs_tex[gl_InvocationID];
 	te_tile[gl_InvocationID] = vs_tile[gl_InvocationID];
 	te_InstanceID[gl_InvocationID] = vs_InstanceID[gl_InvocationID];
@@ -93,6 +105,8 @@ layout (quads, equal_spacing, ccw) in;
 in vec2 te_tex[];
 in vec2 te_tile[];
 in int te_InstanceID[];
+// in vec2 te_rawTileOffset[];
+// in vec2 te_tileOffset[];
 
 uniform sampler2DArray sHeightMap;
 
@@ -112,6 +126,8 @@ out vec2 texCoord;
 out vec2 t_tile;
 out vec4 te_normal;
 flat out int ps_InstanceID;
+// flat out vec2 ps_rawTileOffset;
+// flat out vec2 ps_tileOffset;
 
 void main(void){
 
@@ -181,6 +197,8 @@ layout(location = 2) out ivec4 out_Selection;
 uniform sampler2D sBaseTex;
 uniform isampler2DArray sMap; // 0 = zones, 1 = surfaceTex
 uniform sampler1D sZoneColors;
+uniform sampler2D sOffsetLookup;
+
 
 void main(void) {
 	
@@ -190,7 +208,7 @@ void main(void) {
 	vec4 zoneColor = texelFetch(sZoneColors, zoneIndex, 0);
 	
 	float scaleNear = 4;
-	float scaleFar = 32;
+	float scaleFar = 16;
 	
 	float q = mod(texCoord.x * 256, scaleFar) / scaleFar;
 	float r = mod(texCoord.y * 256, scaleFar) / scaleFar;
@@ -198,18 +216,26 @@ void main(void) {
 	float qn = mod(texCoord.x * 256, scaleNear) / scaleNear;
 	float rn = mod(texCoord.y * 256, scaleNear) / scaleNear;
 	
-	float d = distance(t_tile, cursorPos.xy);
-	if(d < 200) {
-		float s = clamp((d - 190) / 10, 0.0, 1.0);
+	
+	vec2 thisPixelOffset = texelFetch(sOffsetLookup, ivec2(ps_InstanceID, 0), 0).rg;
+	vec2 rawTileOffset = texelFetch(sOffsetLookup, ivec2(cursorPos.z, 0), 0).rg; 
+	
+	vec2 realtile = (rawTileOffset * 256.0 * 256.0) + cursorPos.xy;
+	vec2 realpix = (thisPixelOffset * 256.0 * 256.0) + t_tile; 
+	
+	float d = distance(realpix, realtile);
+// 	float d = distance(t_tile, cursorPos.xy);
+	if(d < 100) {
+		float s = clamp((d - 95) / 10, 0.0, 1.0);
 		q = mix(qn , q, s);
 		r = mix(rn , r, s);
 	}
 	
 	
-	float ei1 = smoothstep(0.0, 0.01, q);
-	float ei2 = 1.0 - smoothstep(0.99, 1.0, q);
-	float ei3 = smoothstep(0.0, 0.01, r);
-	float ei4 = 1.0 - smoothstep(0.99, 1.0, r);
+	float ei1 = smoothstep(0.0, 0.02, q);
+	float ei2 = 1.0 - smoothstep(0.98, 1.0, q);
+	float ei3 = smoothstep(0.0, 0.02, r);
+	float ei4 = 1.0 - smoothstep(0.98, 1.0, r);
 	
 	//out_Color = vec4(t_tile.x, t_tile.y,1 ,1.0);
 	
@@ -225,8 +251,10 @@ void main(void) {
 	//float distToCursor = length(gl_TessCoord.xy - cursorPos);
 	vec4 cursorIntensity = (incx && incy && inct) ? vec4(0,10.0,10.0, 1.0) : vec4(1,1,1,1) ;//0 cursorRad - exp2(-1.0*distToCursor*distToCursor);
 	
+	d /= (255);
+	
 	out_Selection = ivec4(floor(t_tile.x), floor(t_tile.y), ps_InstanceID, 1);
 	out_Normal = vec4(te_normal.xyz, 1);
-	out_Color =  (zoneColor * .2 + tc) * cursorIntensity * vec4(min(min(ei1, ei2), min(ei3, ei4)), 0,0,1).rrra; //(1.0, 0, .5, .6);
+ 	out_Color =  (zoneColor * .2 + tc) * cursorIntensity * vec4(min(min(ei1, ei2), min(ei3, ei4)), 0,0,1).rrra; //(1.0, 0, .5, .6);
 }
 
