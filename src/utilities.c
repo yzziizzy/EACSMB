@@ -137,6 +137,17 @@ GLuint makeVAO(VAOConfig* details, int stride) {
 }
 
 
+void* ar_alloc_internal(void* ar, int sz, int cnt) {
+	struct array_info* ar1;
+	
+	// TODO: aligned allocation options
+	ar1 = realloc(ar, sz * cnt + sizeof(struct array_info)); 
+	
+	ar1[0].alloc_cnt = cnt;
+	
+	return ar1 + sizeof(struct array_info);
+}
+
 
 float fclamp(float val, float min, float max) {
 	return fmin(max, fmax(min, val));

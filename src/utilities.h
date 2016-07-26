@@ -74,6 +74,35 @@
 #endif
 
 
+// 128 bits to fill one slot of an aligned allocation for SSE 
+struct array_info {
+	uint32_t alloc_cnt;
+	uint32_t next_index;
+	
+	uint64_t unused;
+};
+
+
+// get the array info struct
+#define ar_info(ar, n) ((struct array_info*)(((char*)(ar)) - sizeof(struct array_info)))
+#define ar_hasRoom(ar, n) (ar_info(ar).next_index + n < ar_info(ar).alloc_cnt)
+#define ar_push(ar, x) (ar_hasRoom(ar), ar[ar_info(ar).next_index++] = (x))
+#define ar_pop(ar) (ar_info(ar).next_index > 0 ? ar[ar_info(ar).next_index--] : 0)
+
+#define ar_alloc(ar, cnt) (ar_alloc_internal((ar), sizeof(*(ar)), cnt)) 
+
+void* ar_alloc_internal(void* ar, int sz, int cnt);
+
+
+
+
+
+
+
+
+
+
+
 
 char* readFile(char* path, int* srcLen);
 
