@@ -233,6 +233,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	getPrintGLEnum(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, "meh");
 	getPrintGLEnum(GL_MAX_ARRAY_TEXTURE_LAYERS, "meh");
 	getPrintGLEnum(GL_MAX_SAMPLES, "meh");
+	getPrintGLEnum(GL_MAX_VERTEX_ATTRIBS, "meh");
 	
 	
 	// set up matrix stacks
