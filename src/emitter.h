@@ -11,11 +11,26 @@ typedef struct  __attribute__ ((__packed__)) EmitterInstance {
 	
 } EmitterInstance;
 
+typedef struct EmitterSprite {
+	Vector start_pos;
+	float phys_fn_index;
+	
+	Vector start_vel;
+	float spawn_delay;
+	
+	Vector start_acc;
+	float lifetime;
+	
+	float size, spin, growth_rate, randomness;
+	
+} EmitterSprite;
+
 typedef struct Emitter {
 	int particleNum;
 	GLuint points_vbo; // just to annoy you
 	GLuint instance_vbo;
 	
+	EmitterSprite* sprite;
 	EmitterInstance* instances;
 	
 } Emitter;
