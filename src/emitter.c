@@ -24,6 +24,11 @@ static GLuint vao;
 static ShaderProgram* prog;
 
 
+static float frand(float low, float high) {
+	return low + ((high - low) * ((double)rand() / (double)RAND_MAX));
+}
+
+
 void initEmitters() {
 	
 		// VAO
@@ -54,9 +59,52 @@ void initEmitters() {
 	
 	glexit("emitter shader");
 	*/
-	
-	
-	
 }
+
+
+
+
+Emitter* makeEmitter() {
+	
+	Emitter* e;
+	EmitterSprite* s;
+	
+	e = calloc(1, sizeof(Emitter));
+	
+	e->particleNum = 10;
+	e->sprite = s = calloc(1, particleNum *  sizeof(EmitterSprite));
+	e->instances = calloc(1, 100 * sizeof(EmitterInstance));
+	
+	for(i = 0; i < e->particleNum; i++) {
+		s->start_pos.x = frand(-10, 10); 
+		s->start_pos.y = frand(-10, 10); 
+		s->start_pos.z = 20; 
+		
+		s->phys_fn_index = 0;
+		
+		s->start_vel.x = 0;
+		s->start_vel.y = 0;
+		s->start_vel.z = 0.01;
+		
+		s->spawn_delay = frand(0, 3);
+		
+		s->start_acc.x = 0;
+		s->start_acc.y = 0;
+		s->start_acc.z = 0.01;
+		
+		s->lifetime = 10;
+		
+		s->size = frand(1,3);
+		s->spin = frand(-1, 1);
+		s->growth_rate = frand(0, .5);
+		s->randomness = frand(0, 1);
+		
+		s++;
+	}
+	
+	
+	return e;
+}
+
 
 
