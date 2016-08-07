@@ -75,6 +75,7 @@ typedef struct GameState {
 	
 	double frameTime; // ever incrementing time of the this frame
 	double frameSpan; // the length of this frame, since last frame
+	uint64_t frameCount; // ever incrementing count of the number of frames processed
 		
 	struct {
 		double preframe;
@@ -87,6 +88,11 @@ typedef struct GameState {
 	} perfTimes;
 	
 	int activeTool;
+	
+	char hasMoved; // if the view has moved since the last selection pass
+	uint64_t lastSelectionFrame; // frame number of the last time a selection pass was rendered
+	
+	
 	
 } GameState;
 

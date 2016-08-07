@@ -166,6 +166,9 @@ void initGame(XStuff* xs, GameState* gs) {
 	
 	glerr("left over error on game init");
 	
+	gs->hasMoved = 1;
+	gs->lastSelectionFrame = 0;
+	gs->frameCount = 0;
 	
 	gs->activeTool = 0;
 	
@@ -411,9 +414,11 @@ void handleInput(GameState* gs, InputState* is) {
 	// look direction
 	if(is->keyState[38] & IS_KEYDOWN) {
 		gs->direction += rotateSpeed;
+		gs->hasMoved = 1;
 	}
 	if(is->keyState[39] & IS_KEYDOWN) {
 		gs->direction -= rotateSpeed;
+		gs->hasMoved = 1;
 	}
 	// keep rotation in [0,F_2PI)
 	gs->direction = fmodf(F_2PI + gs->direction, F_2PI);
@@ -422,16 +427,20 @@ void handleInput(GameState* gs, InputState* is) {
 	if(is->keyState[52] & IS_KEYDOWN) {
 		gs->zoom += keyZoom;
  		gs->zoom = fmin(gs->zoom, -10.0);
+		gs->hasMoved = 1;
 	}
 	if(is->keyState[53] & IS_KEYDOWN) {
 		gs->zoom -= keyZoom;
+		gs->hasMoved = 1;
 	}
 	if(is->clickButton == 4) {
 		gs->zoom += mouseZoom;
  		gs->zoom = fmin(gs->zoom, -10.0);
+		gs->hasMoved = 1;
 	}
 	if(is->clickButton == 5) {
 		gs->zoom -= mouseZoom;
+		gs->hasMoved = 1;
 	}
 
 	// movement
@@ -443,9 +452,11 @@ void handleInput(GameState* gs, InputState* is) {
 	
 	if(is->keyState[111] & IS_KEYDOWN) {
 		vAdd(&gs->lookCenter, &move, &gs->lookCenter);
+		gs->hasMoved = 1;
 	}
 	if(is->keyState[116] & IS_KEYDOWN) {
 		vSub(&gs->lookCenter, &move, &gs->lookCenter);
+		gs->hasMoved = 1;
 	}
 	
 	// flip x and y to get ccw normal, using move.z as the temp
@@ -456,11 +467,14 @@ void handleInput(GameState* gs, InputState* is) {
 	
 	if(is->keyState[113] & IS_KEYDOWN) {
 		vSub(&gs->lookCenter, &move, &gs->lookCenter);
+		gs->hasMoved = 1;
 	}
 	if(is->keyState[114] & IS_KEYDOWN) {
 		vAdd(&gs->lookCenter, &move, &gs->lookCenter);
+		gs->hasMoved = 1;
 	}
 	
+	// these don't stimulate a selection pass since they are debug tools
 	if(is->keyState[110] & IS_KEYDOWN) {
 		gs->nearClipPlane += 50 * te;
 		printf("near: %f, far: %f\n", gs->nearClipPlane, gs->farClipPlane);
@@ -519,7 +533,7 @@ void setUpView(GameState* gs) {
 }
 
 
-
+// actually the selection pass
 void depthPrepass(XStuff* xs, GameState* gs, InputState* is) {
 	
 	// draw UI
@@ -785,6 +799,7 @@ void checkResize(XStuff* xs, GameState* gs) {
 #define PF_STOP(x) gs->perfTimes.x = timeSince(gs->perfTimes.x)
 
 void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
+	gs->frameCount++;
 	
 	checkResize(xs,gs);
 	
@@ -799,25 +814,35 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	
 	// update world state
 	
-	
-	// depth and picking pre-pass
-		PF_START(selection);
-	glDepthFunc(GL_LESS);
-	glBindFramebuffer(GL_FRAMEBUFFER, gs->gbuf.fb);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
-	// TODO: move selection to g pass, cursor to decal
-	depthPrepass(xs, gs, is);
-	
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, gs->gbuf.fb);
-	
-	checkCursor(gs, is);
-	
-		PF_STOP(selection);
-		PF_START(draw);
+	if(gs->hasMoved && gs->lastSelectionFrame < gs->frameCount - 8) {
+		printf("doing selection pass %d\n", gs->frameCount);
+		gs->hasMoved = 0;
+		gs->lastSelectionFrame = gs->frameCount; 
 		
-	glBindFramebuffer(GL_FRAMEBUFFER, gs->gbuf.fb);
+		// really just the selection pass
+			PF_START(selection);
+		glDepthFunc(GL_LESS);
+		glBindFramebuffer(GL_FRAMEBUFFER, gs->gbuf.fb);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		
+		depthPrepass(xs, gs, is);
+		
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, gs->gbuf.fb);
+		
+		checkCursor(gs, is);
+		
+		glBindFramebuffer(GL_FRAMEBUFFER, gs->gbuf.fb);
+			PF_STOP(selection);
+			
+	}
+	else {
+		glBindFramebuffer(GL_FRAMEBUFFER, gs->gbuf.fb);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	}
+		
+		PF_START(draw);
+
 	
 	
 	// clear color buffer for actual rendering
