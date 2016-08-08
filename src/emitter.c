@@ -73,7 +73,7 @@ Emitter* makeEmitter() {
 	
 	e->particleNum = 10;
 	e->sprite = s = calloc(1, particleNum *  sizeof(EmitterSprite));
-	e->instances = calloc(1, 100 * sizeof(EmitterInstance));
+	e->instances = ar_alloc(e->instances, 100);
 	
 	for(i = 0; i < e->particleNum; i++) {
 		s->start_pos.x = frand(-10, 10); 
@@ -101,10 +101,65 @@ Emitter* makeEmitter() {
 		
 		s++;
 	}
+
+
+	// upload sprite data
+	glexit("before emitter sprite");
+	glBindVertexArray(vao);
+	
+	glGenBuffers(1, &e->instance_vbo);
+	glGenBuffers(1, &e->points_vbo);
+
+	glBindBuffer(GL_ARRAY_BUFFER, e->points_vbo);
+	
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+	glEnableVertexAttribArray(2);
+	glEnableVertexAttribArray(3);
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 6*4*4, 0);
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 6*4*4, 1*4*4);
+	glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 6*4*4, 2*4*4);
+	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 6*4*4, 3*4*4);
+
+	glBufferData(GL_ARRAY_BUFFER, e->particleNum * sizeof(EmitterSprite), s, GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+
+	glexit("emitter sprite load");
+	
 	
 	
 	return e;
 }
 
 
+// ei is copied internally
+void emitterAddInstance(Emitter* e, EmitterInstance* ei) {
+	
+	if(ar_hasRoom(e->instances)) {
+		ar_append_direct(e->instances, &ei);
+	}
+	
+	
+}
 
+void emitter_update_vbo(Emitter* e) {
+	
+	glBindBuffer(GL_ARRAY_BUFFER, e->instance_vbo);
+
+	glEnableVertexAttribArray(4);
+	glEnableVertexAttribArray(5);
+	
+	glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 6*4*4, 4*4*4);
+	glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 6*4*4, 5*4*4);
+
+	glBufferData(GL_ARRAY_BUFFER, e->instanceNum * sizeof(EmitterInstance), e->instances, GL_STATIC_DRAW);
+	
+	glVertexAttribDivisor(4, 1);
+	glVertexAttribDivisor(5, 1);
+	
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+	
+}

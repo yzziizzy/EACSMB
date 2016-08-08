@@ -27,6 +27,7 @@ typedef struct EmitterSprite {
 
 typedef struct Emitter {
 	int particleNum;
+	int instanceNum;
 	GLuint points_vbo; // just to annoy you
 	GLuint instance_vbo;
 	

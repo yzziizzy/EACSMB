@@ -68,15 +68,13 @@ typedef struct GameState {
 	Vector lookCenter;
 	Vector2 mapCenter;
 	
-	float timeOfDay; // radians of earth spin. 0 = midnight, pi/2 = morning
-	// need time of year and latitude for sun angle
-	Vector sunNormal;
-	float sunSpeed;
+
 	
 	double frameTime; // ever incrementing time of the this frame
 	double frameSpan; // the length of this frame, since last frame
 	uint64_t frameCount; // ever incrementing count of the number of frames processed
-		
+	
+	// performance counters
 	struct {
 		double preframe;
 		double selection;
@@ -86,13 +84,20 @@ typedef struct GameState {
 		double shade;
 		
 	} perfTimes;
+
 	
-	int activeTool;
-	
+	// info for the selection pass
 	char hasMoved; // if the view has moved since the last selection pass
 	uint64_t lastSelectionFrame; // frame number of the last time a selection pass was rendered
 	
 	
+	// temp stuff with no better place atm
+	int activeTool;
+	
+	float timeOfDay; // radians of earth spin. 0 = midnight, pi/2 = morning
+	// need time of year and latitude for sun angle
+	Vector sunNormal;
+	float sunSpeed;
 	
 } GameState;
 
