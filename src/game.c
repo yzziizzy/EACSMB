@@ -30,6 +30,7 @@
 #include "map.h"
 #include "scene.h"
 #include "game.h"
+#include "emitter.h"
 
 
 GLuint proj_ul, view_ul, model_ul;
@@ -45,6 +46,7 @@ ShaderProgram* textProg;
 Matrix textProj, textModel;
 TextRenderInfo* strRI;
 Texture* cnoise;
+Emitter* dust;
 
 StaticMesh* testmesh;
 
@@ -292,7 +294,17 @@ void initGame(XStuff* xs, GameState* gs) {
 	testmesh = StaticMeshFromOBJ(&cube);
 	
 
+	initEmitters();
 	
+	dust = makeEmitter();
+	EmitterInstance dust_instance = {
+		.pos = {0,0,150},
+		.scale = 10,
+		.start_time = 0,
+		.lifespan = 1<<15
+	};
+	
+	emitterAddInstance(dust, &dust_instance);
 	
 }
 

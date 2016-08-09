@@ -42,10 +42,10 @@ typedef struct Emitter {
 
 
 
-
-
-
-
+void emitter_update_vbo(Emitter* e); 
+void emitterAddInstance(Emitter* e, EmitterInstance* ei); 
+Emitter* makeEmitter(); 
+void initEmitters();
 
 
 

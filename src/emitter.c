@@ -49,16 +49,16 @@ void initEmitters() {
 	vao = makeVAO(opts, 4*4 * 6);
 	glexit("emitter vao");
 	
-	/*
-	prog = loadCombinedProgram("emitter");
-
+	
+//	prog = loadCombinedProgram("emitter");
+/*
 	model_ul = glGetUniformLocation(prog->id, "mModel");
 	view_ul = glGetUniformLocation(prog->id, "mView");
 	proj_ul = glGetUniformLocation(prog->id, "mProj");
 	color_ul = glGetUniformLocation(prog->id, "color");
+	*/
 	
 	glexit("emitter shader");
-	*/
 }
 
 
@@ -66,13 +66,14 @@ void initEmitters() {
 
 Emitter* makeEmitter() {
 	
+	int i;
 	Emitter* e;
 	EmitterSprite* s;
 	
 	e = calloc(1, sizeof(Emitter));
 	
 	e->particleNum = 10;
-	e->sprite = s = calloc(1, particleNum *  sizeof(EmitterSprite));
+	e->sprite = s = calloc(1, e->particleNum *  sizeof(EmitterSprite));
 	e->instances = ar_alloc(e->instances, 100);
 	
 	for(i = 0; i < e->particleNum; i++) {
@@ -137,8 +138,8 @@ Emitter* makeEmitter() {
 // ei is copied internally
 void emitterAddInstance(Emitter* e, EmitterInstance* ei) {
 	
-	if(ar_hasRoom(e->instances)) {
-		ar_append_direct(e->instances, &ei);
+	if(ar_hasRoom(e->instances, 1)) {
+		ar_append_direct(e->instances, *ei);
 	}
 	
 	
@@ -146,6 +147,7 @@ void emitterAddInstance(Emitter* e, EmitterInstance* ei) {
 
 void emitter_update_vbo(Emitter* e) {
 	
+	glBindVertexArray(vao);
 	glBindBuffer(GL_ARRAY_BUFFER, e->instance_vbo);
 
 	glEnableVertexAttribArray(4);
@@ -161,5 +163,14 @@ void emitter_update_vbo(Emitter* e) {
 	
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+	
+	glexit("emitter sprite load");
+}
+
+
+void Draw_Emitter(Emitter* e) {
+	
+	
+	
 	
 }

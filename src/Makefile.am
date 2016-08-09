@@ -15,6 +15,7 @@ eacsmb_SOURCES = main.c \
 	ui.c \
 	cursor.c \
 	scene.c \
+	emitter.c \
 	map.c \
 	sim.c \
 	texture.c \
