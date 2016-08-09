@@ -107,22 +107,21 @@ GLuint makeVAO(VAOConfig* details, int stride) {
 	uintptr_t offset = 0;
 	GLuint vao;
 	
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
-	
+
 	for(i = 0; details[i].sz != 0; i++) {
 		GLenum t;
 		int ds;
 		
 		glEnableVertexAttribArray(i);
-		
 		t = details[i].type;
 		if(t == GL_FLOAT) { // works only for my usage
-			
-			glVertexAttribPointer(i, details[i].sz, t, GL_FALSE, stride, (void*)offset);
+			glVertexAttribFormat(i, details[i].sz, t, GL_FALSE, (void*)offset);
 		}
 		else {
-			glVertexAttribIPointer(i, details[i].sz, t, stride, (void*)offset);
+			glVertexAttribIFormat(i, details[i].sz, t, (void*)offset);
 		}
 		glerr("vao init");
 		
@@ -132,6 +131,7 @@ GLuint makeVAO(VAOConfig* details, int stride) {
 		
 		offset += ds * details[i].sz;
 	}
+	glexit("vao init");
 	
 	return vao;
 }
