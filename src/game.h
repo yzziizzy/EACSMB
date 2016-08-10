@@ -53,6 +53,8 @@ typedef struct GameState {
 	
 	Vector eyePos;
 	Vector eyeDir;
+	Vector eyeUp;
+	Vector eyeRight;
 	
 	Vector cursorTilePos;
 	Vector2 cursorPos;
@@ -84,6 +86,12 @@ typedef struct GameState {
 		double shade;
 		
 	} perfTimes;
+	
+	struct {
+		GLuint dtime[6];
+		int dtimenum;
+		
+	} queries;
 
 	
 	// info for the selection pass

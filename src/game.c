@@ -240,6 +240,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	getPrintGLEnum(GL_MAX_SAMPLES, "meh");
 	getPrintGLEnum(GL_MAX_VERTEX_ATTRIBS, "meh");
 	
+	glGenQueries(6, gs->queries.dtime);
 	
 	// set up matrix stacks
 	MatrixStack* view, *proj;
@@ -352,10 +353,16 @@ void preFrame(GameState* gs) {
 	frameCounter = (frameCounter + 1) % 60;
 	
 	if(lastPoint == 0.0f) lastPoint = gs->frameTime;
-	if(frameCounter == 0) {
+	if(glIsQuery(gs->queries.dtime[gs->queries.dtimenum]) /*frameCounter == 0*/) {
 		float fps = 60.0f / (gs->frameTime - lastPoint);
 		
-		snprintf(frameCounterBuf, 128, "dtime:  %.2fms", gs->perfTimes.draw * 1000);
+		uint64_t qdtime;
+		
+		
+		glGetQueryObjectui64v(gs->queries.dtime[gs->queries.dtimenum], GL_QUERY_RESULT, &qdtime); 
+		glexit("");
+		snprintf(frameCounterBuf, 128, "dtime:  %.2fms", ((double)qdtime) / 1000000.0);
+// 		snprintf(frameCounterBuf, 128, "dtime:  %.2fms", gs->perfTimes.draw * 1000);
 		
 		//printf("--->%s\n", frameCounterBuf);
 		
@@ -825,7 +832,7 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	updateView(xs, gs, is);
 	
 	// update world state
-	
+	glBeginQuery(GL_TIME_ELAPSED, gs->queries.dtime[gs->queries.dtimenum]);
 	if(gs->hasMoved && gs->lastSelectionFrame < gs->frameCount - 8) {
 		printf("doing selection pass %d\n", gs->frameCount);
 		gs->hasMoved = 0;
@@ -854,8 +861,10 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	}
 		
 		PF_START(draw);
-
-	
+		//static int fnum = 0;
+		//printf("frame %d\n", fnum++);
+		
+		glexit("");
 	
 	// clear color buffer for actual rendering
 	//glClear(GL_COLOR_BUFFER_BIT);
@@ -865,6 +874,7 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	
 	renderFrame(xs, gs, is);
 	
+		
 		PF_STOP(draw);
 		PF_START(decal);
 
@@ -892,7 +902,7 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	gs->screen.resized = 0;
 
 	postFrame(gs);
-
+	glEndQuery(GL_TIME_ELAPSED);
 	
 	glXSwapBuffers(xs->display, xs->clientWin);
 
