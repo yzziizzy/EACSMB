@@ -27,6 +27,11 @@ typedef struct GameSettings {
 	
 } GameSettings;
 
+typedef struct QueryQueue {
+	GLuint qids[6];
+	int head, used;
+} QueryQueue;
+
 
 typedef struct GameState {
 	
@@ -88,8 +93,7 @@ typedef struct GameState {
 	} perfTimes;
 	
 	struct {
-		GLuint dtime[6];
-		int dtimenum;
+		QueryQueue draw; 
 		
 	} queries;
 

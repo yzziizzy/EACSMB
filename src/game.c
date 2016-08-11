@@ -240,7 +240,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	getPrintGLEnum(GL_MAX_SAMPLES, "meh");
 	getPrintGLEnum(GL_MAX_VERTEX_ATTRIBS, "meh");
 	
-	glGenQueries(6, gs->queries.dtime);
+	query_queue_init(&gs->queries.draw);
 	
 	// set up matrix stacks
 	MatrixStack* view, *proj;
@@ -329,6 +329,61 @@ double timeSince(double past) {
 	return now - past;
 }
 
+void query_queue_init(QueryQueue* q) {
+	glGenQueries(6, q->qids);
+	q->head = 0;
+	q->used = 0;
+}
+
+void query_queue_start(QueryQueue* q) {
+	if(q->used < 6) {
+		glBeginQuery(GL_TIME_ELAPSED, q->qids[q->head]);
+		q->head = (q->head + 1) % 6;
+		q->used++;
+	}
+	else {
+		fprintf(stderr, "query queue exhausted \n");
+	}
+}
+
+void query_queue_stop(QueryQueue* q) {
+	glEndQuery(GL_TIME_ELAPSED);
+}
+
+int query_queue_try_result(QueryQueue* q, uint64_t* time) {
+	uint64_t p;
+	int tail;
+	
+	if(q->used == 0) {
+		return 2;
+	}
+	
+	tail = (q->head - q->used + 6) % 6; 
+	
+	glGetQueryObjectui64v(q->qids[tail], GL_QUERY_RESULT_AVAILABLE, &p);
+	if(GL_FALSE == p) {
+		return 1; // the query isn't ready yet
+	}
+	
+	glGetQueryObjectui64v(q->qids[tail], GL_QUERY_RESULT, time); 
+	q->used--;
+	
+	return 0;
+}
+
+int tryQueryTimer(GLuint id, uint64_t* time) {
+	uint64_t p;
+	
+	glGetQueryObjectui64v(id, GL_QUERY_RESULT_AVAILABLE, &p);
+	if(GL_TRUE == p) { 
+		glGetQueryObjectui64v(id, GL_QUERY_RESULT, time); 
+		return 0;
+	}
+	
+	return 1;
+}
+
+
 
 void preFrame(GameState* gs) {
 	
@@ -352,16 +407,21 @@ void preFrame(GameState* gs) {
 	
 	frameCounter = (frameCounter + 1) % 60;
 	
+	static double sdtime;
+	
 	if(lastPoint == 0.0f) lastPoint = gs->frameTime;
-	if(glIsQuery(gs->queries.dtime[gs->queries.dtimenum]) /*frameCounter == 0*/) {
+	if(1 /*frameCounter == 0*/) {
 		float fps = 60.0f / (gs->frameTime - lastPoint);
 		
 		uint64_t qdtime;
 		
+		if(!query_queue_try_result(&gs->queries.draw, &qdtime)) {
+			sdtime = ((double)qdtime) / 1000000.0;
+		}
 		
-		glGetQueryObjectui64v(gs->queries.dtime[gs->queries.dtimenum], GL_QUERY_RESULT, &qdtime); 
+		
 		glexit("");
-		snprintf(frameCounterBuf, 128, "dtime:  %.2fms", ((double)qdtime) / 1000000.0);
+		snprintf(frameCounterBuf, 128, "dtime:  %.2fms", sdtime);
 // 		snprintf(frameCounterBuf, 128, "dtime:  %.2fms", gs->perfTimes.draw * 1000);
 		
 		//printf("--->%s\n", frameCounterBuf);
@@ -371,6 +431,8 @@ void preFrame(GameState* gs) {
 		lastPoint = now;
 	}
 }
+
+
 
 
 void postFrame(GameState* gs) {
@@ -832,7 +894,8 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	updateView(xs, gs, is);
 	
 	// update world state
-	glBeginQuery(GL_TIME_ELAPSED, gs->queries.dtime[gs->queries.dtimenum]);
+// 	glBeginQuery(GL_TIME_ELAPSED, gs->queries.dtime[gs->queries.dtimenum]);
+	query_queue_start(&gs->queries.draw);
 	if(gs->hasMoved && gs->lastSelectionFrame < gs->frameCount - 8) {
 		printf("doing selection pass %d\n", gs->frameCount);
 		gs->hasMoved = 0;
@@ -902,7 +965,8 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	gs->screen.resized = 0;
 
 	postFrame(gs);
-	glEndQuery(GL_TIME_ELAPSED);
+	//glEndQuery(GL_TIME_ELAPSED);
+	query_queue_stop(&gs->queries.draw);
 	
 	glXSwapBuffers(xs->display, xs->clientWin);
 
