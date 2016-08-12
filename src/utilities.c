@@ -144,8 +144,9 @@ void* ar_alloc_internal(void* ar, int sz, int cnt) {
 	ar1 = realloc(ar, sz * cnt + sizeof(struct array_info)); 
 	
 	ar1[0].alloc_cnt = cnt;
+	ar1[0].next_index = 0;
 	
-	return ar1 + sizeof(struct array_info);
+	return ar1 + 1;
 }
 
 

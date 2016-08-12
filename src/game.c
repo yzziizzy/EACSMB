@@ -299,14 +299,18 @@ void initGame(XStuff* xs, GameState* gs) {
 	
 	dust = makeEmitter();
 	EmitterInstance dust_instance = {
-		.pos = {0,0,150},
+		.pos = {250.0,250.0,250.0},
 		.scale = 10,
 		.start_time = 0,
 		.lifespan = 1<<15
 	};
 	
 	emitterAddInstance(dust, &dust_instance);
-	
+	emitterAddInstance(dust, &dust_instance);
+	emitterAddInstance(dust, &dust_instance);
+	emitterAddInstance(dust, &dust_instance);
+	emitterAddInstance(dust, &dust_instance);
+	emitter_update_vbo(dust);
 }
 
 
@@ -707,7 +711,8 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	renderMarker(gs, 0,0);
 
 	//drawStaticMesh(testmesh, msGetTop(&gs->view), msGetTop(&gs->proj));
-	
+
+	Draw_Emitter(dust, msGetTop(&gs->view), msGetTop(&gs->proj));
 
 	
 	glUseProgram(textProg->id);

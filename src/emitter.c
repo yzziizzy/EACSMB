@@ -23,6 +23,10 @@ static GLuint vao;
 // static GLuint points_vbo, vbo1, vbo2;
 static ShaderProgram* prog;
 
+static GLuint model_ul, view_ul, proj_ul;
+
+
+
 
 static float frand(float low, float high) {
 	return low + ((high - low) * ((double)rand() / (double)RAND_MAX));
@@ -50,13 +54,13 @@ void initEmitters() {
 	glexit("emitter vao");
 	
 	
-//	prog = loadCombinedProgram("emitter");
-/*
-	model_ul = glGetUniformLocation(prog->id, "mModel");
+	prog = loadCombinedProgram("emitter");
+
+//	model_ul = glGetUniformLocation(prog->id, "mModel");
 	view_ul = glGetUniformLocation(prog->id, "mView");
 	proj_ul = glGetUniformLocation(prog->id, "mProj");
-	color_ul = glGetUniformLocation(prog->id, "color");
-	*/
+//	color_ul = glGetUniformLocation(prog->id, "color");
+
 	
 	glexit("emitter shader");
 }
@@ -77,9 +81,9 @@ Emitter* makeEmitter() {
 	e->instances = ar_alloc(e->instances, 100);
 	
 	for(i = 0; i < e->particleNum; i++) {
-		s->start_pos.x = frand(-10, 10); 
-		s->start_pos.y = frand(-10, 10); 
-		s->start_pos.z = 20; 
+		s->start_pos.x = frand(-1, 1); 
+		s->start_pos.y = frand(-1, 1); 
+		s->start_pos.z = frand(0, 1); 
 		
 		s->phys_fn_index = 0;
 		
@@ -114,16 +118,16 @@ Emitter* makeEmitter() {
 	glBindBuffer(GL_ARRAY_BUFFER, e->points_vbo);
 	
 	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4*4*4, 0);
 	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 4*4*4, 1*4*4);
 	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 4*4*4, 2*4*4);
 	glEnableVertexAttribArray(3);
-	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 6*4*4, 0);
-	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 6*4*4, 1*4*4);
-	glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 6*4*4, 2*4*4);
-	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 6*4*4, 3*4*4);
+	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 4*4*4, 3*4*4);
 
-	glBufferData(GL_ARRAY_BUFFER, e->particleNum * sizeof(EmitterSprite), s, GL_STATIC_DRAW);
-
+	glBufferData(GL_ARRAY_BUFFER, e->particleNum * sizeof(EmitterSprite), e->sprite, GL_STATIC_DRAW);
+	
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 
@@ -137,9 +141,12 @@ Emitter* makeEmitter() {
 
 // ei is copied internally
 void emitterAddInstance(Emitter* e, EmitterInstance* ei) {
-	
+	//return;
+	printf("out instance here %d\n", ar_info(e->instances)->next_index );
 	if(ar_hasRoom(e->instances, 1)) {
+		printf("in instance here\n");
 		ar_append_direct(e->instances, *ei);
+		e->instanceNum++;
 	}
 	
 	
@@ -153,9 +160,10 @@ void emitter_update_vbo(Emitter* e) {
 	glEnableVertexAttribArray(4);
 	glEnableVertexAttribArray(5);
 	
-	glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 6*4*4, 4*4*4);
-	glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 6*4*4, 5*4*4);
+	glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 2*4*4, 0*4*4);
+	glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 2*4*4, 1*4*4);
 
+	printf("instance pos %d %f %f %f \n",  sizeof(EmitterInstance), e->instances[0].pos.x, e->instances[0].pos.y, e->instances[0].pos.z);
 	glBufferData(GL_ARRAY_BUFFER, e->instanceNum * sizeof(EmitterInstance), e->instances, GL_STATIC_DRAW);
 	
 	glVertexAttribDivisor(4, 1);
@@ -168,8 +176,37 @@ void emitter_update_vbo(Emitter* e) {
 }
 
 
-void Draw_Emitter(Emitter* e) {
+void Draw_Emitter(Emitter* e, Matrix* view, Matrix* proj) {
+		
+	Matrix model;
 	
+	glUseProgram(prog->id);
+
+	glUniformMatrix4fv(view_ul, 1, GL_FALSE, &view->m);
+	glUniformMatrix4fv(proj_ul, 1, GL_FALSE, &proj->m);
+
+//	glUniform3f(color_ul, .5, .2, .9);
+// 	glUniform2f(screenSize_ul, 600, 600);
+
+	glBindVertexArray(vao);
+	glBindBuffer(GL_ARRAY_BUFFER, e->points_vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, e->instance_vbo);
+	glexit("emitter vbo");
+
+/*	
+	glActiveTexture(GL_TEXTURE0 + 2);
+	glexit("shading tex 5");
+	glBindTexture(GL_TEXTURE_2D, dtex);
+	glProgramUniform1i(prog->id, glGetUniformLocation(prog->id, "sDepth"), 2);
+	
+	glActiveTexture(GL_TEXTURE0 + 25);
+	glBindTexture(GL_TEXTURE_2D, road_tex->tex_id);
+	glProgramUniform1i(prog->id, glGetUniformLocation(prog->id, "sRoadTex"), 25);
+*/
+
+	//printf("num, inst: %d, %d\n", e->particleNum, e->instanceNum);                         
+	glDrawArraysInstanced(GL_POINTS, 0, e->particleNum, e->instanceNum);
+	glexit("emitter draw");
 	
 	
 	
