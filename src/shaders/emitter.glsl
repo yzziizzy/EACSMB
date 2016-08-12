@@ -19,7 +19,8 @@ layout (location = 5) in vec4 starttime_lifespan_in;
 uniform mat4 mView;
 uniform mat4 mProj;
 
-uniform float time;
+uniform float timeSeconds;
+uniform float timeFractional;
 
 
 flat out int vs_VertexID;
@@ -37,7 +38,9 @@ void main() {
 	
 	vec3 spritePos = start_pos_fn_in.xyz * 10;
 	
+	float time = mod(timeSeconds, start_acc_lifetime_in.w) + timeFractional;
 	float t = mod(time + start_vel_spawndelay_in.w, start_acc_lifetime_in.w);
+	
 	vec3 sim = t*t*start_acc_lifetime_in.xyz + t*start_vel_spawndelay_in.xyz;
 	
 	//	gl_Position = (mProj * mView * mModel) * vec4(pos_tex_in.xy, 0, 1);

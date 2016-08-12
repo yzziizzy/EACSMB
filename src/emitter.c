@@ -23,7 +23,7 @@ static GLuint vao;
 // static GLuint points_vbo, vbo1, vbo2;
 static ShaderProgram* prog;
 
-static GLuint model_ul, view_ul, proj_ul, time_ul;
+static GLuint model_ul, view_ul, proj_ul, timeS_ul, timeMS_ul;
 
 
 
@@ -59,7 +59,8 @@ void initEmitters() {
 //	model_ul = glGetUniformLocation(prog->id, "mModel");
 	view_ul = glGetUniformLocation(prog->id, "mView");
 	proj_ul = glGetUniformLocation(prog->id, "mProj");
-	time_ul = glGetUniformLocation(prog->id, "time");
+	timeS_ul = glGetUniformLocation(prog->id, "timeSeconds");
+	timeMS_ul = glGetUniformLocation(prog->id, "timeFractional");
 //	color_ul = glGetUniformLocation(prog->id, "color");
 
 	
@@ -185,7 +186,12 @@ void Draw_Emitter(Emitter* e, Matrix* view, Matrix* proj, double time) {
 
 	glUniformMatrix4fv(view_ul, 1, GL_FALSE, &view->m);
 	glUniformMatrix4fv(proj_ul, 1, GL_FALSE, &proj->m);
-	glUniform1f(time_ul, time); // TODO figure out how to fix rounding nicely
+	
+	double seconds = (float)(long)time;
+	double milliseconds = time - seconds;
+	
+	glUniform1f(timeS_ul, seconds); // TODO figure out how to fix rounding nicely
+	glUniform1f(timeMS_ul, milliseconds); // TODO figure out how to fix rounding nicely
 
 //	glUniform3f(color_ul, .5, .2, .9);
 // 	glUniform2f(screenSize_ul, 600, 600);
