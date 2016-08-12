@@ -712,7 +712,7 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 
 	//drawStaticMesh(testmesh, msGetTop(&gs->view), msGetTop(&gs->proj));
 
-	Draw_Emitter(dust, msGetTop(&gs->view), msGetTop(&gs->proj));
+	Draw_Emitter(dust, msGetTop(&gs->view), msGetTop(&gs->proj), gs->frameTime);
 
 	
 	glUseProgram(textProg->id);

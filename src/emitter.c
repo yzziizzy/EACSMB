@@ -23,7 +23,7 @@ static GLuint vao;
 // static GLuint points_vbo, vbo1, vbo2;
 static ShaderProgram* prog;
 
-static GLuint model_ul, view_ul, proj_ul;
+static GLuint model_ul, view_ul, proj_ul, time_ul;
 
 
 
@@ -59,6 +59,7 @@ void initEmitters() {
 //	model_ul = glGetUniformLocation(prog->id, "mModel");
 	view_ul = glGetUniformLocation(prog->id, "mView");
 	proj_ul = glGetUniformLocation(prog->id, "mProj");
+	time_ul = glGetUniformLocation(prog->id, "time");
 //	color_ul = glGetUniformLocation(prog->id, "color");
 
 	
@@ -89,19 +90,19 @@ Emitter* makeEmitter() {
 		
 		s->start_vel.x = 0;
 		s->start_vel.y = 0;
-		s->start_vel.z = 0.01;
+		s->start_vel.z = 1.5;
 		
-		s->spawn_delay = frand(0, 3);
+		s->spawn_delay = frand(0, 5);
 		
 		s->start_acc.x = 0;
 		s->start_acc.y = 0;
-		s->start_acc.z = 0.01;
+		s->start_acc.z = 0.5;
 		
-		s->lifetime = 10;
+		s->lifetime = 5;
 		
 		s->size = frand(1,3);
 		s->spin = frand(-1, 1);
-		s->growth_rate = frand(0, .5);
+		s->growth_rate = frand(0, .4);
 		s->randomness = frand(0, 1);
 		
 		s++;
@@ -176,7 +177,7 @@ void emitter_update_vbo(Emitter* e) {
 }
 
 
-void Draw_Emitter(Emitter* e, Matrix* view, Matrix* proj) {
+void Draw_Emitter(Emitter* e, Matrix* view, Matrix* proj, double time) {
 		
 	Matrix model;
 	
@@ -184,6 +185,7 @@ void Draw_Emitter(Emitter* e, Matrix* view, Matrix* proj) {
 
 	glUniformMatrix4fv(view_ul, 1, GL_FALSE, &view->m);
 	glUniformMatrix4fv(proj_ul, 1, GL_FALSE, &proj->m);
+	glUniform1f(time_ul, time); // TODO figure out how to fix rounding nicely
 
 //	glUniform3f(color_ul, .5, .2, .9);
 // 	glUniform2f(screenSize_ul, 600, 600);

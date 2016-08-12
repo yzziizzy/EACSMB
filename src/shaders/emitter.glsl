@@ -19,12 +19,15 @@ layout (location = 5) in vec4 starttime_lifespan_in;
 uniform mat4 mView;
 uniform mat4 mProj;
 
+uniform float time;
 
 
 flat out int vs_VertexID;
 
 out Vertex {
+  float size;
   vec3 pos;
+  
 } vertex;
 
 
@@ -34,12 +37,14 @@ void main() {
 	
 	vec3 spritePos = start_pos_fn_in.xyz * 10;
 	
+	float t = mod(time + start_vel_spawndelay_in.w, start_acc_lifetime_in.w);
+	vec3 sim = t*t*start_acc_lifetime_in.xyz + t*start_vel_spawndelay_in.xyz;
+	
 	//	gl_Position = (mProj * mView * mModel) * vec4(pos_tex_in.xy, 0, 1);
-	gl_Position = vec4(spritePos + instancePos, 1.0);
-//	gl_Position = vec4(instancePos.xyz, 1.0);
-//	gl_Position = vec4(spritePos.xy, gl_VertexID * 10 , 1.0);
+	gl_Position = vec4(spritePos + instancePos + sim, 1.0);
 	vs_VertexID = gl_VertexID;
 	
+	vertex.size = size_spin_growth_random_in.x + size_spin_growth_random_in.z * t;
 }
 
 
@@ -61,35 +66,34 @@ flat in int vs_VertexID[];
 out vec3 gs_color;
 
 in Vertex {
-  vec3 pos;
+	float size;
+	vec3 pos;
 } vertex[];
 
 void main() {
+	mat4 mViewProj = mProj * mView;
 
-	float size = 2;
+	float size = vertex[0].size;
 
 	vec3 right = vec3(mView[0][0], mView[1][0], mView[2][0]);
 	vec3 up = vec3(mView[0][1], mView[1][1], mView[2][1]);
 
-//	vec3 up = vec3(mView[0][0], mView[1][0], mView[2][0]);
-//	vec3 right = vec3(mView[0][1], mView[1][1], mView[2][1]);
-
 	vec3 center = gl_in[0].gl_Position.xyz;
 	
 	gs_color = vec3(vs_VertexID[0] * .05, 1,0);
-	gl_Position = (mProj * mView) * vec4((center - (right + up) * size).xyz, 1.0);
+	gl_Position = mViewProj * vec4((center - (right + up) * size).xyz, 1.0);
 	EmitVertex();
 
 	gs_color = vec3(vs_VertexID[0] * .05, 1,1);
-	gl_Position = (mProj * mView) * vec4((center - (right - up) * size).xyz, 1.0);
+		gl_Position = mViewProj * vec4((center - (right - up) * size).xyz, 1.0);
 	EmitVertex();
 
 	gs_color = vec3(vs_VertexID[0] * .05, 0,1);
-	gl_Position = (mProj * mView) * vec4((center + (right - up) * size).xyz, 1.0);
+	gl_Position = mViewProj * vec4((center + (right - up) * size).xyz, 1.0);
 	EmitVertex();
 
 	gs_color = vec3(vs_VertexID[0] * .05, 0,0);
-	gl_Position = (mProj * mView) * vec4((center + (right + up) * size).xyz, 1.0);
+	gl_Position = mViewProj * vec4((center + (right + up) * size).xyz, 1.0);
 	EmitVertex();
 
 	EndPrimitive(); 
