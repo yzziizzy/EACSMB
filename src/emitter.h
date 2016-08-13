@@ -11,9 +11,11 @@ typedef struct  __attribute__ ((__packed__)) EmitterInstance {
 	
 } EmitterInstance;
 
+// need: fade in/out time 
+// refactor time for offset and cooldown
 typedef struct EmitterSprite {
 	Vector start_pos;
-	float phys_fn_index;
+	float cooldown;
 	
 	Vector start_vel;
 	float spawn_delay;

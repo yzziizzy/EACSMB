@@ -91,7 +91,7 @@ Emitter* makeEmitter() {
 		s->start_pos.y = frand(-10, 10); 
 		s->start_pos.z = frand(0, 1); 
 		
-		s->phys_fn_index = 0;
+		s->cooldown = frand(0, 2);
 		
 		s->start_vel.x = 0;
 		s->start_vel.y = 0;
@@ -187,9 +187,10 @@ void Draw_Emitter(Emitter* e, Matrix* view, Matrix* proj, double time) {
 	Matrix model;
 	
 	glUseProgram(prog->id);
-glEnable (GL_BLEND);
-glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
+	
+	glEnable (GL_BLEND);
+	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	
 	glDepthMask(GL_FALSE); // disable depth writes for paritcles
 
 
@@ -213,17 +214,6 @@ glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glBindBuffer(GL_ARRAY_BUFFER, e->points_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, e->instance_vbo);
 	glexit("emitter vbo");
-
-/*	
-	glActiveTexture(GL_TEXTURE0 + 2);
-	glexit("shading tex 5");
-	glBindTexture(GL_TEXTURE_2D, dtex);
-	glProgramUniform1i(prog->id, glGetUniformLocation(prog->id, "sDepth"), 2);
-	
-	glActiveTexture(GL_TEXTURE0 + 25);
-	glBindTexture(GL_TEXTURE_2D, road_tex->tex_id);
-	glProgramUniform1i(prog->id, glGetUniformLocation(prog->id, "sRoadTex"), 25);
-*/
 
 	//printf("num, inst: %d, %d\n", e->particleNum, e->instanceNum);                         
 	glDrawArraysInstanced(GL_POINTS, 0, e->particleNum, e->instanceNum);

@@ -712,7 +712,7 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 
 	//drawStaticMesh(testmesh, msGetTop(&gs->view), msGetTop(&gs->proj));
 
-	Draw_Emitter(dust, msGetTop(&gs->view), msGetTop(&gs->proj), gs->frameTime);
+
 
 	
 	glUseProgram(textProg->id);
@@ -757,6 +757,7 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 }
 
+
 void renderDecals(XStuff* xs, GameState* gs, InputState* is) {
 	/*
 	glActiveTexture(GL_TEXTURE0 + 8);
@@ -769,6 +770,15 @@ void renderDecals(XStuff* xs, GameState* gs, InputState* is) {
 	drawTerrainRoads(gs->depthTexBuffer, &gs->map, msGetTop(&gs->view), msGetTop(&gs->proj), &gs->cursorPos, &gs->screen.wh);
 	
 	glexit("render decals");
+}
+
+
+void renderParticles(XStuff* xs, GameState* gs, InputState* is) {
+	
+	
+	Draw_Emitter(dust, msGetTop(&gs->view), msGetTop(&gs->proj), gs->frameTime);
+	
+	glexit("render particles");
 }
 
 
@@ -950,7 +960,11 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	glBindFramebuffer(GL_FRAMEBUFFER, gs->decalbuf.fb);
 	
 	glDepthMask(GL_FALSE); // disable depth writes for decals
+	
 	renderDecals(xs, gs, is);
+	
+	renderParticles(xs, gs, is); // particles are alpha blended and need to be on top of decals
+	
 	glDepthMask(GL_TRUE);
 		
 		PF_STOP(decal);
