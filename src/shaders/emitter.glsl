@@ -23,6 +23,7 @@ uniform float timeSeconds;
 uniform float timeFractional;
 
 
+
 flat out int vs_VertexID;
 
 out Vertex {
@@ -66,6 +67,7 @@ uniform mat4 mProj;
 flat in int vs_VertexID[];
 
 out vec3 gs_color;
+out vec3 gs_tex;
 
 in Vertex {
 	float size;
@@ -80,18 +82,22 @@ void main() {
 	vec4 center = gl_in[0].gl_Position;
 
 	gs_color = vec3(vs_VertexID[0] * .001, 1,0);
+	gs_tex = vec3(0,0,0);
 	gl_Position = mProj * vec4(center.xy + vec2(-0.5, -0.5) * size, center.zw);
 	EmitVertex();
 
 	gs_color = vec3(vs_VertexID[0] * .001, 1,1);
+	gs_tex = vec3(0,1,0);
 	gl_Position = mProj * vec4(center.xy + vec2(-0.5, 0.5) * size, center.zw);
 	EmitVertex();
 
 	gs_color = vec3(vs_VertexID[0] * .001, 0,1);
+	gs_tex = vec3(1,0,0);
 	gl_Position = mProj * vec4(center.xy + vec2(0.5, -0.5) * size, center.zw);
 	EmitVertex();
 
 	gs_color = vec3(vs_VertexID[0] * .001, 0,0);
+	gs_tex = vec3(1,1,0);
 	gl_Position = mProj * vec4(center.xy + vec2(0.5, 0.5) * size, center.zw);
 	EmitVertex();
 
@@ -112,10 +118,13 @@ uniform mat4 mProj;
 layout(location = 0) out vec4 out_Color;
 layout(location = 1) out vec4 out_Normal;
 
+uniform sampler2D textures;
+
 in vec3 gs_color;
+in vec3 gs_tex;
 
 void main(void) {
     
-	out_Color = vec4(gs_color.xyz, 1); //vs_norm;
+	out_Color = texture(textures, gs_tex.xy); //vs_norm;
 }
 

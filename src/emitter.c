@@ -24,7 +24,8 @@ static GLuint vao;
 static ShaderProgram* prog;
 
 static GLuint model_ul, view_ul, proj_ul, timeS_ul, timeMS_ul;
-
+static GLuint tex_ul;
+static Texture* sprite_tex;
 
 
 
@@ -35,6 +36,7 @@ static float frand(float low, float high) {
 
 void initEmitters() {
 	
+	sprite_tex = loadBitmapTexture("./assets/textures/dust.png");
 		// VAO
 	VAOConfig opts[] = {
 		// per particle attributes
@@ -61,6 +63,8 @@ void initEmitters() {
 	proj_ul = glGetUniformLocation(prog->id, "mProj");
 	timeS_ul = glGetUniformLocation(prog->id, "timeSeconds");
 	timeMS_ul = glGetUniformLocation(prog->id, "timeFractional");
+	
+	tex_ul = glGetUniformLocation(prog->id, "textures");
 //	color_ul = glGetUniformLocation(prog->id, "color");
 
 	
@@ -196,6 +200,10 @@ void Draw_Emitter(Emitter* e, Matrix* view, Matrix* proj, double time) {
 //	glUniform3f(color_ul, .5, .2, .9);
 // 	glUniform2f(screenSize_ul, 600, 600);
 
+	glActiveTexture(GL_TEXTURE0 + 24);
+	glBindTexture(GL_TEXTURE_2D, sprite_tex->tex_id);
+	glProgramUniform1i(prog->id, tex_ul, 24);
+	
 	glBindVertexArray(vao);
 	glBindBuffer(GL_ARRAY_BUFFER, e->points_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, e->instance_vbo);
