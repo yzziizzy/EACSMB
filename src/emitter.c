@@ -187,6 +187,11 @@ void Draw_Emitter(Emitter* e, Matrix* view, Matrix* proj, double time) {
 	Matrix model;
 	
 	glUseProgram(prog->id);
+glEnable (GL_BLEND);
+glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	glDepthMask(GL_FALSE); // disable depth writes for paritcles
+
 
 	glUniformMatrix4fv(view_ul, 1, GL_FALSE, &view->m);
 	glUniformMatrix4fv(proj_ul, 1, GL_FALSE, &proj->m);
@@ -225,5 +230,5 @@ void Draw_Emitter(Emitter* e, Matrix* view, Matrix* proj, double time) {
 	glexit("emitter draw");
 	
 	
-	
+	glDepthMask(GL_TRUE);
 }
