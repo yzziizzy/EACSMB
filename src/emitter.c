@@ -78,13 +78,13 @@ Emitter* makeEmitter() {
 	
 	e = calloc(1, sizeof(Emitter));
 	
-	e->particleNum = 10;
+	e->particleNum = 1000;
 	e->sprite = s = calloc(1, e->particleNum *  sizeof(EmitterSprite));
 	e->instances = ar_alloc(e->instances, 100);
 	
 	for(i = 0; i < e->particleNum; i++) {
-		s->start_pos.x = frand(-1, 1); 
-		s->start_pos.y = frand(-1, 1); 
+		s->start_pos.x = frand(-10, 10); 
+		s->start_pos.y = frand(-10, 10); 
 		s->start_pos.z = frand(0, 1); 
 		
 		s->phys_fn_index = 0;
@@ -101,7 +101,7 @@ Emitter* makeEmitter() {
 		
 		s->lifetime = 5;
 		
-		s->size = frand(1,3);
+		s->size = frand(2,6);
 		s->spin = frand(-1, 1);
 		s->growth_rate = frand(0, .4);
 		s->randomness = frand(0, 1);
