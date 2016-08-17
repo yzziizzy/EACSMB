@@ -49,6 +49,7 @@ typedef struct GameState {
 	Framebuffer selectionbuf;
 	Framebuffer decalbuf;
 	
+	void* selectionData;
 	uint64_t selectionFrame;
 	GLsync selectionFence;
 	GLuint selectionPBOs[2];

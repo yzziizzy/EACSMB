@@ -194,6 +194,9 @@ void setupFBOs(GameState* gs, int resized) {
 	glBufferData(GL_PIXEL_PACK_BUFFER, ww * wh * 4, NULL, GL_DYNAMIC_READ);
 	glexit("");
 	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+	
+	if(gs->selectionData) free(gs->selectionData);
+	gs->selectionData = malloc(ww * wh * 4);
 }
 
 void initGame(XStuff* xs, GameState* gs) {
@@ -475,6 +478,15 @@ void preFrame(GameState* gs) {
 			printf("signaled %d\n", gs->frameCount - gs->selectionFrame);
 			glDeleteSync(gs->selectionFence);
 			gs->selectionFence = 0;
+			
+			glBindBuffer(GL_PIXEL_PACK_BUFFER, gs->selectionPBOs[gs->activePBO]);
+			void* p = glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
+			
+			int sz = gs->screen.wh.x * gs->screen.wh.y * 4; 
+			memcpy(gs->selectionData, p, sz);
+			
+			glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+			
 			
 			gs->readPBO = gs->activePBO;
 			gs->activePBO = (gs->activePBO + 1) % 2;
