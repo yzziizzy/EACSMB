@@ -882,9 +882,16 @@ void shadingPass(GameState* gs) {
 
 void checkCursor(GameState* gs, InputState* is) {
 	
-	unsigned char rgb[4];
+	union {
+		unsigned char rgb[4];
+		uint32_t in;
+	}
 	glexit("pre selection buff");
 	
+	in = ((uint32_t*)gs->selectionData)[
+		is->cursorPosPixels.x + 
+		(is->cursorPosPixels.y * gs->screen.wh.x) 
+	];
 	
 	
 	gs->cursorTilePos.x = rgb[0];
@@ -895,6 +902,7 @@ void checkCursor(GameState* gs, InputState* is) {
 	
 	gs->cursorPos.x = (off->x * 256.0) + gs->cursorTilePos.x;
 	gs->cursorPos.y = (off->y * 256.0) + gs->cursorTilePos.y;
+	
 	
 	//printf("pos: x: %d, y:%d \n", (int)gs->cursorPos.x, (int)gs->cursorPos.y);
 	/*
