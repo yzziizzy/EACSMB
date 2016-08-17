@@ -14,8 +14,8 @@
 #include "utilities.h"
 #include "shader.h"
 #include "texture.h"
-#include "map.h"
 #include "road.h"
+#include "map.h"
 #include "perlin.h"
 
 
@@ -391,6 +391,8 @@ MapBlock* spawnMapBlock(MapInfo* mi, int bix, int biy) {
 	
 	mb = allocMapBlock(bix, biy);
 	initTerrainBlock(mb, bix, biy);
+	
+	initRoadBlock(&mb->roads);
 	
 	return mb;
 }
@@ -801,7 +803,7 @@ void drawTerrainRoads(GLuint dtex, MapInfo* mi, Matrix* mView, Matrix* mProj, Ve
 	
 	glUniformMatrix4fv(model_ul, 1, GL_FALSE, msGetTop(&model)->m);
 	//printf("Using depth decal tex: %d \n", dtex);
-	drawRoad(dtex, mView, mProj);
+	// HERE -- drawRoad(NULL, dtex, mView, mProj);
 }
 
 

@@ -46,7 +46,13 @@ typedef struct GameState {
 	
 	GLuint* fboTextures; 
 	Framebuffer gbuf;
+	Framebuffer selectionbuf;
 	Framebuffer decalbuf;
+	
+	uint64_t selectionFrame;
+	GLsync selectionFence;
+	GLuint selectionPBOs[2];
+	char readPBO, activePBO;
 	
 	MapInfo map;
 	

@@ -178,18 +178,26 @@ void initRoads() {
 
 RoadBlock* allocRoadBlock() {
 	RoadBlock* rb = calloc(1, sizeof(RoadBlock));
-	
-	rb->maxRoads = 256;
-	rb->cps = malloc(rb->maxRoads * sizeof(RoadControlPoint));
-	
 	return rb;
 }
 
-int rbAddRoad(RoadControlPoint* rcp, int* out_road_id) {
-	int id 
+void initRoadBlock(RoadBlock* rb) {
 	
+	rb->maxRoads = 256;
+	rb->cps = ar_alloc(rb->cps, rb->maxRoads);
+}
 
-void drawRoad(GLuint dtex, Matrix* view, Matrix* proj) {
+int rbAddRoad(RoadBlock* rb, RoadControlPoint* rcp, int* out_id) {
+	
+	if(ar_hasRoom(rb->cps, 1)) {
+		printf("in instance here\n");
+		ar_append_direct(rb->cps, *rcp);
+	}
+	
+	rb->dirty = 1;
+}
+
+void drawRoad(RoadBlock* rb, GLuint dtex, Matrix* view, Matrix* proj) {
 	
 	Matrix model;
 	
@@ -227,10 +235,36 @@ void drawRoad(GLuint dtex, Matrix* view, Matrix* proj) {
 
 
 	//                              3 strips, 2 endcaps, 2 primitive restarts
-	glDrawElementsInstanced(GL_TRIANGLE_STRIP, 3 * 256 * 2 + 2 + 2 + 2, GL_UNSIGNED_SHORT, indices, 3);
+	glDrawElementsInstanced(GL_TRIANGLE_STRIP, 3 * 256 * 2 + 2 + 2 + 2, GL_UNSIGNED_SHORT, indices, ar_info(rb->cps)->next_index);
 	glexit("road draw");
 	
 }
+
+
+
+void roadblock_update_vbo(RoadBlock* rb) {
+	
+	glBindVertexArray(vao);
+	glBindBuffer(GL_ARRAY_BUFFER, cp_vbo);
+	
+	
+	glEnableVertexAttribArray(1);
+	glEnableVertexAttribArray(2);
+	
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 4*4 + 2*4, 0);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 4*4 + 2*4, 4*4);
+
+	glBufferData(GL_ARRAY_BUFFER, ar_info(rb->cps)->next_index * sizeof(RoadControlPoint), rb->cps, GL_STATIC_DRAW);
+	
+	glVertexAttribDivisor(1, 1);
+	glVertexAttribDivisor(2, 1);
+	
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+	
+	glexit("emitter sprite load");
+}
+
 
 
 void roadsSyncGraph(TransGraph* tg) {

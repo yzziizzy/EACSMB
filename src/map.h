@@ -14,7 +14,7 @@
 #define TCOORD(x,y) ((y * TERR_TEX_SZ) + x)
 #define MCOORD(x,y) ((y * MAP_TEX_SZ) + x)
 
-
+#include "road.h"
 
 typedef struct TerrainPatchVertex {
 	float x, y, z;
@@ -52,7 +52,7 @@ typedef struct MapBlock {
 
 	TerrainBlock tb;
 	
-	
+	RoadBlock roads;
 	
 } MapBlock;
 
