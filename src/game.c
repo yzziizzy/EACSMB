@@ -196,6 +196,7 @@ void setupFBOs(GameState* gs, int resized) {
 	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 	
 	if(gs->selectionData) free(gs->selectionData);
+	printf("seldata size %d\n", ww * wh * 4);
 	gs->selectionData = malloc(ww * wh * 4);
 }
 
@@ -885,18 +886,20 @@ void checkCursor(GameState* gs, InputState* is) {
 	union {
 		unsigned char rgb[4];
 		uint32_t in;
-	}
+	} u;
 	glexit("pre selection buff");
 	
-	in = ((uint32_t*)gs->selectionData)[
-		is->cursorPosPixels.x + 
-		(is->cursorPosPixels.y * gs->screen.wh.x) 
-	];
+	if(!gs->selectionData) return;
+
+	int i = (int)is->cursorPosPixels.x + 
+		((int)is->cursorPosPixels.y * (int)gs->screen.wh.x);
+	printf("off %d \n", i);
+	u.in = gs->selectionData[i];
 	
 	
-	gs->cursorTilePos.x = rgb[0];
-	gs->cursorTilePos.y = rgb[1];
-	gs->cursorTilePos.z = rgb[2];
+	gs->cursorTilePos.x = u.rgb[0];
+	gs->cursorTilePos.y = u.rgb[1];
+	gs->cursorTilePos.z = u.rgb[2];
 	
 	struct sGL_RG8* off = &gs->map.offsetData[(int)gs->cursorTilePos.z]; 
 	
@@ -904,7 +907,7 @@ void checkCursor(GameState* gs, InputState* is) {
 	gs->cursorPos.y = (off->y * 256.0) + gs->cursorTilePos.y;
 	
 	
-	//printf("pos: x: %d, y:%d \n", (int)gs->cursorPos.x, (int)gs->cursorPos.y);
+	printf("pos: x: %d, y:%d \n", (int)gs->cursorPos.x, (int)gs->cursorPos.y);
 	/*
  	printf("mx: %d, my: %d, x: %d, y: %d, z: %d\n", 
 		   (int)is->cursorPosPixels.x, 
@@ -912,7 +915,7 @@ void checkCursor(GameState* gs, InputState* is) {
 		   rgb[0], rgb[1], rgb[2]);
 	*/
 	
-	if(is->clickButton == 3 && rgb[2] == 1) {
+	if(is->clickButton == 3 && u.rgb[2] == 1) {
 		gs->lookCenter.x = gs->cursorPos.x;
 		gs->lookCenter.y = gs->cursorPos.y;
 	}
@@ -963,6 +966,7 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	//setUpView(gs);
 	updateView(xs, gs, is);
 	
+	checkCursor(gs, is);
 	// update world state
 // 	glBeginQuery(GL_TIME_ELAPSED, gs->queries.dtime[gs->queries.dtimenum]);
 	query_queue_start(&gs->queries.draw);

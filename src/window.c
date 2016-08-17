@@ -169,7 +169,7 @@ int initXWindow(XStuff* xs) {
 
 
 
-
+#define CLAMP(min, mid, max) MIN(max, MAX(mid, min))
 
 
 
@@ -193,8 +193,8 @@ void processEvents(XStuff* xs, InputState* st, int max_events) {
 	
 	if(XQueryPointer(xs->display, xs->clientWin, &rootReturn, &clientReturn, &rootX, &rootY, &clientX, &clientY, &mouseMask)) {
 		if(xs->winAttr.height > 0 && xs->winAttr.width > 0) {
-			st->cursorPosPixels.x = clientX;
-			st->cursorPosPixels.y = xs->winAttr.height - clientY;
+			st->cursorPosPixels.x = CLAMP(0, clientX, xs->winAttr.width);
+			st->cursorPosPixels.y = CLAMP(0, xs->winAttr.height - clientY, xs->winAttr.height);
 		
 			st->cursorPos.x = clientX / xs->winAttr.width;
 			st->cursorPos.y = 1.0 - (clientY / xs->winAttr.height); // opengl is inverted to X
