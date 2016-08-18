@@ -150,7 +150,7 @@ layout(location = 0) out vec4 out_Selection;
 
 void main(void) {
 	
-	out_Selection = vec4(floor(t_tile.x)/255, floor(t_tile.y)/255, float(ps_InstanceID)/64.0, 1);
+	out_Selection = vec4(floor(t_tile.x)/255, floor(t_tile.y)/255, float(ps_InstanceID)/256.0, 1);
 //	out_Selection = vec4(1 , 1,1 , 1);
 //	out_Selection = vec4(10 , 10,10 , 10);
 //	out_Selection = vec4(0.5,0.5,0.5,0.5);
