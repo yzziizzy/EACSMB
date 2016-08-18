@@ -189,7 +189,7 @@ const vec2 eye = vec2(500,500);
 
 layout(location = 0) out vec4 out_Color;
 layout(location = 1) out vec4 out_Normal;
-layout(location = 2) out ivec4 out_Selection;
+//layout(location = 2) out vec4 out_Selection;
 
 #define UNIT 1
 #define HALFUNIT .5
@@ -253,7 +253,7 @@ void main(void) {
 	
 	d /= (255);
 	
-	out_Selection = ivec4(floor(t_tile.x), floor(t_tile.y), ps_InstanceID, 1);
+//	out_Selection = vec4(floor(t_tile.x) / 256, floor(t_tile.y) / 256, ps_InstanceID, 1);
 	out_Normal = vec4((te_normal.x + 1) / 2, (te_normal.z + 1) / 2, (te_normal.z + 1) / 2, 1);
  	out_Color =  (zoneColor * .2 + tc) * cursorIntensity * vec4(min(min(ei1, ei2), min(ei3, ei4)), 0,0,1).rrra; //(1.0, 0, .5, .6);
 }

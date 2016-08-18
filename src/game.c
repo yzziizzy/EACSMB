@@ -142,7 +142,7 @@ void setupFBOs(GameState* gs, int resized) {
 	FBOConfig gbufConf[] = {
 		{GL_COLOR_ATTACHMENT0, gs->diffuseTexBuffer },
 		{GL_COLOR_ATTACHMENT1, gs->normalTexBuffer },
-	//	{GL_COLOR_ATTACHMENT2, gs->selectionTexBuffer },
+//		{GL_COLOR_ATTACHMENT2, gs->selectionTexBuffer },
 		{GL_DEPTH_ATTACHMENT, gs->depthTexBuffer },
 		{0,0}
 	};
@@ -164,7 +164,7 @@ void setupFBOs(GameState* gs, int resized) {
 	FBOConfig selectionConf[] = {
 // 		{GL_COLOR_ATTACHMENT0, gs->diffuseTexBuffer },
 // 		{GL_COLOR_ATTACHMENT1, gs->normalTexBuffer },
-		{GL_COLOR_ATTACHMENT2, gs->selectionTexBuffer },
+		{GL_COLOR_ATTACHMENT0, gs->selectionTexBuffer },
 		{GL_DEPTH_ATTACHMENT,  gs->depthTexBuffer },
 		{0,0}
 	};
@@ -481,7 +481,11 @@ void preFrame(GameState* gs) {
 			gs->selectionFence = 0;
 			
 			glBindBuffer(GL_PIXEL_PACK_BUFFER, gs->selectionPBOs[gs->activePBO]);
-			void* p = glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
+			void* p = glMapBufferRange(GL_PIXEL_PACK_BUFFER, 0, 600*600*4, GL_MAP_READ_BIT);
+			glexit("buffer map");
+			if(p == NULL) {
+				exit(1);
+			}
 			
 			int sz = gs->screen.wh.x * gs->screen.wh.y * 4; 
 			memcpy(gs->selectionData, p, sz);
@@ -681,7 +685,7 @@ void setUpView(GameState* gs) {
 void depthPrepass(XStuff* xs, GameState* gs, InputState* is) {
 	
 	// draw UI
-	renderUIPicking(xs, gs);
+	//renderUIPicking(xs, gs);
 	
 	
 	
@@ -890,12 +894,19 @@ void checkCursor(GameState* gs, InputState* is) {
 	glexit("pre selection buff");
 	
 	if(!gs->selectionData) return;
-
-	int i = (int)is->cursorPosPixels.x + 
-		((int)is->cursorPosPixels.y * (int)gs->screen.wh.x);
-	printf("off %d \n", i);
-	u.in = gs->selectionData[i];
 	
+	int w = (int)gs->screen.wh.x;
+	int h = (int)gs->screen.wh.y;
+	
+	int x = (int)is->cursorPosPixels.x;
+	int y = (int)is->cursorPosPixels.y;
+
+	printf("cursor %f, %f\n",is->cursorPosPixels.x, is->cursorPosPixels.y);
+	int i = x + (y * w);
+	printf("off %d %f \n", i, gs->screen.wh.x);
+	uint32_t j = gs->selectionData[i];
+	u.in = j;
+	printf("j %d\n", j); 
 	
 	gs->cursorTilePos.x = u.rgb[0];
 	gs->cursorTilePos.y = u.rgb[1];
@@ -966,6 +977,61 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	//setUpView(gs);
 	updateView(xs, gs, is);
 	
+	
+	if(gs->hasMoved && gs->lastSelectionFrame < gs->frameCount - 8) {
+		printf("doing selection pass %d\n", gs->frameCount);
+		gs->hasMoved = 0;
+		gs->lastSelectionFrame = gs->frameCount; 
+		
+		// really just the selection pass
+			PF_START(selection);
+		glDepthFunc(GL_LESS);
+		//glDisable(GL_DEPTH_TEST);
+		
+		glBindFramebuffer(GL_FRAMEBUFFER, gs->selectionbuf.fb);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		
+		depthPrepass(xs, gs, is);
+		
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, gs->selectionbuf.fb);
+		
+		//glEnable(GL_DEPTH_TEST);
+		glReadBuffer(GL_COLOR_ATTACHMENT0);
+		
+		printf("is buffer %d\n", gs->selectionPBOs[gs->activePBO]);
+		glBindBuffer(GL_PIXEL_PACK_BUFFER, gs->selectionPBOs[gs->activePBO]);
+		
+		glexit("selection buff");
+		//printf("cursor pixels: %f, %f\n", is->cursorPosPixels.x, is->cursorPosPixels.y);
+		
+		glReadPixels(
+			0, //is->cursorPosPixels.x,
+			0, //is->cursorPosPixels.y,
+			gs->screen.wh.x,
+			gs->screen.wh.y,
+			GL_RGBA,
+			GL_UNSIGNED_BYTE,
+			0);
+		
+		glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+
+		glexit("read selection");
+		glexit("");
+		
+		if(gs->selectionFence) glDeleteSync(gs->selectionFence);
+		gs->selectionFence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+		
+		gs->selectionFrame = gs->frameCount;
+
+		
+		
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			PF_STOP(selection);
+			
+	}
+	
+	
 	checkCursor(gs, is);
 	// update world state
 // 	glBeginQuery(GL_TIME_ELAPSED, gs->queries.dtime[gs->queries.dtimenum]);
@@ -1027,54 +1093,6 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	
 	glXSwapBuffers(xs->display, xs->clientWin);
 
-	if(gs->hasMoved && gs->lastSelectionFrame < gs->frameCount - 8) {
-		printf("doing selection pass %d\n", gs->frameCount);
-		gs->hasMoved = 0;
-		gs->lastSelectionFrame = gs->frameCount; 
-		
-		// really just the selection pass
-			PF_START(selection);
-		glDepthFunc(GL_LESS);
-		glBindFramebuffer(GL_FRAMEBUFFER, gs->selectionbuf.fb);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		
-		depthPrepass(xs, gs, is);
-		
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, gs->selectionbuf.fb);
-		
-		glReadBuffer(GL_COLOR_ATTACHMENT2);
-		printf("is buffer %d\n", gs->selectionPBOs[gs->activePBO]);
-		glBindBuffer(GL_PIXEL_PACK_BUFFER, gs->selectionPBOs[gs->activePBO]);
-		
-		glexit("selection buff");
-		//printf("cursor pixels: %f, %f\n", is->cursorPosPixels.x, is->cursorPosPixels.y);
-		
-		glReadPixels(
-			0, //is->cursorPosPixels.x,
-			0, //is->cursorPosPixels.y,
-			gs->screen.wh.x,
-			gs->screen.wh.y,
-			GL_RGBA,
-			GL_UNSIGNED_BYTE,
-			0);
-		
-		glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-
-		glexit("read selection");
-		glexit("");
-		
-		if(gs->selectionFence) glDeleteSync(gs->selectionFence);
-		gs->selectionFence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-		
-		gs->selectionFrame = gs->frameCount;
-
-		
-		
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			PF_STOP(selection);
-			
-	}
 	
 	
 }

@@ -144,12 +144,15 @@ void main(void){
 in vec3 t_tile;
 flat in int ps_InstanceID;
 
-layout(location = 2) out ivec4 out_Selection;
+layout(location = 0) out vec4 out_Selection;
 
 
 
 void main(void) {
 	
-	out_Selection = ivec4(floor(t_tile.x), floor(t_tile.y), ps_InstanceID, 1);
+	out_Selection = vec4(floor(t_tile.x)/255, floor(t_tile.y)/255, float(ps_InstanceID)/64.0, 1);
+//	out_Selection = vec4(1 , 1,1 , 1);
+//	out_Selection = vec4(10 , 10,10 , 10);
+//	out_Selection = vec4(0.5,0.5,0.5,0.5);
 }
 

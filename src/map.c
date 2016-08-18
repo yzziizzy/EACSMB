@@ -720,7 +720,7 @@ void drawTerrainDepth(MapInfo* mi, Matrix* mView, Matrix* mProj, Vector2* viewWH
 	int i;
 	
 	glUseProgram(terrDepthProg->id);
-	glEnable(GL_DEPTH_TEST);
+	//glDisable(GL_DEPTH_TEST);
 	
 	glUniformMatrix4fv(view_d_ul, 1, GL_FALSE, mView->m);
 	glexit("");
@@ -737,7 +737,6 @@ glexit("");
 	glPatchParameteri(GL_PATCH_VERTICES, 4);
 	glBindBuffer(GL_ARRAY_BUFFER, patchVBO);
 	
-
 	glUniformMatrix4fv(model_d_ul, 1, GL_FALSE, msGetTop(&model)->m);
 glexit("");
 	glDrawArraysInstanced(GL_PATCHES, 0, totalPatches * totalPatches * 4, mi->numBlocksToRender);
