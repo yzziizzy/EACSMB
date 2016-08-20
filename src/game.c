@@ -901,12 +901,12 @@ void checkCursor(GameState* gs, InputState* is) {
 	int x = (int)is->cursorPosPixels.x;
 	int y = (int)is->cursorPosPixels.y;
 
-	printf("cursor %f, %f\n",is->cursorPosPixels.x, is->cursorPosPixels.y);
+	//printf("cursor %f, %f\n",is->cursorPosPixels.x, is->cursorPosPixels.y);
 	int i = x + (y * w);
-	printf("off %d %f \n", i, gs->screen.wh.x);
+	//printf("off %d %f \n", i, gs->screen.wh.x);
 	uint32_t j = gs->selectionData[i];
 	u.in = j;
-	printf("j %d\n", j); 
+	//printf("j %d\n", j); 
 	
 	gs->cursorTilePos.x = u.rgb[0];
 	gs->cursorTilePos.y = u.rgb[1];
@@ -918,7 +918,7 @@ void checkCursor(GameState* gs, InputState* is) {
 	gs->cursorPos.y = (off->y * 256.0) + gs->cursorTilePos.y;
 	
 	
-	printf("pos: x: %d, y:%d \n", (int)gs->cursorPos.x, (int)gs->cursorPos.y);
+	//printf("pos: x: %d, y:%d \n", (int)gs->cursorPos.x, (int)gs->cursorPos.y);
 	/*
  	printf("mx: %d, my: %d, x: %d, y: %d, z: %d\n", 
 		   (int)is->cursorPosPixels.x, 

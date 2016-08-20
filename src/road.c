@@ -15,6 +15,7 @@
 #include "objloader.h"
 #include "shader.h"
 #include "texture.h"
+#include "view.h" 
 #include "road.h" 
 #include "sim.h" 
 

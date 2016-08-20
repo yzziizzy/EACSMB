@@ -802,8 +802,18 @@ void drawTerrainRoads(GLuint dtex, MapInfo* mi, Matrix* mView, Matrix* mProj, Ve
 	
 	glUniformMatrix4fv(model_ul, 1, GL_FALSE, msGetTop(&model)->m);
 	//printf("Using depth decal tex: %d \n", dtex);
-	// HERE -- drawRoad(NULL, dtex, mView, mProj);
+	//for(i = 0; i < 64; i++) {
+	//	drawRoad(roads, dtex, mView, mProj);
+	//}
 }
+
+
+void genMapRenderInfo(MapBlockRenderInfo* mbri, int buflen, ViewInfo* vi) {
+	
+	
+}
+
+
 
 
 // interpreted as a vertical projection of the quad

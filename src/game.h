@@ -5,6 +5,8 @@
 #include "config.h" // UserConfig
 #include "fbo.h"
 
+
+
 typedef struct GameScreen {
 	
 	float aspect;

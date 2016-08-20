@@ -15,6 +15,7 @@
 #define MCOORD(x,y) ((y * MAP_TEX_SZ) + x)
 
 #include "road.h"
+#include "view.h"
 
 typedef struct TerrainPatchVertex {
 	float x, y, z;
@@ -96,6 +97,17 @@ render front to back
 
 
 */
+
+
+typedef struct MapBlockRenderInfo {
+	int texIndex; // index into the origin offset texture map
+	Vector2 originOffset; // offset from the view's origin at this time
+	MapBlock* mb; // the map block this belongs to
+	float minViewDistance; // distance of the min and max corners from the camera, 
+	float maxViewDistance; //   in 3d
+	float min2DDistance; // distance of min and max corners from the camera,
+	float max2DDistance; //   projected onto the ground
+} MapBLockRenderInfo;
 
 struct sGL_RG8 {
 	unsigned char x, y;

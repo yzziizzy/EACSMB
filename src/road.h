@@ -1,6 +1,7 @@
 #ifndef __EACSMB_ROAD_H__
 #define __EACSMB_ROAD_H__
 
+#include "types.h"
 
 typedef struct RoadVertex {
 	Vector2 v;
