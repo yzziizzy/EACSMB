@@ -65,15 +65,10 @@ static void blit(
 
 
 
-TextRes* LoadFont(char* fontName, int size, char* chars) {
-
+FontInfo* LoadFontInfo(char* fontName) {
 	FT_Error err;
-	FT_GlyphSlot slot;
-	TextRes* res;
-	int i, j, charlen, width, h_above, h_below, height, padding, xoffset;
+	FontInfo* fi;
 	char* fontPath;
-	
-	padding = 2;
 	
 	if(!ftLib) {
 		err = FT_Init_FreeType(&ftLib);
@@ -89,25 +84,48 @@ TextRes* LoadFont(char* fontName, int size, char* chars) {
 		return NULL;
 	}
 	
-	res = (TextRes*)malloc(sizeof(TextRes));
+	fi = calloc(1, sizeof(FontInfo));
 	// if you're out of memory you have bigger problems than error checking...
 	
-	err = FT_New_Face(ftLib, fontPath, 0, &res->fontFace);
+	err = FT_New_Face(ftLib, fontPath, 0, &fi->fontFace);
 	if(err) {
 		fprintf(stderr, "Could not load font file \"%s\".\n", fontPath);
-		free(res);
+		free(fi);
 		return NULL;
 	}
 	
-	err = FT_Set_Pixel_Sizes(res->fontFace, 0, size);
+	return fi;
+}
+	
+	
+	
+TextRes* LoadFont(char* fontName, int size, char* chars) {
+
+	FT_Error err;
+	FT_GlyphSlot slot;
+	FT_Face fontFace; 
+	TextRes* res;
+	int i, j, charlen, width, h_above, h_below, height, padding, xoffset;
+	char* fontPath;
+	
+	padding = 2;
+	
+	res = calloc(1, sizeof(TextRes));
+	
+	res->fontInfo = LoadFontInfo(fontName);
+	
+	fontFace = res->fontInfo->fontFace;
+	
+	err = FT_Set_Pixel_Sizes(fontFace, 0, size);
 	if(err) {
 		fprintf(stderr, "Could not set pixel size to %dpx.\n", size);
+		free(res->fontInfo);
 		free(res);
 		return NULL;
 	}
 	
 	// slot is a pointer
-	slot = res->fontFace->glyph;
+	slot = fontFace->glyph;
 	
 	if(!chars) chars = defaultCharset;
 	res->charSet = strdup(chars);
@@ -123,7 +141,7 @@ TextRes* LoadFont(char* fontName, int size, char* chars) {
 	// first find how wide of a texture we need
 	for(i = 0; i < charlen; i++) {
 		int ymin;
-		err = FT_Load_Char(res->fontFace, chars[i], FT_LOAD_DEFAULT);
+		err = FT_Load_Char(fontFace, chars[i], FT_LOAD_DEFAULT);
 		
 		ymin = slot->metrics.height >> 6;// - f2f(slot->metrics.horiBearingY);
 /*
@@ -172,7 +190,7 @@ TextRes* LoadFont(char* fontName, int size, char* chars) {
 		int paddedw, charHeight, bearingY;
 		
 		
-		err = FT_Load_Char(res->fontFace, chars[i], FT_LOAD_RENDER);
+		err = FT_Load_Char(fontFace, chars[i], FT_LOAD_RENDER);
 		
 		paddedw = (slot->metrics.width >> 6) + padding;
 		bearingY = slot->metrics.horiBearingY >> 6;
@@ -207,13 +225,13 @@ TextRes* LoadFont(char* fontName, int size, char* chars) {
 		FT_UInt left, right;
 		FT_Vector k;
 		
-		left = FT_Get_Char_Index(res->fontFace, chars[i]);
+		left = FT_Get_Char_Index(fontFace, chars[i]);
 		
 		for(j = 0; j < charlen; j++) {
 			
-			right = FT_Get_Char_Index(res->fontFace, chars[j]);
+			right = FT_Get_Char_Index(fontFace, chars[j]);
 			
-			FT_Get_Kerning(res->fontFace, left, right, FT_KERNING_DEFAULT, &k);
+			FT_Get_Kerning(fontFace, left, right, FT_KERNING_DEFAULT, &k);
 		//	if(k.x != 0) printf("k: (%c%c) %d, %d\n", chars[i],chars[j], k.x, k.x >> 6);
 			res->kerning[(i * charlen) + j] = k.x >> 6;
 		}
@@ -246,6 +264,118 @@ TextRes* LoadFont(char* fontName, int size, char* chars) {
 	return res;
 }
 
+
+
+int DrawGlyph(TextRes* res, GlyphBitmap* gb) {
+	
+	int padding;
+	FT_GlyphSlot slot;
+	
+	padding = gb->oversample * gb->magnitude;
+		
+	// have freetype draw the character
+	FT_Load_Char(res->fontInfo->fontFace, gb->code, FT_LOAD_RENDER);
+	
+	slot = res->fontInfo->fontFace->glyph;
+	
+	gb->w = slot->metrics.width >> 6;
+	gb->h = slot->metrics.height >> 6;
+	gb->paddedw = gb->w + padding + padding;
+	gb->paddedh = gb->h + padding + padding;
+		
+	gb->dw = nextPOT(gb->paddedw);
+	gb->dh = nextPOT(gb->paddedh);
+	fprintf(stdout, "glyph bitmap size [%d, %d]\n", gb->dw, gb->dh);
+
+	gb->data = calloc(1, gb->dw * gb->dh * sizeof(uint8_t));
+	
+		
+/*		printf("meh: %d\n", height - charHeight);
+		printf("index: %d, char: %c, xoffset: %d, pitch: %d \n", i, chars[i], xoffset, slot->bitmap.pitch);
+		printf("m.width: %d, m.height: %d, hbearing: %d, habove: %d \n\n", slot->metrics.width >> 6, slot->metrics.height >> 6, slot->metrics.horiBearingY >> 6, h_above);
+*/	blit(
+		0, 0, // src x and y offset for the image
+		padding, padding, // dst offset
+		gb->w, gb->h, // width and height BUG probably
+		slot->bitmap.pitch, gb->dw, // src and dst row widths
+		slot->bitmap.buffer, // source
+		gb->data); // destination
+
+	return 0;
+}
+
+static float dist(int a, int b) {
+	return sqrt(a*a + b*b);
+}
+static float dmin(int a, int b, float d) {
+	return fmin(dist(a, b), d);
+}
+
+static int boundedOffset(int x, int y, int ox, int oy, int w, int h) {
+	int x1 = x + ox;
+	int y1 = y + oy;
+	if(x1 < 0 || y1 < 0 || x1 > w || y1 > h) return -1;
+	return x1 + (w * y1);
+}
+
+static uint8_t sdfEncode(float d, int inside, float maxDist) {
+	int o;
+	
+	float norm = d / maxDist;
+	if(inside) norm = -norm;
+	
+	o = (norm * 192) + 64;
+	
+	return o < 0 ? 0 : (o > 255 ? 255 : o);
+}
+
+void CalcSDF_Software(TextRes* res, GlyphBitmap* gb) {
+	
+	int searchSize;
+	int x, y, ox, oy, sx, sy;
+	int dw, dh;
+	
+	uint8_t* data;
+	uint8_t* output;
+	
+	float d, maxDist;
+	
+	searchSize = gb->oversample * gb->magnitude;
+	maxDist = 0.5 * searchSize;
+	dw = gb->dw;
+	dh = gb->dh;
+	data = gb->data;
+	
+	gb->sdfData = output = malloc(gb->w * gb->h * sizeof(uint8_t));
+	
+	
+	for(y = 0; y < gb->h; y++) {
+		for(x = 0; x < gb->w; x++) {
+			int sx = x * gb->oversample;
+			int sy = y * gb->oversample;
+			
+			// value right under the center of the pixel, to determine if we are inside
+			// or outside the glyph
+			int v = data[sx + (sy * dw)];
+			
+			d = 999999.9;
+			
+			
+			for(oy = -searchSize / 2; oy < searchSize; oy++) {
+				for(ox = -searchSize / 2; ox < searchSize; ox++) {
+					int off = boundedOffset(sx, sy, ox, oy, dw, dh);
+					if(off >= 0 && data[off] != v) 
+						d = dmin(ox, oy, d);
+				}
+			}
+			
+			output[x + (y * gb->w)] = sdfEncode(d, v, maxDist);
+		}
+	}
+	
+	
+	
+}
 
 
 

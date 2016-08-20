@@ -2,10 +2,28 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-
-
 typedef struct {
 	FT_Face fontFace;
+	
+	
+} FontInfo;
+
+typedef struct {
+	int code;
+	int fontSize;
+	int oversample, magnitude;
+	
+	int w, h;
+	int paddedw, paddedh;
+	// need kerning and offset data
+	
+	int dw, dh;
+	uint8_t* data;
+	uint8_t* sdfData;
+} GlyphBitmap;
+
+typedef struct {
+	FontInfo* fontInfo;
 	char* charSet;
 	unsigned char* texture;
 	unsigned char* codeIndex;
@@ -47,9 +65,12 @@ typedef struct {
 } TextRenderInfo;
 
 
+// handles fontconfig and freetype loading
+FontInfo* LoadFontInfo(char* fontName);
 
 // this function is rather expensive. it rebinds textures.
 TextRes* LoadFont(char* path, int size, char* chars);
+
 
 
 TextRenderInfo* prepareText(TextRes* font, const char* str, int len, unsigned int* colors);

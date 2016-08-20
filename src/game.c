@@ -276,6 +276,8 @@ void initGame(XStuff* xs, GameState* gs) {
 	getPrintGLEnum(GL_MAX_ARRAY_TEXTURE_LAYERS, "meh");
 	getPrintGLEnum(GL_MAX_SAMPLES, "meh");
 	getPrintGLEnum(GL_MAX_VERTEX_ATTRIBS, "meh");
+	getPrintGLEnum(GL_MIN_PROGRAM_TEXEL_OFFSET, "meh");
+	getPrintGLEnum(GL_MAX_PROGRAM_TEXEL_OFFSET, "meh");
 	
 	query_queue_init(&gs->queries.draw);
 	
@@ -311,7 +313,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	initMarker();
 	
 	// text rendering stuff
-	arial = LoadFont("Arial", 64, NULL);
+	arial = LoadFont("Arial", 16, NULL);
 	glerr("clearing before text program load");
 	textProg = loadCombinedProgram("text");
 	
