@@ -265,6 +265,141 @@ TextRes* LoadFont(char* fontName, int size, char* chars) {
 }
 
 
+	
+TextRes* LoadSDFFont(char* fontName, int size, char* chars) {
+	FT_Error err;
+	FT_GlyphSlot slot;
+	FT_Face fontFace; 
+	TextRes* res;
+	int i, j, charlen, width, h_above, h_below, height, padding, xoffset;
+	char* fontPath;
+	
+	padding = 2;
+	
+	res = calloc(1, sizeof(TextRes));
+	
+	res->fontInfo = LoadFontInfo(fontName);
+	
+	fontFace = res->fontInfo->fontFace;
+	
+	err = FT_Set_Pixel_Sizes(fontFace, 0, size);
+	if(err) {
+		fprintf(stderr, "Could not set pixel size to %dpx.\n", size);
+		free(res->fontInfo);
+		free(res);
+		return NULL;
+	}
+	
+	// slot is a pointer
+	slot = fontFace->glyph;
+	
+	if(!chars) chars = defaultCharset;
+	res->charSet = strdup(chars);
+	
+	charlen = strlen(chars);
+	res->charLen = charlen;
+	
+	h_above = 0;
+	h_below = 0;
+	width = 16*1024;
+	height = 256;
+	
+	res->texture = (unsigned char*)calloc(width * height, 1);
+	res->offsets = (unsigned short*)calloc(charlen * sizeof(unsigned short), 1);
+	res->charWidths = (unsigned short*)calloc(charlen * sizeof(unsigned short), 1);
+	res->valign = (unsigned char*)calloc(charlen * sizeof(unsigned char), 1);
+	
+	GlyphBitmap* gbs = calloc(1, charlen * sizeof(GlyphBitmap));
+	
+
+	int max_h = 0;
+	int max_w = 0;
+	int bearingY = 0;
+	
+	// get character dimensions
+	for(i = 0; i < charlen; i++) {
+		int ymin;
+		err = FT_Load_Char(fontFace, chars[i], FT_LOAD_DEFAULT);
+		
+		ymin = slot->metrics.height >> 6;// - f2f(slot->metrics.horiBearingY);
+
+//		printf("%c-----\nymin: %d \n", chars[i], ymin);
+//		printf("bearingY: %d \n", slot->metrics.horiBearingY >> 6);
+//		printf("width: %d \n", slot->metrics.width >> 6);
+//		printf("height: %d \n\n", slot->metrics.height >> 6);
+
+		
+		width += f2f(slot->metrics.width);
+		h_above = MAX(h_above, slot->metrics.horiBearingY >> 6);
+		h_below = MAX(h_below, ymin);
+	}
+
+	int tex_width = nextPOT(width);
+	
+	
+	// render SDF's
+	for(i = 0; i < charlen; i++) {
+		gbs[i].oversample = 16;
+		gbs[i].magnitude = 4;
+		DrawGlyph(res, &gbs[i]);
+		printf("calculating sdf for %d... ", i);
+		CalcSDF_Software(res, &gbs[i]);
+		printf("done\n");
+		
+		
+		blit(
+			0, 0, // src x and y offset for the image
+			xoffset + padding, padding + (h_above), // dst offset
+			slot->metrics.width >> 6, slot->metrics.height >> 6, // width and height BUG probably
+			slot->bitmap.pitch, width, // src and dst row widths
+			slot->bitmap.buffer, // source
+			res->texture); // destination
+		
+	}
+	
+	
+	// kerning map
+	res->kerning = (unsigned char*)malloc(charlen * charlen);
+	for(i = 0; i < charlen; i++) {
+		FT_UInt left, right;
+		FT_Vector k;
+		
+		left = FT_Get_Char_Index(fontFace, chars[i]);
+		
+		for(j = 0; j < charlen; j++) {
+			
+			right = FT_Get_Char_Index(fontFace, chars[j]);
+			
+			FT_Get_Kerning(fontFace, left, right, FT_KERNING_DEFAULT, &k);
+		//	if(k.x != 0) printf("k: (%c%c) %d, %d\n", chars[i],chars[j], k.x, k.x >> 6);
+			res->kerning[(i * charlen) + j] = k.x >> 6;
+		}
+	}
+	
+	///////////////////////////////////////////////////////////////////
+	
+		// TODO: error checking
+	glGenTextures(1, &res->textureID);
+	glBindTexture(GL_TEXTURE_2D, res->textureID);
+	glerr("bind font tex");
+	
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0); // no mipmaps for this; it'll get fucked up
+	glerr("param font tex");
+	
+	printf("text width: %d, height: %d \n", tex_width, height);
+	
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, res->texture);
+	glerr("load font tex");
+	
+	glBindTexture(GL_TEXTURE_2D, 0);
+	
+	
+	
+}
 
 int DrawGlyph(TextRes* res, GlyphBitmap* gb) {
 	
@@ -305,7 +440,7 @@ int DrawGlyph(TextRes* res, GlyphBitmap* gb) {
 }
 
 static float dist(int a, int b) {
-	return sqrt(a*a + b*b);
+	return a*a + b*b;
 }
 static float dmin(int a, int b, float d) {
 	return fmin(dist(a, b), d);
@@ -320,7 +455,7 @@ static int boundedOffset(int x, int y, int ox, int oy, int w, int h) {
 
 static uint8_t sdfEncode(float d, int inside, float maxDist) {
 	int o;
-	
+	d = sqrt(d);
 	float norm = d / maxDist;
 	if(inside) norm = -norm;
 	
@@ -346,14 +481,16 @@ void CalcSDF_Software(TextRes* res, GlyphBitmap* gb) {
 	dh = gb->dh;
 	data = gb->data;
 	
-	gb->sdfData = output = malloc(gb->w * gb->h * sizeof(uint8_t));
+	gb->w = dw / gb->oversample; 
+	gb->h = dh / gb->oversample; 
 	
+	gb->sdfData = output = malloc(gb->w * gb->h * sizeof(uint8_t));
 	
 	for(y = 0; y < gb->h; y++) {
 		for(x = 0; x < gb->w; x++) {
 			int sx = x * gb->oversample;
 			int sy = y * gb->oversample;
-			
+			printf(".");
 			// value right under the center of the pixel, to determine if we are inside
 			// or outside the glyph
 			int v = data[sx + (sy * dw)];
@@ -372,10 +509,9 @@ void CalcSDF_Software(TextRes* res, GlyphBitmap* gb) {
 			output[x + (y * gb->w)] = sdfEncode(d, v, maxDist);
 		}
 	}
-	
-	
-	
 }
+
+
 
 
 
@@ -617,7 +753,7 @@ void updateText(TextRenderInfo* tri, const char* str, int len, unsigned int* col
 	
 	glDeleteBuffers(1, &oldvbo);
 	
-		// vertex
+	// vertex
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(TextVertex), (void*)0);
 	glerr("pos attrib");

@@ -41,7 +41,7 @@ float zoom;
 
 
 // temp shit
-TextRes* arial;
+TextRes* arial, *arialsdf;
 ShaderProgram* textProg;
 Matrix textProj, textModel;
 TextRenderInfo* strRI;
@@ -313,7 +313,8 @@ void initGame(XStuff* xs, GameState* gs) {
 	initMarker();
 	
 	// text rendering stuff
-	arial = LoadFont("Arial", 16, NULL);
+	//arialsdf = LoadSDFFont("Arial", 16, NULL);
+	arial = LoadFont("Arial", 32, NULL);
 	glerr("clearing before text program load");
 	textProg = loadCombinedProgram("text");
 	
@@ -324,6 +325,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	};
 	
 	strRI = prepareText(arial, "FPS: --", -1, colors);
+//	strRI = prepareText(arialsdf, "FPS: --", -1, colors);
 	
 	initStaticMeshes();
 	initRoads();
