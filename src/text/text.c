@@ -265,6 +265,10 @@ TextRes* LoadFont(char* fontName, int size, char* chars) {
 }
 
 
+static int bmpsort(GlyphBitmap** a, GlyphBitmap** b) {
+	return (*a)->h - (*b)->h;
+}
+
 	
 TextRes* LoadSDFFont(char* fontName, int size, char* chars) {
 	FT_Error err;
@@ -336,6 +340,8 @@ TextRes* LoadSDFFont(char* fontName, int size, char* chars) {
 
 	int tex_width = nextPOT(width);
 	
+
+	
 	
 	// render SDF's
 	for(i = 0; i < charlen; i++) {
@@ -345,8 +351,16 @@ TextRes* LoadSDFFont(char* fontName, int size, char* chars) {
 		printf("calculating sdf for %d... ", i);
 		CalcSDF_Software(res, &gbs[i]);
 		printf("done\n");
-		
-		
+	}
+
+
+	// copy sdf's to atlas texture
+	GlyphBitmap** charOrdering = malloc(charlen * sizeof(GlyphBitmap*));
+	for(i = 0; i < charlen; i++) charOrdering[i] = &gbs[i];
+	
+	qsort(charOrdering, charlen, sizeof(GlyphBitmap*), bmpsort);
+	
+	for(i = 0; i < charlen; i++) {
 		blit(
 			0, 0, // src x and y offset for the image
 			xoffset + padding, padding + (h_above), // dst offset
