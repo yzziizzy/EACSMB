@@ -14,6 +14,8 @@ typedef uint64_t RenderCommandKey;
 
 
 typedef struct {
+	void (*setUniforms)(GLuint, void*);
+	void* uniformData;
 	
 	GLenum mode,
 	GLint first,
@@ -26,11 +28,23 @@ typedef struct RenderCommand {
 	RenderCommandType type;
 	RenderCommandKey key;
 	
+	GLuint prog;
+	
+	GLuint vao;
+	GLuint vbo1;
+	GLuint vbo2;
+	
+	char depthEnable;
+	char depthMask;
+	char blendEnable;
+	GLenum blendFuncSrc;
+	GLenum blendFuncDst;
+	
 	union {
-		RC_DrawArraysInstanced DrawArraysInstanced
-		
+		RC_DrawArraysInstanced DrawArraysInstanced;
 		
 	}
+		
 	
 	// state here
 	
