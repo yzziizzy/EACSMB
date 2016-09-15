@@ -59,6 +59,10 @@ void render_RenderCommandQueue(RenderCommand* rc, int length) {
 		if(!prev || prev->vbo2 != cur->vbo2)
 			glBindVertexArray(cur->vbo2);
 		
+		if(!prev || prev->patchVertices != cur->patchVertices)
+			glPatchParameteri(GL_PATCH_VERTICES, cur->patchVertices);
+		
+		
 		// depth testing
 		if(!prev || prev->depthEnable != cur->depthEnable) {
 			if(cur->depthEnable) glEnable(GL_DEPTH_TEST);
@@ -99,9 +103,23 @@ void render_RenderCommandQueue(RenderCommand* rc, int length) {
 
 
 
+RenderCommandQueue* render_AllocCommandQueue(int size) {
+	
+	RenderCommandQueue* rcq;
+	
+	rcq = malloc(sizeof(RenderCommandQueue));
+	
+	rcq->alloc_len = size;
+	rcq->next_index = 0;
+	rcq->cmds = calloc(1, sizeof(RenderCommand) * size);
+	
+	return rcq;
+}
 
-
-
+RenderCommand* render_GetCommandSlot(RenderCommandQueue* rcq) {
+	if(rcq->next_index >= rcq->alloc_len) return NULL; 
+	return &rcq->cmds[rcq->next_index++];
+}
 
 
 

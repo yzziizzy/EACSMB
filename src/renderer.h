@@ -2,9 +2,11 @@
 
 
 
+
+
 typedef enum {
 	RCT_Invalid = 0,
-	RCT_DrawArrays
+	RCT_DrawArraysInstanced
 	
 	
 } RenderCommandType;
@@ -34,6 +36,7 @@ typedef struct RenderCommand {
 	GLuint vbo1;
 	GLuint vbo2;
 	
+	char patchVertices;
 	char depthEnable;
 	char depthMask;
 	char blendEnable;
@@ -44,21 +47,22 @@ typedef struct RenderCommand {
 		RC_DrawArraysInstanced DrawArraysInstanced;
 		
 	}
-		
 	
-	// state here
 	
-}
+} RenderCommand;
 
 
 
+typedef struct RenderCommandQueue {
+	int alloc_len;
+	int next_index;
+	RenderCommand* cmds;
+} RenderCommandQueue
 
 
-
-
-
-
-
+void render_RenderCommandQueue(RenderCommand* rc, int length); 
+RenderCommandQueue* render_AllocCommandQueue(int size); 
+RenderCommand* render_GetCommandSlot(RenderCommandQueue* rcq);
 
 
 
