@@ -26,10 +26,9 @@ typedef struct {
 } RC_DrawArraysInstanced;
 
 
-typedef struct RenderCommand {
-	RenderCommandType type;
-	RenderCommandKey key;
-	
+
+
+typedef struct DrawCommand {
 	GLuint prog;
 	
 	GLuint vao;
@@ -49,8 +48,19 @@ typedef struct RenderCommand {
 	}
 	
 	
-} RenderCommand;
+} DrawCommand;
 
+struct UniformCommand;
+
+
+typedef struct RenderCommand {
+	RenderCommandType type;
+	RenderCommandKey key;
+	union {
+		UniformCommand uniform;
+		DrawCommand draw;
+	}
+} RenderCommand;
 
 
 typedef struct RenderCommandQueue {

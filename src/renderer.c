@@ -35,10 +35,10 @@ static void render_DrawArraysInstanced(RC_DrawArraysInstanced* cb) {
 
 
 
-void render_RenderCommandQueue(RenderCommand* rc, int length) {
+void render_RenderCommandQueue(DrawCommand* rc, int length) {
 	
 	int i;
-	RenderCommand* cur, *prev;
+	DrawCommand* cur, *prev;
 	
 	prev = NULL;
 	cur = rc;
