@@ -2,6 +2,22 @@
 
 
 
+typedef struct {
+	
+	Matrix mViewProj;
+	Matrix mProjScreen;
+	
+} PerViewUniforms;
+
+
+typedef struct {
+	
+	float globalTimeWholeSeconds;
+	float globalTimeFracSeconds;
+	
+} PerFrameUniforms;
+
+
 
 
 typedef enum {
