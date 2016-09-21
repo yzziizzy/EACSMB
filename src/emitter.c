@@ -27,6 +27,7 @@ static GLuint model_ul, view_ul, proj_ul, timeS_ul, timeMS_ul;
 static GLuint tex_ul;
 static Texture* sprite_tex;
 
+static GLuint frame_ubo;
 
 
 static float frand(float low, float high) {
@@ -35,6 +36,21 @@ static float frand(float low, float high) {
 
 
 void initEmitters() {
+	
+	GLbitfield flags;
+	size_t ubo_size;
+	
+	
+	flags =  GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
+	ubo_size = sizeof(float) * 2 * 3;
+	
+	glGenBuffers(1, &frame_ubo);
+	glBindBuffer(GL_UNIFORM_BUFFER, frame_ubo);
+	glBufferStorage(GL_UNIFORM_BUFFER, ubo_size, NULL, flags);
+	glexit("ubo storage");
+	
+	glMapBufferRange(GL_UNIFORM_BUFFER, 0, ubo_size, flags);
+	glexit("ubo persistent map");
 	
 	sprite_tex = loadBitmapTexture("./assets/textures/dust.png");
 		// VAO
