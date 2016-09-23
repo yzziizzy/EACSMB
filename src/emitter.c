@@ -28,18 +28,54 @@ static GLuint tex_ul;
 static Texture* sprite_tex;
 
 static GLuint frame_ubo;
-
+static int next_ubo_region = 0;
+static GLuint ubo_fences[3];
+static float* ubo_ptr; 
 
 static float frand(float low, float high) {
 	return low + ((high - low) * ((double)rand() / (double)RAND_MAX));
 }
 
 
+// terrible code, but use for now
+int waitSync(GLuint id) {
+	GLenum ret;
+	if(!id || !glIsSync(id)) return 1;
+	while(1) {
+		ret = glClientWaitSync(id, GL_SYNC_FLUSH_COMMANDS_BIT, 1);
+		glexit("");
+		if(ret == GL_ALREADY_SIGNALED || ret == GL_CONDITION_SATISFIED)
+		  return 0;
+	}
+}
+
+
+static void* getUBORegionPointer() {
+	// the fence at index n protects from writing to index n.
+	// it is set after commands for n - 1;
+	waitSync(ubo_fences[next_ubo_region]);
+	
+	return &ubo_ptr[next_ubo_region * 2];
+}
+
+static setUBOFence() {
+	next_ubo_region = (next_ubo_region + 1) % 3; // BUG: make sure this is the right one
+	
+	if(ubo_fences[next_ubo_region]) glDeleteSync(ubo_fences[next_ubo_region]);
+	glexit("");
+	ubo_fences[next_ubo_region] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+	glexit("");
+}
+
 void initEmitters() {
 	
 	GLbitfield flags;
 	size_t ubo_size;
 	
+	next_ubo_region = 0;
+	ubo_fences[0] = 0;
+	ubo_fences[1] = 0;
+	ubo_fences[2] = 0;
 	
 	flags =  GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
 	ubo_size = sizeof(float) * 2 * 3;
@@ -49,8 +85,9 @@ void initEmitters() {
 	glBufferStorage(GL_UNIFORM_BUFFER, ubo_size, NULL, flags);
 	glexit("ubo storage");
 	
-	glMapBufferRange(GL_UNIFORM_BUFFER, 0, ubo_size, flags);
+	ubo_ptr = glMapBufferRange(GL_UNIFORM_BUFFER, 0, ubo_size, flags);
 	glexit("ubo persistent map");
+	
 	
 	sprite_tex = loadBitmapTexture("./assets/textures/dust.png");
 		// VAO
@@ -83,6 +120,7 @@ void initEmitters() {
 	tex_ul = glGetUniformLocation(prog->id, "textures");
 //	color_ul = glGetUniformLocation(prog->id, "color");
 
+	
 	
 	glexit("emitter shader");
 }
@@ -202,6 +240,7 @@ void Draw_Emitter(Emitter* e, Matrix* view, Matrix* proj, double time) {
 		
 	Matrix model;
 	
+	
 	glUseProgram(prog->id);
 	
 	glEnable (GL_BLEND);
@@ -216,6 +255,10 @@ void Draw_Emitter(Emitter* e, Matrix* view, Matrix* proj, double time) {
 	double seconds = (float)(long)time;
 	double milliseconds = time - seconds;
 	
+	float* tb = getUBORegionPointer();
+
+	tb[0] = seconds;
+	tb[1] = milliseconds;
 	glUniform1f(timeS_ul, seconds); // TODO figure out how to fix rounding nicely
 	glUniform1f(timeMS_ul, milliseconds); // TODO figure out how to fix rounding nicely
 
@@ -235,6 +278,7 @@ void Draw_Emitter(Emitter* e, Matrix* view, Matrix* proj, double time) {
 	glDrawArraysInstanced(GL_POINTS, 0, e->particleNum, e->instanceNum);
 	glexit("emitter draw");
 	
+	setUBOFence();
 	
 	glDepthMask(GL_TRUE);
 }
