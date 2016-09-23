@@ -278,6 +278,8 @@ void initGame(XStuff* xs, GameState* gs) {
 	getPrintGLEnum(GL_MAX_VERTEX_ATTRIBS, "meh");
 	getPrintGLEnum(GL_MIN_PROGRAM_TEXEL_OFFSET, "meh");
 	getPrintGLEnum(GL_MAX_PROGRAM_TEXEL_OFFSET, "meh");
+	getPrintGLEnum(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, "meh");
+	getPrintGLEnum(GL_MAX_UNIFORM_BLOCK_SIZE, "meh");
 	
 	query_queue_init(&gs->queries.draw);
 	

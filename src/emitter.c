@@ -27,6 +27,8 @@ static GLuint model_ul, view_ul, proj_ul, timeS_ul, timeMS_ul;
 static GLuint tex_ul;
 static Texture* sprite_tex;
 
+static GLuint ubo_alignment;
+
 static GLuint frame_ubo;
 static int next_ubo_region = 0;
 static GLuint ubo_fences[3];
@@ -72,13 +74,17 @@ void initEmitters() {
 	GLbitfield flags;
 	size_t ubo_size;
 	
+	GLuint block_index;
+	
+	glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &ubo_alignment);
+	
 	next_ubo_region = 0;
 	ubo_fences[0] = 0;
 	ubo_fences[1] = 0;
 	ubo_fences[2] = 0;
 	
 	flags =  GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
-	ubo_size = sizeof(float) * 2 * 3;
+	ubo_size = ubo_alignment * 3;
 	
 	glGenBuffers(1, &frame_ubo);
 	glBindBuffer(GL_UNIFORM_BUFFER, frame_ubo);
@@ -114,13 +120,16 @@ void initEmitters() {
 //	model_ul = glGetUniformLocation(prog->id, "mModel");
 	view_ul = glGetUniformLocation(prog->id, "mView");
 	proj_ul = glGetUniformLocation(prog->id, "mProj");
-	timeS_ul = glGetUniformLocation(prog->id, "timeSeconds");
-	timeMS_ul = glGetUniformLocation(prog->id, "timeFractional");
+// 	timeS_ul = glGetUniformLocation(prog->id, "timeSeconds");
+// 	timeMS_ul = glGetUniformLocation(prog->id, "timeFractional");
 	
 	tex_ul = glGetUniformLocation(prog->id, "textures");
 //	color_ul = glGetUniformLocation(prog->id, "color");
 
-	
+	block_index = glGetUniformBlockIndex(prog->id, "globalTimer");
+	glexit("");
+	glUniformBlockBinding(prog->id, block_index, 0);
+	glexit("");
 	
 	glexit("emitter shader");
 }
@@ -259,9 +268,11 @@ void Draw_Emitter(Emitter* e, Matrix* view, Matrix* proj, double time) {
 
 	tb[0] = seconds;
 	tb[1] = milliseconds;
-	glUniform1f(timeS_ul, seconds); // TODO figure out how to fix rounding nicely
-	glUniform1f(timeMS_ul, milliseconds); // TODO figure out how to fix rounding nicely
+	//glUniform1f(timeS_ul, seconds); // TODO figure out how to fix rounding nicely
+	//glUniform1f(timeMS_ul, milliseconds); // TODO figure out how to fix rounding nicely
 
+	glBindBufferRange(GL_UNIFORM_BUFFER, 0, frame_ubo, next_ubo_region*ubo_alignment, 4*2);
+	glexit("");
 //	glUniform3f(color_ul, .5, .2, .9);
 // 	glUniform2f(screenSize_ul, 600, 600);
 

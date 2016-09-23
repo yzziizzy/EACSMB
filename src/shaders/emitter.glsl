@@ -4,6 +4,8 @@
 
 #version 430 core
 
+layout(std140) uniform; 
+
 // constant attributes
 layout (location = 0) in vec4 start_pos_cooldown_in;
 layout (location = 1) in vec4 start_vel_spawndelay_in;
@@ -19,8 +21,10 @@ layout (location = 5) in vec4 starttime_lifespan_in;
 uniform mat4 mView;
 uniform mat4 mProj;
 
-uniform float timeSeconds;
-uniform float timeFractional;
+uniform globalTimer {
+	float timeSeconds;
+	float timeFractional;
+};
 
 
 
