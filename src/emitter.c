@@ -101,10 +101,11 @@ void initEmitters() {
 		// VAO
 	VAOConfig opts[] = {
 		// per particle attributes
-		{4, GL_FLOAT}, // start position & phys fn index
+		{4, GL_FLOAT}, // start position & offset
 		{4, GL_FLOAT}, // start velocity & spawn delay
 		{4, GL_FLOAT}, // start acceleration & lifetime
 		{4, GL_FLOAT}, // size, angular momentum, growth rate, randomness
+		{4, GL_FLOAT}, // fade-in, fade-out, unallocated
 		
 		// per emitter attributes
 		{4, GL_FLOAT}, // position & scale
@@ -113,7 +114,7 @@ void initEmitters() {
 		{0, 0}
 	};
 	
-	vao = makeVAO(opts, 4*4 * 6);
+	vao = makeVAO(opts, 4*4 * 8);
 	glexit("emitter vao");
 	
 	
@@ -156,7 +157,7 @@ Emitter* makeEmitter() {
 		s->start_pos.y = frand(-.5, .5); 
 		s->start_pos.z = frand(0, 1); 
 		
-		s->cooldown = frand(0, 2);
+		s->offset = frand(0, 2);
 		
 		s->start_vel.x = 0;
 		s->start_vel.y = 0;
@@ -175,6 +176,9 @@ Emitter* makeEmitter() {
 		s->growth_rate = frand(0, .4);
 		s->randomness = frand(0, 1);
 		
+		s->fade_in = frand(1, 2);
+		s->fade_out = frand(2, 4);
+		
 		s++;
 	}
 
@@ -189,16 +193,18 @@ Emitter* makeEmitter() {
 	glBindBuffer(GL_ARRAY_BUFFER, e->points_vbo);
 	
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4*4*4, 0);
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4*4*5, 0);
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 4*4*4, 1*4*4);
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 4*4*5, 1*4*4);
 	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 4*4*4, 2*4*4);
+	glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 4*4*5, 2*4*4);
 	glEnableVertexAttribArray(3);
-	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 4*4*4, 3*4*4);
+	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 4*4*5, 3*4*4);
+	glEnableVertexAttribArray(4);
+	glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 4*4*5, 4*4*4);
 
 	glBufferData(GL_ARRAY_BUFFER, e->particleNum * sizeof(EmitterSprite), e->sprite, GL_STATIC_DRAW);
-	
+
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 
@@ -228,17 +234,17 @@ void emitter_update_vbo(Emitter* e) {
 	glBindVertexArray(vao);
 	glBindBuffer(GL_ARRAY_BUFFER, e->instance_vbo);
 
-	glEnableVertexAttribArray(4);
 	glEnableVertexAttribArray(5);
+	glEnableVertexAttribArray(6);
 	
-	glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 2*4*4, 0*4*4);
-	glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 2*4*4, 1*4*4);
+	glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 2*4*4, 0*4*4);
+	glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, 2*4*4, 1*4*4);
 
 	printf("instance pos %d %f %f %f \n",  sizeof(EmitterInstance), e->instances[0].pos.x, e->instances[0].pos.y, e->instances[0].pos.z);
 	glBufferData(GL_ARRAY_BUFFER, e->instanceNum * sizeof(EmitterInstance), e->instances, GL_STATIC_DRAW);
 	
-	glVertexAttribDivisor(4, 1);
 	glVertexAttribDivisor(5, 1);
+	glVertexAttribDivisor(6, 1);
 	
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);

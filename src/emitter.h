@@ -13,9 +13,11 @@ typedef struct  __attribute__ ((__packed__)) EmitterInstance {
 
 // need: fade in/out time 
 // refactor time for offset and cooldown
+//           |---------------------lifetime----------------------------|
+// --offset--|--spawn-delay--|--fade-in--|--<calculated>--|--fade-out--|
 typedef struct EmitterSprite {
 	Vector start_pos;
-	float cooldown;
+	float offset;
 	
 	Vector start_vel;
 	float spawn_delay;
@@ -24,6 +26,8 @@ typedef struct EmitterSprite {
 	float lifetime;
 	
 	float size, spin, growth_rate, randomness;
+	
+	float fade_in, fade_out, unallocated_1, unallocated_2;
 	
 } EmitterSprite;
 
@@ -37,7 +41,6 @@ typedef struct Emitter {
 	EmitterInstance* instances;
 	
 } Emitter;
-
 
 
 

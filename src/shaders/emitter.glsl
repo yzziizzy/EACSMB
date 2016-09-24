@@ -11,10 +11,11 @@ layout (location = 0) in vec4 start_pos_cooldown_in;
 layout (location = 1) in vec4 start_vel_spawndelay_in;
 layout (location = 2) in vec4 start_acc_lifetime_in;
 layout (location = 3) in vec4 size_spin_growth_random_in;
+layout (location = 4) in vec4 fade_in_out;
 
 // instanced attributes
-layout (location = 4) in vec4 pos_scale_in;
-layout (location = 5) in vec4 starttime_lifespan_in;
+layout (location = 5) in vec4 pos_scale_in;
+layout (location = 6) in vec4 starttime_lifespan_in;
 
 
 
