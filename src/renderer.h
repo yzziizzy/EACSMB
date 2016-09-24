@@ -4,9 +4,18 @@
 
 typedef struct {
 	
+	Vector2 windowSize;
+	
+} GlobalUniforms;
+
+
+
+typedef struct {
+	
 	Matrix mViewProj;
 	Matrix mProjScreen;
 	
+	// eye vectors
 } PerViewUniforms;
 
 

@@ -97,7 +97,7 @@ void initEmitters() {
 	glexit("ubo persistent map");
 	
 	
-	sprite_tex = loadBitmapTexture("./assets/textures/dust.png");
+	sprite_tex = loadBitmapTexture("./assets/textures/terrible_smoke.png");
 		// VAO
 	VAOConfig opts[] = {
 		// per particle attributes
@@ -152,8 +152,8 @@ Emitter* makeEmitter() {
 	e->instances = ar_alloc(e->instances, 100);
 	
 	for(i = 0; i < e->particleNum; i++) {
-		s->start_pos.x = frand(-10, 10); 
-		s->start_pos.y = frand(-10, 10); 
+		s->start_pos.x = frand(-.5, .5); 
+		s->start_pos.y = frand(-.5, .5); 
 		s->start_pos.z = frand(0, 1); 
 		
 		s->cooldown = frand(0, 2);
@@ -162,13 +162,13 @@ Emitter* makeEmitter() {
 		s->start_vel.y = 0;
 		s->start_vel.z = 1.5;
 		
-		s->spawn_delay = frand(0, 5);
+		s->spawn_delay = frand(0, 6.8);
 		
-		s->start_acc.x = 0;
-		s->start_acc.y = 0;
+		s->start_acc.x = frand(-0.3, 0.3);
+		s->start_acc.y = frand(-0.3, 0.3);
 		s->start_acc.z = 0.5;
 		
-		s->lifetime = 5;
+		s->lifetime = 7;
 		
 		s->size = frand(2,6);
 		s->spin = frand(-1, 1);
