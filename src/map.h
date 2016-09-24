@@ -39,7 +39,6 @@ typedef struct TerrainBlock {
 
 
 
-
 typedef struct MapBlock {
 	int32_t bix, biy; // location in blocks. max world size is 2^32 blocks square ~5.6e8 km2 ~1.1x earth surface area  
 	
@@ -107,11 +106,26 @@ typedef struct MapBlockRenderInfo {
 	float maxViewDistance; //   in 3d
 	float min2DDistance; // distance of min and max corners from the camera,
 	float max2DDistance; //   projected onto the ground
-} MapBLockRenderInfo;
+	
+	Matrix* mWorldView;
+	Matrix* mViewProj;
+} MapBlockRenderInfo;
 
 struct sGL_RG8 {
 	unsigned char x, y;
 };
+
+
+typedef struct MapRenderComponent {
+	void (*alloc)(MapInfo*, MapBlock*, void*); // called to allocate memory for the block
+	void (*create)(MapInfo*, MapBlock*, void*); // called once ever when the block is first created
+		
+	void (*load)(MapInfo*, MapBlock*, void*); 
+	void (*save)(MapInfo*, MapBlock*, void*);
+	
+	void (*update)(MapInfo*, MapBlockRenderInfo*, void*);
+	void (*draw)(MapInfo*, MapBlockRenderInfo*, void*);
+} MapRenderComponent;
 
 
 typedef struct MapInfo {

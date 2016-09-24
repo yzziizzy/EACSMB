@@ -57,16 +57,18 @@ static void* getUBORegionPointer() {
 	// it is set after commands for n - 1;
 	waitSync(ubo_fences[next_ubo_region]);
 	
-	return &ubo_ptr[next_ubo_region * 2];
+	return &ubo_ptr[next_ubo_region * ubo_alignment / 4];
 }
 
 static setUBOFence() {
-	next_ubo_region = (next_ubo_region + 1) % 3; // BUG: make sure this is the right one
 	
 	if(ubo_fences[next_ubo_region]) glDeleteSync(ubo_fences[next_ubo_region]);
 	glexit("");
 	ubo_fences[next_ubo_region] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 	glexit("");
+	
+	next_ubo_region = (next_ubo_region + 1) % 3; // BUG: make sure this is the right one
+	
 }
 
 void initEmitters() {
