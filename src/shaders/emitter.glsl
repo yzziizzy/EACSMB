@@ -41,18 +41,27 @@ out Vertex {
 
 //                           |-----lifetime----------------------------|
 // --offset--[--spawn-delay--|--fade-in--|--<calculated>--|--fade-out--]
-//           [--------t------------------------------------------------]       
-
+//           [--------t_loop-------------------------------------------]      
+//                           [------t----------------------------------]
 void main() {
 	vec3 instancePos = pos_scale_in.xyz;
 	
-	vec3 spritePos = start_pos_offset_in.xyz * 10;
+	vec3 spritePos = start_pos_offset_in.xyz;
 	
 	float start_offset = start_pos_offset_in.w;
 	float lifetime = start_acc_lifetime_in.w;
+	float spawn_delay = start_vel_spawndelay_in.w;
 	
-	float time = mod(timeSeconds, lifetime) + timeFractional;
-	float t = mod(time + start_vel_spawndelay_in.w, lifetime) - start_offset;
+	float time = mod(timeSeconds, lifetime + spawn_delay) + timeFractional;
+	float t_loop = mod(time + start_offset, lifetime + spawn_delay);
+	
+	float t = t_loop - spawn_delay;
+	if(t < 0) {
+		vertex.opacity = 0;
+		vertex.size = 0;
+		return;
+	}
+	
 	
 	vec3 sim = t*t*start_acc_lifetime_in.xyz + t*start_vel_spawndelay_in.xyz;
 	
@@ -61,23 +70,16 @@ void main() {
 	
 	vertex.size = size_spin_growth_random_in.x + size_spin_growth_random_in.z * t;
 	vertex.spin = mod(size_spin_growth_random_in.y * t, 2*3.1415926536);
-	if(gl_VertexID > 1) vertex.opacity = 0.0;
-	else{
-		vertex.opacity = mix(1.0,0.0, t / lifetime);
+	
+	if(t < fade_in_out.x) {
+		vertex.opacity = mix(0.0, 1.0, t / fade_in_out.x);
 	}
-	/*
-	else if(lifetime - t > fade_in_out.y) {
-		vertex.opacity = mix(0.0, 1.0, lifetime - t / fade_in_out.y);
-	}
-	else if(t - start_offset > 0 && t - start_offset < fade_in_out.x) {
-		vertex.opacity = mix(0.0, 1.0, t - start_offset / fade_in_out.x);
-	}
-	else if(t - start_offset <= 0) {
-		vertex.opacity = 0.0;
+	else if(lifetime - t < fade_in_out.y) {
+		vertex.opacity = mix(0.0, 1.0, (lifetime - t) / fade_in_out.y);
 	}
 	else {
 		vertex.opacity = 1.0;
-	}*/
+	}
 }
 
 
@@ -171,7 +173,7 @@ in float gs_opacity;
 
 void main(void) {
     
-// 	out_Color = texture(textures, gs_tex.xy) * vec4(1.0, 1.0, 1.0, gs_opacity); //vs_norm;
-	out_Color = vec4(gs_opacity, 1.0, 1.0, 1.0); //vs_norm;
+	out_Color = texture(textures, gs_tex.xy) * vec4(1.0, 1.0, 1.0, gs_opacity); //vs_norm;
+//	out_Color = vec4(1.0, 1.0, 1.0, gs_opacity); //vs_norm;
 }
 

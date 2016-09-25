@@ -148,7 +148,7 @@ Emitter* makeEmitter() {
 	
 	e = calloc(1, sizeof(Emitter));
 	
-	e->particleNum = 1000;
+	e->particleNum = 100;
 	e->sprite = s = calloc(1, e->particleNum *  sizeof(EmitterSprite));
 	e->instances = ar_alloc(e->instances, 100);
 	
@@ -163,7 +163,7 @@ Emitter* makeEmitter() {
 		s->start_vel.y = 0;
 		s->start_vel.z = 1.5;
 		
-		s->spawn_delay = frand(0, 6.8);
+		s->spawn_delay = frand(0, 6);
 		
 		s->start_acc.x = frand(-0.3, 0.3);
 		s->start_acc.y = frand(-0.3, 0.3);
