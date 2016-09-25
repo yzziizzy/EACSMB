@@ -7,7 +7,7 @@
 layout(std140) uniform; 
 
 // constant attributes
-layout (location = 0) in vec4 start_pos_cooldown_in;
+layout (location = 0) in vec4 start_pos_offset_in;
 layout (location = 1) in vec4 start_vel_spawndelay_in;
 layout (location = 2) in vec4 start_acc_lifetime_in;
 layout (location = 3) in vec4 size_spin_growth_random_in;
@@ -34,21 +34,25 @@ flat out int vs_VertexID;
 out Vertex {
   float size;
   float spin;
+  float opacity;
   vec3 pos;
   
 } vertex;
 
-
+//                           |-----lifetime----------------------------|
+// --offset--[--spawn-delay--|--fade-in--|--<calculated>--|--fade-out--]
+//           [--------t------------------------------------------------]       
 
 void main() {
 	vec3 instancePos = pos_scale_in.xyz;
 	
-	vec3 spritePos = start_pos_cooldown_in.xyz * 10;
+	vec3 spritePos = start_pos_offset_in.xyz * 10;
 	
-	float cooldown = start_pos_cooldown_in.w;
+	float start_offset = start_pos_offset_in.w;
+	float lifetime = start_acc_lifetime_in.w;
 	
-	float time = mod(timeSeconds, start_acc_lifetime_in.w) + timeFractional;
-	float t = mod(time + start_vel_spawndelay_in.w, start_acc_lifetime_in.w);
+	float time = mod(timeSeconds, lifetime) + timeFractional;
+	float t = mod(time + start_vel_spawndelay_in.w, lifetime) - start_offset;
 	
 	vec3 sim = t*t*start_acc_lifetime_in.xyz + t*start_vel_spawndelay_in.xyz;
 	
@@ -57,6 +61,23 @@ void main() {
 	
 	vertex.size = size_spin_growth_random_in.x + size_spin_growth_random_in.z * t;
 	vertex.spin = mod(size_spin_growth_random_in.y * t, 2*3.1415926536);
+	if(gl_VertexID > 1) vertex.opacity = 0.0;
+	else{
+		vertex.opacity = mix(1.0,0.0, t / lifetime);
+	}
+	/*
+	else if(lifetime - t > fade_in_out.y) {
+		vertex.opacity = mix(0.0, 1.0, lifetime - t / fade_in_out.y);
+	}
+	else if(t - start_offset > 0 && t - start_offset < fade_in_out.x) {
+		vertex.opacity = mix(0.0, 1.0, t - start_offset / fade_in_out.x);
+	}
+	else if(t - start_offset <= 0) {
+		vertex.opacity = 0.0;
+	}
+	else {
+		vertex.opacity = 1.0;
+	}*/
 }
 
 
@@ -77,14 +98,18 @@ flat in int vs_VertexID[];
 
 out vec3 gs_color;
 out vec3 gs_tex;
+out float gs_opacity;
 
 in Vertex {
 	float size;
 	float spin;
+	float opacity;
 	vec3 pos;
 } vertex[];
 
 void main() {
+	if(vertex[0].opacity == 0.0) return;
+
 	mat4 mViewProj = mProj * mView;
 
 	float size = vertex[0].size;
@@ -99,21 +124,25 @@ void main() {
 
 	gs_color = vec3(vs_VertexID[0] * .001, 1,0);
 	gs_tex = vec3(0,0,0);
+	gs_opacity = vertex[0].opacity;
 	gl_Position = mProj * vec4(center.xy + vec2(-right, -up) * rot, center.zw);
 	EmitVertex();
 
 	gs_color = vec3(vs_VertexID[0] * .001, 1,1);
 	gs_tex = vec3(0,1,0);
+	gs_opacity = vertex[0].opacity;
 	gl_Position = mProj * vec4(center.xy + vec2(-right, up) * rot, center.zw);
 	EmitVertex();
 
 	gs_color = vec3(vs_VertexID[0] * .001, 0,1);
 	gs_tex = vec3(1,0,0);
+	gs_opacity = vertex[0].opacity;
 	gl_Position = mProj * vec4(center.xy + vec2(right, -up) * rot, center.zw);
 	EmitVertex();
 
 	gs_color = vec3(vs_VertexID[0] * .001, 0,0);
 	gs_tex = vec3(1,1,0);
+	gs_opacity = vertex[0].opacity;
 	gl_Position = mProj * vec4(center.xy + vec2(right, up) * rot, center.zw);
 	EmitVertex();
 
@@ -138,9 +167,11 @@ uniform sampler2D textures;
 
 in vec3 gs_color;
 in vec3 gs_tex;
+in float gs_opacity;
 
 void main(void) {
     
-	out_Color = texture(textures, gs_tex.xy); //vs_norm;
+// 	out_Color = texture(textures, gs_tex.xy) * vec4(1.0, 1.0, 1.0, gs_opacity); //vs_norm;
+	out_Color = vec4(gs_opacity, 1.0, 1.0, 1.0); //vs_norm;
 }
 
