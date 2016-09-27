@@ -121,6 +121,7 @@ void setupFBOs(GameState* gs, int resized) {
 		{GL_RGB, GL_RGB, GL_UNSIGNED_BYTE},
 		{GL_RGB, GL_RGB, GL_UNSIGNED_BYTE},
 		{GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE},
+		{GL_RGB16F, GL_RGB, GL_HALF_FLOAT},
 		{GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_FLOAT},
 		{0,0,0}
 	};
@@ -130,7 +131,8 @@ void setupFBOs(GameState* gs, int resized) {
 	gs->diffuseTexBuffer = texids[0];
 	gs->normalTexBuffer = texids[1];
 	gs->selectionTexBuffer = texids[2];
-	gs->depthTexBuffer = texids[3];
+	gs->lightingTexBuffer = texids[3];
+	gs->depthTexBuffer = texids[4];
 	
 	printf("New Main Depth: %d \n", texids[3]);
 	
@@ -142,7 +144,7 @@ void setupFBOs(GameState* gs, int resized) {
 	FBOConfig gbufConf[] = {
 		{GL_COLOR_ATTACHMENT0, gs->diffuseTexBuffer },
 		{GL_COLOR_ATTACHMENT1, gs->normalTexBuffer },
-//		{GL_COLOR_ATTACHMENT2, gs->selectionTexBuffer },
+		{GL_COLOR_ATTACHMENT2, gs->lightingTexBuffer },
 		{GL_DEPTH_ATTACHMENT, gs->depthTexBuffer },
 		{0,0}
 	};
@@ -153,12 +155,23 @@ void setupFBOs(GameState* gs, int resized) {
 	FBOConfig decalConf[] = {
 		{GL_COLOR_ATTACHMENT0, gs->diffuseTexBuffer },
 		{GL_COLOR_ATTACHMENT1, gs->normalTexBuffer },
+		{GL_COLOR_ATTACHMENT2, gs->lightingTexBuffer },
 		{GL_DEPTH_ATTACHMENT,  gs->depthTexBuffer },
 		{0,0}
 	};
 	// depth buffer is also bound as a texture but disabled for writing
 	
 	initFBO(&gs->decalbuf, decalConf);
+	
+	// lighting pass framebufer
+	FBOConfig lightingConf[] = {
+		{GL_COLOR_ATTACHMENT0, gs->lightingTexBuffer },
+		{GL_DEPTH_ATTACHMENT,  gs->depthTexBuffer },
+		{0,0}
+	};
+	// depth buffer is also bound as a texture but disabled for writing
+	
+	initFBO(&gs->lightingbuf, lightingConf);
 	
 	// selection pass framebufer
 	FBOConfig selectionConf[] = {
@@ -250,6 +263,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	glProgramUniform1i(shadingProg->id, glGetUniformLocation(shadingProg->id, "sNormals"), 1);
 	glProgramUniform1i(shadingProg->id, glGetUniformLocation(shadingProg->id, "sDepth"), 2);
  	glProgramUniform1i(shadingProg->id, glGetUniformLocation(shadingProg->id, "sSelection"), 3);
+ 	glProgramUniform1i(shadingProg->id, glGetUniformLocation(shadingProg->id, "sLighting"), 4);
 	
 	initFSQuad();
 	

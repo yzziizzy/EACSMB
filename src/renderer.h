@@ -92,7 +92,7 @@ typedef struct RenderCommandQueue {
 	int alloc_len;
 	int next_index;
 	RenderCommand* cmds;
-} RenderCommandQueue
+} RenderCommandQueue;
 
 
 void render_RenderCommandQueue(RenderCommand* rc, int length); 

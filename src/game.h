@@ -42,7 +42,7 @@ typedef struct GameState {
 	GameSettings settings;
 	UserConfig uSettings;
 	
-	GLuint diffuseTexBuffer, normalTexBuffer, depthTexBuffer, selectionTexBuffer;
+	GLuint diffuseTexBuffer, normalTexBuffer, depthTexBuffer, selectionTexBuffer, lightingTexBuffer;
 	GLuint framebuffer;
 	GLuint depthRenderbuffer;
 	
@@ -50,6 +50,7 @@ typedef struct GameState {
 	Framebuffer gbuf;
 	Framebuffer selectionbuf;
 	Framebuffer decalbuf;
+	Framebuffer lightingbuf;
 	
 	uint32_t* selectionData;
 	uint64_t selectionFrame;

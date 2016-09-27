@@ -30,6 +30,7 @@ uniform sampler2D sDiffuse;
 uniform sampler2D sNormals;
 uniform sampler2D sDepth;
 uniform sampler2D sSelection;
+uniform sampler2D sLighting;
 
 uniform int debugMode;
 uniform vec2 clipPlanes;
@@ -66,6 +67,10 @@ void main() {
 	else if(debugMode == 4) {
 		// selection buffer
 		FragColor = vec4(texture(sSelection, tex).rgb,  1.0);
+	}
+	else if(debugMode == 5) {
+		// lighting buffer
+		FragColor = vec4(texture(sLighting, tex).rgb,  1.0);
 	}
 
 //	FragColor = vec4(texture(sNormals, tex).rgb,  1.0);
