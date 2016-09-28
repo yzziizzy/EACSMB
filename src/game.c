@@ -23,6 +23,7 @@
 #include "config.h"
 #include "objloader.h"
 #include "shader.h"
+#include "uniformBuffer.h"
 #include "texture.h"
 #include "window.h"
 #include "staticMesh.h"
@@ -248,6 +249,8 @@ void initGame(XStuff* xs, GameState* gs) {
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	
+	initUniformBuffers();
 	
 	setupFBOs(gs, 0);
 
