@@ -150,7 +150,7 @@ Emitter* makeEmitter() {
 	
 	e->particleNum = 100;
 	e->sprite = s = calloc(1, e->particleNum *  sizeof(EmitterSprite));
-	e->instances = ar_alloc(e->instances, 100);
+	e->instances = ar_alloc(e->instances, 200);
 	
 	for(i = 0; i < e->particleNum; i++) {
 		s->start_pos.x = frand(-.5, .5); 

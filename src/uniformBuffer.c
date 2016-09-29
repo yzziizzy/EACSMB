@@ -101,4 +101,7 @@ void uniformBuffer_init(UniformBuffer* ub, size_t region_size) {
 	
 	ub->data_ptr = glMapBufferRange(GL_UNIFORM_BUFFER, 0, ubo_size, flags);
 	glexit("ubo persistent map");
+	
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
 }
