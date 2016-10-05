@@ -30,9 +30,9 @@
 
 
 
-XStuff xs;
-GameState game;
-InputState input;
+static XStuff xs;
+static GameState game;
+static InputState input;
 
 
 int main(int argc, char* argv[]) {
