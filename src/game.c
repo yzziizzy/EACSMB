@@ -732,7 +732,7 @@ void depthPrepass(XStuff* xs, GameState* gs, InputState* is) {
 
 	// draw terrain
 // 	drawTerrainBlockDepth(&gs->map, msGetTop(&gs->model), msGetTop(&gs->view), msGetTop(&gs->proj));
-	drawTerrainDepth(&gs->map, msGetTop(&gs->view), msGetTop(&gs->proj), &gs->screen.wh);
+	drawTerrainDepth(&gs->map, &gs->perViewUB, &gs->screen.wh);
 	
 	//msPop(&gs->view);
 	//msPop(&gs->proj);

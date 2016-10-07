@@ -716,16 +716,18 @@ void updateTerrainTexture(MapInfo* mi) {
 
 
 
-void drawTerrainDepth(MapInfo* mi, Matrix* mView, Matrix* mProj, Vector2* viewWH) {
+void drawTerrainDepth(MapInfo* mi, UniformBuffer* perViewUB, Vector2* viewWH) {
 	int i;
 	
 	glUseProgram(terrDepthProg->id);
 	//glDisable(GL_DEPTH_TEST);
+
+	uniformBuffer_bindProg(perViewUB, terrProg->id, "perViewData");
 	
-	glUniformMatrix4fv(view_d_ul, 1, GL_FALSE, mView->m);
-	glexit("");
-	glUniformMatrix4fv(proj_d_ul, 1, GL_FALSE, mProj->m);
-	glexit("");
+// 	glUniformMatrix4fv(view_d_ul, 1, GL_FALSE, mView->m);
+// 	glexit("");
+// 	glUniformMatrix4fv(proj_d_ul, 1, GL_FALSE, mProj->m);
+// 	glexit("");
 	glUniform2f(winsize_d_ul, viewWH->x, viewWH->y);
 	glexit("");
 	
@@ -767,7 +769,7 @@ void drawTerrain(MapInfo* mi, UniformBuffer* perViewUB, Vector* cursor, Vector2*
 	glBindBuffer(GL_ARRAY_BUFFER, patchVBO);
 	
 	glUniformMatrix4fv(model_ul, 1, GL_FALSE, msGetTop(&model)->m);
-
+	
 	glDrawArraysInstanced(GL_PATCHES, 0, totalPatches * totalPatches * 4, mi->numBlocksToRender);
 	
 //	drawRoad(mi->terrainTex, mView, mProj);

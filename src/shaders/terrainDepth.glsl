@@ -32,8 +32,11 @@ void main() {
 layout (vertices = 4) out;
 
 
-uniform mat4 mView;
-uniform mat4 mProj;
+uniform perViewData {
+	mat4 mView;
+	mat4 mProj;
+};
+
 uniform mat4 mModel;
 
 in vec2 vs_tex[];
@@ -98,8 +101,11 @@ in int te_InstanceID[];
 uniform sampler2DArray sHeightMap;
 
 
-uniform mat4 mView;
-uniform mat4 mProj;
+uniform perViewData {
+	mat4 mView;
+	mat4 mProj;
+};
+
 uniform mat4 mModel;
 
 
