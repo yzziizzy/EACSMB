@@ -3,6 +3,7 @@
 #define __EACSMB_GAME_H__
 
 #include "config.h" // UserConfig
+#include "uniformBuffer.h"
 #include "fbo.h"
 
 
@@ -35,6 +36,18 @@ typedef struct QueryQueue {
 } QueryQueue;
 
 
+typedef struct PerViewUniforms {
+	MatrixStack view;
+	MatrixStack proj;
+} PerViewUniforms;
+
+
+typedef struct PerFrameUniforms {
+	float wholeSeconds;
+	float fracSeconds;
+} PerFrameUniforms;
+
+
 typedef struct GameState {
 	
 	GameScreen screen;
@@ -59,6 +72,9 @@ typedef struct GameState {
 	char readPBO, activePBO;
 	
 	MapInfo map;
+	
+	UniformBuffer perViewUB;
+	UniformBuffer perFrameUB;
 	
 	MatrixStack view;
 	MatrixStack proj;

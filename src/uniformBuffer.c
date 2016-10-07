@@ -35,21 +35,25 @@ void* uniformBuffer_begin(UniformBuffer* ub) {
 	// it is set after commands for n - 1;
 	waitSync(ub->fences[ub->next_region]);
 	
-	return &ub->data_ptr[ub->next_region * ubo_alignment / 4];
+	return &ub->data_ptr[ub->next_region * ubo_alignment];
 }
 
 void uniformBuffer_bindRange(UniformBuffer* ub) {
+	glBindBuffer(GL_UNIFORM_BUFFER, ub->ubo);
 	glBindBufferRange(
 		GL_UNIFORM_BUFFER, 
 		0, 
 		ub->ubo, 
 		ub->next_region * ub->region_size, 
 		ub->region_size);
+	glexit("");
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	glexit("");
 }
 
 
 
-static void uniformBuffer_finish(UniformBuffer* ub) {
+void uniformBuffer_finish(UniformBuffer* ub) {
 	
 	if(ub->fences[ub->next_region]) glDeleteSync(ub->fences[ub->next_region]);
 	glexit("");
@@ -65,18 +69,22 @@ static void uniformBuffer_finish(UniformBuffer* ub) {
 void initUniformBuffers() {
 	
 	glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &ubo_alignment);
-	
+	glexit("");
 }
 
 
-void uniformBuffer_bindProg(GLuint prog_id, char* name) {
+void uniformBuffer_bindProg(UniformBuffer* ub, GLuint prog_id, char* name) {
 	GLuint block_index;
+	
+	glBindBuffer(GL_UNIFORM_BUFFER, ub->ubo);
 	
 	block_index = glGetUniformBlockIndex(prog_id, name);
 	glexit("");
 	glUniformBlockBinding(prog_id, block_index, 0);
 	glexit("");
 	
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	glexit("");
 }
 
 
@@ -103,5 +111,5 @@ void uniformBuffer_init(UniformBuffer* ub, size_t region_size) {
 	glexit("ubo persistent map");
 	
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
+	glexit("");
 }

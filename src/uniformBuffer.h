@@ -17,8 +17,13 @@ typedef struct UniformBuffer {
 } UniformBuffer;
 
 
+void initUniformBuffers();
 
+void uniformBuffer_init(UniformBuffer* ub, size_t region_size);
+void uniformBuffer_bindProg(UniformBuffer* ub, GLuint prog_id, char* name);
 
-
+void* uniformBuffer_begin(UniformBuffer* ub);
+void uniformBuffer_bindRange(UniformBuffer* ub);
+void uniformBuffer_finish(UniformBuffer* ub);
 
 #endif // __EACSMB_UNIFORMBUFFER_H__

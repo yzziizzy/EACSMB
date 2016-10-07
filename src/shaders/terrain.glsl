@@ -4,6 +4,8 @@
 
 #version 430 core
 
+layout(std140) uniform; 
+
 layout (location = 0) in vec3 pos_in;
 layout (location = 1) in vec2 tex_in;
 layout (location = 2) in vec2 tile_in;
@@ -33,12 +35,15 @@ void main() {
 
 #version 430 core
 
+layout(std140) uniform; 
 
 layout (vertices = 4) out;
 
+uniform perViewData {
+	mat4 mView;
+	mat4 mProj;
+};
 
-uniform mat4 mView;
-uniform mat4 mProj;
 uniform mat4 mModel;
 
 in vec2 vs_tex[];
@@ -111,8 +116,12 @@ in int te_InstanceID[];
 uniform sampler2DArray sHeightMap;
 
 
-uniform mat4 mView;
-uniform mat4 mProj;
+
+uniform perViewData {
+	mat4 mView;
+	mat4 mProj;
+};
+
 uniform mat4 mModel;
 
 uniform vec2 winSize;

@@ -744,15 +744,17 @@ glexit("");
 
 
 
-void drawTerrain(MapInfo* mi, Matrix* mView, Matrix* mProj, Vector* cursor, Vector2* viewWH) {
+void drawTerrain(MapInfo* mi, UniformBuffer* perViewUB, Vector* cursor, Vector2* viewWH) {
 	
 	int i;
 	
 	glUseProgram(terrProg->id);
 	glEnable(GL_DEPTH_TEST);
 	
-	glUniformMatrix4fv(view_ul, 1, GL_FALSE, mView->m);
-	glUniformMatrix4fv(proj_ul, 1, GL_FALSE, mProj->m);
+	
+	uniformBuffer_bindProg(perViewUB, terrProg->id, "perViewData");
+	//glUniformMatrix4fv(view_ul, 1, GL_FALSE, mView->m);
+	//glUniformMatrix4fv(proj_ul, 1, GL_FALSE, mProj->m);
 	
 	glUniform2f(winsize_ul, viewWH->x, viewWH->y);
 	

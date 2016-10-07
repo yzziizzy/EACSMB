@@ -23,7 +23,6 @@
 #include "config.h"
 #include "objloader.h"
 #include "shader.h"
-#include "uniformBuffer.h"
 #include "texture.h"
 #include "window.h"
 #include "staticMesh.h"
@@ -252,6 +251,9 @@ void initGame(XStuff* xs, GameState* gs) {
 	
 	initUniformBuffers();
 	
+	uniformBuffer_init(&gs->perViewUB, sizeof(PerViewUniforms));
+	uniformBuffer_init(&gs->perFrameUB, sizeof(PerFrameUniforms));
+	
 	setupFBOs(gs, 0);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -468,6 +470,17 @@ void preFrame(GameState* gs) {
 	
 	frameCounter = (frameCounter + 1) % 60;
 	
+	// update per-frame timer values
+	
+	PerFrameUniforms* pfu = uniformBuffer_begin(&gs->perFrameUB);
+	
+	double seconds = (float)(long)gs->frameTime;
+	
+	pfu->wholeSeconds = seconds;
+	pfu->fracSeconds = gs->frameTime - seconds;
+	
+	uniformBuffer_bindRange(&gs->perFrameUB);
+	
 	static double sdtime;
 	
 	if(lastPoint == 0.0f) lastPoint = gs->frameTime;
@@ -532,6 +545,8 @@ void postFrame(GameState* gs) {
 	now = getCurrentTime();
 	
 	gs->perfTimes.draw = now - gs->frameTime;
+	
+	uniformBuffer_finish(&gs->perFrameUB);
 }
 
 
@@ -771,12 +786,22 @@ void updateView(XStuff* xs, GameState* gs, InputState* is) {
 	vMatrixMul(&eyeCoord, &invv, &worldCoord);
 	vNorm(&worldCoord, &worldCoord);
 	
+	// TODO: only update if somethign changes
+	PerViewUniforms* pvu = uniformBuffer_begin(&gs->perViewUB);
+	
+	memcpy(&pvu->view, &gs->view, sizeof(Matrix));
+	memcpy(&pvu->proj, &gs->proj, sizeof(Matrix));
+	
+	uniformBuffer_bindRange(&gs->perViewUB);
 }
+
 
 void cleanUpView(XStuff* xs, GameState* gs, InputState* is) {
 	msPop(&gs->view);
 	msPop(&gs->proj);
 	
+	uniformBuffer_finish(&gs->perFrameUB);
+	uniformBuffer_finish(&gs->perViewUB);
 }
 
 void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
@@ -792,7 +817,7 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	// draw terrain
 // 	drawTerrainBlock(&gs->map, msGetTop(&gs->model), msGetTop(&gs->view), msGetTop(&gs->proj), &gs->cursorPos);
-	drawTerrain(&gs->map, msGetTop(&gs->view), msGetTop(&gs->proj), &gs->cursorPos, &gs->screen.wh);
+	drawTerrain(&gs->map, &gs->perViewUB, &gs->cursorPos, &gs->screen.wh);
 	
 	renderMarker(gs, 0,0);
 
@@ -1112,7 +1137,10 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 
 	postFrame(gs);
 	//glEndQuery(GL_TIME_ELAPSED);
+	
+	
 	query_queue_stop(&gs->queries.draw);
+	
 	
 	glXSwapBuffers(xs->display, xs->clientWin);
 

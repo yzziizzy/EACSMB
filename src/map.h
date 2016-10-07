@@ -16,6 +16,7 @@
 
 #include "road.h"
 #include "view.h"
+#include "uniformBuffer.h"
 
 typedef struct TerrainPatchVertex {
 	float x, y, z;
@@ -181,7 +182,7 @@ MapBlockTreeLeaf* spawnMapBlockTreeLeaf(MapInfo* mi, int llbix, int llbiy);
 void updateTerrainTexture(MapInfo* mi);
 
 void drawTerrainRoads(GLuint dtex, MapInfo* mi, Matrix* mView, Matrix* mProj, Vector* cursor, Vector2* viewWH);
-void drawTerrain(MapInfo* mi, Matrix* mView, Matrix* mProj, Vector* cursor, Vector2* viewWH);
+void drawTerrain(MapInfo* mi, UniformBuffer* perViewUB, Vector* cursor, Vector2* viewWH);
 void drawTerrainDepth(MapInfo* mi, Matrix* mView, Matrix* mProj, Vector2* viewWH);
 void checkMapDirty(MapInfo* mi);
 void areaStats(TerrainBlock* tb, int x1, int y1, int x2, int y2, AreaStats* ass);
