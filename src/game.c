@@ -789,8 +789,8 @@ void updateView(XStuff* xs, GameState* gs, InputState* is) {
 	// TODO: only update if somethign changes
 	PerViewUniforms* pvu = uniformBuffer_begin(&gs->perViewUB);
 	
-	memcpy(&pvu->view, &gs->view, sizeof(Matrix));
-	memcpy(&pvu->proj, &gs->proj, sizeof(Matrix));
+	memcpy(&pvu->view , msGetTop(&gs->view), sizeof(Matrix));
+	memcpy(&pvu->proj , msGetTop(&gs->proj), sizeof(Matrix));
 	
 	uniformBuffer_bindRange(&gs->perViewUB);
 }

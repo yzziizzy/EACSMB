@@ -766,10 +766,6 @@ void drawTerrain(MapInfo* mi, UniformBuffer* perViewUB, Vector* cursor, Vector2*
 	glPatchParameteri(GL_PATCH_VERTICES, 4);
 	glBindBuffer(GL_ARRAY_BUFFER, patchVBO);
 	
-
-//		msPush(&msModel);
-		//msTrans3f(mb->bix * 256.0f, mb->biy * 256.0f , 0, &msModel);
-	
 	glUniformMatrix4fv(model_ul, 1, GL_FALSE, msGetTop(&model)->m);
 
 	glDrawArraysInstanced(GL_PATCHES, 0, totalPatches * totalPatches * 4, mi->numBlocksToRender);

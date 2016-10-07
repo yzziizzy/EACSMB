@@ -37,8 +37,8 @@ typedef struct QueryQueue {
 
 
 typedef struct PerViewUniforms {
-	MatrixStack view;
-	MatrixStack proj;
+	Matrix view;
+	Matrix proj;
 } PerViewUniforms;
 
 
