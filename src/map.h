@@ -2,12 +2,15 @@
 #define __EACSMB_MAP_H__
 
 
+#define MAP_SIZE (255 * 8)
+
 // terrain textures must always be a power of two
 #define TERR_TEX_SZ 256
 // terrain blocks must always be a power of two minus one
 #define TERR_BLOCK_SZ (TERR_TEX_SZ)
 
 #define MAP_TEX_SZ (TERR_TEX_SZ)
+
 
 
 
@@ -115,6 +118,38 @@ typedef struct MapBlockRenderInfo {
 struct sGL_RG8 {
 	unsigned char x, y;
 };
+
+typedef struct MapLayer_Roads {
+	
+} MapLayer_Roads;
+
+typedef struct MapLayer_Trees {
+	TerrainBlock* blocks;
+} MapLayer_Trees;
+
+typedef struct MapLayer_Zones {
+	uint8_t* zone_data;
+	// zone list
+	// zone colors
+} MapLayer_Zones;
+
+typedef struct MapLayer_Terrain {
+	TerrainBlock* blocks;
+} MapLayer_Terrain;
+
+// just hardcode to some moderately large size for now
+typedef struct MapLayer {
+	uint16_t id;
+	uint16_t type;
+	uint32_t flags;
+	char* name;
+	
+	union {
+		MapLayer_Terrain terrain;
+		MapLayer_Roads roads;
+		MapLayer_Zones zones;
+	}
+} MapLayer;
 
 
 typedef struct MapRenderComponent {
