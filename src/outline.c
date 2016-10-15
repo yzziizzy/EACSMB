@@ -42,7 +42,40 @@ int outline_add_node(struct outline* o, struct outline_node* n) {
 }
 
 
-
+Mesh* outline_extrude(struct outline* o, float dist, int divisions) {
+	
+	Mesh* m;
+	int d, i, v;
+	Vector disp, disp_unit;
+	
+	m = calloc(1, sizeof(Mesh));
+	m->szVertices = o->len;
+	m->szIndices = o->len * 2 * 3;
+	
+	// extrusion_dir must be normalized
+	vScale(&o->extrusion_dir, dist / (divisions + 1), &disp);
+	vCopy(&disp, &disp_unit);
+	
+	// vertices
+	v = 0;
+	for(d = 0; d <= divisions; d++) {
+		for(i = 0; i <= o->len; i++) {
+			vAdd(&o->nodes[i].pos, &disp, &m->vertices[v]); 
+			v++;
+		}
+		
+		vAdd(&disp, &disp_orig, &disp);
+	}
+	
+	
+	
+	// indices
+	
+	
+	
+	
+	return m;
+}
 
 
 

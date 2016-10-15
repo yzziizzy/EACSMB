@@ -6,7 +6,7 @@
 // 2d version
 
 struct outline_node {
-	Vector* pos;
+	Vector pos;
 	
 	
 }
@@ -20,6 +20,9 @@ struct outline {
 	char is_loop;
 	Vector extrusion_dir;
 };
+
+
+
 
 
 struct outline* outline_alloc(int node_cnt)
