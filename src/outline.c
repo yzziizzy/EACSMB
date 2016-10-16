@@ -35,7 +35,7 @@ int outline_add_node(struct outline* o, struct outline_node* n) {
 	
 	if(o->len >= o->alloc) return 1;
 	
-	memcpy(&o->nodes[len], n, sizeof(struct outline_node));
+	memcpy(&o->lines[len], n, sizeof(struct outline_node));
 	o->len++;
 	
 	return 0;
@@ -60,8 +60,8 @@ Mesh* outline_extrude(struct outline* o, float dist, int divisions) {
 	v = 0;
 	for(d = 0; d <= divisions; d++) {
 		for(i = 0; i <= o->len; i++) {
-			vAdd(&o->nodes[i].pos, &disp, &m->vertices[v]); 
-			v++;
+			vAdd(&o->lines[i].start, &disp, &m->vertices[v++]); 
+			vAdd(&o->lines[i].end, &disp, &m->vertices[v++]); 
 		}
 		
 		vAdd(&disp, &disp_orig, &disp);

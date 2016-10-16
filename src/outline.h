@@ -6,16 +6,16 @@
 // 2d version
 
 struct outline_node {
-	Vector pos;
+	Vector start, end;
 	
-	
+	// need to switch to line segments
 }
 
 
 struct outline {
 	int len;
 	int alloc;
-	struct outline_node* nodes;
+	struct outline_node* lines;
 	
 	char is_loop;
 	Vector extrusion_dir;
