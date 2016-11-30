@@ -334,10 +334,10 @@ void initGame(XStuff* xs, GameState* gs) {
 	initMarker();
 	
 	// text rendering stuff
-	//arialsdf = LoadSDFFont("Arial", 16, NULL);
-	arial = LoadFont("Arial", 32, NULL);
+	arialsdf = LoadSDFFont("Arial", 8, NULL);
+	//arial = LoadFont("Arial", 32, NULL);
 	glerr("clearing before text program load");
-	textProg = loadCombinedProgram("text");
+	textProg = loadCombinedProgram("textSDF");
 	
 	unsigned int colors[] = {
 		0xFF0000FF, 2,
@@ -345,8 +345,8 @@ void initGame(XStuff* xs, GameState* gs) {
 		0x0000FFFF, INT_MAX
 	};
 	
-	strRI = prepareText(arial, "FPS: --", -1, colors);
-//	strRI = prepareText(arialsdf, "FPS: --", -1, colors);
+	//strRI = prepareText(arial, "FPS: --", -1, colors);
+	strRI = prepareText(arialsdf, "FPS: --", -1, colors);
 	
 	initStaticMeshes();
 	initRoads();
@@ -854,7 +854,8 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 
 	glUniform1i(ts_ul, 0);
 	glexit("text sampler uniform");
-	glBindTexture(GL_TEXTURE_2D, arial->textureID);
+// 	glBindTexture(GL_TEXTURE_2D, arial->textureID);
+	glBindTexture(GL_TEXTURE_2D, arialsdf->textureID);
 	glexit("bind texture");
 	
 	

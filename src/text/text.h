@@ -20,6 +20,12 @@ typedef struct {
 	int dw, dh;
 	uint8_t* data;
 	uint8_t* sdfData;
+	
+	struct {
+		int left, top;
+		int right, bottom;
+	} sdfdims;
+	
 } GlyphBitmap;
 
 typedef struct {

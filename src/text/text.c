@@ -305,8 +305,11 @@ TextRes* LoadSDFFont(char* fontName, int size, char* chars) {
 	
 	h_above = 0;
 	h_below = 0;
-	width = 16*1024;
-	height = 256;
+	width = 8*1024;
+	height = 16;
+	res->texWidth = width;
+	res->texHeight = height; // may not always just be one row
+	res->maxHeight = height;
 	
 	res->texture = (unsigned char*)calloc(width * height, 1);
 	res->offsets = (unsigned short*)calloc(charlen * sizeof(unsigned short), 1);
@@ -314,6 +317,9 @@ TextRes* LoadSDFFont(char* fontName, int size, char* chars) {
 	res->valign = (unsigned char*)calloc(charlen * sizeof(unsigned char), 1);
 	
 	GlyphBitmap* gbs = calloc(1, charlen * sizeof(GlyphBitmap));
+	
+	res->indexLen = 128; // 7 bits for now.
+	res->codeIndex = (unsigned char*)calloc(res->indexLen, 1);
 	
 
 	int max_h = 0;
@@ -337,8 +343,8 @@ TextRes* LoadSDFFont(char* fontName, int size, char* chars) {
 		h_above = MAX(h_above, slot->metrics.horiBearingY >> 6);
 		h_below = MAX(h_below, ymin);
 	}
-
-	int tex_width = nextPOT(width);
+	
+	int tex_width = nextPOT(sqrt(width));
 	
 
 	
@@ -360,15 +366,22 @@ TextRes* LoadSDFFont(char* fontName, int size, char* chars) {
 	
 	qsort(charOrdering, charlen, sizeof(GlyphBitmap*), bmpsort);
 	
+	int yoffset = 0;
+	xoffset = 0;
 	for(i = 0; i < charlen; i++) {
 		blit(
 			0, 0, // src x and y offset for the image
-			xoffset + padding, padding + (h_above), // dst offset
-			slot->metrics.width >> 6, slot->metrics.height >> 6, // width and height BUG probably
-			slot->bitmap.pitch, width, // src and dst row widths
-			slot->bitmap.buffer, // source
+			xoffset + padding, padding + 0, // dst offset
+			gbs[i].w, gbs[i].h, // width and height BUG probably
+			gbs[i].w, width, // src and dst row widths
+			gbs[i].sdfData, // source
 			res->texture); // destination
 		
+ 		res->codeIndex[chars[i]] = i;
+		res->charWidths[i] = 12;
+		res->offsets[i] = xoffset;
+		res->valign[i] = 50;// + (slot->metrics.horiBearingY >> 6);
+		xoffset += gbs[i].w;
 	}
 	
 	
@@ -390,6 +403,7 @@ TextRes* LoadSDFFont(char* fontName, int size, char* chars) {
 		}
 	}
 	
+
 	///////////////////////////////////////////////////////////////////
 	
 		// TODO: error checking
@@ -405,6 +419,7 @@ TextRes* LoadSDFFont(char* fontName, int size, char* chars) {
 	glerr("param font tex");
 	
 	printf("text width: %d, height: %d \n", tex_width, height);
+	printf("text width 3: %d, height: %d \n", width, height);
 	
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, res->texture);
 	glerr("load font tex");
@@ -412,7 +427,7 @@ TextRes* LoadSDFFont(char* fontName, int size, char* chars) {
 	glBindTexture(GL_TEXTURE_2D, 0);
 	
 	
-	
+	return res;
 }
 
 int DrawGlyph(TextRes* res, GlyphBitmap* gb) {
@@ -520,7 +535,15 @@ void CalcSDF_Software(TextRes* res, GlyphBitmap* gb) {
 				}
 			}
 			
-			output[x + (y * gb->w)] = sdfEncode(d, v, maxDist);
+			int q = sdfEncode(d, v, maxDist);
+			if(q) { 
+// 				gb->sdfdims.left = MIN(gb->sdfdims.left, x);
+// 				gb->sdfdims.bottom = MIN(gb->sdfdims.bottom, y);
+// 				gb->sdfdims.right = MAX(gb->sdfdims.right, x);
+// 				gb->sdfdims.top = MAX(gb->sdfdims.top, y);
+			}
+			
+			output[x + (y * gb->w)] = q;
 		}
 	}
 }
@@ -549,6 +572,8 @@ TextRenderInfo* prepareText(TextRes* font, const char* str, int len, unsigned in
 	
 	
 	if(len == -1) len = strlen(str);
+	
+	printf("len %d\n", len);
 	
 	// create vao/vbo
 	tri = (TextRenderInfo*)malloc(sizeof(TextRenderInfo));
@@ -610,6 +635,7 @@ static void makeVertices(TextRenderInfo* tri, unsigned int* colors) {
 	offset = 0;
 	v = 0;
 	for(i = 0; i < tri->textLen; i++) {
+		printf("loop\n");
 		float width, valign, kerning;
 		float tex_offset, to_next;
 		int index, prev;
@@ -624,16 +650,18 @@ static void makeVertices(TextRenderInfo* tri, unsigned int* colors) {
 		prev = font->codeIndex[str[i-1]];
 // 		width = font->kerning[index];
 		width = font->charWidths[index] * scale;
+		printf("width: %f\n", width);
 		tex_offset = (font->offsets[index] + font->padding) * uscale;
 		to_next = (font->offsets[index + 1] + font->padding) * uscale; // bug at end of array
 		
 		kerning = 0;
+		/*
 		if(i > 0)
 			kerning = (font->kerning[(index * font->charLen) + prev]) * uscale; // bug at end of array
-		
+		*/
 		offset -= (font->padding * 2) * vscale;
 		offset -= kerning;
-	/*
+	//*
 		printf("kerning: %f\n", kerning);
 		
 		printf("index: %d, char: %c\n", index, str[i]);
@@ -642,7 +670,7 @@ static void makeVertices(TextRenderInfo* tri, unsigned int* colors) {
 		printf("uscale %f\n", uscale);
 		printf("valign %d\n", font->valign[index]);
 		printf("width %f\n\n", width);
-	*/
+	//*/
 		//tex_offset = 1;
 
 		// add quad, set uv's
