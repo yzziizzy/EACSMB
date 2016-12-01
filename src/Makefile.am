@@ -5,6 +5,7 @@ bin_PROGRAMS = eacsmb
 eacsmb_SOURCES = main.c \
 	utilities.c \
 	config.c \
+	dumpImage.c \
 	objloader.c \
 	staticMesh.c \
 	uniformBuffer.c \
