@@ -11,6 +11,7 @@
 #include "text.h"
 #include "fcfg.h"
 #include "../EACSMB/src/utilities.h"
+#include "../dumpImage.h"
 
 
 
@@ -275,10 +276,10 @@ TextRes* LoadSDFFont(char* fontName, int size, char* chars) {
 	FT_GlyphSlot slot;
 	FT_Face fontFace; 
 	TextRes* res;
-	int i, j, charlen, width, h_above, h_below, height, padding, xoffset;
+	int i, j, charlen, width, h_above, h_below, height, padding, xoffset, oversample;
 	char* fontPath;
 	
-	padding = 2;
+	padding = 0;
 	
 	res = calloc(1, sizeof(TextRes));
 	
@@ -286,7 +287,11 @@ TextRes* LoadSDFFont(char* fontName, int size, char* chars) {
 	
 	fontFace = res->fontInfo->fontFace;
 	
-	err = FT_Set_Pixel_Sizes(fontFace, 0, size);
+	//debug:
+	size = 16;
+	oversample = 16;
+	
+	err = FT_Set_Pixel_Sizes(fontFace, 0, size * oversample);
 	if(err) {
 		fprintf(stderr, "Could not set pixel size to %dpx.\n", size);
 		free(res->fontInfo);
@@ -305,7 +310,7 @@ TextRes* LoadSDFFont(char* fontName, int size, char* chars) {
 	
 	h_above = 0;
 	h_below = 0;
-	width = 8*1024;
+	width = 4*1024;
 	height = 16;
 	res->texWidth = width;
 	res->texHeight = height; // may not always just be one row
@@ -339,24 +344,33 @@ TextRes* LoadSDFFont(char* fontName, int size, char* chars) {
 //		printf("height: %d \n\n", slot->metrics.height >> 6);
 
 		
-		width += f2f(slot->metrics.width);
+		//width += f2f(slot->metrics.width);
 		h_above = MAX(h_above, slot->metrics.horiBearingY >> 6);
 		h_below = MAX(h_below, ymin);
 	}
 	
-	int tex_width = nextPOT(sqrt(width));
+	int tex_width = nextPOT(width);
 	
 
 	
 	
 	// render SDF's
 	for(i = 0; i < charlen; i++) {
-		gbs[i].oversample = 16;
+		gbs[i].oversample = oversample;
 		gbs[i].magnitude = 4;
+		gbs[i].code = chars[i];
 		DrawGlyph(res, &gbs[i]);
-		printf("calculating sdf for %d... ", i);
+		printf("calculating sdf for %d (%c)... ", chars[i], chars[i]);
+		
+		//writePNG("sdfpct.png", 1, gbs[i].data, gbs[i].dw, gbs[i].dh);
+		
 		CalcSDF_Software(res, &gbs[i]);
+
+		//writePNG("sdfcalced.png", 1, gbs[i].sdfData, gbs[i].w, gbs[i].h);
+
 		printf("done\n");
+		//exit(2);
+		
 	}
 
 
@@ -378,12 +392,13 @@ TextRes* LoadSDFFont(char* fontName, int size, char* chars) {
 			res->texture); // destination
 		
  		res->codeIndex[chars[i]] = i;
-		res->charWidths[i] = 12;
+		res->charWidths[i] = gbs[i].w;
 		res->offsets[i] = xoffset;
-		res->valign[i] = 50;// + (slot->metrics.horiBearingY >> 6);
+		res->valign[i] = 0;// + (slot->metrics.horiBearingY >> 6);
 		xoffset += gbs[i].w;
 	}
 	
+	writePNG("sdf.png", 1, res->texture, width, height);
 	
 	// kerning map
 	res->kerning = (unsigned char*)malloc(charlen * charlen);
@@ -435,7 +450,7 @@ int DrawGlyph(TextRes* res, GlyphBitmap* gb) {
 	int padding;
 	FT_GlyphSlot slot;
 	
-	padding = gb->oversample * gb->magnitude;
+	padding = 0;//gb->oversample * gb->magnitude;
 		
 	// have freetype draw the character
 	FT_Load_Char(res->fontInfo->fontFace, gb->code, FT_LOAD_RENDER);
@@ -573,7 +588,7 @@ TextRenderInfo* prepareText(TextRes* font, const char* str, int len, unsigned in
 	
 	if(len == -1) len = strlen(str);
 	
-	printf("len %d\n", len);
+	//printf("len %d\n", len);
 	
 	// create vao/vbo
 	tri = (TextRenderInfo*)malloc(sizeof(TextRenderInfo));
@@ -635,7 +650,7 @@ static void makeVertices(TextRenderInfo* tri, unsigned int* colors) {
 	offset = 0;
 	v = 0;
 	for(i = 0; i < tri->textLen; i++) {
-		printf("loop\n");
+		//printf("loop\n");
 		float width, valign, kerning;
 		float tex_offset, to_next;
 		int index, prev;
@@ -650,7 +665,7 @@ static void makeVertices(TextRenderInfo* tri, unsigned int* colors) {
 		prev = font->codeIndex[str[i-1]];
 // 		width = font->kerning[index];
 		width = font->charWidths[index] * scale;
-		printf("width: %f\n", width);
+		//printf("width: %f\n", width);
 		tex_offset = (font->offsets[index] + font->padding) * uscale;
 		to_next = (font->offsets[index + 1] + font->padding) * uscale; // bug at end of array
 		
@@ -661,7 +676,7 @@ static void makeVertices(TextRenderInfo* tri, unsigned int* colors) {
 		*/
 		offset -= (font->padding * 2) * vscale;
 		offset -= kerning;
-	//*
+	/*
 		printf("kerning: %f\n", kerning);
 		
 		printf("index: %d, char: %c\n", index, str[i]);

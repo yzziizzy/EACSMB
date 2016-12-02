@@ -40,12 +40,17 @@ in vec4 color;
 
 
 void main(void) {
-//  	gl_FragColor = vec4(texCoord.x, texCoord.y, .5, 0);// texture2D(fontTex, texCoord).rrrr;
+
+	float d = texture2D(fontTex, texCoord).r;
 	
-	float alpha = texture2D(fontTex, texCoord).r;
+	float a;
 	
+	d = 1 - d;
+
+	a = 1 - smoothstep(0.7, .8, abs(d));
+
 	
-	gl_FragColor = vec4(0.1, alpha, alpha, 1); // probably a better way to do this. it's late, meh
-//  	gl_FragColor = vec4(1.0, 0, .5, 1);
+	gl_FragColor = vec4(0, a, a, 1); 
+
 }
 
