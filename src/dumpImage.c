@@ -23,6 +23,10 @@ int writePNG(char* path, int channels, char* data, int w, int h) {
 	
 	png_structp pngPtr;
 	png_infop infoPtr;
+	
+	int ret;
+	
+	ret = 2;
 
 	printf("png write | w: %d, h: %d \n", w, h);
 
@@ -30,7 +34,7 @@ int writePNG(char* path, int channels, char* data, int w, int h) {
 	f = fopen(path, "wb");
 	if(!f) {
 		fprintf(stderr, "Could not open \"%s\" (writePNG).\n", path);
-		return NULL;
+		return 1;
 	}
 	
 	/*
@@ -43,23 +47,23 @@ int writePNG(char* path, int channels, char* data, int w, int h) {
 	// init stuff
 	pngPtr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 	if (!pngPtr) {
-		return NULL;
+		goto CLEANUP1;
 	}
 	//png_destroy_write_struct (&pngPtr, (png_infopp)NULL);
 	infoPtr = png_create_info_struct(pngPtr);
 	if (!infoPtr) {
-		return NULL;
+		goto CLEANUP2;
 	}
 	//if(infoPtr != NULL) png_free_data(pngPtr, infoPtr, PNG_FREE_ALL, -1);
 	// header stuff
 	if (setjmp(png_jmpbuf(pngPtr))) {
-		return NULL;
+		goto CLEANUP3;
 	}
 	png_init_io(pngPtr, f);
 
 
 	if (setjmp(png_jmpbuf(pngPtr))) {
-		return NULL;
+		goto CLEANUP3;
 	}
 	png_set_IHDR(pngPtr, infoPtr, w, h,
 		8, PNG_COLOR_TYPE_GRAY, PNG_INTERLACE_NONE,
@@ -74,20 +78,32 @@ int writePNG(char* path, int channels, char* data, int w, int h) {
 	
 	// write data
 	if (setjmp(png_jmpbuf(pngPtr))) {
-		return NULL;
+		goto CLEANUP4;
 	}
 	png_write_image(pngPtr, rowPtrs);
 
 	if (setjmp(png_jmpbuf(pngPtr))) {
-		return NULL;
+		goto CLEANUP4;
 	}
 	png_write_end(pngPtr, NULL);
 	
-	// cleanup
-	fclose(f);
+	// success
+	
+	ret = 0;
+
+CLEANUP4:
 	free(rowPtrs);
 	
-	return 0;
+CLEANUP3:
+	if(infoPtr != NULL) png_free_data(pngPtr, infoPtr, PNG_FREE_ALL, -1);
+	
+CLEANUP2:
+	png_destroy_write_struct (&pngPtr, (png_infopp)NULL);
+	
+CLEANUP1:
+	fclose(f);
+	
+	return ret;
 }
 
 
