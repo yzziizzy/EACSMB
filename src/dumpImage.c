@@ -14,7 +14,7 @@
 
 
 // data is densely packed
-int writePNG(char* path, int channels, char* data, int w, int h) {
+int writePNG(char* path, unsigned int channels, char* data, unsigned int w, unsigned int h) {
 	
 	FILE* f;
 	png_byte sig[8];
@@ -24,12 +24,21 @@ int writePNG(char* path, int channels, char* data, int w, int h) {
 	png_structp pngPtr;
 	png_infop infoPtr;
 	
-	int ret;
+	int colorTypes[4] = {
+		PNG_COLOR_TYPE_GRAY,
+		PNG_COLOR_TYPE_GRAY_ALPHA,
+		PNG_COLOR_TYPE_RGB,
+		PNG_COLOR_TYPE_RGB_ALPHA
+	};
 	
-	ret = 2;
+	int ret = 2;
 
 	printf("png write | w: %d, h: %d \n", w, h);
 
+	if(channels > 4 || channels < 1) {
+		return 3;
+	}
+	
 	// file stuff
 	f = fopen(path, "wb");
 	if(!f) {
@@ -66,7 +75,7 @@ int writePNG(char* path, int channels, char* data, int w, int h) {
 		goto CLEANUP3;
 	}
 	png_set_IHDR(pngPtr, infoPtr, w, h,
-		8, PNG_COLOR_TYPE_GRAY, PNG_INTERLACE_NONE,
+		8, colorTypes[channels - 1], PNG_INTERLACE_NONE,
 		PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
 	
 	png_write_info(pngPtr, infoPtr);

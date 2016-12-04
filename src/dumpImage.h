@@ -4,7 +4,7 @@
 
 
 
-int writePNG(char* path, int channels, char* data, int w, int h); 
+int writePNG(char* path, unsigned int channels, char* data, unsigned int w, unsigned int h); 
 
 
 
