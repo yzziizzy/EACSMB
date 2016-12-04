@@ -47,7 +47,7 @@ void main(void) {
 	
 	d = 1 - d;
 
-	a = 1 - smoothstep(0.7, .8, abs(d));
+	a = smoothstep(0.7, .8, abs(d));
 
 	
 	gl_FragColor = vec4(0, a, a, 1); 

@@ -334,7 +334,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	initMarker();
 	
 	// text rendering stuff
-	arialsdf = LoadSDFFont("Arial", 8, NULL);
+	arialsdf = LoadSDFFont("Arial", 16, NULL);
 	//arial = LoadFont("Arial", 32, NULL);
 	glerr("clearing before text program load");
 	textProg = loadCombinedProgram("textSDF");

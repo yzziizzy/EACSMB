@@ -13,11 +13,14 @@ typedef struct {
 	int fontSize;
 	int oversample, magnitude;
 	
+	// size of the original giant character in the font
 	int w, h;
-	int paddedw, paddedh;
+	int paddedw, paddedh; // deprecated
+	
 	// need kerning and offset data
 	
-	int dw, dh;
+	int dw, dh; // size of the oversampled padded glyph
+	int sdfw, sdfh; // size of the calculated sdf image
 	uint8_t* data;
 	uint8_t* sdfData;
 	

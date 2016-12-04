@@ -288,7 +288,7 @@ TextRes* LoadSDFFont(char* fontName, int size, char* chars) {
 	fontFace = res->fontInfo->fontFace;
 	
 	//debug:
-	size = 16;
+	//size = 16;
 	oversample = 16;
 	
 	err = FT_Set_Pixel_Sizes(fontFace, 0, size * oversample);
@@ -311,7 +311,7 @@ TextRes* LoadSDFFont(char* fontName, int size, char* chars) {
 	h_above = 0;
 	h_below = 0;
 	width = 4*1024;
-	height = 16;
+	height = 32;
 	res->texWidth = width;
 	res->texHeight = height; // may not always just be one row
 	res->maxHeight = height;
@@ -327,14 +327,14 @@ TextRes* LoadSDFFont(char* fontName, int size, char* chars) {
 	res->codeIndex = (unsigned char*)calloc(res->indexLen, 1);
 	
 
-	int max_h = 0;
+	int max_h_bearing = 0;
 	int max_w = 0;
 	int bearingY = 0;
 	
 	// get character dimensions
 	for(i = 0; i < charlen; i++) {
 		int ymin;
-		err = FT_Load_Char(fontFace, chars[i], FT_LOAD_DEFAULT);
+		err = FT_Load_Char(fontFace, chars[i], FT_LOAD_DEFAULT | FT_LOAD_MONOCHROME);
 		
 		ymin = slot->metrics.height >> 6;// - f2f(slot->metrics.horiBearingY);
 
@@ -343,7 +343,10 @@ TextRes* LoadSDFFont(char* fontName, int size, char* chars) {
 //		printf("width: %d \n", slot->metrics.width >> 6);
 //		printf("height: %d \n\n", slot->metrics.height >> 6);
 
-		
+		// this is the opposite value. it will be adjusted in the next loop
+		res->valign[i] =  (slot->metrics.horiBearingY >> 6);
+		max_h_bearing = MAX(res->valign[i], max_h_bearing);
+		printf("char: %c yoff: %d \n", chars[i], (slot->metrics.horiBearingY >> 6) / oversample);
 		//width += f2f(slot->metrics.width);
 		h_above = MAX(h_above, slot->metrics.horiBearingY >> 6);
 		h_below = MAX(h_below, ymin);
@@ -366,9 +369,11 @@ TextRes* LoadSDFFont(char* fontName, int size, char* chars) {
 		
 		CalcSDF_Software(res, &gbs[i]);
 
-		//writePNG("sdfcalced.png", 1, gbs[i].sdfData, gbs[i].w, gbs[i].h);
+		//writePNG("sdfcalced.png", 1, gbs[i].sdfData, gbs[i].sdfw, gbs[i].sdfh);
 
 		printf("done\n");
+		
+		res->valign[i] = (max_h_bearing - res->valign[i]) / oversample;
 		//exit(2);
 		
 	}
@@ -386,16 +391,15 @@ TextRes* LoadSDFFont(char* fontName, int size, char* chars) {
 		blit(
 			0, 0, // src x and y offset for the image
 			xoffset + padding, padding + 0, // dst offset
-			gbs[i].w, gbs[i].h, // width and height BUG probably
-			gbs[i].w, width, // src and dst row widths
+			gbs[i].sdfw, gbs[i].sdfh, // width and height BUG probably
+			gbs[i].sdfw, width, // src and dst row widths
 			gbs[i].sdfData, // source
 			res->texture); // destination
 		
  		res->codeIndex[chars[i]] = i;
-		res->charWidths[i] = gbs[i].w;
+		res->charWidths[i] = gbs[i].sdfw;
 		res->offsets[i] = xoffset;
-		res->valign[i] = 0;// + (slot->metrics.horiBearingY >> 6);
-		xoffset += gbs[i].w;
+		xoffset += gbs[i].sdfw;
 	}
 	
 	writePNG("sdf.png", 1, res->texture, width, height);
@@ -450,20 +454,22 @@ int DrawGlyph(TextRes* res, GlyphBitmap* gb) {
 	int padding;
 	FT_GlyphSlot slot;
 	
-	padding = 0;//gb->oversample * gb->magnitude;
+	padding = gb->oversample * gb->magnitude;
 		
 	// have freetype draw the character
 	FT_Load_Char(res->fontInfo->fontFace, gb->code, FT_LOAD_RENDER);
 	
 	slot = res->fontInfo->fontFace->glyph;
 	
-	gb->w = slot->metrics.width >> 6;
-	gb->h = slot->metrics.height >> 6;
-	gb->paddedw = gb->w + padding + padding;
-	gb->paddedh = gb->h + padding + padding;
-		
-	gb->dw = nextPOT(gb->paddedw);
-	gb->dh = nextPOT(gb->paddedh);
+	// this is the size of the original giant character
+	gb->w = slot->metrics.width >> 6; 
+	gb->h = slot->metrics.height >> 6; 
+	
+	gb->dw = gb->w + padding + padding;
+	gb->dh = gb->h + padding + padding;
+// 		
+// 	gb->dw = gb->paddedw; //nextPOT(gb->paddedw);
+// 	gb->dh = gb->paddedh; //nextPOT(gb->paddedh);
 	fprintf(stdout, "glyph bitmap size [%d, %d]\n", gb->dw, gb->dh);
 
 	gb->data = calloc(1, gb->dw * gb->dh * sizeof(uint8_t));
@@ -493,7 +499,7 @@ static float dmin(int a, int b, float d) {
 static int boundedOffset(int x, int y, int ox, int oy, int w, int h) {
 	int x1 = x + ox;
 	int y1 = y + oy;
-	if(x1 < 0 || y1 < 0 || x1 > w || y1 > h) return -1;
+	if(x1 < 0 || y1 < 0 || x1 >= w || y1 >= h) return -1;
 	return x1 + (w * y1);
 }
 
@@ -525,13 +531,14 @@ void CalcSDF_Software(TextRes* res, GlyphBitmap* gb) {
 	dh = gb->dh;
 	data = gb->data;
 	
-	gb->w = dw / gb->oversample; 
-	gb->h = dh / gb->oversample; 
+	// this is wrong
+	gb->sdfw = (dw / (gb->oversample)); 
+	gb->sdfh = (dh / (gb->oversample)); 
 	
-	gb->sdfData = output = malloc(gb->w * gb->h * sizeof(uint8_t));
+	gb->sdfData = output = calloc(1, gb->sdfw * gb->sdfh * sizeof(uint8_t));
 	
-	for(y = 0; y < gb->h; y++) {
-		for(x = 0; x < gb->w; x++) {
+	for(y = 0; y < gb->sdfh; y++) {
+		for(x = 0; x < gb->sdfw; x++) {
 			int sx = x * gb->oversample;
 			int sy = y * gb->oversample;
 			printf(".");
@@ -558,7 +565,7 @@ void CalcSDF_Software(TextRes* res, GlyphBitmap* gb) {
 // 				gb->sdfdims.top = MAX(gb->sdfdims.top, y);
 			}
 			
-			output[x + (y * gb->w)] = q;
+			output[x + (y * gb->sdfw)] = q;
 		}
 	}
 }
@@ -676,16 +683,17 @@ static void makeVertices(TextRenderInfo* tri, unsigned int* colors) {
 		*/
 		offset -= (font->padding * 2) * vscale;
 		offset -= kerning;
-	/*
+	
 		printf("kerning: %f\n", kerning);
 		
-		printf("index: %d, char: %c\n", index, str[i]);
-		printf("offset %f\n", tex_offset);
-		printf("next o %f\n", (float)to_next * uscale);
-		printf("uscale %f\n", uscale);
+	//	printf("index: %d, char: %c\n", index, str[i]);
+	//	printf("offset %f\n", tex_offset);
+	//	printf("next o %f\n", (float)to_next * uscale);
+	//	printf("uscale %f\n", uscale);
 		printf("valign %d\n", font->valign[index]);
-		printf("width %f\n\n", width);
-	//*/
+	//	printf("width %f\n\n", width);
+	
+		valign = font->valign[index] * vscale;
 		//tex_offset = 1;
 
 		// add quad, set uv's
