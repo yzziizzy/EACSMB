@@ -289,7 +289,7 @@ TextRes* LoadSDFFont(char* fontName, int size, char* chars) {
 	
 	//debug:
 	//size = 16;
-	oversample = 16;
+	oversample = 8; // 16 is better
 	
 	err = FT_Set_Pixel_Sizes(fontFace, 0, size * oversample);
 	if(err) {
@@ -685,13 +685,13 @@ static void makeVertices(TextRenderInfo* tri, unsigned int* colors) {
 		offset -= (font->padding * 2) * vscale;
 		offset -= kerning;
 	
-		printf("kerning: %f\n", kerning);
+		//printf("kerning: %f\n", kerning);
 		
 	//	printf("index: %d, char: %c\n", index, str[i]);
 	//	printf("offset %f\n", tex_offset);
 	//	printf("next o %f\n", (float)to_next * uscale);
 	//	printf("uscale %f\n", uscale);
-		printf("valign %d\n", font->valign[index]);
+		//printf("valign %d\n", font->valign[index]);
 	//	printf("width %f\n\n", width);
 	
 		valign = font->valign[index] * vscale;
