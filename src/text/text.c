@@ -316,7 +316,8 @@ TextRes* LoadSDFFont(char* fontName, int size, char* chars) {
 	res->texHeight = height; // may not always just be one row
 	res->maxHeight = height;
 	
-	res->texture = (unsigned char*)calloc(width * height, 1);
+	res->texture = (unsigned char*)malloc(width * height);
+	memset(res->texture, 0xff, width * height);
 	res->offsets = (unsigned short*)calloc(charlen * sizeof(unsigned short), 1);
 	res->charWidths = (unsigned short*)calloc(charlen * sizeof(unsigned short), 1);
 	res->valign = (unsigned char*)calloc(charlen * sizeof(unsigned char), 1);

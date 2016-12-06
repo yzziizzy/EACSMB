@@ -47,10 +47,11 @@ void main(void) {
 	
 	d = 1 - d;
 
-	a = smoothstep(0.7, .8, abs(d));
+	a = smoothstep(0.6, .8, abs(d));
 
+	if(a < 0.1) discard;
 	
-	gl_FragColor = vec4(0, a, a, 1); 
+	gl_FragColor = vec4(0, a, a, a); 
 
 }
 
