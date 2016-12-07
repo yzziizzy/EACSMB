@@ -24,9 +24,26 @@ typedef struct StaticMesh {
 	
 } StaticMesh;
 
+
+
+typedef struct MeshManager {
+	
+	StaticMesh* meshes;
+	int meshes_alloc;
+	int meshes_cnt;
+	
+	int activePosVBO;
+	GLuint posVBO[2];
+	GLuint geomVBO;
+	
+} MeshManager;
+
+
 void initStaticMeshes();
 StaticMesh* StaticMeshFromOBJ(OBJContents* obj);
 
 void drawStaticMesh(StaticMesh* m, Matrix* view, Matrix* proj);
+
+void meshManager_alloc(MeshManager* mm);
 
 #endif // __EACSMB_STATICMESH_H__
