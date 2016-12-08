@@ -44,6 +44,6 @@ StaticMesh* StaticMeshFromOBJ(OBJContents* obj);
 
 void drawStaticMesh(StaticMesh* m, Matrix* view, Matrix* proj);
 
-void meshManager_alloc(MeshManager* mm);
+MeshManager* meshManager_alloc();
 
 #endif // __EACSMB_STATICMESH_H__

@@ -118,6 +118,7 @@ typedef struct VAOConfig {
 	
 } VAOConfig;
 
+GLuint makeVAO(VAOConfig* details);
 
 
 void initKHRDebug();

@@ -32,16 +32,16 @@ void initStaticMeshes() {
 		{0, 0}
 	};
 	
-	geom_vao = makeVAO(opts, 2*3*4 + 2*2);
+	geom_vao = makeVAO(opts);
 
-	VAOConfig opts[] = {
+	VAOConfig opts2[] = {
 		{3, GL_FLOAT}, // position
 		{3, GL_FLOAT}, // direction
 		{3, GL_FLOAT}, // scale
 		{0, 0}
 	};
 	
-	instance_vao = makeVAO(opts, 3*3*4);
+	instance_vao = makeVAO(opts2);
 	glexit("static mesh vao");
 	
 	// shader

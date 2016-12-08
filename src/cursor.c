@@ -40,7 +40,7 @@ void initCursors() {
 		{0, 0}
 	};
 	
-	selectionVAO = makeVAO(opts, 2*3*4);
+	selectionVAO = makeVAO(opts);
 	
 	
 	// texture
@@ -118,7 +118,7 @@ void initMarker() {
 		{0, 0}
 	};
 	
-	markerVAO = makeVAO(opts, ((3+3)*4) + (2+2));
+	markerVAO = makeVAO(opts);
 	
 	
 	// mesh data

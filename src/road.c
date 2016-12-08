@@ -39,7 +39,7 @@ void initRoads() {
 		{0, 0}
 	};
 	
-	vao = makeVAO(opts, 4*4 + 4*4 + 2*4);
+	vao = makeVAO(opts);
 	glexit("road vao");
 	
 	
