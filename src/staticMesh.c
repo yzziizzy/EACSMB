@@ -18,7 +18,7 @@
 
 
 
-static GLuint geom_vao, instance_vao;
+static GLuint vao;
 static GLuint color_ul, model_ul, view_ul, proj_ul;
 static ShaderProgram* prog;
 
@@ -26,22 +26,21 @@ void initStaticMeshes() {
 	
 	// VAO
 	VAOConfig opts[] = {
+		// per vertex
 		{3, GL_FLOAT}, // position
 		{3, GL_FLOAT}, // normal
 		{2, GL_UNSIGNED_SHORT}, // tex
-		{0, 0}
-	};
-	
-	geom_vao = makeVAO(opts);
-
-	VAOConfig opts2[] = {
+		
+		// per instance 
 		{3, GL_FLOAT}, // position
 		{3, GL_FLOAT}, // direction
 		{3, GL_FLOAT}, // scale
+		
 		{0, 0}
 	};
 	
-	instance_vao = makeVAO(opts2);
+	vao = makeVAO(opts);
+
 	glexit("static mesh vao");
 	
 	// shader
@@ -72,7 +71,7 @@ void drawStaticMesh(StaticMesh* m, Matrix* view, Matrix* proj) {
 	glUniformMatrix4fv(proj_ul, 1, GL_FALSE, &proj->m);
 	glUniform3f(color_ul, .5, .2, .9);
 	
-	glBindVertexArray(geom_vao);
+	glBindVertexArray(vao);
 	glBindBuffer(GL_ARRAY_BUFFER, m->vbo);
 	glexit("mesh vbo");
 	
@@ -103,7 +102,7 @@ StaticMesh* StaticMeshFromOBJ(OBJContents* obj) {
 	}
 	
 	glexit("before static mesh vbo load");
-	glBindVertexArray(geom_vao);
+	glBindVertexArray(vao);
 	
 	glGenBuffers(1, &m->vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, m->vbo);
@@ -111,11 +110,11 @@ StaticMesh* StaticMeshFromOBJ(OBJContents* obj) {
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 28, 0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 28, 12);
-	glVertexAttribPointer(2, 2, GL_UNSIGNED_SHORT, GL_TRUE, 28, 24);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5*3*4 + 4, 0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*3*4 + 4, 12);
+	glVertexAttribPointer(2, 2, GL_UNSIGNED_SHORT, GL_TRUE, 5*3*4 + 4, 24);
 
-	glBufferData(GL_ARRAY_BUFFER, m->vertexCnt * sizeof(StaticMeshVertex), m->vertices, GL_STATIC_DRAW);
+	//glBufferData(GL_ARRAY_BUFFER, m->vertexCnt * sizeof(StaticMeshVertex), m->vertices, GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
@@ -136,10 +135,11 @@ MeshManager* meshManager_alloc() {
 	mm->meshes = malloc(mm->meshes_alloc * sizeof(StaticMesh));
 	
 	// global vao for mesh geometry
-	glBindVertexArray(geom_vao);
+	glBindVertexArray(vao);
 	
 	//local vbo for collected mesh geometry
 	glGenBuffers(1, &mm->geomVBO);
+	glGenBuffers(2, mm->instVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, mm->geomVBO);
 	
 	glEnableVertexAttribArray(0);
@@ -149,10 +149,39 @@ MeshManager* meshManager_alloc() {
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 28, 12);
 	glVertexAttribPointer(2, 2, GL_UNSIGNED_SHORT, GL_TRUE, 28, 24);
 	
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 }
 
 
+// returns the index
+int meshManager_addMesh(MeshManager* mm, StaticMesh* sm) {
+	
+	int i;
+	
+	if(mm->meshes_cnt >= mm->meshes_alloc) {
+		mm->meshes = realloc(mm->meshes, mm->meshes_alloc * 2);
+	}
+	
+	i = mm->meshes_cnt;
+	
+	mm->meshes[i] = sm;
+	mm->meshes_cnt++;
+	
+	return i;
+}
 
+void meshManager_updateGeometry(MeshManager* mm) {
+	
+}
+
+void meshManager_updateInstances(MeshManager* mm) {
+	
+}
+
+void meshManager_draw(MeshManager* mm) {
+	
+	
+}
 
 
