@@ -59,9 +59,9 @@ make all functions static that need to be
 
 volumetric clouds and ground fog with projected translucent shadows
 
-try to reuse color buffers for object picking to eliminate a dedicated selection buffer
+try to reuse color buffers for object picking to eliminate a dedicated selection buffer -- DONE!
 
-particle system
+particle system -- DONE!
 
 fix lines
 terrain texture blending

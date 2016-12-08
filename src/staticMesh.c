@@ -18,7 +18,7 @@
 
 
 
-static GLuint geom_vao;
+static GLuint geom_vao, instance_vao;
 static GLuint color_ul, model_ul, view_ul, proj_ul;
 static ShaderProgram* prog;
 
@@ -33,6 +33,15 @@ void initStaticMeshes() {
 	};
 	
 	geom_vao = makeVAO(opts, 2*3*4 + 2*2);
+
+	VAOConfig opts[] = {
+		{3, GL_FLOAT}, // position
+		{3, GL_FLOAT}, // direction
+		{3, GL_FLOAT}, // scale
+		{0, 0}
+	};
+	
+	instance_vao = makeVAO(opts, 3*3*4);
 	glexit("static mesh vao");
 	
 	// shader
@@ -140,5 +149,10 @@ MeshManager* meshManager_alloc() {
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 28, 12);
 	glVertexAttribPointer(2, 2, GL_UNSIGNED_SHORT, GL_TRUE, 28, 24);
 	
-	
+	glBindVertexArray(0);
 }
+
+
+
+
+
