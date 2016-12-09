@@ -113,7 +113,7 @@ void initEmitters() {
 		
 		{0, 0}
 	};
-	printf("emiyyrt vao\n");
+	
 	vao = makeVAO(opts);
 	glexit("emitter vao");
 	

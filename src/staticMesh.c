@@ -110,9 +110,9 @@ StaticMesh* StaticMeshFromOBJ(OBJContents* obj) {
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5*3*4 + 4, 0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*3*4 + 4, 12);
-	glVertexAttribPointer(2, 2, GL_UNSIGNED_SHORT, GL_TRUE, 5*3*4 + 4, 24);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 2*3*4 + 4, 0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 2*3*4 + 4, 12);
+	glVertexAttribPointer(2, 2, GL_UNSIGNED_SHORT, GL_TRUE, 2*3*4 + 4, 24);
 
 	//glBufferData(GL_ARRAY_BUFFER, m->vertexCnt * sizeof(StaticMeshVertex), m->vertices, GL_STATIC_DRAW);
 
@@ -134,7 +134,6 @@ MeshManager* meshManager_alloc() {
 	mm->meshes_alloc = 64;
 	mm->meshes = malloc(mm->meshes_alloc * sizeof(StaticMesh));
 	
-	// global vao for mesh geometry
 	glBindVertexArray(vao);
 	
 	//local vbo for collected mesh geometry
@@ -145,9 +144,9 @@ MeshManager* meshManager_alloc() {
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 28, 0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 28, 12);
-	glVertexAttribPointer(2, 2, GL_UNSIGNED_SHORT, GL_TRUE, 28, 24);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 2*3*4 + 4, 0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 2*3*4 + 4, 1*3*4);
+	glVertexAttribPointer(2, 2, GL_UNSIGNED_SHORT, GL_TRUE, 2*3*4 + 4, 2*3*4);
 	
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
@@ -173,6 +172,19 @@ int meshManager_addMesh(MeshManager* mm, StaticMesh* sm) {
 
 void meshManager_updateGeometry(MeshManager* mm) {
 	
+	glBindBuffer(GL_ARRAY_BUFFER, mm->geomVBO);
+	
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 2*3*4 + 4, 0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 2*3*4 + 4, 1*3*4);
+	glVertexAttribPointer(2, 2, GL_UNSIGNED_SHORT, GL_TRUE, 2*3*4 + 4, 2*3*4);
+	
+	//glBufferData(GL_ARRAY_BUFFER, m->vertexCnt * sizeof(StaticMeshVertex), m->vertices, GL_STATIC_DRAW);
+	
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
 }
 
 void meshManager_updateInstances(MeshManager* mm) {

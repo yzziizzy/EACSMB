@@ -346,6 +346,7 @@ TextRes* LoadSDFFont(char* fontName, int size, char* chars) {
 
 		// this is the opposite value. it will be adjusted in the next loop
 		res->valign[i] =  (slot->metrics.horiBearingY >> 6);
+		//res->charWidths[i] = (slot->metrics.width >> 6) / oversample;
 		max_h_bearing = MAX(res->valign[i], max_h_bearing);
 		printf("char: %c yoff: %d \n", chars[i], (slot->metrics.horiBearingY >> 6) / oversample);
 		//width += f2f(slot->metrics.width);
@@ -682,8 +683,10 @@ static void makeVertices(TextRenderInfo* tri, unsigned int* colors) {
 		if(i > 0)
 			kerning = (font->kerning[(index * font->charLen) + prev]) * uscale; // bug at end of array
 		*/
-		offset -= (font->padding * 2) * vscale;
+		offset -= ((font->padding * 2) * vscale);
 		offset -= kerning;
+		offset -= .15;
+		
 	
 		//printf("kerning: %f\n", kerning);
 		
