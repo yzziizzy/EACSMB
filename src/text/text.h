@@ -90,8 +90,9 @@ void updateText(TextRenderInfo* tri, const char* str, int len, unsigned int* col
 
 
 
+TextRes* LoadSDFFont(char* path);
 
-
+TextRes* GenerateSDFFont(char* fontName, int size, char* chars);
 
 
 

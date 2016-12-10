@@ -270,8 +270,13 @@ static int bmpsort(GlyphBitmap** a, GlyphBitmap** b) {
 	return (*a)->h - (*b)->h;
 }
 
-	
-TextRes* LoadSDFFont(char* fontName, int size, char* chars) {
+// load a pre-rendered sdf font
+TextRes* LoadSDFFont(char* path) {
+	return NULL;
+}
+
+// generate a new sdf font
+TextRes* GenerateSDFFont(char* fontName, int size, char* chars) {
 	FT_Error err;
 	FT_GlyphSlot slot;
 	FT_Face fontFace; 
