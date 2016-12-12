@@ -25,14 +25,31 @@ typedef struct StaticMesh {
 } StaticMesh;
 
 
+typedef struct StaticMeshInstance {
+	Vector pos;
+	Vector dir;
+	Vector scale;
+	
+} StaticMeshInstance;
+
+struct buf_info {
+	int alloc, cnt;
+};
+
 
 typedef struct MeshManager {
 	
 	StaticMesh** meshes;
 	int meshes_alloc;
 	int meshes_cnt;
+	int totalVertices;
+	int totalInstances;
+	
+	StaticMeshInstance** instances;
+	struct buf_info* inst_buf_info;
 	
 	int activePosVBO;
+	// need a sync object
 	GLuint instVBO[2];
 	GLuint geomVBO;
 	
