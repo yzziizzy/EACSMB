@@ -34,7 +34,9 @@ typedef struct StaticMeshInstance {
 
 struct buf_info {
 	int alloc, cnt;
+	int vertex_offset; // inda just crammed in here for now
 };
+
 
 
 typedef struct MeshManager {

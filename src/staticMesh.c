@@ -236,9 +236,13 @@ void meshManager_updateGeometry(MeshManager* mm) {
 
 void meshManager_updateInstances(MeshManager* mm) {
 	
+	int i, mesh_index;
 	StaticMeshInstance* buf_ptr;
 	
 	glBindVertexArray(vao);
+	
+	// TODO: deal with vbo cycling
+	
 	
 	if(glIsBuffer(mm->geomVBO)) glDeleteBuffers(1, &mm->geomVBO);
 	glGenBuffers(1, &mm->geomVBO);
@@ -258,7 +262,14 @@ void meshManager_updateInstances(MeshManager* mm) {
 	buf_ptr = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
 	
 	// copy in data
+	for(mesh_index = 0; mesh_index < mm->meshes_cnt; mesh_index++) {
 	
+		// TODO: offsets for rendering
+		
+		for(i = 0; i < mm->inst_buf_info[mesh_index].cnt; i++) {
+			memcpy(buf_ptr, mm->instances[mesh_index][i], sizeof(StaticMeshInstance));
+		}
+	}
 	
 	
 	glUnmapBuffer(GL_ARRAY_BUFFER);
@@ -270,7 +281,7 @@ void meshManager_updateInstances(MeshManager* mm) {
 
 void meshManager_draw(MeshManager* mm) {
 	
-	
+	//multidrawindirect, client side 
 }
 
 
