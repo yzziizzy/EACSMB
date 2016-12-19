@@ -61,3 +61,6 @@ Makefile
 
 # these are not build files
 !/assets/**/*.obj
+
+# saved sdf font data
+*.sdf
