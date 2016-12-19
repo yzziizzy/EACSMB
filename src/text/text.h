@@ -34,21 +34,21 @@ typedef struct {
 typedef struct {
 	FontInfo* fontInfo;
 	char* charSet;
-	unsigned char* texture;
-	unsigned char* codeIndex;
-	short charLen;
-	short indexLen;
-	unsigned short* offsets;  // texture offsets
-	unsigned char* kerning;
-	unsigned char* valign; // vertical offset for gutters
-	unsigned short* charWidths; // quad widths
+	uint8_t* texture;
+	uint8_t* codeIndex;
+	uint16_t charLen;
+	uint16_t indexLen;
+	uint16_t* offsets;  // texture offsets
+	uint8_t* kerning;
+	uint8_t* valign; // vertical offset for gutters
+	uint16_t* charWidths; // quad widths
 	
-	short maxWidth, maxHeight;
-	short padding;
+	uint16_t maxWidth, maxHeight;
+	uint16_t padding;
 	
 	GLuint textureID;
-	short texWidth;
-	short texHeight;
+	uint16_t texWidth;
+	uint16_t texHeight;
 	
 } TextRes;
 
