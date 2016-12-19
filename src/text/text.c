@@ -270,9 +270,118 @@ static int bmpsort(GlyphBitmap** a, GlyphBitmap** b) {
 	return (*a)->h - (*b)->h;
 }
 
+// save a pre-rendered sdf font
+void SaveSDFFont(char* path, TextRes* res) {
+	FILE* f;
+	unsigned short version = 1;
+	uint16_t n;
+	
+	f = fopen(path, "wb");
+	
+	// write version
+	fwrite(&version, 2, 1, f);
+	
+	// save font info
+	
+	// sizes
+	fwrite(&res->maxWidth, 2, 1, f);
+	fwrite(&res->maxHeight, 2, 1, f);
+	fwrite(&res->texWidth, 2, 1, f);
+	fwrite(&res->texHeight, 2, 1, f);
+	fwrite(&res->padding, 2, 1, f);
+	fwrite(&res->charLen, 2, 1, f);
+	fwrite(&res->indexLen, 2, 1, f);
+	
+	//charset
+	n = res->charLen;
+	fwrite(res->charSet, 1, n, f);
+	
+	fwrite(res->codeIndex, 1, res->indexLen, f);
+	fwrite(res->offsets, 2, n, f);
+	fwrite(res->kerning, 1, n, f);
+	fwrite(res->valign, 1, n, f);
+	fwrite(res->charWidths, 2, n, f);
+	
+	// the data
+	fwrite(res->texture, 1, res->texWidth * res->texHeight, f);
+	
+	
+	fclose(f);
+}
 // load a pre-rendered sdf font
 TextRes* LoadSDFFont(char* path) {
-	return NULL;
+	FILE* f;
+	TextRes* res;
+	unsigned short version;
+	int n;
+	
+	f = fopen(path, "rb");
+	if(!f) {
+		return NULL;
+	}
+	
+	res = calloc(1, sizeof(TextRes));
+	
+	fread(&version, 2, 1, f);
+	
+	// sizes
+	fread(&res->maxWidth, 2, 1, f);
+	fread(&res->maxHeight, 2, 1, f);
+	fread(&res->texWidth, 2, 1, f);
+	fread(&res->texHeight, 2, 1, f);
+	fread(&res->padding, 2, 1, f);
+	fread(&res->charLen, 2, 1, f);
+	fread(&res->indexLen, 2, 1, f);
+	
+	//charset
+	n = res->charLen;
+	res->charSet = malloc(n);
+	fread(res->charSet, 1, n, f);
+	
+	res->codeIndex = malloc(res->indexLen);
+	fread(res->codeIndex, 1, res->indexLen, f);
+	
+	res->offsets = malloc(2 * n);
+	fread(res->offsets, 2, n, f);
+	
+	res->kerning = malloc(n);
+	fread(res->kerning, 1, n, f);
+	
+	res->valign = malloc(n);
+	fread(res->valign, 1, n, f);
+	
+	res->charWidths = malloc(2 * n);
+	fread(res->charWidths, 2, n, f);
+	
+	// the data
+	res->texture = malloc(res->texWidth * res->texHeight);
+	fread(res->texture, 1, res->texWidth * res->texHeight, f);
+	
+	
+	fclose(f);
+	
+	// set up the texture
+	glGenTextures(1, &res->textureID);
+	glBindTexture(GL_TEXTURE_2D, res->textureID);
+	glerr("bind font tex");
+	
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0); // no mipmaps for this; it'll get fucked up
+	glerr("param font tex");
+	
+	printf("text width: %d, height: %d \n", res->texWidth, res->texHeight);
+// 	printf("text width 3: %d, height: %d \n", width, height);
+	
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, res->texWidth, res->texHeight, 0, GL_RED, GL_UNSIGNED_BYTE, res->texture);
+	glerr("load font tex");
+	
+	glBindTexture(GL_TEXTURE_2D, 0);
+	
+	
+	return res;
 }
 
 // generate a new sdf font
@@ -452,6 +561,7 @@ TextRes* GenerateSDFFont(char* fontName, int size, char* chars) {
 	
 	glBindTexture(GL_TEXTURE_2D, 0);
 	
+	free(gbs);
 	
 	return res;
 }
