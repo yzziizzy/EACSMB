@@ -4,8 +4,8 @@
 
 #version 430 core
 
-layout (location = 0) in vec4 pos_in;
-layout (location = 1) in vec4 norm_in;
+layout (location = 0) in vec3 pos_in;
+layout (location = 1) in vec3 norm_in;
 layout (location = 2) in vec2 tex_in;
 
 
@@ -18,8 +18,8 @@ out vec4 vs_norm;
 out vec2 vs_tex;
 
 void main() {
-	gl_Position = (mProj * mView * mModel) * pos_in;
-	vs_norm = norm_in; // normalize(vec4(1,1,1,0));
+	gl_Position = (mProj * mView * mModel) * vec4(pos_in, 1);
+	vs_norm = vec4(norm_in, 1); // normalize(vec4(1,1,1,0));
 	vs_tex = tex_in;
 }
 

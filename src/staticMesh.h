@@ -29,7 +29,7 @@ typedef struct StaticMeshInstance {
 	Vector pos;
 	Vector dir;
 	Vector scale;
-	
+	// alpha, glow, blink
 } StaticMeshInstance;
 
 struct buf_info {
@@ -52,7 +52,7 @@ typedef struct MeshManager {
 	
 	int activePosVBO;
 	// need a sync object
-	GLuint instVBO[2];
+	GLuint instVBO;
 	GLuint geomVBO;
 	
 } MeshManager;
@@ -64,8 +64,9 @@ StaticMesh* StaticMeshFromOBJ(OBJContents* obj);
 void drawStaticMesh(StaticMesh* m, Matrix* view, Matrix* proj);
 
 MeshManager* meshManager_alloc();
-void meshManager_draw(MeshManager* mm);
+void meshManager_draw(MeshManager* mm, Matrix* view, Matrix* proj);
 int meshManager_addMesh(MeshManager* mm, StaticMesh* sm);
+int meshManager_addInstance(MeshManager* mm, int meshIndex, const StaticMeshInstance* smi);
 void meshManager_updateGeometry(MeshManager* mm);
 void meshManager_updateInstances(MeshManager* mm);
 

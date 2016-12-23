@@ -368,11 +368,33 @@ void initGame(XStuff* xs, GameState* gs) {
 	// don't have more meshes yet...
 	meshManager_addMesh(meshman, testmesh);
 	meshManager_addMesh(meshman, testmesh);
-	meshManager_addMesh(meshman, testmesh);
-	meshManager_addMesh(meshman, testmesh);
+//	meshManager_addMesh(meshman, testmesh);
+//	meshManager_addMesh(meshman, testmesh);
 
 	meshManager_updateGeometry(meshman);
 	
+	StaticMeshInstance smi[] = {
+		{
+			{1,1,10},
+			{.2,.2,.2},
+			{.5, .7, .1 },
+		},
+		{
+			{1,1,10},
+			{.2,.2,.2},
+			{.8, .1, .15 },
+		},
+		{
+			{1,1,10},
+			{.3,.3,.3},
+			{-.3, .2, .125 },
+		}
+	};
+	
+	meshManager_addInstance(meshman, 0, &smi[0]);
+	meshManager_addInstance(meshman, 0, &smi[1]);
+	meshManager_addInstance(meshman, 0, &smi[2]);
+	meshManager_updateInstances(meshman);
 	
 	initEmitters();
 	
@@ -575,6 +597,10 @@ void handleInput(GameState* gs, InputState* is) {
 	float rotateSpeed = gs->settings.keyRotate * te; // 20.8 degrees
 	float keyZoom = gs->settings.keyZoom * te;
 	float mouseZoom = gs->settings.mouseZoom * te;
+
+	if(is->keyState[54] & IS_KEYDOWN) {
+		exit(0);
+	}
 	
 	if(is->clickButton == 1) {
 		/*
@@ -623,6 +649,7 @@ void handleInput(GameState* gs, InputState* is) {
 		gs->direction -= rotateSpeed;
 		gs->hasMoved = 1;
 	}
+
 	// keep rotation in [0,F_2PI)
 	gs->direction = fmodf(F_2PI + gs->direction, F_2PI);
 	
@@ -839,6 +866,7 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	renderMarker(gs, 0,0);
 
 	//drawStaticMesh(testmesh, msGetTop(&gs->view), msGetTop(&gs->proj));
+	meshManager_draw(meshman, msGetTop(&gs->view), msGetTop(&gs->proj));
 
 
 
