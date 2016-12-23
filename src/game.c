@@ -50,6 +50,7 @@ Emitter* dust;
 RoadBlock* roads;
 
 StaticMesh* testmesh;
+MeshManager* meshman;
 
 // MapBlock* map;
 // TerrainBlock* terrain;
@@ -361,7 +362,18 @@ void initGame(XStuff* xs, GameState* gs) {
 	//Mesh* cubem = OBJtoMesh(&cube);
 	testmesh = StaticMeshFromOBJ(&cube);
 	
+	
+	meshman = meshManager_alloc();
+	
+	// don't have more meshes yet...
+	meshManager_addMesh(meshman, testmesh);
+	meshManager_addMesh(meshman, testmesh);
+	meshManager_addMesh(meshman, testmesh);
+	meshManager_addMesh(meshman, testmesh);
 
+	meshManager_updateGeometry(meshman);
+	
+	
 	initEmitters();
 	
 	dust = makeEmitter();

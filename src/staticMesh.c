@@ -232,11 +232,13 @@ void meshManager_updateGeometry(MeshManager* mm) {
 	
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+	
+	glexit(__FILE__);
 }
 
 void meshManager_updateInstances(MeshManager* mm) {
 	
-	int i, mesh_index;
+	int i, mesh_index, vertex_offset;
 	StaticMeshInstance* buf_ptr;
 	
 	glBindVertexArray(vao);
@@ -262,12 +264,13 @@ void meshManager_updateInstances(MeshManager* mm) {
 	buf_ptr = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
 	
 	// copy in data
+	vertex_offset = 0;
 	for(mesh_index = 0; mesh_index < mm->meshes_cnt; mesh_index++) {
 	
 		// TODO: offsets for rendering
 		
 		for(i = 0; i < mm->inst_buf_info[mesh_index].cnt; i++) {
-			memcpy(buf_ptr, mm->instances[mesh_index][i], sizeof(StaticMeshInstance));
+			memcpy(buf_ptr, &mm->instances[mesh_index][i], sizeof(StaticMeshInstance));
 		}
 	}
 	
