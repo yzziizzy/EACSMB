@@ -262,8 +262,12 @@ void main(void) {
 	
 	d /= (255);
 	
+	vec4 lineFactor = vec4(min(min(ei1, ei2), min(ei3, ei4)), 0,0,1).rrra;
+	vec4 lineColor = vec4(0,0,0,1.0);
+	vec4 tc2 = mix(lineColor, tc, lineFactor.r);
+	
 //	out_Selection = vec4(floor(t_tile.x) / 256, floor(t_tile.y) / 256, ps_InstanceID, 1);
 	out_Normal = vec4((te_normal.x + 1) / 2, (te_normal.z + 1) / 2, (te_normal.z + 1) / 2, 1);
- 	out_Color =  (zoneColor * .2 + tc) * cursorIntensity * vec4(min(min(ei1, ei2), min(ei3, ei4)), 0,0,1).rrra; //(1.0, 0, .5, .6);
+ 	out_Color =  (zoneColor * .2 + tc2) * cursorIntensity;// * lineFactor; //(1.0, 0, .5, .6);
 }
 

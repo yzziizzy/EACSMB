@@ -66,6 +66,9 @@ particle system -- DONE!
 fix lines
 terrain texture blending
 
+fix all reallocs
+check all lib fn return values
+
 IDEAS:
 --------------------
 animated building demolitions
