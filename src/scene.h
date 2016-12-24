@@ -3,7 +3,7 @@
 
 
 
-
+/*
 typedef struct Renderable {
 	AABB aabb;
 
@@ -39,15 +39,15 @@ typedef struct QuadTree {
 	
 	QuadTreeNode* root;
 } QuadTree;
-
+*/
 
 
 
 typedef struct Scene {
 	
-	int totalItems;
+	MeshManager* mms;
+	Emitter* emitters;
 	
-	QuadTree qt;
 	
 } Scene;
 
@@ -55,8 +55,8 @@ typedef struct Scene {
 
 
 
-void initQuadTree(QuadTree* qt, float szX, float szY);
-void qtInsertItem(QuadTree* qt, Renderable* r); 
+//void initQuadTree(QuadTree* qt, float szX, float szY);
+//void qtInsertItem(QuadTree* qt, Renderable* r); 
 
 
 

@@ -10,7 +10,15 @@
 #include "c3dlas/c3dlas.h"
 
 
+#include "utilities.h"
+#include "objloader.h"
+#include "staticMesh.h"
+#include "emitter.h"
 #include "scene.h"
+
+
+
+/*
 
 static void nodeInsertItem(QuadTree* qt, QuadTreeNode* n, Renderable* r);
 static RenderableList* rlPriceIsRight(RenderableList* l, Renderable* r);
@@ -153,7 +161,7 @@ static RenderableList* rlInsert(RenderableList* l, Renderable* r) {
 
 
 
-
+*/
 
 
 
