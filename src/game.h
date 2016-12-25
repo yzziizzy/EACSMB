@@ -5,6 +5,7 @@
 #include "config.h" // UserConfig
 #include "uniformBuffer.h"
 #include "fbo.h"
+#include "scene.h"
 
 
 
@@ -71,7 +72,7 @@ typedef struct GameState {
 	GLuint selectionPBOs[2];
 	char readPBO, activePBO;
 	
-	MapInfo map;
+	Scene scene;
 	
 	UniformBuffer perViewUB;
 	UniformBuffer perFrameUB;

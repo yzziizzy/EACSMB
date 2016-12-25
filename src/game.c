@@ -28,10 +28,9 @@
 #include "staticMesh.h"
 #include "road.h"
 #include "map.h"
-#include "scene.h"
 #include "game.h"
 #include "emitter.h"
-
+#include "scene.h"
 
 GLuint proj_ul, view_ul, model_ul;
 
@@ -328,8 +327,13 @@ void initGame(XStuff* xs, GameState* gs) {
 	gs->lookCenter.y = 128;
 	
 	
+	initStaticMeshes();
+	initRoads();
+	initEmitters();
+	
 	// initialize all those magic globals
-	initMap(&gs->map);
+// 	initMap(&gs->map);
+	scene_init(&gs->scene);
 	
 	initUI(gs);
 	initMarker();
@@ -354,8 +358,6 @@ void initGame(XStuff* xs, GameState* gs) {
 	//strRI = prepareText(arial, "FPS: --", -1, colors);
 	strRI = prepareText(arialsdf, "FPS: --", -1, colors);
 	
-	initStaticMeshes();
-	initRoads();
 	
 	OBJContents cube;
 	loadOBJFile("assets/models/untitled.obj", 0, &cube);
@@ -396,7 +398,6 @@ void initGame(XStuff* xs, GameState* gs) {
 	meshManager_addInstance(meshman, 0, &smi[2]);
 	meshManager_updateInstances(meshman);
 	
-	initEmitters();
 	
 	dust = makeEmitter();
 	EmitterInstance dust_instance = {
@@ -776,7 +777,7 @@ void depthPrepass(XStuff* xs, GameState* gs, InputState* is) {
 
 	// draw terrain
 // 	drawTerrainBlockDepth(&gs->map, msGetTop(&gs->model), msGetTop(&gs->view), msGetTop(&gs->proj));
-	drawTerrainDepth(&gs->map, &gs->perViewUB, &gs->screen.wh);
+	drawTerrainDepth(&gs->scene.map, &gs->perViewUB, &gs->screen.wh);
 	
 	//msPop(&gs->view);
 	//msPop(&gs->proj);
@@ -861,7 +862,7 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	// draw terrain
 // 	drawTerrainBlock(&gs->map, msGetTop(&gs->model), msGetTop(&gs->view), msGetTop(&gs->proj), &gs->cursorPos);
-	drawTerrain(&gs->map, &gs->perViewUB, &gs->cursorPos, &gs->screen.wh);
+	drawTerrain(&gs->scene.map, &gs->perViewUB, &gs->cursorPos, &gs->screen.wh);
 	
 	renderMarker(gs, 0,0);
 
@@ -924,7 +925,7 @@ void renderDecals(XStuff* xs, GameState* gs, InputState* is) {
 	
 	*/
 	
-	drawTerrainRoads(gs->depthTexBuffer, &gs->map, msGetTop(&gs->view), msGetTop(&gs->proj), &gs->cursorPos, &gs->screen.wh);
+	drawTerrainRoads(gs->depthTexBuffer, &gs->scene.map, msGetTop(&gs->view), msGetTop(&gs->proj), &gs->cursorPos, &gs->screen.wh);
 	
 	glexit("render decals");
 }
@@ -1006,7 +1007,7 @@ void checkCursor(GameState* gs, InputState* is) {
 	gs->cursorTilePos.y = u.rgb[1];
 	gs->cursorTilePos.z = u.rgb[2];
 	
-	struct sGL_RG8* off = &gs->map.offsetData[(int)gs->cursorTilePos.z]; 
+	struct sGL_RG8* off = &gs->scene.map.offsetData[(int)gs->cursorTilePos.z]; 
 	
 	gs->cursorPos.x = (off->x * 256.0) + gs->cursorTilePos.x;
 	gs->cursorPos.y = (off->y * 256.0) + gs->cursorTilePos.y;

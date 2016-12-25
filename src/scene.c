@@ -12,10 +12,21 @@
 
 #include "utilities.h"
 #include "objloader.h"
+#include "shader.h"
 #include "staticMesh.h"
 #include "emitter.h"
 #include "scene.h"
+#include "map.h"
 
+
+
+
+
+void scene_init(Scene* sc) {
+	
+	initMap(&sc->map);
+	
+}
 
 
 /*

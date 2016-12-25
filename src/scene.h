@@ -1,7 +1,9 @@
 #ifndef __EACSMB_SCENE_H__
 #define __EACSMB_SCENE_H__
 
-
+#include "map.h"
+#include "staticMesh.h"
+#include "emitter.h"
 
 /*
 typedef struct Renderable {
@@ -48,11 +50,13 @@ typedef struct Scene {
 	MeshManager* mms;
 	Emitter* emitters;
 	
+	MapInfo map;
+	
 	
 } Scene;
 
 
-
+void scene_init(Scene* sc);
 
 
 //void initQuadTree(QuadTree* qt, float szX, float szY);
