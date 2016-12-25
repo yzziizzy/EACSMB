@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
+#include <errno.h>
 #include <string.h>
 #include <math.h>
 
@@ -16,6 +17,61 @@
 #include "objloader.h"
 
 
+// returns status code
+int strtol_2(char* s, int* charsRead, int* value) {
+	char* end;
+	int val;
+	
+	if(charsRead) *charsRead = 0;
+	
+	errno = 0;
+	val = strtol(s, &end, 10);
+	if(errno != 0) return errno; // read error
+	if(s == end) return -1; // no characters read
+	
+	// success
+	if(charsRead) *charsRead = end - s;
+	if(value) *value = val;
+	
+	return 0;
+}
+
+
+
+int parseFaceVertex(char** s, int* info) {
+	char* end;
+	int val;
+	int err, chars_read;
+	
+	info[3] = 0;
+	
+	// first  
+	err = strtol_2(*s, &chars_read, &val);
+	if(err) return 1;
+	*s += chars_read ;
+	info[0] = val;
+	info[3]++;
+	
+	if(**s != '/') return 0;
+	(*s)++;
+	
+	err = strtol_2(*s, &chars_read, &val);
+	if(err) return 0;
+	*s += chars_read ;
+	info[1] = val;
+	info[3]++;
+	
+	if(**s != '/') return 0;
+	(*s)++;
+	
+	err = strtol_2(*s, &chars_read, &val);
+	if(err) return 0;
+	*s += chars_read ;
+	info[2] = val;
+	info[3]++;
+	
+	return 0;
+}
 
 
 
@@ -80,15 +136,16 @@ void loadOBJFile(char* path, int four_d_verts, OBJContents* contents) {
 	vertices = malloc(numVertices * sizeof(Vector));
 	normals = malloc(numNormals * sizeof(Vector));
 	texCoords = malloc(numTexCoords * sizeof(Vector2));
-	// only triangles are supported atm
-	faces = malloc(numFaces * 3 * sizeof(OBJVertex));
+	// double the size in case of quads
+	faces = malloc(numFaces * 6 * sizeof(OBJVertex));
 	
 	
 	f = raw;
 	while(*f) {
 		char c;
 		int chars_read, n, j;
-		int fd[3][3];
+		int fd[4][4];
+		int vertex_count;
 		
 		//printf("looping \n");
 		c = *f;
@@ -96,12 +153,18 @@ void loadOBJFile(char* path, int four_d_verts, OBJContents* contents) {
 		
 		if(c == 'f') { // faces. currently only triangles and quite hacky
 			//  f v[/t[/n]] v[/t[/n]] v[/t[/n]] [v[/t[/n]]]
-			n = sscanf(f, " %d/%d/%d %d/%d/%d %d/%d/%d%n", 
-				&fd[0][0], &fd[0][1], &fd[0][2],
-				&fd[1][0], &fd[1][1], &fd[1][2],
-				&fd[2][0], &fd[2][1], &fd[2][2],
-				&chars_read);
 			
+			parseFaceVertex(&f, &fd[0]);
+			parseFaceVertex(&f, &fd[1]);
+			parseFaceVertex(&f, &fd[2]);
+			parseFaceVertex(&f, &fd[3]);
+			/*
+			printf("%d/%d/%d[%d] %d/%d/%d[%d] %d/%d/%d[%d] %d/%d/%d[%d] \n",
+				fd[0][0], fd[0][1], fd[0][2], fd[0][3],
+				fd[1][0], fd[1][1], fd[1][2], fd[1][3],
+				fd[2][0], fd[2][1], fd[2][2], fd[2][3],
+				fd[3][0], fd[3][1], fd[3][2], fd[3][3]);
+			*/
 			vCopy(  &vertices[fd[0][0]-1], &faces[fc].v);
 			vCopy2(&texCoords[fd[0][1]-1], &faces[fc].t);
 			vCopy(   &normals[fd[0][2]-1], &faces[fc].n);
@@ -117,7 +180,26 @@ void loadOBJFile(char* path, int four_d_verts, OBJContents* contents) {
 			vCopy(   &normals[fd[2][2]-1], &faces[fc].n);
 			fc++;
 			
-			f += chars_read;
+			// it's a quad
+			if(fd[3][3] > 0) {
+				vCopy(  &vertices[fd[2][0]-1], &faces[fc].v);
+				vCopy2(&texCoords[fd[2][1]-1], &faces[fc].t);
+				vCopy(   &normals[fd[2][2]-1], &faces[fc].n);
+				fc++;
+				
+				vCopy(  &vertices[fd[3][0]-1], &faces[fc].v);
+				vCopy2(&texCoords[fd[3][1]-1], &faces[fc].t);
+				vCopy(   &normals[fd[3][2]-1], &faces[fc].n);
+				fc++;
+
+				vCopy(  &vertices[fd[0][0]-1], &faces[fc].v);
+				vCopy2(&texCoords[fd[0][1]-1], &faces[fc].t);
+				vCopy(   &normals[fd[0][2]-1], &faces[fc].n);
+				fc++;
+				
+			}
+			
+			//f += chars_read;
 		}
 		else if(c == 'v') {
 			
@@ -181,7 +263,7 @@ void loadOBJFile(char* path, int four_d_verts, OBJContents* contents) {
 	
 	
 	contents->faces = faces;
-	contents->faceCnt = numFaces;
+	contents->faceCnt = fc  > 0 ? fc / 3 : 0;
 }
 
 
