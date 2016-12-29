@@ -3,6 +3,8 @@
 bin_PROGRAMS = eacsmb
 
 eacsmb_SOURCES = main.c \
+	hash.c \
+	MurmurHash3.c \
 	utilities.c \
 	config.c \
 	dumpImage.c \
