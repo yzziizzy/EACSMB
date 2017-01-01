@@ -29,7 +29,7 @@ HashTable* HT_create(int allocPOT) {
 	obj->fill = 0;
 	obj->alloc_size = 1 << pot;
 	obj->grow_ratio = 0.75f;
-	obj->shrink_ratio = 99.0f;
+	obj->shrink_ratio = 99.0f; // set greater than 1.0 to entirely disable
 	obj->buckets = calloc(1, sizeof(*obj->buckets) * obj->alloc_size);
 	if(!obj->buckets) {
 		free(obj);
@@ -39,6 +39,23 @@ HashTable* HT_create(int allocPOT) {
 	return obj;
 }
 
+void HT_destroy(HashTable* obj, int free_values_too) {
+	int i, n;
+	
+	if(free_values_too) {
+		for(i = 0, n = 0; i < obj->alloc_size, n < obj->fill; i++) {
+			// only free valid pointers that also have a key
+			// deleted items are assumed to be cleaned up by the user
+			if(obj->buckets[i].key) {
+				if(obj->buckets[i].value) free(obj->buckets[i].value);
+				n++;
+			}
+		}
+	}
+	
+	if(obj->buckets) free(obj->buckets);
+	free(obj);
+}
 
 
 
@@ -139,16 +156,110 @@ int HT_set(HashTable* obj, char* key, void* val) {
 	uint64_t hash;
 	size_t bi;
 	
-	// TODO: check size and grow if necessary
+	// check size and grow if necessary
+	if(obj->fill / obj->alloc_size >= obj->grow_ratio) {
+		HT_resize(obj, obj->alloc_size * 2);
+	}
 	
 	hash = hash_key(key, -1);
 	
 	bi = find_bucket(obj, hash, key);
 	if(bi < 0) return 1;
 	
+	if(obj->buckets[bi].key == NULL) {
+		// new bucket
+		obj->buckets[bi].key = key;
+		obj->buckets[bi].hash = hash;
+		obj->fill++;
+	}
+	
 	obj->buckets[bi].value = val;
 	
 	return 0;
 }
 
+// zero for success
+int HT_delete(HashTable* obj, char* key) {
+	uint64_t hash;
+	size_t bi, empty_bi, nat_bi;
+	
+	size_t alloc_size = obj->alloc_size;
+	
+	/* do this instead of the deletion algorithm
+	// check size and shrink if necessary
+	if(obj->fill / alloc_size <= obj->shrink_ratio) {
+		HT_resize(obj, alloc_size > 32 ? alloc_size / 2 : 16);
+		alloc_size = obj->alloc_size;
+	}
+	*/
+	hash = hash_key(key, -1);
+	bi = find_bucket(obj, hash, key);
+	
+	// if there's a key, work until an empty bucket is found
+	// check successive buckets for colliding keys
+	//   walk forward until the furthest colliding key is found
+	//   move it to the working bucket.
+	//   
+	
+	// nothing to delete, bail early
+	if(obj->buckets[bi].key == NULL) return;
+	
+	//
+	empty_bi = bi;
+	
+	do {
+		bi = (bi + 1) % alloc_size;
+		if(obj->buckets[bi].key == NULL) {
+			//empty bucket
+			break;
+		}
+		
+		// bucket the hash at the current index naturally would be in
+		nat_bi = obj->buckets[bi].hash % alloc_size;
+		
+		if((bi > empty_bi && // after the start
+			(nat_bi <= empty_bi /* in a sequence of probed misses */ || nat_bi > bi /* wrapped all the way around */)) 
+			||
+			(bi < empty_bi && // wrapped around
+			(nat_bi <= empty_bi /* in a sequence of probed misses... */ && nat_bi > bi /* ..from before the wrap */))) {
+			
+			// move this one back
+			obj->buckets[empty_bi].key = obj->buckets[bi].key;
+			obj->buckets[empty_bi].hash = obj->buckets[bi].hash;
+			obj->buckets[empty_bi].value = obj->buckets[bi].value;
+			
+			empty_bi = bi;
+		}
+	} while(1);
+	
+	obj->buckets[empty_bi].key = NULL;
+	
+	return 0;
+}
+
+// iteration. no order. results undefined if modified while iterating
+// returns 0 when there is none left
+// set iter to NULL to start
+int HT_next(HashTable* obj, void** iter, char** key, void** value) { 
+	struct hash_bucket* b = *iter;
+	
+	// a tiny bit of idiot-proofing
+	if(b == NULL) b = &obj->buckets[-1];
+	
+	do {
+		b++;
+		if(b > obj->buckets + obj->alloc_size) {
+			// end of the list
+			*value = NULL;
+			*key = NULL;
+			return 0;
+		}
+	} while(!b->key);
+	
+	*key = b->key;
+	*value = b->value;
+	*iter = b;
+	
+	return 1;
+}
 
