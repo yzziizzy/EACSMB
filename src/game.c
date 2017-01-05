@@ -108,9 +108,22 @@ int _getPrintGLEnumMin(GLenum e, char* name, char* message) {
 	return i;
 }
 
-static void unpack_fbo(json_value_t* v, FBOTexConfig* cfg) {
+static void unpack_fbo(json_value_t* p, char* key, FBOTexConfig* cfg) {
+	char* a, *b, *c;
+	json_value_t* o, *v1, *v2, *v3;
 	
+	json_obj_get_key(p, key, &o);
 	
+	json_obj_get_key(o, "internalType", &v1); a = v1->v.str;
+	json_as_GLenum(v1, &cfg->internalType);
+	
+	json_obj_get_key(o, "format", &v2); b = v2->v.str;
+	json_as_GLenum(v2, &cfg->format);
+	
+	json_obj_get_key(o, "size", &v3); c = v3->v.str;
+	json_as_GLenum(v3, &cfg->size);
+	
+	printf("fbo cfg from json: %s: %x, %s: %x, %s: %x\n", a, cfg->internalType, b, cfg->format, c, cfg->size);
 }
 
 
@@ -127,6 +140,16 @@ void setupFBOs(GameState* gs, int resized) {
 	
 	json_value_t* tex;
 	json_obj_get_key(jsf->root, "textures", &tex);
+	
+	FBOTexConfig texcfg2[6];
+	unpack_fbo(tex, "diffuse", &texcfg2[0]);
+	unpack_fbo(tex, "normal", &texcfg2[1]);
+	unpack_fbo(tex, "selection", &texcfg2[2]);
+	unpack_fbo(tex, "lighting", &texcfg2[3]);
+	unpack_fbo(tex, "depth", &texcfg2[4]);
+	texcfg2[5].internalType = 0;
+	texcfg2[5].format = 0;
+	texcfg2[5].size = 0;
 	
 	/*
 	FBOTexConfig texcfg[6];
@@ -150,6 +173,13 @@ void setupFBOs(GameState* gs, int resized) {
 		{GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_FLOAT},
 		{0,0,0}
 	};
+
+	printf("\nfbo cfg from code: %x, %x, %x\n", GL_RGB, GL_RGB, GL_UNSIGNED_BYTE);
+	printf("fbo cfg from code: %x, %x, %x\n", GL_RGB, GL_RGB, GL_UNSIGNED_BYTE);
+	printf("fbo cfg from code: %x, %x, %x\n", GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
+	printf("fbo cfg from code: %x, %x, %x\n", GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
+	printf("fbo cfg from code: %x, %x, %x\n", GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_FLOAT);
+
 	
 	GLuint* texids = initFBOTextures(ww, wh, texcfg);
 	

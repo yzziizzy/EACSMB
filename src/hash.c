@@ -137,7 +137,7 @@ int HT_resize(HashTable* obj, int newSize) {
 
 // TODO: better return values and missing key handling
 // returns 0 if val is set to the value
-// *val == NULL && return 0  means the key was not found;
+// *val == NULL && return > 0  means the key was not found;
 int HT_get(HashTable* obj, char* key, void** val) {
 	uint64_t hash;
 	size_t bi;

@@ -14,6 +14,7 @@ struct enum_data {
 };
 
 #define gl_enum_data(str, macro, val) {str, val},
+// #define gl_enum_data(str, macro, val) {str, macro},
 static struct enum_data enum_values_for_gl[] = {
 	#include "gl_enum_data.c" 
 	{0,0}
@@ -41,6 +42,7 @@ void json_gl_init_lookup() {
 
 
 int json_as_GLenum(struct json_value* v, GLenum* out) {
+	
 	switch(v->type) { // actual type
 		case JSON_TYPE_UNDEFINED:
 		case JSON_TYPE_NULL:
@@ -56,8 +58,8 @@ int json_as_GLenum(struct json_value* v, GLenum* out) {
 			return 0;
 			
 		case JSON_TYPE_STRING: // look up the enum
-			*out = strtol(v->v.str, NULL, 0);
-			return 0;
+			return HT_get(lookup, v->v.str, out);
+			
 			
 		case JSON_TYPE_OBJ: // all invalid
 		case JSON_TYPE_ARRAY:
