@@ -21,7 +21,7 @@ HashTable* HT_create(int allocPOT) {
 	int pot, allocSz;
 	HashTable* obj;
 	
-	pot = allocPOT < 16 ? 16 : allocPOT;
+	pot = allocPOT < 4 ? 4 : allocPOT;
 	
 	obj = malloc(sizeof(*obj));
 	if(!obj) return NULL;

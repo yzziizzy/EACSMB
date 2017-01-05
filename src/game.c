@@ -18,6 +18,8 @@
 #include "c3dlas/c3dlas.h"
 #include "c3dlas/meshgen.h"
 #include "text/text.h"
+#include "c_json/json.h"
+#include "json_gl.h"
 
 #include "utilities.h"
 #include "config.h"
@@ -31,6 +33,8 @@
 #include "game.h"
 #include "emitter.h"
 #include "scene.h"
+
+
 
 GLuint proj_ul, view_ul, model_ul;
 
@@ -104,7 +108,10 @@ int _getPrintGLEnumMin(GLenum e, char* name, char* message) {
 	return i;
 }
 
-
+static void unpack_fbo(json_value_t* v, FBOTexConfig* cfg) {
+	
+	
+}
 
 
 void setupFBOs(GameState* gs, int resized) {
@@ -115,6 +122,24 @@ void setupFBOs(GameState* gs, int resized) {
 		destroyFBOTextures(gs->fboTextures);
 		free(gs->fboTextures);
 	}
+	
+	json_file_t* jsf = json_load_path("assets/config/fbo.json");
+	
+	json_value_t* tex;
+	json_obj_get_key(jsf->root->v.obj, "textures", &tex);
+	
+	/*
+	FBOTexConfig texcfg[6];
+	
+	json_obj_unpack_struct(tex, 
+		JSON_UNPACK(&texcfg[0], internalType, JSON_TYPE_STRING), 
+		JSON_UNPACK(&texcfg[0], internalType, JSON_TYPE_STRING), 
+		JSON_UNPACK(&texcfg[0], internalType, JSON_TYPE_STRING), 
+		JSON_UNPACK(&texcfg[0], internalType, JSON_TYPE_STRING)
+					 
+					 
+	);
+	*/
 	
 	// backing textures
 	FBOTexConfig texcfg[] = {
@@ -215,6 +240,8 @@ void setupFBOs(GameState* gs, int resized) {
 
 void initGame(XStuff* xs, GameState* gs) {
 	int ww, wh;
+	
+	json_gl_init_lookup();
 	
 	glerr("left over error on game init");
 	
@@ -379,23 +406,23 @@ void initGame(XStuff* xs, GameState* gs) {
 		{
 			{1,1,10},
 			{.2,.2,.2},
-			{.5, .7, .1 },
+			{.5, .5, .5 },
 		},
 		{
 			{1,1,10},
 			{.2,.2,.2},
-			{.8, .1, .15 },
+			{.8, .8, .8 },
 		},
 		{
 			{1,1,10},
 			{.3,.3,.3},
-			{-.3, .2, .125 },
+			{-.3, -.3, -.3 },
 		}
 	};
 	
 	meshManager_addInstance(meshman, 0, &smi[0]);
-	meshManager_addInstance(meshman, 0, &smi[1]);
-	meshManager_addInstance(meshman, 0, &smi[2]);
+//	meshManager_addInstance(meshman, 0, &smi[1]);
+//	meshManager_addInstance(meshman, 0, &smi[2]);
 	meshManager_updateInstances(meshman);
 	
 	

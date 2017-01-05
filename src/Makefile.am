@@ -24,6 +24,8 @@ eacsmb_SOURCES = main.c \
 	sim.c \
 	texture.c \
 	perlin.c \
+	json_gl.c \
+	c_json/json.c \
 	c3dlas/c3dlas.c \
 	c3dlas/meshgen.c \
 	text/text.c \
