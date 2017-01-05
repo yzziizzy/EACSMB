@@ -126,7 +126,7 @@ void setupFBOs(GameState* gs, int resized) {
 	json_file_t* jsf = json_load_path("assets/config/fbo.json");
 	
 	json_value_t* tex;
-	json_obj_get_key(jsf->root->v.obj, "textures", &tex);
+	json_obj_get_key(jsf->root, "textures", &tex);
 	
 	/*
 	FBOTexConfig texcfg[6];
