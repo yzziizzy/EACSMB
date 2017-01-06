@@ -181,7 +181,7 @@ void setupFBOs(GameState* gs, int resized) {
 	printf("fbo cfg from code: %x, %x, %x\n", GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_FLOAT);
 
 	
-	GLuint* texids = initFBOTextures(ww, wh, texcfg);
+	GLuint* texids = initFBOTextures(ww, wh, texcfg2);
 	
 	gs->diffuseTexBuffer = texids[0];
 	gs->normalTexBuffer = texids[1];
