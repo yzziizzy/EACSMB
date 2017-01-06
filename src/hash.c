@@ -174,6 +174,8 @@ int HT_set(HashTable* obj, char* key, void* val) {
 	}
 	
 	obj->buckets[bi].value = val;
+	obj->buckets[bi].key = key;
+	obj->buckets[bi].hash = hash;
 	
 	return 0;
 }
