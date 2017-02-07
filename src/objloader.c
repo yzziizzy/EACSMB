@@ -43,6 +43,9 @@ int parseFaceVertex(char** s, int* info) {
 	int val;
 	int err, chars_read;
 	
+	while(**s && (**s == ' ' || **s == '\t' || **s == '\r')) (*s)++;
+	if(**s == '\n') return 0;
+	
 	info[3] = 0;
 	
 	// first  
@@ -106,7 +109,26 @@ void loadOBJFile(char* path, int four_d_verts, OBJContents* contents) {
 		f++;
 		
 		if(c == 'f') { // faces
-			numFaces++;
+			//numFaces++;
+// 			count number of flip-flops between space and not, subtract two
+			{
+				int in_letters = 0;
+				while(*f && f++) {
+					if(in_letters && isspace(*f)) {
+						in_letters = 0;
+						printf("face");
+						numFaces++;
+					}
+					if(!in_letters && !isspace(*f)) {
+						in_letters = 1;
+					}
+					
+					if(*f == '\n') break;
+					printf("x");
+				}
+				printf("-\n");
+			//while(*f++ != '\n');
+			}
 		}
 		else if(c == 'v') { 
 			c = *f;
@@ -115,7 +137,8 @@ void loadOBJFile(char* path, int four_d_verts, OBJContents* contents) {
 			else if(c == 't') numTexCoords++;
 		}
 		
-		while(*f++ != '\n');
+		while(*f && *f != '\n') f++;
+		f++;
 	}
 	
 	printf("Vertices: %d\n", numVertices);
@@ -146,6 +169,8 @@ void loadOBJFile(char* path, int four_d_verts, OBJContents* contents) {
 		int chars_read, n, j;
 		int fd[4][4];
 		int vertex_count;
+		int ret;
+		int nn = 0;
 		
 		//printf("looping \n");
 		c = *f;
@@ -154,32 +179,49 @@ void loadOBJFile(char* path, int four_d_verts, OBJContents* contents) {
 		if(c == 'f') { // faces. currently only triangles and quite hacky
 			//  f v[/t[/n]] v[/t[/n]] v[/t[/n]] [v[/t[/n]]]
 			
-			parseFaceVertex(&f, &fd[0]);
-			parseFaceVertex(&f, &fd[1]);
-			parseFaceVertex(&f, &fd[2]);
-			parseFaceVertex(&f, &fd[3]);
+			//printf("parseface \n");
+			
+			ret = parseFaceVertex(&f, &fd[0]); // the center vertex
+			//if(!ret) 
+			ret = parseFaceVertex(&f, &fd[1]); // the next vertex
+			
+			do {
+				
+				ret = parseFaceVertex(&f, &fd[2]);
+				printf("parseface( %d )\n", ret);
+				if(ret) break;
+				
+				//parseFaceVertex(&f, &fd[3]);
+				
+				/*
+				printf("%d/%d/%d[%d] %d/%d/%d[%d] %d/%d/%d[%d] %d/%d/%d[%d] \n",
+					fd[0][0], fd[0][1], fd[0][2], fd[0][3],
+					fd[1][0], fd[1][1], fd[1][2], fd[1][3],
+					fd[2][0], fd[2][1], fd[2][2], fd[2][3],
+					fd[3][0], fd[3][1], fd[3][2], fd[3][3]);
+				*/
+				//printf("fc %d %d\n", fc, fd[0][0]);
+				vCopy(  &vertices[fd[0][0]-1], &faces[fc].v);
+				vCopy2(&texCoords[fd[0][1]-1], &faces[fc].t);
+				vCopy(   &normals[fd[0][2]-1], &faces[fc].n);
+				fc++;
+				
+				vCopy(  &vertices[fd[1][0]-1], &faces[fc].v);
+				vCopy2(&texCoords[fd[1][1]-1], &faces[fc].t);
+				vCopy(   &normals[fd[1][2]-1], &faces[fc].n);
+				fc++;
+				
+				vCopy(  &vertices[fd[2][0]-1], &faces[fc].v);
+				vCopy2(&texCoords[fd[2][1]-1], &faces[fc].t);
+				vCopy(   &normals[fd[2][2]-1], &faces[fc].n);
+				fc++;
+				//printf("fc %d\n", fc);
+				// shift the last vertex
+				
+				memcpy(&fd[1], &fd[2], sizeof(fd[2]));
+			} while(nn++ < 6 /* more vertices left */);
+			
 			/*
-			printf("%d/%d/%d[%d] %d/%d/%d[%d] %d/%d/%d[%d] %d/%d/%d[%d] \n",
-				fd[0][0], fd[0][1], fd[0][2], fd[0][3],
-				fd[1][0], fd[1][1], fd[1][2], fd[1][3],
-				fd[2][0], fd[2][1], fd[2][2], fd[2][3],
-				fd[3][0], fd[3][1], fd[3][2], fd[3][3]);
-			*/
-			vCopy(  &vertices[fd[0][0]-1], &faces[fc].v);
-			vCopy2(&texCoords[fd[0][1]-1], &faces[fc].t);
-			vCopy(   &normals[fd[0][2]-1], &faces[fc].n);
-			fc++;
-			
-			vCopy(  &vertices[fd[1][0]-1], &faces[fc].v);
-			vCopy2(&texCoords[fd[1][1]-1], &faces[fc].t);
-			vCopy(   &normals[fd[1][2]-1], &faces[fc].n);
-			fc++;
-			
-			vCopy(  &vertices[fd[2][0]-1], &faces[fc].v);
-			vCopy2(&texCoords[fd[2][1]-1], &faces[fc].t);
-			vCopy(   &normals[fd[2][2]-1], &faces[fc].n);
-			fc++;
-			
 			// it's a quad
 			if(fd[3][3] > 0) {
 				vCopy(  &vertices[fd[2][0]-1], &faces[fc].v);
@@ -198,7 +240,7 @@ void loadOBJFile(char* path, int four_d_verts, OBJContents* contents) {
 				fc++;
 				
 			}
-			
+			*/
 			//f += chars_read;
 		}
 		else if(c == 'v') {
@@ -256,9 +298,14 @@ void loadOBJFile(char* path, int four_d_verts, OBJContents* contents) {
 				f += chars_read;
 				tc++;
 			}
-		}
+			
+			f++;
+			printf("x");
+		} 
 		
-		while(*f++ != '\n');
+		// skip to the end
+		while(*f && *f != '\n') f++;
+		f++;
 	}
 	
 	
