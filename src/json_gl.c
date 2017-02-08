@@ -72,6 +72,68 @@ int json_as_GLenum(struct json_value* v, GLenum* out) {
 }
 
 
+static float index_as_float(json_value_t* obj, int index, float def) {
+	json_value_t* v;
+	float f;
+	int ret;
+	
+	if(!json_as_float(v, &f)) {
+		return def;
+	}
+	
+	return f;
+}
+
+static float key_as_float(json_value_t* obj, char* key, float def) {
+	json_value_t* v;
+	float f;
+	int ret;
+	
+	if(!json_obj_get_key(obj, key, &v)) {
+		return def;
+	}
+	
+	if(!json_as_float(v, &f)) {
+		return def;
+	}
+	
+	return f;
+}
+
+int json_as_vector(struct json_value* v, int max_len, float* out) {
+	int i;
+	float f;
+	struct json_array_node* an;
+	
+	if(v->type == JSON_TYPE_OBJ) {
+		out[0] = key_as_float(v, "x", 0.0);
+		out[1] = key_as_float(v, "y", 0.0);
+		out[2] = key_as_float(v, "z", 0.0);
+		out[3] = key_as_float(v, "w", 1.0);
+		
+		// get x/y/z/w, r/g/b/a
+	}
+	else if(v->type == JSON_TYPE_ARRAY) {
+		// [1,2,3,4]
+		an = v->v.arr->head;
+		i = 0;
+		while(an) {
+			json_as_float(an->value, &f);
+			out[i++] = f;
+			an = an->next;
+		}
+		
+		switch(i < max_len - 1) out[i++] = 0.0f;
+		if(max_len == 4 && i == 3) out[3] = 1.0f;
+	}
+	else if(v->type == JSON_TYPE_DOUBLE) {
+	// duplicate numbers to every field 
+		json_as_float(v, &f);
+		for(i = 0; i < max_len; i++) out[i] = f;
+	}
+}
+
+
 int json_as_type_gl(struct json_value* v, enum json_type_gl t, void* out) {
 	switch(t) {
 		

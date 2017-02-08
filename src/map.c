@@ -17,6 +17,7 @@
 #include "road.h"
 #include "map.h"
 #include "perlin.h"
+#include "terrain.h"
 
 
 
@@ -47,6 +48,10 @@ void initMap(MapInfo* mi) {
 	int x, y, i;
 	char* tmpDir;
 	
+	// HACK DEBUG. leaks like wiki
+	TerrainTexInfo tti;
+	terrain_initTexInfo(&tti);
+	terrain_readConfigJSON(&tti, "assets/config/terrain.json");
 	
 	tmpDir = getenv("TMPDIR");
 	

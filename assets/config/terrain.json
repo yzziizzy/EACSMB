@@ -1,0 +1,14 @@
+{
+	grass: {
+		diffuse: "grass.png",
+	},
+	dirt: {
+		diffuse: "dirt.png",
+	},
+	sand: {
+		diffuse: "sand.png",
+	},
+	
+	
+	
+} 
