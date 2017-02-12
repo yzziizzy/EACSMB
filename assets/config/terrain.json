@@ -1,12 +1,12 @@
 {
 	grass: {
-		diffuse: "grass.png",
+		diffuse: "grass_texture-256.png",
 	},
 	dirt: {
-		diffuse: "dirt.png",
+		diffuse: "dirt_texture-256.png",
 	},
 	sand: {
-		diffuse: "sand.png",
+		diffuse: "sand_texture-256.png",
 	},
 	
 	

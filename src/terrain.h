@@ -1,6 +1,7 @@
 #ifndef __EACSMB_TERRAIN_H__
 #define __EACSMB_TERRAIN_H__
 
+#include "hash.h"
 
 #define VEC(t) \
 struct vector { \
@@ -65,6 +66,7 @@ do { \
 	)
 
 
+
 typedef struct TerrainTex {
 	char* name;
 	uint32_t index;
@@ -79,7 +81,7 @@ typedef struct TerrainTex {
 		char* specular;
 		char* reflectivity;
 	} paths;
-	
+
 	
 	
 } TerrainTex;
@@ -88,6 +90,16 @@ typedef struct TerrainTex {
 typedef struct TerrainTexInfo {
 	
 	VEC(TerrainTex*) config;
+	HashTable* nameLookup;
+	
+	// needed: shader-accessible layout information
+	
+	struct {
+		GLuint tex_id;
+		int depth;
+	} diffuse, normal, displacement, specular, reflectivity;
+	
+	GLuint infoId;
 	
 	
 	

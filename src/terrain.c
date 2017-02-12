@@ -34,10 +34,15 @@ void vec_resize(void** data, size_t* size, size_t elem_size) {
 }
 
 
-void terrain_init() {};
+void terrain_init() {
+	
+	
+	
+};
 
 void terrain_initTexInfo(TerrainTexInfo* tti) {
 	VEC_INIT(&tti->config);
+	tti->nameLookup = HT_create(5);
 }
 
 
@@ -82,6 +87,7 @@ void terrain_readConfigJSON(TerrainTexInfo* tti, char* path) {
 		if(!tt) return; // TODO panic!
 		tt->name = texName;
 		
+		
 		printf("loading tex: %s\n", tt->name);
 		
 		ret = json_obj_get_key(tc, "diffuse", &v);
@@ -124,21 +130,119 @@ void terrain_readConfigJSON(TerrainTexInfo* tti, char* path) {
 			tt->featureMask &= TERRAINTEX_REFLECTIVITY;
 		}
 		
+		// TODO: check for minimum features
+		
+		HT_set(tti->nameLookup, texName, VEC_LEN(&tti->config));
 		VEC_PUSH(&tti->config, tt);
 	}
-	
-// 	*out = a;
-// 	*len = l;
-	
-	
 	
 	
 }
 
 
-void terrain_loadTextures() {
+static void loadTexData(TerrainTex* tt) {
 	
 	
+}
+
+
+void terrain_loadTextures(TerrainTexInfo* tti) {
+	
+	//	TexArray* ta;
+	int len, i;
+	char* source, *s;
+	
+	int w, h;
+	
+	
+	//len = ptrlen(files);
+	len = VEC_LEN(&tti->config);
+	
+	//bmps = malloc(sizeof(BitmapRGBA8*) * len);
+	//ta = calloc(sizeof(TexArray), 1);
+	
+	w = 256;
+	h = 256;
+	
+	/*
+	for(i = 0; i < len; i++) {
+		//bmps[i] = readPNG(files[i]);
+		
+		if(!bmps[1]) {
+			//printf("Failed to load %s\n", files[i]);
+			continue;
+		}
+		
+		w = MAX(w, bmps[i]->width);
+		h = MAX(h, bmps[i]->height);
+	}*/
+	
+//	ta->width = w;
+//	ta->height = h;
+//	ta->depth = len;
+	
+	printf("len: %d\n", len);
+	
+	
+	glGenTextures(1, &tti->diffuse.tex_id);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, tti->diffuse.tex_id);
+	glexit("failed to create texture array 1");
+	
+// 		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_GENERATE_MIPMAP, GL_FALSE);
+	glexit("failed to create texture array 2");
+
+	glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	
+	glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	glexit("failed to create texture array 3");
+	
+	// squash the data in
+	glPixelStorei(GL_PACK_ALIGNMENT, 1);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	
+	glTexStorage3D(GL_TEXTURE_2D_ARRAY,
+		1,  // mips, flat
+		GL_RGBA8,
+		w, h,
+		len); // layers
+	
+	glexit("failed to create texture array 4");
+	
+	
+	for(i = 0; i < len; i++) {
+		//if(!bmps[i]) continue;
+		
+		BitmapRGBA8 bmp;
+		char buf[512];
+		buf[0] = 0;
+		strcpy(buf, "assets/textures/");
+		strcat(buf, VEC_DATA(&tti->config)[i]->paths.diffuse);
+		
+		if(readPNG2(buf, &bmp)) {
+			printf("failed to load file\n");
+			return;
+		}
+		
+		glTexSubImage3D(GL_TEXTURE_2D_ARRAY, // target
+			0,  // mip level, 0 = base, no mipmap,
+			0, 0, i,// offset
+			w, h,
+			1,
+			GL_RGBA,  // format
+			GL_UNSIGNED_BYTE, // input type
+			bmp.data);
+		glexit("could not load tex array slice");
+		
+		free(bmp.data);
+	}
+	
+//	free(bmps);
+	
+	//return ta;
 }
 
 

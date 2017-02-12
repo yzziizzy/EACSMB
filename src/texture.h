@@ -26,6 +26,7 @@ typedef struct TexArray {
 Texture* loadDataTexture(unsigned char* data, short width, short height);
 
 BitmapRGBA8* readPNG(char* path);
+int readPNG2(char* path, BitmapRGBA8* bmp);
 
 Texture* loadBitmapTexture(char* path);
 

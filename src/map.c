@@ -24,11 +24,14 @@
 
 static GLuint patchVAO;
 static GLuint patchVBO;
-static GLuint proj_ul, view_ul, model_ul, heightmap_ul, offset_ul, winsize_ul, basetex_ul;
+static GLuint proj_ul, view_ul, model_ul, heightmap_ul, offset_ul, winsize_ul, basetex_ul, diffuse_ul;
 static GLuint proj_d_ul, view_d_ul, model_d_ul, heightmap_d_ul, offset_d_ul, winsize_d_ul;
 static GLuint map_ul, zoneColors_ul;
 static int totalPatches;
 Texture* cnoise;
+
+// temp
+TerrainTexInfo tti;
 
 static TerrainPatchVertex* patchVertices;
 
@@ -49,9 +52,10 @@ void initMap(MapInfo* mi) {
 	char* tmpDir;
 	
 	// HACK DEBUG. leaks like wiki
-	TerrainTexInfo tti;
+	
 	terrain_initTexInfo(&tti);
 	terrain_readConfigJSON(&tti, "assets/config/terrain.json");
+	terrain_loadTextures(&tti);
 	
 	tmpDir = getenv("TMPDIR");
 	
@@ -207,6 +211,7 @@ void initTerrain(MapInfo* mi) {
 	offset_ul = glGetUniformLocation(terrProg->id, "sOffsetLookup");
 	heightmap_ul = glGetUniformLocation(terrProg->id, "sHeightMap");
 	basetex_ul = glGetUniformLocation(terrProg->id, "sBaseTex");
+	diffuse_ul = glGetUniformLocation(terrProg->id, "sDiffuse");
 	winsize_ul = glGetUniformLocation(terrProg->id, "winSize");
 	zoneColors_ul = glGetUniformLocation(terrProg->id, "sZoneColors");
 	map_ul = glGetUniformLocation(terrProg->id, "sMap");
@@ -224,6 +229,7 @@ void initTerrain(MapInfo* mi) {
 	// texture units don't change
 	glProgramUniform1i(terrProg->id, heightmap_ul, 21);
 	glProgramUniform1i(terrProg->id, basetex_ul, 22);
+	glProgramUniform1i(terrProg->id, diffuse_ul, 23);
 	glProgramUniform1i(terrProg->id, offset_ul, 20);
 
 	glProgramUniform1i(terrDepthProg->id, heightmap_d_ul, 21);
@@ -647,6 +653,9 @@ static void bindTerrainTextures(MapInfo* mi) {
 	
 	glActiveTexture(GL_TEXTURE0 + 22);
 	glBindTexture(GL_TEXTURE_2D, cnoise->tex_id);
+
+	glActiveTexture(GL_TEXTURE0 + 23);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, tti.diffuse.tex_id);
 	
 	glActiveTexture(GL_TEXTURE0 + 20);
 	glBindTexture(GL_TEXTURE_2D, mi->locationTex);

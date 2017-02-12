@@ -204,6 +204,7 @@ layout(location = 1) out vec4 out_Normal;
 #define HALFUNIT .5
 
 uniform sampler2D sBaseTex;
+uniform sampler2DArray sDiffuse;
 uniform isampler2DArray sMap; // 0 = zones, 1 = surfaceTex
 uniform sampler1D sZoneColors;
 uniform sampler2D sOffsetLookup;
@@ -249,7 +250,8 @@ void main(void) {
 	//out_Color = vec4(t_tile.x, t_tile.y,1 ,1.0);
 	
  	
- 	vec4 tc = texture2D(sBaseTex, texCoord);
+//  	vec4 tc = texture2D(sBaseTex, texCoord);
+ 	vec4 tc = texture(sDiffuse, vec3(texCoord.xy, t_tile.x /20 ));
 //  	vec4 tc = vec4(texture(sMap, vec3(texCoord, 1)).rgb * 128, 1.0);
  	
  	// "in cursor"

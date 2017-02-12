@@ -71,17 +71,32 @@ Texture* loadDataTexture(unsigned char* data, short width, short height) {
 
 
 BitmapRGBA8* readPNG(char* path) {
+	int ret;
+	
+	BitmapRGBA8* b = (BitmapRGBA8*)calloc(sizeof(BitmapRGBA8), 1);
+	if(!b) return NULL;
+	
+	ret = readPNG2(path, b);
+	if(ret) {
+		if(b->data) free(b->data);
+		free(b);
+		return NULL;
+	}
+	
+	return b;
+}
+
+int readPNG2(char* path, BitmapRGBA8* bmp) {
 	
 	FILE* f;
 	png_byte sig[8];
-	BitmapRGBA8* b;
 	png_bytep* rowPtrs;
 	int i;
 	
 	f = fopen(path, "rb");
 	if(!f) {
 		fprintf(stderr, "Could not open \"%s\" (readPNG).\n", path);
-		return NULL;
+		return 1;
 	}
 	
 	fread(sig, 1, 8, f);
@@ -89,14 +104,14 @@ BitmapRGBA8* readPNG(char* path) {
 	if(png_sig_cmp(sig, 0, 8)) {
 		fprintf(stderr, "\"%s\" is not a valid PNG file.\n", path);
 		fclose(f);
-		return NULL;
+		return 1;
 	}
 	
 	png_structp readStruct = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 	if (!readStruct) {
 		fprintf(stderr, "Failed to load \"%s\". readPNG Error 1.\n", path);
 		fclose(f);
-		return NULL;
+		return 1;
 	}
 	
 	png_infop infoStruct = png_create_info_struct(readStruct);
@@ -104,12 +119,11 @@ BitmapRGBA8* readPNG(char* path) {
 		fprintf(stderr, "Failed to load \"%s\". readPNG Error 2.\n", path);
 		png_destroy_read_struct(&readStruct, (png_infopp)0, (png_infopp)0);
 		fclose(f);
-		return NULL;
+		return 1;
 	};
 	
 	
-	b = (BitmapRGBA8*)calloc(sizeof(BitmapRGBA8), 1);
-	b->path = path;
+	bmp->path = path;
 	
 	// exceptions are evil. the alternative with libPNG is a bit worse. ever heard of return codes libPNG devs?
 	if (setjmp(png_jmpbuf(readStruct))) {
@@ -117,10 +131,10 @@ BitmapRGBA8* readPNG(char* path) {
 		fprintf(stderr, "Failed to load \"%s\". readPNG Error 3.\n", path);
 		png_destroy_read_struct(&readStruct, (png_infopp)0, (png_infopp)0);
 		
-		if(b->data) free(b->data);
-		free(b);
+		if(bmp->data) free(bmp->data);
+		free(bmp);
 		fclose(f);
-		return NULL;
+		return 1;
 	}
 	
 	
@@ -129,17 +143,17 @@ BitmapRGBA8* readPNG(char* path) {
 
 	png_read_info(readStruct, infoStruct);
 
-	b->width = png_get_image_width(readStruct, infoStruct);
-	b->height = png_get_image_height(readStruct, infoStruct);
+	bmp->width = png_get_image_width(readStruct, infoStruct);
+	bmp->height = png_get_image_height(readStruct, infoStruct);
 	
 	png_read_update_info(readStruct, infoStruct);
 	
-	b->data = (uint32_t*)malloc(b->width * b->height * sizeof(uint32_t));
+	bmp->data = (uint32_t*)malloc(bmp->width * bmp->height * sizeof(uint32_t));
 	
-	rowPtrs = (png_bytep*)malloc(sizeof(png_bytep) * b->height);
+	rowPtrs = (png_bytep*)malloc(sizeof(png_bytep) * bmp->height);
 	
-	for(i = 0; i < b->height; i++) {
-		rowPtrs[i] = (png_bytep)(b->data + (b->width * i));
+	for(i = 0; i < bmp->height; i++) {
+		rowPtrs[i] = (png_bytep)(bmp->data + (bmp->width * i));
 	}
 
 	png_read_image(readStruct, rowPtrs);
@@ -152,7 +166,7 @@ BitmapRGBA8* readPNG(char* path) {
 	
 	printf("Loaded \"%s\".\n", path);
 	
-	return b;
+	return 0;
 }
 
 
