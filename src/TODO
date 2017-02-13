@@ -16,9 +16,8 @@ decal mesh generation
 	terrain area stats
 
 
-fix text rendering and make it match pixel for pixel
 clean up text rendering function
-spaces in fonts don't work right
+spaces in fonts don't work right - maybe fixed?
 gui toolkit
 
 standard base set of uniforms for all shaders (depends on #include partially)
@@ -65,9 +64,14 @@ particle system -- DONE!
 
 fix lines
 terrain texture blending
+terrain texture atlas & json loader
 
 fix all reallocs
 check all lib fn return values
+
+memory cleanup in json lib
+json utils:
+	object unpacker to string/string vector map
 
 IDEAS:
 --------------------
