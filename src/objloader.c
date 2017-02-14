@@ -44,7 +44,7 @@ int parseFaceVertex(char** s, int* info) {
 	int err, chars_read;
 	
 	while(**s && (**s == ' ' || **s == '\t' || **s == '\r')) (*s)++;
-	if(**s == '\n') return 0;
+	if(**s == '\n') return 1;
 	
 	info[3] = 0;
 	
@@ -116,7 +116,7 @@ void loadOBJFile(char* path, int four_d_verts, OBJContents* contents) {
 				while(*f && f++) {
 					if(in_letters && isspace(*f)) {
 						in_letters = 0;
-						printf("face");
+						//printf("face");
 						numFaces++;
 					}
 					if(!in_letters && !isspace(*f)) {
@@ -124,9 +124,9 @@ void loadOBJFile(char* path, int four_d_verts, OBJContents* contents) {
 					}
 					
 					if(*f == '\n') break;
-					printf("x");
+					//printf("x");
 				}
-				printf("-\n");
+				//printf("-\n");
 			//while(*f++ != '\n');
 			}
 		}
@@ -167,7 +167,7 @@ void loadOBJFile(char* path, int four_d_verts, OBJContents* contents) {
 	while(*f) {
 		char c;
 		int chars_read, n, j;
-		int fd[4][4];
+		int fd[3][4];
 		int vertex_count;
 		int ret;
 		int nn = 0;
@@ -183,23 +183,26 @@ void loadOBJFile(char* path, int four_d_verts, OBJContents* contents) {
 			
 			ret = parseFaceVertex(&f, &fd[0]); // the center vertex
 			//if(!ret) 
+			printf("ret 1: %d, ", ret);
 			ret = parseFaceVertex(&f, &fd[1]); // the next vertex
+			printf("ret 2: %d, ", ret);
 			
 			do {
 				
 				ret = parseFaceVertex(&f, &fd[2]);
-				printf("parseface( %d )\n", ret);
+				printf("ret 3: %d \n", ret);
+				//printf("parseface( %d )\n", ret);
 				if(ret) break;
 				
 				//parseFaceVertex(&f, &fd[3]);
 				
 				/*
-				printf("%d/%d/%d[%d] %d/%d/%d[%d] %d/%d/%d[%d] %d/%d/%d[%d] \n",
+				printf("%d/%d/%d[%d] %d/%d/%d[%d] %d/%d/%d[%d] \n",
 					fd[0][0], fd[0][1], fd[0][2], fd[0][3],
 					fd[1][0], fd[1][1], fd[1][2], fd[1][3],
-					fd[2][0], fd[2][1], fd[2][2], fd[2][3],
-					fd[3][0], fd[3][1], fd[3][2], fd[3][3]);
+					fd[2][0], fd[2][1], fd[2][2], fd[2][3]);
 				*/
+					   
 				//printf("fc %d %d\n", fc, fd[0][0]);
 				vCopy(  &vertices[fd[0][0]-1], &faces[fc].v);
 				vCopy2(&texCoords[fd[0][1]-1], &faces[fc].t);
@@ -219,29 +222,9 @@ void loadOBJFile(char* path, int four_d_verts, OBJContents* contents) {
 				// shift the last vertex
 				
 				memcpy(&fd[1], &fd[2], sizeof(fd[2]));
-			} while(nn++ < 6 /* more vertices left */);
+			} while(1);
 			
-			/*
-			// it's a quad
-			if(fd[3][3] > 0) {
-				vCopy(  &vertices[fd[2][0]-1], &faces[fc].v);
-				vCopy2(&texCoords[fd[2][1]-1], &faces[fc].t);
-				vCopy(   &normals[fd[2][2]-1], &faces[fc].n);
-				fc++;
-				
-				vCopy(  &vertices[fd[3][0]-1], &faces[fc].v);
-				vCopy2(&texCoords[fd[3][1]-1], &faces[fc].t);
-				vCopy(   &normals[fd[3][2]-1], &faces[fc].n);
-				fc++;
 
-				vCopy(  &vertices[fd[0][0]-1], &faces[fc].v);
-				vCopy2(&texCoords[fd[0][1]-1], &faces[fc].t);
-				vCopy(   &normals[fd[0][2]-1], &faces[fc].n);
-				fc++;
-				
-			}
-			*/
-			//f += chars_read;
 		}
 		else if(c == 'v') {
 			
@@ -260,9 +243,10 @@ void loadOBJFile(char* path, int four_d_verts, OBJContents* contents) {
 					fprintf(stderr, "error reading vertex\n");
 				}
 				
-				//printf("got vertex: %f %f %f\n",vertices[vc].x,vertices[vc].y,vertices[vc].z);
+				//printf("got vertex: %f %f %f ",vertices[vc].x,vertices[vc].y,vertices[vc].z);
 				
-				f += chars_read;
+				f += chars_read-1;
+				//printf("'%.5s' \n", (f-2));
 				vc++;
 			}
 			else if(c == 'n') {
@@ -278,7 +262,7 @@ void loadOBJFile(char* path, int four_d_verts, OBJContents* contents) {
 					fprintf(stderr, "error reading normal\n");
 				}
 				
-				f += chars_read;
+				f += chars_read-1;
 				nc++;
 			}
 			else if(c == 't') {
@@ -295,12 +279,12 @@ void loadOBJFile(char* path, int four_d_verts, OBJContents* contents) {
 				
 				//printf("got tex coords: %f %f\n", texCoords[tc].x, texCoords[tc].y);
 				
-				f += chars_read;
+				f += chars_read-1;
 				tc++;
 			}
 			
 			f++;
-			printf("x");
+			//printf("x");
 		} 
 		
 		// skip to the end
