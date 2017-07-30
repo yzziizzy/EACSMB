@@ -128,7 +128,7 @@ typedef struct GameState {
 	// info for the selection pass
 	char hasMoved; // if the view has moved since the last selection pass
 	uint64_t lastSelectionFrame; // frame number of the last time a selection pass was rendered
-	
+	char selectionPassDisabled;
 	
 	// temp stuff with no better place atm
 	int activeTool;

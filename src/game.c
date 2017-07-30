@@ -46,6 +46,8 @@ float zoom;
 
 // temp shit
 GUIText* gt;
+GUIText* gtRenderMode;
+GUIText* gtSelectionDisabled;
 
 //TextRes* arial, *arialsdf;
 //ShaderProgram* textProg;
@@ -402,6 +404,8 @@ void initGame(XStuff* xs, GameState* gs) {
 	gui_Init();
 	
 	gt = guiTextNew("gui!", &(Vector){1.0,1.0,0.0}, 6.0f, "Arial");
+	gtRenderMode = guiTextNew("", &(Vector){8.0,1.0,0.0}, 6.0f, "Arial");
+	gtSelectionDisabled = guiTextNew("", &(Vector){8.0,2.0,0.0}, 6.0f, "Arial");
 	
 	
 	//initUI(gs);
@@ -805,13 +809,33 @@ void handleInput(GameState* gs, InputState* is) {
 	}
 	
 	static lastChange = 0;
+	static char* modeStrings[] = {
+		"",
+		"diffuse",
+		"normal",
+		"depth",
+		"lighting"
+	};
 	if(is->keyState[119] & IS_KEYDOWN) {
 		if(gs->frameTime > lastChange + 1) {
 			gs->debugMode = (gs->debugMode + 1) % 5;
 			lastChange = gs->frameTime;
+
+			guiTextSetValue(gtRenderMode, modeStrings[gs->debugMode]);
+
 		}
 	}
 	
+	if(is->keyState[33] & IS_KEYDOWN) {
+		gs->selectionPassDisabled = !gs->selectionPassDisabled;
+
+		if(gs->selectionPassDisabled) {
+			guiTextSetValue(gtSelectionDisabled, "Selection Disabled");
+		}
+		else {
+			guiTextSetValue(gtSelectionDisabled, "");
+		}
+	}
 }
 
 
@@ -951,51 +975,10 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	meshManager_draw(meshman, msGetTop(&gs->view), msGetTop(&gs->proj));
 
 
-
+/*
 	gui_RenderAll(gs);
-	
-	/*
-	glUseProgram(textProg->id);
-	
-	
-	
-	// text stuff
-	textProj = IDENT_MATRIX;
-	textModel = IDENT_MATRIX;
-	
-	mOrtho(0, gs->screen.aspect, 0, 1, -1, 100, &textProj);
-	//mScale3f(.5,.5,.5, &textProj);
-	
-	mScale3f(.06, .06, .06, &textModel);
-	
-	GLuint tp_ul = glGetUniformLocation(textProg->id, "mProj");
-	GLuint tm_ul = glGetUniformLocation(textProg->id, "mModel");
-	GLuint ts_ul = glGetUniformLocation(textProg->id, "fontTex");
-	
-	glUniformMatrix4fv(tp_ul, 1, GL_FALSE, textProj.m);
-	glUniformMatrix4fv(tm_ul, 1, GL_FALSE, textModel.m);
-	glexit("text matrix uniforms");
-
-	glDisable(GL_CULL_FACE);
-	
-	glActiveTexture(GL_TEXTURE0);
-	glexit("active texture");
-
-	glUniform1i(ts_ul, 0);
-	glexit("text sampler uniform");
-// 	glBindTexture(GL_TEXTURE_2D, arial->textureID);
-	glBindTexture(GL_TEXTURE_2D, arialsdf->textureID);
-	glexit("bind texture");
-	
-	
-	glBindVertexArray(strRI->vao);
-	glexit("text vao bind");
-	
-	glBindBuffer(GL_ARRAY_BUFFER, strRI->vbo);
-	glexit("text vbo bind");
-	glDrawArrays(GL_TRIANGLES, 0, strRI->vertexCnt);
-	glexit("text drawing");
 	*/
+
 }
 
 
@@ -1025,7 +1008,7 @@ void renderParticles(XStuff* xs, GameState* gs, InputState* is) {
 
 void shadingPass(GameState* gs) {
 	
-	Matrix world;
+	Matrix world, projView, viewWorld;
 	
 	world = IDENT_MATRIX;
 	
@@ -1050,7 +1033,16 @@ void shadingPass(GameState* gs) {
 	
 	glexit("shading samplers");
 	
-	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "world"), 1, GL_FALSE, world.m);
+//	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "world"), 1, GL_FALSE, world.m);
+	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "mViewProj"), 1, GL_FALSE, msGetTop(&gs->proj)->m);
+	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "mWorldView"), 1, GL_FALSE, msGetTop(&gs->view)->m);
+
+	mInverse(msGetTop(&gs->proj), &projView);
+	mInverse(msGetTop(&gs->view), &viewWorld);
+	
+	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "mProjView"), 1, GL_FALSE, projView.m);
+	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "mViewWorld"), 1, GL_FALSE, viewWorld.m);
+
 	glexit("shading world");
 
 	glUniform3fv(glGetUniformLocation(shadingProg->id, "sunNormal"), 1, (float*)&gs->sunNormal);
@@ -1061,6 +1053,11 @@ void shadingPass(GameState* gs) {
 	
 	drawFSQuad();
 	glexit("post quad draw");
+	
+	
+	gui_RenderAll(gs);
+	
+	
 }
 
 void checkCursor(GameState* gs, InputState* is) {
@@ -1156,7 +1153,7 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	updateView(xs, gs, is);
 	
 	
-	if(gs->hasMoved && gs->lastSelectionFrame < gs->frameCount - 8) {
+	if(gs->hasMoved && gs->lastSelectionFrame < gs->frameCount - 8 && !gs->selectionPassDisabled) {
 		printf("doing selection pass %d\n", gs->frameCount);
 		gs->hasMoved = 0;
 		gs->lastSelectionFrame = gs->frameCount; 
