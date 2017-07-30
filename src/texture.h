@@ -1,3 +1,5 @@
+#ifndef __EACSMB_texture_h__
+#define __EACSMB_texture_h__
 
 
 typedef struct {
@@ -35,6 +37,10 @@ TexArray* loadTexArray(char** files);
 
 
 
+
+
+
+#endif // __EACSMB_texture_h__
 
 
 

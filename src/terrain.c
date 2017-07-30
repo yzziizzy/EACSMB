@@ -17,7 +17,7 @@
 #include "texture.h"
 #include "terrain.h"
 
-
+/*
 void vec_resize(void** data, size_t* size, size_t elem_size) {
 	void* tmp;
 	
@@ -33,7 +33,7 @@ void vec_resize(void** data, size_t* size, size_t elem_size) {
 	*data = tmp;
 }
 
-
+*/
 void terrain_init() {
 	
 	
@@ -192,7 +192,7 @@ void terrain_loadTextures(TerrainTexInfo* tti) {
 // 		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_GENERATE_MIPMAP, GL_FALSE);
 	glexit("failed to create texture array 2");
 
-	glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	
 	glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -240,6 +240,7 @@ void terrain_loadTextures(TerrainTexInfo* tti) {
 		free(bmp.data);
 	}
 	
+	glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
 //	free(bmps);
 	
 	//return ta;

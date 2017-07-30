@@ -1,6 +1,10 @@
 #ifndef __EACSMB_WINDOW_H__
 #define __EACSMB_WINDOW_H__
 
+#include <X11/X.h>
+#include <X11/Xlib.h>
+
+#include "common_gl.h"
 
 
 typedef struct XStuff {

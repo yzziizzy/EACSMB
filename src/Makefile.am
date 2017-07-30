@@ -16,7 +16,8 @@ eacsmb_SOURCES = main.c \
 	window.c \
 	shader.c \
 	game.c \
-	ui.c \
+	gui.c \
+	ds.c \
 	cursor.c \
 	scene.c \
 	emitter.c \

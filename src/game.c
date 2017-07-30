@@ -33,6 +33,7 @@
 #include "game.h"
 #include "emitter.h"
 #include "scene.h"
+#include "gui.h"
 
 
 
@@ -44,10 +45,13 @@ float zoom;
 
 
 // temp shit
-TextRes* arial, *arialsdf;
-ShaderProgram* textProg;
-Matrix textProj, textModel;
-TextRenderInfo* strRI;
+GUIText* gt;
+
+//TextRes* arial, *arialsdf;
+//ShaderProgram* textProg;
+//Matrix textProj, textModel;
+//TextRenderInfo* strRI;
+
 Texture* cnoise;
 Emitter* dust;
 RoadBlock* roads;
@@ -271,6 +275,8 @@ void setupFBOs(GameState* gs, int resized) {
 void initGame(XStuff* xs, GameState* gs) {
 	int ww, wh;
 	
+	srand((unsigned int)time(NULL));
+	
 	json_gl_init_lookup();
 	
 	glerr("left over error on game init");
@@ -392,11 +398,17 @@ void initGame(XStuff* xs, GameState* gs) {
 // 	initMap(&gs->map);
 	scene_init(&gs->scene);
 	
-	initUI(gs);
+	
+	gui_Init();
+	
+	gt = guiTextNew("gui!", &(Vector){1.0,1.0,0.0}, 6.0f, "Arial");
+	
+	
+	//initUI(gs);
 	initMarker();
 	
 	// text rendering stuff
-	
+	/*
 	arialsdf = LoadSDFFont("arial.sdf");
 	if(arialsdf == NULL) {
 		arialsdf = GenerateSDFFont("Arial", 16, NULL);
@@ -415,9 +427,21 @@ void initGame(XStuff* xs, GameState* gs) {
 	//strRI = prepareText(arial, "FPS: --", -1, colors);
 	strRI = prepareText(arialsdf, "FPS: --", -1, colors);
 	
+	*/
+	
+// 	char tmpbuf[200];
+// 	
+// 	snprintf(tmpbuf, 200, "vertices: %d", VEC_LEN(&testmesh->vertices));
+// 	guiTextNew(tmpbuf, &(Vector){10.0,1.0,0.0}, 6.0f, "Arial");
+// 
+// 	snprintf(tmpbuf, 200, "faces: %d", VEC_LEN(&testmesh->vertexIndices) / 3);
+// 	guiTextNew(tmpbuf, &(Vector){10.0,2.0,0.0}, 6.0f, "Arial");
+// 	
+// 	
 	
 	OBJContents cube;
-	loadOBJFile("assets/models/untitled.obj", 0, &cube);
+	loadOBJFile("assets/models/gazebo.obj", 0, &cube);
+// 	loadOBJFile("assets/models/picketfence.obj", 0, &cube);
 	//Mesh* cubem = OBJtoMesh(&cube);
 	testmesh = StaticMeshFromOBJ(&cube);
 	
@@ -596,8 +620,8 @@ void preFrame(GameState* gs) {
 // 		snprintf(frameCounterBuf, 128, "dtime:  %.2fms", gs->perfTimes.draw * 1000);
 		
 		//printf("--->%s\n", frameCounterBuf);
-		
-		updateText(strRI, frameCounterBuf, -1, fpsColors);
+		guiTextSetValue(gt, frameCounterBuf);
+// 		updateText(strRI, frameCounterBuf, -1, fpsColors);
 		
 		lastPoint = now;
 	}
@@ -928,7 +952,9 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 
 
 
+	gui_RenderAll(gs);
 	
+	/*
 	glUseProgram(textProg->id);
 	
 	
@@ -969,7 +995,7 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	glexit("text vbo bind");
 	glDrawArrays(GL_TRIANGLES, 0, strRI->vertexCnt);
 	glexit("text drawing");
-	
+	*/
 }
 
 
@@ -1235,7 +1261,7 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	
 	shadingPass(gs);
 	
-	renderUI(xs, gs);
+	//renderUI(xs, gs);
 	
 	gs->screen.resized = 0;
 

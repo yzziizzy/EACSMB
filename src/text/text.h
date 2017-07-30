@@ -1,3 +1,6 @@
+#ifndef __C_OPENGL_TEXT_H__
+#define __C_OPENGL_TEXT_H__
+
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -40,7 +43,7 @@ typedef struct {
 	uint16_t indexLen;
 	uint16_t* offsets;  // texture offsets
 	uint8_t* kerning;
-	uint8_t* valign; // vertical offset for gutters
+	int16_t* valign; // vertical offset for gutters
 	uint16_t* charWidths; // quad widths
 	
 	uint16_t maxWidth, maxHeight;
@@ -96,5 +99,5 @@ TextRes* GenerateSDFFont(char* fontName, int size, char* chars);
 
 
 
-
+#endif // __C_OPENGL_TEXT_H__
 

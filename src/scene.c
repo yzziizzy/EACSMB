@@ -8,7 +8,8 @@
 #include <GL/glu.h>
 
 #include "c3dlas/c3dlas.h"
-
+#include "c_json/json.h"
+#include "json_gl.h"
 
 #include "utilities.h"
 #include "objloader.h"
@@ -17,14 +18,93 @@
 #include "emitter.h"
 #include "scene.h"
 #include "map.h"
+#include "fbo.h"
+
+
+static void unpack_fbo(json_value_t* p, char* key, FBOTexConfig* cfg) {
+	char* a, *b, *c;
+	json_value_t* o, *v1, *v2, *v3;
+	
+	json_obj_get_key(p, key, &o);
+	
+	json_obj_get_key(o, "internalType", &v1); a = v1->v.str;
+	json_as_GLenum(v1, &cfg->internalType);
+	
+	json_obj_get_key(o, "format", &v2); b = v2->v.str;
+	json_as_GLenum(v2, &cfg->format);
+	
+	json_obj_get_key(o, "size", &v3); c = v3->v.str;
+	json_as_GLenum(v3, &cfg->size);
+	
+	printf("fbo cfg from json: %s: %x, %s: %x, %s: %x\n", a, cfg->internalType, b, cfg->format, c, cfg->size);
+}
+
+static float random_from_array(json_value_t* arr) {
+	float f, range, min, max;
+	
+	if(arr->type != JSON_TYPE_ARRAY) return 0.0;
+	
+	json_as_float(arr->v.arr->head->value, &min);
+	json_as_float(arr->v.arr->tail->value, &max);
+	if(min > max) {
+		f = min;
+		min = max;
+		max = min;
+	}
+	range = max - min;
+	
+	if(range == 0.0) return min;
+	f = (float)rand()/(float)(RAND_MAX/range);
+	
+	return f;
+}
+
+static void random_vector_from_array(json_value_t* arr, Vector* vec) {
+	
+	if(arr->type != JSON_TYPE_ARRAY) return 0.0;
+	
+	json_as_float(arr->v.arr->head->value, &vec->x);
+	json_as_float(arr->v.arr->head->next->value, &vec->y);
+	json_as_float(arr->v.arr->tail->value, &vec->z);
+}
 
 
 
+struct EmitterSprite_gen_info {
+	Vector start_pos;
+	float offset;
+	
+	Vector start_vel;
+	float spawn_delay;
+	
+	Vector start_acc;
+	float lifetime;
+	
+	float size, spin, growth_rate, randomness;
+	
+	float fade_in, fade_out, unallocated_1, unallocated_2;
+};
 
 
 void scene_init(Scene* sc) {
 	
+	void* iter;
+	char* key;
+	json_value_t* v, *tex;
+	json_file_t* jsf;
+	
 	initMap(&sc->map);
+	
+	jsf = json_load_path("assets/config/emitters.json");
+	
+	// do shit
+	iter = NULL;
+	while(json_obj_next(jsf->root, &iter, &key, &v)) {
+		
+		
+		
+	}
+	
 	
 }
 

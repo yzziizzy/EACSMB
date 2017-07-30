@@ -34,20 +34,17 @@
 })
 
 
+#define CHECK_OOM(p) \
+if(!(p)) { \
+	fprintf(stderr, "OOM for %s at %s:%d. Buy more ram\n", #p, __FILE__, __LINE__); \
+	exit(2); \
+}
 
-#define LIST(x) \
-	struct x; \
-	typedef struct x##List { \
-		struct x* d; \
-		struct x##List* next; \
-	} x##List;
-
-#define LISTU(x) \
-	union x; \
-	typedef struct x##List { \
-		union x* d; \
-		struct x##List* next; \
-	} x##List;
+#define GOTO_OOM(p, label) \
+if(!(p)) { \
+	fprintf(stderr, "OOM for %s at %s:%d. Buy more ram\n", #p, __FILE__, __LINE__); \
+	goto label; \
+}
 
 
 #ifndef NO_TERM_COLORS
@@ -72,6 +69,9 @@
 	#define TERM_BK_GRAY       "\x1b[47m"
 #else
 #endif
+
+
+#include "ds.h"
 
 
 // 128 bits to fill one slot of an aligned allocation for SSE 
