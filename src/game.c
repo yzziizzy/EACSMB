@@ -432,9 +432,9 @@ void initGame(XStuff* xs, GameState* gs) {
 	
 	StaticMeshInstance smi[] = {
 		{
-			{1,1,10},
-			{.2,.2,.2},
-			{.5, .5, .5 },
+			{1,1,16},
+			{1, 0, 0},
+			{.05, .05, .05 },
 		},
 		{
 			{1,1,10},
