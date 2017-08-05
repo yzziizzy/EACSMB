@@ -655,7 +655,7 @@ ShaderProgram* loadCombinedProgram(char* path) {
 	base = source;
 	int c = 0;
 	
-	printf("Loading %s:\n   ", spath);
+	printf("Loading %s: (program %d)\n   ", spath, prog->id);
 	while(!extractShader(&base, prog->id)) glexit("");
 	printf("\n");
 	
@@ -665,6 +665,7 @@ ShaderProgram* loadCombinedProgram(char* path) {
 	glLinkProgram(prog->id);
 	printProgLogOnFail(prog->id);
 	glerr("linking program");
+	
 	
 	return prog;
 }

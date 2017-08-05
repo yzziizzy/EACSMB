@@ -410,37 +410,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	
 	//initUI(gs);
 	initMarker();
-	
-	// text rendering stuff
-	/*
-	arialsdf = LoadSDFFont("arial.sdf");
-	if(arialsdf == NULL) {
-		arialsdf = GenerateSDFFont("Arial", 16, NULL);
-		SaveSDFFont("arial.sdf", arialsdf);
-	}
-	//arial = LoadFont("Arial", 32, NULL);
-	glerr("clearing before text program load");
-	textProg = loadCombinedProgram("textSDF");
-	
-	unsigned int colors[] = {
-		0xFF0000FF, 2,
-		0x00FF00FF, 4,
-		0x0000FFFF, INT_MAX
-	};
-	
-	//strRI = prepareText(arial, "FPS: --", -1, colors);
-	strRI = prepareText(arialsdf, "FPS: --", -1, colors);
-	
-	*/
-	
-// 	char tmpbuf[200];
-// 	
-// 	snprintf(tmpbuf, 200, "vertices: %d", VEC_LEN(&testmesh->vertices));
-// 	guiTextNew(tmpbuf, &(Vector){10.0,1.0,0.0}, 6.0f, "Arial");
-// 
-// 	snprintf(tmpbuf, 200, "faces: %d", VEC_LEN(&testmesh->vertexIndices) / 3);
-// 	guiTextNew(tmpbuf, &(Vector){10.0,2.0,0.0}, 6.0f, "Arial");
-// 	
+	 
 // 	
 	
 	OBJContents cube;
@@ -454,7 +424,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	
 	// don't have more meshes yet...
 	meshManager_addMesh(meshman, testmesh);
-	meshManager_addMesh(meshman, testmesh);
+//	meshManager_addMesh(meshman, testmesh);
 //	meshManager_addMesh(meshman, testmesh);
 //	meshManager_addMesh(meshman, testmesh);
 

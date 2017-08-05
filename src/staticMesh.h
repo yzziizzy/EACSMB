@@ -2,6 +2,7 @@
 #define __EACSMB_STATICMESH_H__
 
 
+#include "ds.h"
 
 
 
@@ -11,6 +12,15 @@ typedef struct StaticMeshVertex {
 		unsigned short u, v;
 	} t;
 } StaticMeshVertex;
+
+typedef struct StaticMeshInstance {
+	Vector pos;
+	Vector dir;
+	Vector scale;
+	// alpha, glow, blink
+} StaticMeshInstance;
+
+
 
 
 typedef struct StaticMesh {
@@ -22,33 +32,19 @@ typedef struct StaticMesh {
 	GLuint vbo;
 	GLuint texID;
 	
+	VEC(StaticMeshInstance) instances;
+	
 } StaticMesh;
-
-
-typedef struct StaticMeshInstance {
-	Vector pos;
-	Vector dir;
-	Vector scale;
-	// alpha, glow, blink
-} StaticMeshInstance;
-
-struct buf_info {
-	int alloc, cnt;
-	int vertex_offset; // inda just crammed in here for now
-};
 
 
 
 typedef struct MeshManager {
 	
-	StaticMesh** meshes;
-	int meshes_alloc;
-	int meshes_cnt;
+	VEC(StaticMesh*) meshes;
 	int totalVertices;
 	int totalInstances;
 	
-	StaticMeshInstance** instances;
-	struct buf_info* inst_buf_info;
+	//VEC(StaticMeshInstance*) instances;
 	
 	int activePosVBO;
 	// need a sync object

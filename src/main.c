@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include <unistd.h>
+#include <limits.h>
 
 #include <X11/X.h>
 #include <X11/Xlib.h>
@@ -38,6 +39,16 @@ static InputState input;
 int main(int argc, char* argv[]) {
 	int first = 1;
 	int configStatus = 0;
+	char* wd;
+	
+	// init some path info. 
+	wd = getcwd(NULL, 0);
+	game.dataDir = pathJoin(wd, "data");
+	// temp. eventually will point to the correct save dir
+	game.worldDir = pathJoin(game.dataDir, "world");
+	
+	free(wd);
+	
 	
 	zeroConfig(&game.uSettings);
 	configStatus = updateConfigFromFile(&game.uSettings, "defaults.ini");

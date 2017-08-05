@@ -51,6 +51,9 @@ typedef struct PerFrameUniforms {
 
 typedef struct GameState {
 	
+	char* dataDir;
+	char* worldDir;
+	
 	GameScreen screen;
 	
 	GameSettings settings;

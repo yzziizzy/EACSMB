@@ -183,14 +183,14 @@ void loadOBJFile(char* path, int four_d_verts, OBJContents* contents) {
 			
 			ret = parseFaceVertex(&f, &fd[0]); // the center vertex
 			//if(!ret) 
-			printf("ret 1: %d, ", ret);
+			//printf("ret 1: %d, ", ret);
 			ret = parseFaceVertex(&f, &fd[1]); // the next vertex
-			printf("ret 2: %d, ", ret);
+			//printf("ret 2: %d, ", ret);
 			
 			do {
 				
 				ret = parseFaceVertex(&f, &fd[2]);
-				printf("ret 3: %d \n", ret);
+				//printf("ret 3: %d \n", ret);
 				//printf("parseface( %d )\n", ret);
 				if(ret) break;
 				

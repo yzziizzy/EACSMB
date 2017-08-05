@@ -116,10 +116,14 @@ StaticMesh* StaticMeshFromOBJ(OBJContents* obj) {
 	glVertexAttribPointer(2, 2, GL_UNSIGNED_SHORT, GL_TRUE, 2*3*4 + 4, 24);
 
 	glBufferData(GL_ARRAY_BUFFER, m->vertexCnt * sizeof(StaticMeshVertex), m->vertices, GL_STATIC_DRAW);
-
+	glexit("");
+	
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 	glexit("static mesh vbo load");
+	
+	printf("-----loaded---------------\n");
+	VEC_INIT(&m->instances);
 	
 	return m;
 }
@@ -132,10 +136,9 @@ MeshManager* meshManager_alloc() {
 	
 	
 	mm = calloc(1, sizeof(MeshManager));
-	mm->meshes_alloc = 64;
-	mm->meshes = malloc(mm->meshes_alloc * sizeof(StaticMesh*));
-	mm->instances = malloc(mm->meshes_alloc * sizeof(StaticMeshInstance**));
-	mm->inst_buf_info = calloc(1, mm->meshes_alloc * sizeof(struct buf_info));
+
+	VEC_INIT(&mm->meshes);
+//	VEC_INIT(&mm->instances);
 	
 //	glBindVertexArray(vao);
 	
@@ -147,54 +150,31 @@ MeshManager* meshManager_alloc() {
 
 // returns the index of the instance
 int meshManager_addInstance(MeshManager* mm, int meshIndex, const StaticMeshInstance* smi) {
-	int a, c;
 	
-	if(meshIndex > mm->meshes_cnt) {
-		fprintf(stderr, "mesh manager addInstance out of bounds: %d, %d\n", mm->meshes_cnt, meshIndex);
+	StaticMesh* msh; 
+	StaticMeshInstance* s;
+	
+	if(meshIndex > VEC_LEN(&mm->meshes)) {
+		fprintf(stderr, "mesh manager addInstance out of bounds: %d, %d\n", (int)VEC_LEN(&mm->meshes), meshIndex);
 		return -1;
 	}
 	
-	a = mm->inst_buf_info[meshIndex].alloc;
-	c = mm->inst_buf_info[meshIndex].cnt;
-	if(c >= a) {
-		mm->instances[meshIndex] = realloc(mm->instances[meshIndex], a * 2 * sizeof(StaticMeshInstance));
-		mm->inst_buf_info[meshIndex].alloc *= 2;
-	}
-
-	memcpy(&mm->instances[meshIndex][c], smi, sizeof(StaticMeshInstance));
-	
-	mm->inst_buf_info[meshIndex].cnt++;
 	mm->totalInstances++;
 	
-	return c;
+	msh = VEC_DATA(&mm->meshes)[meshIndex];
+	VEC_PUSH(&msh->instances, *smi);
+	
+	return VEC_LEN(&msh->instances);
 }
 
 // returns the index if the mesh
 int meshManager_addMesh(MeshManager* mm, StaticMesh* sm) {
 	
-	int i;
-	
-	if(mm->meshes_cnt >= mm->meshes_alloc) {
-		mm->meshes = realloc(mm->meshes, mm->meshes_alloc * sizeof(StaticMesh*) * 2);
-		mm->instances = realloc(mm->instances, mm->meshes_alloc * sizeof(StaticMeshInstance**) * 2);
-		mm->inst_buf_info = realloc(mm->inst_buf_info, mm->meshes_alloc * sizeof(struct buf_info) * 2);
-		mm->meshes_alloc *= 2;
-	}
-	
-	//TODO: record offsets and lengths for rendering
-
-	
-	i = mm->meshes_cnt;
-	
-	mm->meshes[i] = sm;
-	mm->meshes_cnt++;
+	VEC_PUSH(&mm->meshes, sm);
 	mm->totalVertices += sm->vertexCnt;
 	
-	mm->instances[i] = malloc(16 * sizeof(StaticMeshInstance));
-	mm->inst_buf_info[i].alloc = 16;
-	mm->inst_buf_info[i].cnt = 0;
 	
-	return i;
+	return VEC_LEN(&mm->meshes);
 }
 
 
@@ -219,7 +199,7 @@ void meshManager_updateGeometry(MeshManager* mm) {
 // 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*3*4 + 4, 0);
 // 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3*3*4 + 4, 1*3*4);
 // 	glVertexAttribPointer(2, 2, GL_UNSIGNED_SHORT, GL_TRUE, 2*3*4 + 4, 2*3*4);
-/*	
+/*
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 	glEnableVertexAttribArray(2);
@@ -227,21 +207,23 @@ void meshManager_updateGeometry(MeshManager* mm) {
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 2*3*4 + 4, 12);
 	glVertexAttribPointer(2, 2, GL_UNSIGNED_SHORT, GL_TRUE, 2*3*4 + 4, 24);
 */
-	glBufferStorage(GL_ARRAY_BUFFER, mm->totalVertices * sizeof(StaticMeshVertex), NULL, GL_DYNAMIC_STORAGE_BIT);
 
+
+	glBufferStorage(GL_ARRAY_BUFFER, mm->totalVertices * sizeof(StaticMeshVertex), NULL, GL_DYNAMIC_STORAGE_BIT);
+	glexit("");
 	
 	
 	offset = 0;
-	for(i = 0; i < mm->meshes_cnt; i++) {
+	for(i = 0; i < VEC_LEN(&mm->meshes); i++) {
 		
 		glBufferSubData(
 			GL_ARRAY_BUFFER, 
 			offset, 
-			mm->meshes[i]->vertexCnt * sizeof(StaticMeshVertex), 
-			mm->meshes[i]->vertices);
+			VEC_ITEM(&mm->meshes, i)->vertexCnt * sizeof(StaticMeshVertex), 
+			VEC_ITEM(&mm->meshes, i)->vertices);
 		//glBufferData(GL_ARRAY_BUFFER, m->vertexCnt * sizeof(StaticMeshVertex), m->vertices, GL_STATIC_DRAW);
 	
-		offset += mm->meshes[i]->vertexCnt * sizeof(StaticMeshVertex);
+		offset += VEC_ITEM(&mm->meshes, i)->vertexCnt * sizeof(StaticMeshVertex);
 	}
 	
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -264,10 +246,11 @@ void meshManager_updateInstances(MeshManager* mm) {
 	glGenBuffers(1, &mm->instVBO);
 	
 	glBindBuffer(GL_ARRAY_BUFFER, mm->instVBO);
-	
+	glexit("");
 	//GL_DYNAMIC_STORAGE_BIT so we can use glBufferSubData() later
 	glBufferStorage(GL_ARRAY_BUFFER, mm->totalInstances * sizeof(StaticMeshInstance), NULL, GL_DYNAMIC_STORAGE_BIT | GL_MAP_WRITE_BIT);
-	
+	glexit("");
+	printf("total instances %d\n", mm->totalInstances);
 	glEnableVertexAttribArray(3);
 	glEnableVertexAttribArray(4);
 	glEnableVertexAttribArray(5);
@@ -280,15 +263,16 @@ void meshManager_updateInstances(MeshManager* mm) {
 	glVertexAttribDivisor(5, 1);
 	
 	buf_ptr = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+	glexit("");
 	
 	// copy in data
 	vertex_offset = 0;
-	for(mesh_index = 0; mesh_index < mm->meshes_cnt; mesh_index++) {
+	for(mesh_index = 0; mesh_index < VEC_LEN(&mm->meshes); mesh_index++) {
 		// TODO: offsets for rendering
 		
-		int cc = mm->inst_buf_info[mesh_index].cnt;
+		int cc = VEC_LEN(&VEC_ITEM(&mm->meshes, mesh_index)->instances); //mm->inst_buf_info[mesh_index].cnt;
 		
-		memcpy(buf_ptr, mm->instances[mesh_index], cc * sizeof(StaticMeshInstance));
+		memcpy(buf_ptr, VEC_DATA(&VEC_ITEM(&mm->meshes, mesh_index)->instances), cc * sizeof(StaticMeshInstance));
 	}
 	
 	
@@ -320,6 +304,7 @@ void meshManager_draw(MeshManager* mm, Matrix* view, Matrix* proj) {
 	//mTrans3f(0,0,0, &model);
 	
 	glUseProgram(prog->id);
+	glexit("");
 
 	glUniformMatrix4fv(model_ul, 1, GL_FALSE, &model.m);
 	glUniformMatrix4fv(view_ul, 1, GL_FALSE, &view->m);
@@ -329,11 +314,13 @@ void meshManager_draw(MeshManager* mm, Matrix* view, Matrix* proj) {
 	
 	DrawArraysIndirectCommand cmds[20];
 	
-	cmds[0].count = mm->meshes[0]->vertexCnt; // number of polys
-	cmds[0].instanceCount = mm->inst_buf_info[0].cnt; // number of instances
+	cmds[0].count = VEC_ITEM(&mm->meshes, 0)->vertexCnt; // number of polys
+	cmds[0].instanceCount = VEC_LEN(&VEC_ITEM(&mm->meshes, 0)->instances); // number of instances
 	cmds[0].first = 0; // offset of this mesh into the instances
 	cmds[0].baseInstance = 0; // offset into instanced vertex attributes
 
+	//printf("instance count %d, %d\n", cmds[0].instanceCount, cmds[0].count);
+	
 	glBindVertexArray(vao);
 	glBindBuffer(GL_ARRAY_BUFFER, mm->geomVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, mm->instVBO);
@@ -341,9 +328,11 @@ void meshManager_draw(MeshManager* mm, Matrix* view, Matrix* proj) {
 //	glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
 	
 
-	glDrawArraysInstancedBaseInstance(GL_TRIANGLES, 0, mm->meshes[0]->vertexCnt, cmds[0].instanceCount, 0);
+	glDrawArraysInstancedBaseInstance(GL_TRIANGLES, 0, cmds[0].count, cmds[0].instanceCount, 0);
 //	glMultiDrawArraysIndirect(GL_TRIANGLES, cmds, 1, 0);
 	glexit("multidrawarraysindirect");
+	
+	
 }
 
 

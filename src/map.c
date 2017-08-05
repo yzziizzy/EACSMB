@@ -57,7 +57,7 @@ void initMap(MapInfo* mi) {
 	terrain_readConfigJSON(&tti, "assets/config/terrain.json");
 	terrain_loadTextures(&tti);
 	
-	tmpDir = getenv("TMPDIR");
+	tmpDir = "data"; // getenv("TMPDIR");
 	
 	if(!tmpDir) tmpDir = P_tmpdir;
 	
