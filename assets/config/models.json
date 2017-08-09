@@ -1,0 +1,7 @@
+{
+	gazebo: {
+		mesh: "assets/models/gazebo.obj",
+		texture: "assets/textures/colornoise.png",
+	},
+	
+} 

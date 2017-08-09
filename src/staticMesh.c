@@ -15,6 +15,9 @@
 #include "objloader.h"
 #include "shader.h"
 #include "staticMesh.h"
+#include "texture.h"
+
+#include "c_json/json.h"
 
 
 
@@ -147,6 +150,69 @@ MeshManager* meshManager_alloc() {
 	//glGenBuffers(2, mm->instVBO);
 
 }
+
+void meshManager_readConfigFile(MeshManager* mm, char* configPath) {
+	int ret;
+	struct json_obj* o;
+	void* iter;
+	char* key, *texName, *tmp;
+	struct json_value* v, *tc;
+	json_file_t* jsf;
+	
+	
+	jsf = json_load_path(configPath);
+	
+	json_value_t* tex;
+	json_obj_get_key(jsf->root, "textures", &tex);
+	
+	
+	iter = NULL;
+	
+	while(json_obj_next(jsf->root, &iter, &key, &tc)) {
+		json_value_t* val;
+		char* path;
+		StaticMesh* sm;
+		
+		OBJContents obj;
+		
+		ret = json_obj_get_key(tc, "mesh", &val);
+		json_as_string(val, &path);
+		
+		loadOBJFile(path, 0, &obj);
+		sm = StaticMeshFromOBJ(&obj);
+		sm->name = strdup(key);
+		
+		
+		ret = json_obj_get_key(tc, "texture", &val);
+		if(ret) {
+			json_as_string(val, &path);
+			
+			sm->texIndex = meshManager_addTexture(mm, path);
+		}
+		
+		meshManager_addMesh(mm, sm);
+		
+	}
+	
+	
+}
+
+
+int meshManager_addTexture(MeshManager* mm, char* path) {
+	Texture* tex;
+	int index;
+	
+	// TODO: use lookup first
+	
+	tex = loadBitmapTexture(path);
+	
+	index = VEC_LEN(&mm->textures);
+	VEC_PUSH(&mm->textures, tex);
+	HT_set(&mm->textureLookup, path, index);
+	
+	return index;
+}
+
 
 // returns the index of the instance
 int meshManager_addInstance(MeshManager* mm, int meshIndex, const StaticMeshInstance* smi) {

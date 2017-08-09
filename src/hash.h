@@ -19,6 +19,8 @@ typedef struct hash_table {
 	struct hash_bucket* buckets; 
 } HashTable;
 
+#define HashTable(x) struct hash_table
+
 // NOTE: if you pass in garbage pointers you deserve the segfault
 
 HashTable* HT_create(int allocPOT);

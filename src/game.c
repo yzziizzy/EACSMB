@@ -422,8 +422,9 @@ void initGame(XStuff* xs, GameState* gs) {
 	
 	meshman = meshManager_alloc();
 	
+	meshManager_readConfigFile(meshman, "assets/config/models.json");
 	// don't have more meshes yet...
-	meshManager_addMesh(meshman, testmesh);
+	//meshManager_addMesh(meshman, testmesh);
 //	meshManager_addMesh(meshman, testmesh);
 //	meshManager_addMesh(meshman, testmesh);
 //	meshManager_addMesh(meshman, testmesh);
@@ -437,20 +438,20 @@ void initGame(XStuff* xs, GameState* gs) {
 			{.05, .05, .05 },
 		},
 		{
-			{1,1,10},
-			{.2,.2,.2},
-			{.8, .8, .8 },
+			{10,10,16},
+			{1, 0, 0},
+			{.05, .05, .05 },
 		},
 		{
-			{1,1,10},
-			{.3,.3,.3},
-			{-.3, -.3, -.3 },
-		}
+			{20,20,16},
+			{1, 0, 0},
+			{.05, .05, .05 },
+		},
 	};
 	
 	meshManager_addInstance(meshman, 0, &smi[0]);
-//	meshManager_addInstance(meshman, 0, &smi[1]);
-//	meshManager_addInstance(meshman, 0, &smi[2]);
+	meshManager_addInstance(meshman, 0, &smi[1]);
+	meshManager_addInstance(meshman, 0, &smi[2]);
 	meshManager_updateInstances(meshman);
 	
 	

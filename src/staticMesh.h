@@ -3,7 +3,9 @@
 
 
 #include "ds.h"
+#include "hash.h"
 
+#include "texture.h"
 
 
 typedef struct StaticMeshVertex {
@@ -24,6 +26,7 @@ typedef struct StaticMeshInstance {
 
 
 typedef struct StaticMesh {
+	char* name;
 	
 	// always GL_TRIANGLES
 	StaticMeshVertex* vertices;
@@ -31,6 +34,8 @@ typedef struct StaticMesh {
 	
 	GLuint vbo;
 	GLuint texID;
+	
+	int texIndex; // index to meshman texture table
 	
 	VEC(StaticMeshInstance) instances;
 	
@@ -50,6 +55,9 @@ typedef struct MeshManager {
 	// need a sync object
 	GLuint instVBO;
 	GLuint geomVBO;
+	
+	VEC(Texture*) textures;
+	HashTable(int) textureLookup;
 	
 } MeshManager;
 

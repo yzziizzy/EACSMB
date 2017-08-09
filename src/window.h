@@ -43,6 +43,23 @@ enum InputMode {
 	
 };
 
+enum InputEventType {
+	EVENT_KEYDOWN,
+	EVENT_KEYUP,
+	EVENT_KEYPRESSED
+	
+};
+
+typedef struct {
+	char type; // 0 = kb, 1 = mouse
+	
+	unsigned int keycode;
+	unsigned int click_x, click_y;
+	
+	double time;
+	
+} InputEvent;
+
 
 typedef struct {
 	
@@ -55,6 +72,9 @@ typedef struct {
 	char buttonDown;
 	
 	unsigned char keyState[256];
+	double keyStateChanged[256];
+	
+	VEC(InputEvent*) events;
 	
 	enum InputMode mode;
 	
