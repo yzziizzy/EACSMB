@@ -53,10 +53,15 @@ Makefile
 /config.*
 /settings.ini
 /src/eacsmb
+/data
 
+src/simplex
+src/simplex.png
+/*.png
 
 # ignore the external libs for now, i'll figure something out later for it
 /src/c3dlas
+/src/c_json
 #/src/text #merged into this project for now
 
 # these are not build files

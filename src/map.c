@@ -17,6 +17,7 @@
 #include "road.h"
 #include "map.h"
 #include "perlin.h"
+#include "opensimplex.h"
 #include "terrain.h"
 
 
@@ -458,7 +459,7 @@ void saveMapBlockTreeLeaf(FILE* f, MapBlockTreeLeaf* mbl) {
 
 
 void initTerrainBlock(MapBlock* mb, int cx, int cy) {
-	
+	int x, y;
 	
 	TerrainBlock* tb = &mb->tb;
 	FILE* f;
@@ -480,8 +481,36 @@ void initTerrainBlock(MapBlock* mb, int cx, int cy) {
 	
 	tb->tex = 0;
 	
-
+	OpenSimplexNoise osn;
 	
+	OpenSimplex_init(&osn, 6456);
+	
+	OpenSimplexOctave octs[] = {
+		{2, 1.0},
+		{4, 0.7},
+		{8, 0.4},
+		{16, 0.2},
+		{32, 0.05},
+		{-1, -1}
+	};
+	
+	OpenSimplexParams params = {
+		TERR_TEX_SZ, TERR_TEX_SZ,
+		0, 0,
+		octs
+	};
+	
+	float* data = OpenSimplex_GenNoise2D(&osn, &params);
+	
+	
+	for(y = 0; y < TERR_TEX_SZ ; y++) {
+		for(x = 0; x < TERR_TEX_SZ ; x++) {
+			float f = data[x + (y * TERR_TEX_SZ)];
+			tb->zs[x + (y * TERR_TEX_SZ)] = fabs(1-f) * 40;
+		}
+	}
+	
+	/*
 		// generate new data and save it
 	printf("Generating new terrain [%d, %d]... \n", cx, cy);
 	int x, y;
@@ -493,7 +522,7 @@ void initTerrainBlock(MapBlock* mb, int cx, int cy) {
 			tb->zs[x + (y * TERR_TEX_SZ)] = fabs(1-f) * 100;
 		}
 	}
-	
+	*/
 	
 }
 
