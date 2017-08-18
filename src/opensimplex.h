@@ -9,6 +9,9 @@
 
 typedef struct {
 	int64_t seed;
+	
+	int width, height;
+	
 	int16_t perm[256];
 	int16_t permGradIndex3D[256];
 } OpenSimplexNoise;

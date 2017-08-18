@@ -482,8 +482,7 @@ void initTerrainBlock(MapBlock* mb, int cx, int cy) {
 	tb->tex = 0;
 	
 	OpenSimplexNoise osn;
-	
-	OpenSimplex_init(&osn, 6456);
+	OpenSimplex_init(&osn, 6456, 512, 512);
 	
 	OpenSimplexOctave octs[] = {
 		{2, 1.0},
@@ -493,10 +492,9 @@ void initTerrainBlock(MapBlock* mb, int cx, int cy) {
 		{32, 0.05},
 		{-1, -1}
 	};
-	
 	OpenSimplexParams params = {
 		TERR_TEX_SZ, TERR_TEX_SZ,
-		0, 0,
+		offx + 1024*512, offy + 1024*512,
 		octs
 	};
 	

@@ -100,10 +100,13 @@ static int64_t fastFloor(double x) {
 //Initializes the class using a permutation array generated from a 64-bit seed.
 //Generates a proper permutation (i.e. doesn't merely perform N successive pair swaps on a base array)
 //Uses a simple 64-bit LCG.
-void OpenSimplex_init(OpenSimplexNoise* osn, int64_t seed) {
+void OpenSimplex_init(OpenSimplexNoise* osn, int64_t seed, int width, int height) {
 	int i;
 	
 	int16_t* source = malloc(sizeof(*source) * 256);
+	
+	osn->width = width;
+	osn->height = height;
 	
 	for(i = 0; i < 256; i++) source[i] = i;
 	
@@ -814,11 +817,21 @@ double OpenSimplex_eval3D(OpenSimplexNoise* osn, double x, double y, double z) {
 
 
 
-static void blend_octave(OpenSimplexNoise* osn, float* data, int maxx, int maxy, double zoomx, double zoomy, float weight) {
+static void blend_octave(
+	OpenSimplexNoise* osn, 
+	float* data, 
+	int minx, 
+	int miny, 
+	int maxx, 
+	int maxy, 
+	double zoomx, 
+	double zoomy, 
+	float weight
+) {
 	int x, y;
 	for(y = 0; y < maxy; y++) {
 		for(x = 0; x < maxx; x++) {
-			double d = OpenSimplex_eval2D(osn, x / zoomx, y / zoomy);
+			double d = OpenSimplex_eval2D(osn, (minx + x) / zoomx, (miny + y) / zoomy);
 			float e = data[x + (y * maxx)];
 			data[x + (y * maxx)] = (e * (1 - weight)) + (d * weight); 
  			//if(d > 1) printf("[%d, %d]  %.8f\n", x, y, d);
@@ -835,10 +848,12 @@ float* OpenSimplex_GenNoise2D(OpenSimplexNoise* osn, OpenSimplexParams* params) 
 		blend_octave(
 			osn, 
 			data, 
+			params->offsetX,
+			params->offsetY,
 			params->w, 
 			params->h, 
-			params->w / p->divisor, 
-			params->h / p->divisor, 
+			osn->width / p->divisor, 
+			osn->height / p->divisor, 
 			p->blendWeight);
 		
 		p++;
@@ -850,7 +865,7 @@ float* OpenSimplex_GenNoise2D(OpenSimplexNoise* osn, OpenSimplexParams* params) 
 
 
 #ifdef STANDALONE_OPENSIMPLEX
-
+// gcc -o simplex opensimplex.c dumpImage.c  -lpng && time ./simplex 
 
 #include "dumpImage.h"
 
@@ -861,11 +876,11 @@ void main() {
 	
 	OpenSimplexNoise osn;
 	
-	OpenSimplex_init(&osn, 6456);
+	OpenSimplex_init(&osn, 6456, 2048, 2048);
 	
 	int x,y;
-	int maxx = 2048;
-	int maxy = 2048;
+	int maxx = 1024;
+	int maxy = 1024;
 	double zoom = 80;
 	
 	unsigned char* img = malloc(sizeof(*img) * maxx * maxy);
@@ -881,7 +896,7 @@ void main() {
 	
 	OpenSimplexParams params = {
 		maxx, maxy,
-		0, 0,
+		1024,1024,
 		octs
 	};
 	
