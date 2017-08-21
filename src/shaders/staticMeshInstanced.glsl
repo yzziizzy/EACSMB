@@ -70,7 +70,7 @@ layout(location = 1) out vec4 out_Normal;
 
 void main(void) {
 	
-	out_Color = texture(sTexture, vs_tex.xy); //vs_norm;
+	out_Color = texture(sTexture, vec2(vs_tex.x, 1-vs_tex.y)); //vs_norm;
 	out_Normal = vs_norm;
 }
 

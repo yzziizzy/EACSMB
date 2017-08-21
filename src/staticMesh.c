@@ -59,7 +59,7 @@ void initStaticMeshes() {
 	
 	glexit("static mesh shader");
 	
-	tex = loadBitmapTexture("./assets/textures/colornoise.png");
+	tex = loadBitmapTexture("./assets/textures/gazebo-small.png");
 	
 	glActiveTexture(GL_TEXTURE0 + 7);
 	glBindTexture(GL_TEXTURE_2D, tex->tex_id);
