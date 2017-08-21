@@ -24,6 +24,8 @@
 static GLuint vao;
 static GLuint color_ul, model_ul, view_ul, proj_ul;
 static ShaderProgram* prog;
+Texture* tex;
+
 
 void initStaticMeshes() {
 	
@@ -56,6 +58,13 @@ void initStaticMeshes() {
 	color_ul = glGetUniformLocation(prog->id, "color");
 	
 	glexit("static mesh shader");
+	
+	tex = loadBitmapTexture("./assets/textures/colornoise.png");
+	
+	glActiveTexture(GL_TEXTURE0 + 7);
+	glBindTexture(GL_TEXTURE_2D, tex->tex_id);
+	
+	glexit("");
 }
 
 
@@ -361,6 +370,7 @@ typedef  struct {
 
 void meshManager_draw(MeshManager* mm, Matrix* view, Matrix* proj) {
 	
+	GLuint tex_ul;
 	Matrix model;
 	
 	//mFastMul(view, proj, &mvp);
@@ -368,6 +378,9 @@ void meshManager_draw(MeshManager* mm, Matrix* view, Matrix* proj) {
 	// HACK fix later
 	mScale3f(150, 150, 150, &model);
 	//mTrans3f(0,0,0, &model);
+	
+	tex_ul = glGetUniformLocation(prog->id, "sTexture");
+	glProgramUniform1i(prog->id, tex_ul, 7);
 	
 	glUseProgram(prog->id);
 	glexit("");

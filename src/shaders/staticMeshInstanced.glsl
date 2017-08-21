@@ -62,7 +62,7 @@ in vec2 vs_tex;
 
 // fragment shader
 uniform vec4 color;
-
+uniform sampler2D sTexture;
 
 layout(location = 0) out vec4 out_Color;
 layout(location = 1) out vec4 out_Normal;
@@ -70,7 +70,7 @@ layout(location = 1) out vec4 out_Normal;
 
 void main(void) {
 	
-	out_Color = vec4(vs_tex.xy, 0, 1); //vs_norm;
+	out_Color = texture(sTexture, vs_tex.xy); //vs_norm;
 	out_Normal = vs_norm;
 }
 
