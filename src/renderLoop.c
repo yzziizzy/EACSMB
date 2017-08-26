@@ -393,7 +393,8 @@ void renderDecals(XStuff* xs, GameState* gs, InputState* is) {
 	
 	*/
 	
-	drawTerrainRoads(gs->depthTexBuffer, &gs->scene.map, msGetTop(&gs->view), msGetTop(&gs->proj), &gs->cursorPos, &gs->screen.wh);
+	World_drawDecals(gs->world,  msGetTop(&gs->view), msGetTop(&gs->proj));
+	// drawTerrainRoads(gs->depthTexBuffer, &gs->scene.map, msGetTop(&gs->view), msGetTop(&gs->proj), &gs->cursorPos, &gs->screen.wh);
 	
 	glexit("render decals");
 }

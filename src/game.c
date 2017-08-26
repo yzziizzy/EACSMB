@@ -51,7 +51,7 @@ GUIText* gtSelectionDisabled;
 
 Texture* cnoise;
 Emitter* dust;
-RoadBlock* roads;
+
 
 
 
@@ -91,7 +91,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	gs->debugMode = 0;
 	gs->sunSpeed = 0;
 	
-	gs->nearClipPlane = 20;
+	gs->nearClipPlane = 3;
 	gs->farClipPlane = 1700;
 
 	
@@ -200,18 +200,6 @@ void initGame(XStuff* xs, GameState* gs) {
 	gs->world = calloc(1, sizeof(*gs->world));
 	World_init(gs->world);
 	gs->world->gs = gs;
-	
-/*	
-	dust = makeEmitter();
-	EmitterInstance dust_instance = {
-		.pos = {250.0,250.0,250.0},
-		.scale = 10,
-		.start_time = 0,
-		.lifespan = 1<<15
-	};
-	
-	emitterAddInstance(dust, &dust_instance);
-	emitter_update_vbo(dust);*/
 	
 }
 
@@ -364,15 +352,24 @@ void handleInput(GameState* gs, InputState* is) {
 		*/
 	}
 	
+	static dragstart = -1;
 	if(is->buttonDown == 1) {
 		gs->mouseDownPos.x = gs->cursorPos.x;
 		gs->mouseDownPos.y = gs->cursorPos.y;
+		dragstart = getCurrentTime();
 		printf("start dragging at (%d,%d)\n", (int)gs->cursorPos.x, (int)gs->cursorPos.y);
 	}
 	if(is->buttonUp == 1) {
+		double dragtime = timeSince(dragstart);
+		if(dragtime < 0.7) {
+			printf("ignoring drag, too short: %.8f\n", dragtime);
+		}
+		else {
 		//vCopy(&gs->cursorPos, &gs->mouseDownPos);
-		printf("stopped dragging at (%d,%d)\n", (int)gs->cursorPos.x, (int)gs->cursorPos.y);
-		
+			printf("stopped dragging at (%d,%d)\n", (int)gs->cursorPos.x, (int)gs->cursorPos.y);
+			
+			World_spawnAt_Road(gs->world, &gs->mouseDownPos, &gs->cursorPos);
+		}
 		
 	}
 	
@@ -450,7 +447,7 @@ void handleInput(GameState* gs, InputState* is) {
 		printf("near: %f, far: %f\n", gs->nearClipPlane, gs->farClipPlane);
 	}
 	if(is->keyState[115] & IS_KEYDOWN) {
-		gs->nearClipPlane -= 50 * te;
+		gs->nearClipPlane -= fmax(50 * te, 0.1);
 		printf("near: %f, far: %f\n", gs->nearClipPlane, gs->farClipPlane);
 	}
 	if(is->keyState[112] & IS_KEYDOWN) {

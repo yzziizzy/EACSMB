@@ -34,9 +34,7 @@ static int next_ubo_region = 0;
 static GLuint ubo_fences[3];
 static float* ubo_ptr; 
 
-static float frand(float low, float high) {
-	return low + ((high - low) * ((double)rand() / (double)RAND_MAX));
-}
+
 
 
 // terrible code, but use for now

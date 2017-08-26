@@ -1,6 +1,9 @@
 
 
 #include "common_math.h"
+#include "common_gl.h"
+
+#include "utilities.h"
 
 #include "game.h"
 #include "world.h"
@@ -45,16 +48,22 @@ void World_init(World* w) {
 	
 	// HACK: emitters 
 	w->emitters = makeEmitter();
-// 	EmitterInstance dust_instance = {
-// 		.pos = {250.0,250.0,250.0},
-// 		.scale = 10,
-// 		.start_time = 0,
-// 		.lifespan = 1<<15
-// 	};
-// 	
-// 	emitterAddInstance(dust, &dust_instance);
-// 	emitter_update_vbo(dust);
+
 	
+		
+	//  HACK roads
+	w->roads = calloc(1, sizeof(*w->roads));
+	initRoadBlock(w->roads);
+	
+	RoadControlPoint rcp = {
+		{5,5},
+		{50,50},
+		{40,7}
+	};
+	int id;
+	rbAddRoad(w->roads, &rcp, &id);
+	
+	roadblock_update_vbo(w->roads);
 }
 
 
@@ -97,9 +106,25 @@ int World_spawnAt_StaticMesh(World* w, int smIndex, Vector* location) {
 	
 	emitterAddInstance(w->emitters, &dust_instance);
 	emitter_update_vbo(w->emitters);
+	
+	
 }
 
 
+
+void World_spawnAt_Road(World* w, Vector2* start,  Vector2* stop) {
+	
+	RoadControlPoint rcp = {
+		{start->x, start->y},
+		{stop->x, stop->y},
+		{(start->x + stop->x) / 2 , (stop->y + start->y) / 2}
+	};
+	int id;
+	rbAddRoad(w->roads, &rcp, &id);
+	
+	roadblock_update_vbo(w->roads);
+	
+}
 
 
 
@@ -113,6 +138,12 @@ void World_drawSolids(World* w, Matrix* view, Matrix* proj) {
 	meshManager_draw(w->smm, view, proj);
 	
 	Draw_Emitter(w->emitters, view, proj, w->gs->frameTime);
+}
+
+
+
+void World_drawDecals(World* w, Matrix* view, Matrix* proj) {
+	drawRoad(w->roads, w->gs->depthTexBuffer, view, proj);
 }
 
 

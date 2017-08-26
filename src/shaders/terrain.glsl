@@ -269,6 +269,9 @@ void main(void) {
 //	out_Normal = vec4(normalize(vec3((te_normal.x + 1) / 2, (te_normal.z + 1) / 2, (te_normal.y + 1) / 2)), 1);
 	out_Normal = vec4(te_normal.xyz * .5 + .5, 1.0);
 //	out_Normal = vec4(normalize(vec3(0,1,0)),1);
+	
 	out_Color =  (zoneColor * .2 + tc2) * cursorIntensity;// * lineFactor; //(1.0, 0, .5, .6);
+	//out_Color = vec4(texCoord.xy , 1, 1);
+	
 }
 

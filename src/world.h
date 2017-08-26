@@ -4,6 +4,8 @@
 
 #include "ds.h"
 #include "map.h"
+#include "road.h"
+#include "emitter.h"
 #include "staticMesh.h"
 
 
@@ -21,6 +23,8 @@ typedef struct World {
 	MeshManager* smm;
 	Emitter* emitters;
 	
+	RoadBlock* roads;
+	
 	MapInfo map;
 	
 } World;
@@ -31,12 +35,13 @@ typedef struct World {
 
 
 
+void World_drawTerrain(World* w);
+void World_drawSolids(World* w, Matrix* view, Matrix* proj);
+void World_drawDecals(World* w, Matrix* view, Matrix* proj);
 
-void World_drawSolid(World* w, Matrix* view, Matrix* proj);
 
 int World_spawnAt_StaticMesh(World* w, int smIndex, Vector* location);
-
-
+void World_spawnAt_Road(World* w, Vector2* start,  Vector2* stop);
 
 
 

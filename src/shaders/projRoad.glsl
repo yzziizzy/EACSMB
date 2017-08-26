@@ -164,9 +164,19 @@ void main(void) {
 	vec2 norm = normalize(sdt); 
 	
 	float width = abs(dot(pos.xy - spline.xy, norm));
-    if(width > 1) discard;
-    
-	out_Color = vec4(texture(sRoadTex, vec2((width + 1.0) / 2.0, t)).rgb , 1); //vs_norm;
+	
+	//out_Color = vec4(npos.xy, 1, 1.0);
+	
+	
+    if(width > 1) {
+		out_Color = vec4(1,0,t,1);
+		//discard; // commented for debug
+	}
+    else {
+		//out_Color = vec4(texture(sRoadTex, vec2((width + 1.0) / 2.0, t)).rgb + vec3(.5, 0,0) , 1); //vs_norm;
+		out_Color = vec4(vec2((width + 1.0) / 2.0, t) + vec2(.5, 0), 1 , 1); //vs_norm;
 	out_Normal = vs_norm;
+	}
+	
 }
 

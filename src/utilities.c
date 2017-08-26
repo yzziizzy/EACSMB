@@ -264,6 +264,13 @@ void* ar_alloc_internal(void* ar, int sz, int cnt) {
 }
 
 
+
+
+// numeric stuff
+inline float frand(float low, float high) {
+	return low + ((high - low) * ((double)rand() / (double)RAND_MAX));
+}
+
 float fclamp(float val, float min, float max) {
 	return fmin(max, fmax(min, val));
 }
