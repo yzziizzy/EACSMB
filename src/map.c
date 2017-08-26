@@ -257,7 +257,7 @@ void initTerrain(MapInfo* mi) {
 	patchVertices = malloc(sizeof(TerrainPatchVertex) * 4 * patchCnt);
 	
 	
-	float sideUnit = 1.0 / TERR_TEX_SZ; // size of a square, the smallest tessellation level
+	float sideUnit = 1.0; // size of a square, the smallest tessellation level
 	float wpSide = sideUnit * MaxTessGenLevel; // total length of a whole patch side
 	
 	printf("TERR_TEX_SZ: %d ", TERR_TEX_SZ);
@@ -280,8 +280,8 @@ void initTerrain(MapInfo* mi) {
 			pv->x = (ix * wpSide);
 			pv->y = (iy * wpSide);
 			pv->z = 0;
-			pv->hmU = (ix * MaxTessGenLevel * sideUnit);
-			pv->hmV = (iy * MaxTessGenLevel * sideUnit);
+			pv->hmU = (ix * MaxTessGenLevel * sideUnit / TERR_TEX_SZ);
+			pv->hmV = (iy * MaxTessGenLevel * sideUnit / TERR_TEX_SZ);
 			pv->divX = ix * MaxTessGenLevel;
 			pv->divY = iy * MaxTessGenLevel;
 			pv++;
@@ -289,8 +289,8 @@ void initTerrain(MapInfo* mi) {
 			pv->x = (ix * wpSide);
 			pv->y = ((iy+1) * wpSide);
 			pv->z = 0;
-			pv->hmU = (ix * MaxTessGenLevel * sideUnit);
-			pv->hmV = ((iy+1) * MaxTessGenLevel * sideUnit);
+			pv->hmU = (ix * MaxTessGenLevel * sideUnit  / TERR_TEX_SZ);
+			pv->hmV = ((iy+1) * MaxTessGenLevel * sideUnit  / TERR_TEX_SZ);
 			pv->divX = ix * MaxTessGenLevel;
 			pv->divY = (iy+1) * MaxTessGenLevel;
 			pv++;
@@ -298,8 +298,8 @@ void initTerrain(MapInfo* mi) {
 			pv->x = ((ix+1) * wpSide);
 			pv->y = ((iy+1) * wpSide);
 			pv->z = 0;
-			pv->hmU = ((ix+1) * MaxTessGenLevel * sideUnit);
-			pv->hmV = ((iy+1) * MaxTessGenLevel * sideUnit);
+			pv->hmU = ((ix+1) * MaxTessGenLevel * sideUnit  / TERR_TEX_SZ);
+			pv->hmV = ((iy+1) * MaxTessGenLevel * sideUnit  / TERR_TEX_SZ);
 			pv->divX = (ix+1) * MaxTessGenLevel;
 			pv->divY = (iy+1) * MaxTessGenLevel;
 			pv++;
@@ -307,8 +307,8 @@ void initTerrain(MapInfo* mi) {
 			pv->x = ((ix+1) * wpSide);
 			pv->y = (iy * wpSide);
 			pv->z = 0;
-			pv->hmU = ((ix+1) * MaxTessGenLevel * sideUnit);
-			pv->hmV = (iy * MaxTessGenLevel * sideUnit);
+			pv->hmU = ((ix+1) * MaxTessGenLevel * sideUnit / TERR_TEX_SZ);
+			pv->hmV = (iy * MaxTessGenLevel * sideUnit  / TERR_TEX_SZ);
 			pv->divX = (ix+1) * MaxTessGenLevel;
 			pv->divY = iy * MaxTessGenLevel;
 			pv++;
@@ -502,10 +502,11 @@ void initTerrainBlock(MapBlock* mb, int cx, int cy) {
 	for(y = 0; y < TERR_TEX_SZ ; y++) {
 		for(x = 0; x < TERR_TEX_SZ ; x++) {
 			float f = data[x + (y * TERR_TEX_SZ)];
-			tb->zs[x + (y * TERR_TEX_SZ)] = fabs(1-f) * 40;
+			tb->zs[x + (y * TERR_TEX_SZ)] = fabs(1-f) * 100;
 		}
 	}
 	
+	free(data);
 	/*
 		// generate new data and save it
 	printf("Generating new terrain [%d, %d]... \n", cx, cy);
@@ -1075,7 +1076,9 @@ void getTerrainHeight(MapInfo* map, Vector2i* coords, int coordLen, float* heigh
 		int locx = coord->x % MAP_BLOCK_SZ;
 		int locy = coord->y % MAP_BLOCK_SZ;
 		
-		*hout = map->blocks[bix][biy]->tb.zs[locx + (locy * MAP_BLOCK_SZ)];
+		printf("data for b[%d, %d] l[%d, %d]\n", bix, biy, locx, locy);
+		
+		*hout = map->blocks[bix][biy]->tb.zs[locx + (locy * TERR_TEX_SZ)];
 		
 		coord++;
 		hout++;

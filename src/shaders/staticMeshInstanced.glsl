@@ -44,7 +44,7 @@ void main() {
 	pos *= vec4(i_scale_in, 1);
 	pos += vec4(i_pos_in, 0);
 	
-	gl_Position = (mProj * mView * mModel) * (pos);// * i_scale_in;
+	gl_Position = (mProj * mView) * (pos);// * i_scale_in;
 	vs_norm = v_norm_in; // normalize(vec4(1,1,1,0));
 	vs_tex = v_tex_in;
 }

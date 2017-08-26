@@ -23,7 +23,7 @@ void main() {
 	vs_tile = tile_in;
 	vs_InstanceID = gl_InstanceID;
 	vs_rawTileOffset = texelFetch(sOffsetLookup, ivec2(gl_InstanceID, 0), 0).rg; 
-	vs_tileOffset = vs_rawTileOffset * 255.0;
+	vs_tileOffset = vs_rawTileOffset * 255* 255;
 
 	
 	gl_Position = vec4(pos_in.x + vs_tileOffset.r, pos_in.y + vs_tileOffset.g, pos_in.z, 1.0);
@@ -44,7 +44,6 @@ uniform perViewData {
 	mat4 mProj;
 };
 
-uniform mat4 mModel;
 
 in vec2 vs_tex[];
 in vec2 vs_tile[];
@@ -61,7 +60,7 @@ out int te_InstanceID[];
 void main() {
 
 	if(gl_InvocationID == 0) {
-		mat4 mvp = mProj * mView * mModel;
+		mat4 mvp = mProj * mView;
 		vec4 w0 = mvp * gl_in[0].gl_Position;
 		vec4 w1 = mvp * gl_in[1].gl_Position;
 		vec4 w2 = mvp * gl_in[2].gl_Position;
@@ -122,8 +121,6 @@ uniform perViewData {
 	mat4 mProj;
 };
 
-uniform mat4 mModel;
-
 uniform vec2 winSize;
 
 const vec2 size = vec2(2,0.0);
@@ -170,7 +167,7 @@ void main(void){
 
 	tmp.z = t; // .01 *  sin(gl_TessCoord.y*12) + .01 *sin(gl_TessCoord.x*12);
 	
-	gl_Position = (mProj * mView * mModel) * tmp;
+	gl_Position = (mProj * mView) * tmp;
 	t_tile =  tltmp;
 	texCoord = ttmp;
 	ps_InstanceID = te_InstanceID[0];

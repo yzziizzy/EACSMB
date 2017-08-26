@@ -74,7 +74,7 @@ void drawStaticMesh(StaticMesh* m, Matrix* view, Matrix* proj) {
 	
 	//mFastMul(view, proj, &mvp);
 	mIdent(&model);
-	mScale3f(150, 150, 150, &model);
+//	mScale3f(150, 150, 150, &model);
 	//mTrans3f(0,0,0, &model);
 	
 	glUseProgram(prog->id);

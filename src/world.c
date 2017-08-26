@@ -19,26 +19,26 @@ void World_init(World* w) {
 	
 	StaticMeshInstance smi[] = {
 		{
-			{1,1,45.21},
+			{1,1,4},
 			{1, 0, 0},
-			{.005, .005, .005 },
+			{2.5, 2.5, 2.5 },
 		},
 		{
-			{5,5,46.56},
+			{5,5,4},
 			{1, 0, 0},
-			{.005, .005, .005 },
+			{2.05, 2.05, 2.05 },
 		},
 		{
 			{20,20,45},
 			{1, 0, 0},
-			{.01, .01, .01 },
+			{2.01, .01, 2.01 },
 		},
 	};
 	
-	meshManager_addInstance(w->smm, 0, &smi[0]);
-	meshManager_addInstance(w->smm, 0, &smi[1]);
-	meshManager_addInstance(w->smm, 0, &smi[2]);
-	meshManager_updateInstances(w->smm);
+//	meshManager_addInstance(w->smm, 0, &smi[0]);
+//	meshManager_addInstance(w->smm, 0, &smi[1]);
+//	meshManager_addInstance(w->smm, 0, &smi[2]);
+//	meshManager_updateInstances(w->smm);
 	
 }
 
@@ -65,7 +65,7 @@ int World_spawnAt_StaticMesh(World* w, int smIndex, Vector* location) {
 	smi.pos.z = h;
 	
 	smi.dir = (Vector){1, 0, 0};
-	smi.scale = (Vector){.005, .005, .005 };
+	smi.scale = (Vector){1,1,1 };
 	
 	meshManager_addInstance(w->smm, smIndex, &smi);
 	meshManager_updateInstances(w->smm);
