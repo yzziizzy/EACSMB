@@ -224,6 +224,12 @@ void setupFBOs(GameState* gs, int resized) {
 
 void initRenderLoop(GameState* gs) {
 	
+	// timer queries
+	query_queue_init(&gs->queries.draw);
+	query_queue_init(&gs->queries.selection);
+	query_queue_init(&gs->queries.emitters);
+	
+	
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -305,6 +311,56 @@ void shadingPass(GameState* gs) {
 }
 
 
+void selectionPass(XStuff* xs, GameState* gs, InputState* is) {
+
+	gs->lastSelectionFrame = gs->frameCount; 
+	
+	query_queue_start(&gs->queries.selection);
+	
+	glDepthFunc(GL_LESS);
+	//glDisable(GL_DEPTH_TEST);
+	
+	glBindFramebuffer(GL_FRAMEBUFFER, gs->selectionbuf.fb);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	
+	depthPrepass(xs, gs, is);
+	
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, gs->selectionbuf.fb);
+	
+	//glEnable(GL_DEPTH_TEST);
+	glReadBuffer(GL_COLOR_ATTACHMENT0);
+	
+	printf("is buffer %d\n", gs->selectionPBOs[gs->activePBO]);
+	glBindBuffer(GL_PIXEL_PACK_BUFFER, gs->selectionPBOs[gs->activePBO]);
+	
+	glexit("selection buff");
+	//printf("cursor pixels: %f, %f\n", is->cursorPosPixels.x, is->cursorPosPixels.y);
+	
+	glReadPixels(
+		0, //is->cursorPosPixels.x,
+		0, //is->cursorPosPixels.y,
+		gs->screen.wh.x,
+		gs->screen.wh.y,
+		GL_RGBA,
+		GL_UNSIGNED_BYTE,
+		0);
+	
+	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+
+	glexit("read selection");
+	glexit("");
+	
+	if(gs->selectionFence) glDeleteSync(gs->selectionFence);
+	gs->selectionFence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+	
+	gs->selectionFrame = gs->frameCount;
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	
+	query_queue_stop(&gs->queries.selection);
+}
+
 
 #define PF_START(x) gs->perfTimes.x = getCurrentTime()
 #define PF_STOP(x) gs->perfTimes.x = timeSince(gs->perfTimes.x)
@@ -327,54 +383,8 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	if(gs->hasMoved && gs->lastSelectionFrame < gs->frameCount - 8 && !gs->selectionPassDisabled) {
 		printf("doing selection pass %d\n", gs->frameCount);
 		gs->hasMoved = 0;
-		gs->lastSelectionFrame = gs->frameCount; 
 		
-		// really just the selection pass
-			PF_START(selection);
-		glDepthFunc(GL_LESS);
-		//glDisable(GL_DEPTH_TEST);
-		
-		glBindFramebuffer(GL_FRAMEBUFFER, gs->selectionbuf.fb);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		
-		depthPrepass(xs, gs, is);
-		
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, gs->selectionbuf.fb);
-		
-		//glEnable(GL_DEPTH_TEST);
-		glReadBuffer(GL_COLOR_ATTACHMENT0);
-		
-		printf("is buffer %d\n", gs->selectionPBOs[gs->activePBO]);
-		glBindBuffer(GL_PIXEL_PACK_BUFFER, gs->selectionPBOs[gs->activePBO]);
-		
-		glexit("selection buff");
-		//printf("cursor pixels: %f, %f\n", is->cursorPosPixels.x, is->cursorPosPixels.y);
-		
-		glReadPixels(
-			0, //is->cursorPosPixels.x,
-			0, //is->cursorPosPixels.y,
-			gs->screen.wh.x,
-			gs->screen.wh.y,
-			GL_RGBA,
-			GL_UNSIGNED_BYTE,
-			0);
-		
-		glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-
-		glexit("read selection");
-		glexit("");
-		
-		if(gs->selectionFence) glDeleteSync(gs->selectionFence);
-		gs->selectionFence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-		
-		gs->selectionFrame = gs->frameCount;
-
-		
-		
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			PF_STOP(selection);
-			
+		selectionPass(xs, gs, is);
 	}
 	
 	
@@ -387,25 +397,13 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	glBindFramebuffer(GL_FRAMEBUFFER, gs->gbuf.fb);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
-		
-		PF_START(draw);
-		//static int fnum = 0;
-		//printf("frame %d\n", fnum++);
-		
-		glexit("");
-	
 	// clear color buffer for actual rendering
 	//glClear(GL_COLOR_BUFFER_BIT);
-	glerr("pre shader create 1d");
 	glDepthFunc(GL_LEQUAL);
-	glerr("pre shader create e");
 	
 	renderFrame(xs, gs, is);
+	query_queue_stop(&gs->queries.draw);
 	
-		
-		PF_STOP(draw);
-		PF_START(decal);
-
 	// decals
 	glBindFramebuffer(GL_FRAMEBUFFER, gs->decalbuf.fb);
 	
@@ -413,11 +411,14 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	
 	renderDecals(xs, gs, is);
 	
+	
+	query_queue_start(&gs->queries.emitters);
+	glexit("");
 	renderParticles(xs, gs, is); // particles are alpha blended and need to be on top of decals
+	query_queue_stop(&gs->queries.emitters);
 	
 	glDepthMask(GL_TRUE);
-		
-		PF_STOP(decal);
+	
 	
 	
 	cleanUpView(xs, gs, is);
@@ -437,7 +438,7 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	//glEndQuery(GL_TIME_ELAPSED);
 	
 	
-	query_queue_stop(&gs->queries.draw);
+	
 	
 	
 	glXSwapBuffers(xs->display, xs->clientWin);

@@ -126,6 +126,8 @@ typedef struct GameState {
 	
 	struct {
 		QueryQueue draw; 
+		QueryQueue selection; 
+		QueryQueue emitters; 
 		
 	} queries;
 

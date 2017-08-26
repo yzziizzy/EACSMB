@@ -52,7 +52,9 @@ void query_queue_init(QueryQueue* q) {
 
 void query_queue_start(QueryQueue* q) {
 	if(q->used < 6) {
+		glexit("");
 		glBeginQuery(GL_TIME_ELAPSED, q->qids[q->head]);
+		glexit("");
 		q->head = (q->head + 1) % 6;
 		q->used++;
 	}

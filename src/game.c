@@ -44,7 +44,7 @@ float zoom;
 
 
 // temp shit
-GUIText* gt;
+GUIText* gt, *gt_sel, *gt_emit;
 GUIText* gtRenderMode;
 GUIText* gtSelectionDisabled;
 
@@ -153,7 +153,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	getPrintGLEnum(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, "meh");
 	getPrintGLEnum(GL_MAX_UNIFORM_BLOCK_SIZE, "meh");
 	
-	query_queue_init(&gs->queries.draw);
+	
 	
 	// set up matrix stacks
 	MatrixStack* view, *proj;
@@ -192,6 +192,8 @@ void initGame(XStuff* xs, GameState* gs) {
 	gui_Init();
 	
 	gt = guiTextNew("gui!", &(Vector){1.0,1.0,0.0}, 6.0f, "Arial");
+	gt_sel = guiTextNew("gui!", &(Vector){1.0,1.6,0.0}, 6.0f, "Arial");
+	gt_emit = guiTextNew("gui!", &(Vector){1.0,2.2,0.0}, 6.0f, "Arial");
 	gtRenderMode = guiTextNew("", &(Vector){8.0,1.0,0.0}, 6.0f, "Arial");
 	gtSelectionDisabled = guiTextNew("", &(Vector){8.0,2.0,0.0}, 6.0f, "Arial");
 	
@@ -291,26 +293,34 @@ void preFrame(GameState* gs) {
 	
 	uniformBuffer_bindRange(&gs->perFrameUB);
 	
-	static double sdtime;
+	static double sdtime, sseltime, semittime;
 	
 	if(lastPoint == 0.0f) lastPoint = gs->frameTime;
 	if(1 /*frameCounter == 0*/) {
 		float fps = 60.0f / (gs->frameTime - lastPoint);
 		
-		uint64_t qdtime;
+		uint64_t qtime;
 		
-		if(!query_queue_try_result(&gs->queries.draw, &qdtime)) {
-			sdtime = ((double)qdtime) / 1000000.0;
+		if(!query_queue_try_result(&gs->queries.draw, &qtime)) {
+			sdtime = ((double)qtime) / 1000000.0;
 		}
-		
-		
-		glexit("");
 		snprintf(frameCounterBuf, 128, "dtime:  %.2fms", sdtime);
-// 		snprintf(frameCounterBuf, 128, "dtime:  %.2fms", gs->perfTimes.draw * 1000);
-		
-		//printf("--->%s\n", frameCounterBuf);
 		guiTextSetValue(gt, frameCounterBuf);
-// 		updateText(strRI, frameCounterBuf, -1, fpsColors);
+
+
+		if(!query_queue_try_result(&gs->queries.selection, &qtime)) {
+			sseltime = ((double)qtime) / 1000000.0;
+		}
+		snprintf(frameCounterBuf, 128, "seltime:  %.2fms", sseltime);
+		guiTextSetValue(gt_sel, frameCounterBuf);
+		
+		
+		if(!query_queue_try_result(&gs->queries.emitters, &qtime)) {
+			semittime = ((double)qtime) / 1000000.0;
+		}
+		snprintf(frameCounterBuf, 128, "emittime:  %.2fms", semittime);
+		guiTextSetValue(gt_emit, frameCounterBuf);
+		
 		
 		lastPoint = now;
 	}
