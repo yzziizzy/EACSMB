@@ -175,5 +175,7 @@ void main(void) {
     
 	out_Color = texture(textures, gs_tex.xy) * vec4(1.0, 1.0, 1.0, gs_opacity); //vs_norm;
 //	out_Color = vec4(1.0, 1.0, 1.0, gs_opacity); //vs_norm;
+	out_Normal = vec4(0,0,0,0);
+	
 }
 

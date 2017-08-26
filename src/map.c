@@ -502,7 +502,7 @@ void initTerrainBlock(MapBlock* mb, int cx, int cy) {
 	for(y = 0; y < TERR_TEX_SZ ; y++) {
 		for(x = 0; x < TERR_TEX_SZ ; x++) {
 			float f = data[x + (y * TERR_TEX_SZ)];
-			tb->zs[x + (y * TERR_TEX_SZ)] = fabs(1-f) * 100;
+			tb->zs[x + (y * TERR_TEX_SZ)] = fabs(1-f) * 10;
 		}
 	}
 	

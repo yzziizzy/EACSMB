@@ -35,10 +35,25 @@ void World_init(World* w) {
 		},
 	};
 	
-//	meshManager_addInstance(w->smm, 0, &smi[0]);
+	meshManager_addInstance(w->smm, 0, &smi[0]);
 //	meshManager_addInstance(w->smm, 0, &smi[1]);
 //	meshManager_addInstance(w->smm, 0, &smi[2]);
-//	meshManager_updateInstances(w->smm);
+	meshManager_updateInstances(w->smm);
+	
+	
+	
+	
+	// HACK: emitters 
+	w->emitters = makeEmitter();
+// 	EmitterInstance dust_instance = {
+// 		.pos = {250.0,250.0,250.0},
+// 		.scale = 10,
+// 		.start_time = 0,
+// 		.lifespan = 1<<15
+// 	};
+// 	
+// 	emitterAddInstance(dust, &dust_instance);
+// 	emitter_update_vbo(dust);
 	
 }
 
@@ -62,13 +77,26 @@ int World_spawnAt_StaticMesh(World* w, int smIndex, Vector* location) {
 	// spawn instance
 	smi.pos.x = location->x;
 	smi.pos.y = location->y;
-	smi.pos.z = h;
+	smi.pos.z = h + .5; // HACK +.5z for gazebo origin offset
 	
 	smi.dir = (Vector){1, 0, 0};
 	smi.scale = (Vector){1,1,1 };
 	
 	meshManager_addInstance(w->smm, smIndex, &smi);
 	meshManager_updateInstances(w->smm);
+	
+	
+	
+	// emitter
+	EmitterInstance dust_instance = {
+		.pos = (Vector){location->x, location->y, h + 2},
+		.scale = 10,
+		.start_time = 0,
+		.lifespan = 1<<15
+	};
+	
+	emitterAddInstance(w->emitters, &dust_instance);
+	emitter_update_vbo(w->emitters);
 }
 
 
@@ -84,6 +112,7 @@ void World_drawTerrain(World* w) {
 void World_drawSolids(World* w, Matrix* view, Matrix* proj) {
 	meshManager_draw(w->smm, view, proj);
 	
+	Draw_Emitter(w->emitters, view, proj, w->gs->frameTime);
 }
 
 

@@ -162,8 +162,8 @@ void main(void){
 	float sx = (xp1 - xm1);
 	float sy = (yp1 - ym1);
 
-	te_normal = normalize(vec4(sx*32, sy*32 ,-1.0, 1.0));
-	
+	te_normal = vec4(normalize(vec3(sx, sy, 1.0)), 1);
+	//te_normal = vec4(normalize(vec3(0,0,1)), 1.0);
 
 	tmp.z = t; // .01 *  sin(gl_TessCoord.y*12) + .01 *sin(gl_TessCoord.x*12);
 	
@@ -266,7 +266,9 @@ void main(void) {
 	vec4 tc2 = mix(lineColor, tc, lineFactor.r);
 	
 //	out_Selection = vec4(floor(t_tile.x) / 256, floor(t_tile.y) / 256, ps_InstanceID, 1);
-	out_Normal = vec4((te_normal.x + 1) / 2, (te_normal.z + 1) / 2, (te_normal.z + 1) / 2, 1);
- 	out_Color =  (zoneColor * .2 + tc2) * cursorIntensity;// * lineFactor; //(1.0, 0, .5, .6);
+//	out_Normal = vec4(normalize(vec3((te_normal.x + 1) / 2, (te_normal.z + 1) / 2, (te_normal.y + 1) / 2)), 1);
+	out_Normal = vec4(te_normal.xyz * .5 + .5, 1.0);
+//	out_Normal = vec4(normalize(vec3(0,1,0)),1);
+	out_Color =  (zoneColor * .2 + tc2) * cursorIntensity;// * lineFactor; //(1.0, 0, .5, .6);
 }
 

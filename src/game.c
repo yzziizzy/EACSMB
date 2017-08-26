@@ -201,7 +201,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	World_init(gs->world);
 	gs->world->gs = gs;
 	
-	
+/*	
 	dust = makeEmitter();
 	EmitterInstance dust_instance = {
 		.pos = {250.0,250.0,250.0},
@@ -211,7 +211,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	};
 	
 	emitterAddInstance(dust, &dust_instance);
-	emitter_update_vbo(dust);
+	emitter_update_vbo(dust);*/
 	
 }
 

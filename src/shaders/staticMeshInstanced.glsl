@@ -7,8 +7,8 @@
 //layout(std140) uniform; 
 
 // per-vertex attributes
-layout (location = 0) in vec4 v_pos_in;
-layout (location = 1) in vec4 v_norm_in;
+layout (location = 0) in vec3 v_pos_in;
+layout (location = 1) in vec3 v_norm_in;
 layout (location = 2) in vec2 v_tex_in;
 
 
@@ -22,7 +22,7 @@ uniform mat4 mView;
 uniform mat4 mProj;
 
 // out vec4 vs_pos;
-out vec4 vs_norm;
+out vec3 vs_norm;
 out vec2 vs_tex;
 
 mat4 rotationMatrix(vec3 axis, float angle) {
@@ -39,7 +39,7 @@ mat4 rotationMatrix(vec3 axis, float angle) {
 
 
 void main() {
-	vec4 pos = v_pos_in;
+	vec4 pos = vec4(v_pos_in, 1.0);
 	pos *= rotationMatrix(i_dir_in, 3.14/2);
 	pos *= vec4(i_scale_in, 1);
 	pos += vec4(i_pos_in, 0);
@@ -57,7 +57,7 @@ void main() {
 #version 400
 
 // in vec4 vs_pos;
-in vec4 vs_norm;
+in vec3 vs_norm;
 in vec2 vs_tex;
 
 // fragment shader
@@ -71,6 +71,6 @@ layout(location = 1) out vec4 out_Normal;
 void main(void) {
 	
 	out_Color = texture(sTexture, vec2(vs_tex.x, 1-vs_tex.y)); //vs_norm;
-	out_Normal = vs_norm;
+	out_Normal = vec4((normalize(vs_norm.xzy) * .5) + .5, 1);
 }
 

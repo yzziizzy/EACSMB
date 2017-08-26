@@ -50,7 +50,7 @@ out vec4 FragColor;
 
 void main() {
 	vec2 tex = gl_FragCoord.xy / resolution.xy;
-	vec3 normal = texture(sNormals, tex).xyz;
+	vec3 normal = texture(sNormals, tex).xyz * 2 - 1;
 	
 	if(debugMode == 0) {
 		// normal rendering
@@ -59,7 +59,7 @@ void main() {
 		
 		float depth = texture(sDepth, screenCoord).r;
 		if (depth > 0.99999) {
-			discard; // probably shouldn't be here
+		//	discard; // probably shouldn't be here
 		}
 		
 		float ndc_depth = depth * 2.0 - 1.0;
@@ -86,8 +86,12 @@ void main() {
 		vec3 specColor = vec3(0,0,0);//normalize(vec3(1,1,1));
 
 		vec3 ambient = vec3(0.1,0.1,0.1);
-		FragColor = vec4(ambient + lambertian * diffuseColor+ specular * specColor, 1.0);
-
+		if(length(normal) < 1.01) { // things with normals get directional lighting
+			FragColor = vec4(ambient + lambertian * diffuseColor+ specular * specColor, 1.0);
+		}
+		else { // no directional lighting for things without normals
+			FragColor = vec4(ambient + diffuseColor, 1.0);
+		}
 	}
 	else if(debugMode == 1) {
 		// diffuse
@@ -95,7 +99,7 @@ void main() {
 	}
 	else if(debugMode == 2) {
 		// normals
-		FragColor = vec4(texture(sNormals, tex).rgb,  1.0);
+		FragColor = vec4(abs(texture(sNormals, tex).rgb * 2 - 1),  1.0);
 	}
 	else if(debugMode == 3) {
 		// depth
