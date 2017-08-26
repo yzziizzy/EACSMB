@@ -1,6 +1,8 @@
 #ifndef __EACSMB_STATICMESH_H__
 #define __EACSMB_STATICMESH_H__
 
+#include "common_gl.h"
+#include "common_math.h"
 
 #include "ds.h"
 #include "hash.h"

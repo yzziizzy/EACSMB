@@ -9,9 +9,9 @@
 #include "uniformBuffer.h"
 #include "fbo.h"
 #include "scene.h"
+#include "world.h"
 #include "window.h"
 
-struct World;
 
 typedef struct GameScreen {
 	
@@ -77,7 +77,7 @@ typedef struct GameState {
 	char readPBO, activePBO;
 	
 	Scene scene;
-	struct World* world;
+	World* world;
 	
 	UniformBuffer perViewUB;
 	UniformBuffer perFrameUB;

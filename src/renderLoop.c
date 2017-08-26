@@ -365,14 +365,11 @@ void selectionPass(XStuff* xs, GameState* gs, InputState* is) {
 
 void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
-	//mModel = IDENT_MATRIX;
-	
 	Vector2 c2;
 	
 	c2.x = 300; //cursorp.x;
 	c2.y = 300; //cursorp.z;
 	
-	//updateView(xs, gs, is);
 	
 	// draw terrain
 // 	drawTerrainBlock(&gs->map, msGetTop(&gs->model), msGetTop(&gs->view), msGetTop(&gs->proj), &gs->cursorPos);
@@ -380,9 +377,7 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	renderMarker(gs, 0,0);
 
-	//drawStaticMesh(testmesh, msGetTop(&gs->view), msGetTop(&gs->proj));
-	meshManager_draw(meshman, msGetTop(&gs->view), msGetTop(&gs->proj));
-
+	World_drawSolid(gs->world, msGetTop(&gs->view), msGetTop(&gs->proj));
 
 /*
 	gui_RenderAll(gs);
@@ -409,7 +404,7 @@ void renderDecals(XStuff* xs, GameState* gs, InputState* is) {
 void renderParticles(XStuff* xs, GameState* gs, InputState* is) {
 	
 	
-	Draw_Emitter(dust, msGetTop(&gs->view), msGetTop(&gs->proj), gs->frameTime);
+	//Draw_Emitter(dust, msGetTop(&gs->view), msGetTop(&gs->proj), gs->frameTime);
 	
 	glexit("render particles");
 }

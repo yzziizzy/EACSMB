@@ -1,6 +1,8 @@
 #ifndef __EACSMB_EMITTER_H__
 #define __EACSMB_EMITTER_H__
 
+#include "common_gl.h"
+#include "common_math.h"
 
 // grouped by attribute
 typedef struct  __attribute__ ((__packed__)) EmitterInstance {

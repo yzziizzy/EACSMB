@@ -2,18 +2,19 @@
 #define __EACSMB_world_h__
 
 
-#include "game.h"
 #include "map.h"
 #include "staticMesh.h"
+
+
+struct GameState;
 
 
 // World is the entire world. Scene is the part you can see.
 
 // no drawing is handled by the World code. It is for managment and operations only.
 // drawing is too complicated and crosses too many lines to fit here.
-
 typedef struct World {
-	GameState* gs; // pointer to parent
+	struct GameState* gs; // pointer to parent
 	
 	MeshManager* smm;
 	Emitter* emitters;
@@ -29,7 +30,7 @@ typedef struct World {
 
 
 
-
+void World_drawSolid(World* w, Matrix* view, Matrix* proj);
 
 
 

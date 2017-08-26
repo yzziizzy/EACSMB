@@ -17,6 +17,9 @@
 #define TCOORD(x,y) ((y * TERR_TEX_SZ) + x)
 #define MCOORD(x,y) ((y * MAP_TEX_SZ) + x)
 
+#include "common_gl.h"
+#include "common_math.h"
+
 #include "road.h"
 #include "view.h"
 #include "uniformBuffer.h"

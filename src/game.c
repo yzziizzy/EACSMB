@@ -57,8 +57,6 @@ Texture* cnoise;
 Emitter* dust;
 RoadBlock* roads;
 
-StaticMesh* testmesh;
-MeshManager* meshman;
 
 
 
@@ -201,48 +199,10 @@ void initGame(XStuff* xs, GameState* gs) {
 	//initUI(gs);
 	initMarker();
 	 
-// 	
-	
-	OBJContents cube;
-	loadOBJFile("assets/models/gazebo.obj", 0, &cube);
-// 	loadOBJFile("assets/models/picketfence.obj", 0, &cube);
-	//Mesh* cubem = OBJtoMesh(&cube);
-	testmesh = StaticMeshFromOBJ(&cube);
-	
-	
-	meshman = meshManager_alloc();
-	
-	meshManager_readConfigFile(meshman, "assets/config/models.json");
-	// don't have more meshes yet...
-	//meshManager_addMesh(meshman, testmesh);
-//	meshManager_addMesh(meshman, testmesh);
-//	meshManager_addMesh(meshman, testmesh);
-//	meshManager_addMesh(meshman, testmesh);
 
-	meshManager_updateGeometry(meshman);
 	
-	StaticMeshInstance smi[] = {
-		{
-			{1,1,16},
-			{1, 0, 0},
-			{.05, .05, .05 },
-		},
-		{
-			{10,10,16},
-			{1, 0, 0},
-			{.05, .05, .05 },
-		},
-		{
-			{20,20,16},
-			{1, 0, 0},
-			{.05, .05, .05 },
-		},
-	};
-	
-	meshManager_addInstance(meshman, 0, &smi[0]);
-	meshManager_addInstance(meshman, 0, &smi[1]);
-	meshManager_addInstance(meshman, 0, &smi[2]);
-	meshManager_updateInstances(meshman);
+	gs->world = calloc(1, sizeof(*gs->world));
+	World_init(gs->world); 
 	
 	
 	dust = makeEmitter();
