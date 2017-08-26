@@ -7,9 +7,10 @@
 // terrain textures must always be a power of two
 #define TERR_TEX_SZ 256
 // terrain blocks must always be a power of two minus one
-#define TERR_BLOCK_SZ (TERR_TEX_SZ)
+#define TERR_BLOCK_SZ (TERR_TEX_SZ - 1)
 
 #define MAP_TEX_SZ (TERR_TEX_SZ)
+#define MAP_BLOCK_SZ (TERR_TEX_SZ - 1)
 
 
 
@@ -63,28 +64,28 @@ typedef struct MapBlock {
 	
 } MapBlock;
 
-typedef struct MapBlockTreeLeaf {
-	MapBlock* c[8][8];
-	int32_t minx, miny;
-} MapBlockTreeLeaf;
+// typedef struct MapBlockTreeLeaf {
+// 	MapBlock* c[8][8];
+// 	int32_t minx, miny;
+// } MapBlockTreeLeaf;
+// 
 
 
 
 
 
-
-//TODO: mark some regular terrain tiles as transparent... to see excavations
-typedef struct VirtualTerrainBlock { // used for planning, renders as wireframe, usually
-	float* zs;
-	AABB2i worldBounds; // in world tile space, not TB tile space
-	
-	GLuint vbo;
-	int vertices;
-	
-	TerrainBlock** blocks;
-	
-} VirtualTerrainBlock;
-
+// //TODO: mark some regular terrain tiles as transparent... to see excavations
+// typedef struct VirtualTerrainBlock { // used for planning, renders as wireframe, usually
+// 	float* zs;
+// 	AABB2i worldBounds; // in world tile space, not TB tile space
+// 	
+// 	GLuint vbo;
+// 	int vertices;
+// 	
+// 	TerrainBlock** blocks;
+// 	
+// } VirtualTerrainBlock;
+// 
 
 /*
 
@@ -122,37 +123,37 @@ struct sGL_RG8 {
 	unsigned char x, y;
 };
 
-typedef struct MapLayer_Roads {
-	
-} MapLayer_Roads;
+// typedef struct MapLayer_Roads {
+// 	
+// } MapLayer_Roads;
+// 
+// typedef struct MapLayer_Trees {
+// 	TerrainBlock* blocks;
+// } MapLayer_Trees;
+// 
+// typedef struct MapLayer_Zones {
+// 	uint8_t* zone_data;
+// 	// zone list
+// 	// zone colors
+// } MapLayer_Zones;
+// 
+// typedef struct MapLayer_Terrain {
+// 	TerrainBlock* blocks;
+// } MapLayer_Terrain;
 
-typedef struct MapLayer_Trees {
-	TerrainBlock* blocks;
-} MapLayer_Trees;
-
-typedef struct MapLayer_Zones {
-	uint8_t* zone_data;
-	// zone list
-	// zone colors
-} MapLayer_Zones;
-
-typedef struct MapLayer_Terrain {
-	TerrainBlock* blocks;
-} MapLayer_Terrain;
-
-// just hardcode to some moderately large size for now
-typedef struct MapLayer {
-	uint16_t id;
-	uint16_t type;
-	uint32_t flags;
-	char* name;
-	
-	union {
-		MapLayer_Terrain terrain;
-		MapLayer_Roads roads;
-		MapLayer_Zones zones;
-	};
-} MapLayer;
+// // just hardcode to some moderately large size for now
+// typedef struct MapLayer {
+// 	uint16_t id;
+// 	uint16_t type;
+// 	uint32_t flags;
+// 	char* name;
+// 	
+// 	union {
+// 		MapLayer_Terrain terrain;
+// 		MapLayer_Roads roads;
+// 		MapLayer_Zones zones;
+// 	};
+// } MapLayer;
 
 
 typedef struct MapRenderComponent {
@@ -170,12 +171,12 @@ typedef struct MapRenderComponent {
 typedef struct MapInfo {
 	// will be replaced by expandable structures later
 	//TerrainBlock* tb;
-	MapBlock** blocks;
+	MapBlock* blocks[8][8];
 	int blocksSz;
 	int blocksLen;
-	MapBlock* originMB;
+// 	MapBlock* originMB;
 	
-	MapBlockTreeLeaf* root;
+// 	MapBlockTreeLeaf* root;
 	
 	int scale; // how many terrain tiles are along an edge of one game tile. SC3k would be 1.
 	
@@ -232,8 +233,8 @@ void setZone(MapInfo *mi, int x1, int y1, int x2, int y2, int zone);
 void getTerrainHeight(MapInfo* map, Vector2i* coords, int coordLen, float* heightsOut);
 
 
-void saveMapBlockTreeLeaf(FILE* f, MapBlockTreeLeaf* mbl);
-MapBlockTreeLeaf* loadMapBlockTreeLeaf(FILE* f);
+void saveMapBlock(FILE* f, MapBlock* mb);
+MapBlock* loadMapBlock(FILE* f);
 // stuff below is too complicated for now. more knowledge is needed about the game to proceed.
 
 

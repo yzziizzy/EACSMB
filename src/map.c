@@ -50,6 +50,7 @@ char* tmpSaveName = "EACSMB-map-cache";
 
 void initMap(MapInfo* mi) {
 	int x, y, i;
+	int bx, by;
 	char* tmpDir;
 	
 	// HACK DEBUG. leaks like wiki
@@ -78,19 +79,22 @@ void initMap(MapInfo* mi) {
 	msScale3f(TERR_TEX_SZ,TERR_TEX_SZ,1, &model);
 	msPush(&model);
 	
-	mi->blocksSz = 32 * 32;
-	mi->blocks = malloc(sizeof(MapBlock*) * mi->blocksSz);
+	//mi->blocksSz = 32 * 32;
+	//mi->blocks = malloc(sizeof(MapBlock*) * mi->blocksSz);
 	
 
-	mi->originMB = allocMapBlock(0, 0);
-	mi->blocks[0] = mi->originMB;
-	mi->blocksLen++;
+// 	mi->originMB = allocMapBlock(0, 0);
+// 	mi->blocks[0] = mi->originMB;
+// 	mi->blocksLen++;
 	
-	mi->blocks[mi->blocksLen] = allocMapBlock(1, 0);
-	mi->blocks[mi->blocksLen]->n_xm = mi->blocks[0];
-	mi->blocks[0]->n_xp = mi->blocks[mi->blocksLen];
-	mi->blocksLen++;
-	
+	for(by = 0; by < 8; by++) {
+		for(bx = 0; bx < 8; bx++) {
+			mi->blocks[bx][by] = allocMapBlock(bx, by);
+// 			mi->blocks[bx][by]->n_xm = mi->blocks[bx][by];
+// 			mi->blocks[0]->n_xp = mi->blocks[mi->blocksLen];
+// 			mi->blocksLen++;
+		}
+	}
 	
 	
 	// zone stuff
@@ -131,18 +135,25 @@ void initMap(MapInfo* mi) {
 	*/
 	FILE* f;
 	f = fopen(tmpSavePath, "rb");
+	MapBlock* mb;
 	if(f) {
 		// load data
 		printf("Loading saved terrain from %s\n", tmpSavePath);
-		
-		mi->root = loadMapBlockTreeLeaf(f);
+		for(y = 0; y < 8; y++) {
+			for(x = 0; x < 8; x++) {
+				mb = loadMapBlock(f);
+				mi->blocks[mb->bix][mb->biy] = mb;
+			}
+		}
 	} 
 	else {
-		mi->root = spawnMapBlockTreeLeaf(mi, 0, 0);
-		
 		f = fopen(tmpSavePath, "wb");
-		
-		saveMapBlockTreeLeaf(f, mi->root);
+		for(y = 0; y < 8; y++) {
+			for(x = 0; x < 8; x++) {
+				mi->blocks[x][y] = spawnMapBlock(mi, x, y);
+				saveMapBlock(f, mi->blocks[x][y]);
+			}
+		}
 	}
 	
 	fclose(f);
@@ -368,10 +379,10 @@ void initTerrain(MapInfo* mi) {
 
 
 MapBlock* findMapBlock(MapInfo* mi, int bix, int biy) {
-
+	printf("!!! NYI: findMapBlock()\n");
 }
 
-
+/*
 MapBlockTreeLeaf* allocMapBlockTreeLeaf(int minx, int miny) {
 	MapBlockTreeLeaf* p;
 	p = malloc(sizeof(MapBlockTreeLeaf));
@@ -395,7 +406,7 @@ MapBlockTreeLeaf* spawnMapBlockTreeLeaf(MapInfo* mi, int llbix, int llbiy) {
 	}
 	
 	return mbl;
-}
+}*/
 
 MapBlock* spawnMapBlock(MapInfo* mi, int bix, int biy) {
 	
@@ -421,40 +432,27 @@ MapBlock* allocMapBlock(int bix, int biy) {
 }
 
 
-MapBlockTreeLeaf* loadMapBlockTreeLeaf(FILE* f) {
-	int x, y, i;
-	int32_t llx, lly;
-	MapBlockTreeLeaf* mbl;
+MapBlock* loadMapBlock(FILE* f) {
+	int i;
+	int32_t bix, biy;
 	MapBlock* mb;
 	
-	fread(&llx, sizeof(int32_t), 1, f);
-	fread(&lly, sizeof(int32_t), 1, f);
+	fread(&bix, sizeof(int32_t), 1, f);
+	fread(&biy, sizeof(int32_t), 1, f);
 	
-	mbl = allocMapBlockTreeLeaf(llx, lly);
+	mb = allocMapBlock(bix, biy);
+	fread(mb->tb.zs, sizeof(float), TERR_TEX_SZ * TERR_TEX_SZ, f);
 	
-	for(y = 0; y < 8; y++) {
-		for(x = 0; x < 8; x++) {
-			mb = allocMapBlock(llx + x, lly + y);
-			fread(mb->tb.zs, sizeof(float), TERR_TEX_SZ * TERR_TEX_SZ, f);
-			mbl->c[x][y] = mb;
-		}
-	}
-	
-	return mbl;
+	return mb;
 }
 
-void saveMapBlockTreeLeaf(FILE* f, MapBlockTreeLeaf* mbl) {
+void saveMapBlock(FILE* f, MapBlock* mb) {
 	int x, y;
-	MapBlock* mb;
 	
-	fwrite(&mbl->minx, sizeof(int32_t), 1, f);
-	fwrite(&mbl->miny, sizeof(int32_t), 1, f);
+	fwrite(&mb->bix, sizeof(int32_t), 1, f);
+	fwrite(&mb->biy, sizeof(int32_t), 1, f);
 	
-	for(y = 0; y < 8; y++) {
-		for(x = 0; x < 8; x++) {
-			fwrite(mbl->c[x][y]->tb.zs, sizeof(float), TERR_TEX_SZ * TERR_TEX_SZ, f);
-		}
-	}
+	fwrite(mb->tb.zs, sizeof(float), TERR_TEX_SZ * TERR_TEX_SZ, f);
 }
 
 
@@ -539,6 +537,7 @@ void checkMapDirty(MapInfo* mi) { /*
 		mi->tb->dirty = 0;
 	}
 	*/
+	printf("!!! NYI: checkMapDirty()\n");
 }
 
 
@@ -662,7 +661,7 @@ printf("loading terrain data\n");
 				1,
 				GL_RED,  // format
 				GL_FLOAT, // input type
-				mi->root->c[x][y]->tb.zs);
+				mi->blocks[x][y]->tb.zs);
 		}
 	}
 glexit("");
@@ -851,7 +850,7 @@ void drawTerrainRoads(GLuint dtex, MapInfo* mi, Matrix* mView, Matrix* mProj, Ve
 
 void genMapRenderInfo(MapBlockRenderInfo* mbri, int buflen, ViewInfo* vi) {
 	
-	
+	printf("!! NYI: genMapRenderInfo()\n");
 }
 
 
@@ -883,7 +882,7 @@ void genDecalMesh(Quad* q, float zOffset) {
 	
 	// step 2: slice off any parts outside the quad
 	
-	
+	printf("!! NYI: genDecalMesh()\n");
 	
 	
 }
@@ -1058,6 +1057,7 @@ void setZone(MapInfo *mi, int x1, int y1, int x2, int y2, int zone) {
 	
 	mi->mb->dirtyZone = 1;
 	*/
+	printf("!!! broken dead code: setZone()\n");
 }
 
 
@@ -1069,8 +1069,13 @@ void getTerrainHeight(MapInfo* map, Vector2i* coords, int coordLen, float* heigh
 	float* hout = heightsOut;
 	
 	for(i = 0; i < coordLen; i++) {
+		int bix = coord->x / MAP_BLOCK_SZ;
+		int biy = coord->y / MAP_BLOCK_SZ;
 		
-		*hout = map->originMB->tb.zs[coord->x + (coord->y * TERR_TEX_SZ)];
+		int locx = coord->x % MAP_BLOCK_SZ;
+		int locy = coord->y % MAP_BLOCK_SZ;
+		
+		*hout = map->blocks[bix][biy]->tb.zs[locx + (locy * MAP_BLOCK_SZ)];
 		
 		coord++;
 		hout++;
@@ -1083,11 +1088,14 @@ void getTerrainHeight(MapInfo* map, Vector2i* coords, int coordLen, float* heigh
 
 // calculate a tile's center point in world coordinates
 void tileCenterWorld(MapInfo* map, int tx, int ty, Vector* out) {
+	//printf("!!! broken dead code: tileCenterWorld() \n");
 	
 	tx = iclamp(tx, 0, TERR_TEX_SZ);
 	ty = iclamp(ty, 0, TERR_TEX_SZ);
 	
-	float z = map->originMB->tb.zs[tx + (ty * TERR_TEX_SZ)];
+	
+	
+	float z = map->blocks[0][0]->tb.zs[tx + (ty * TERR_TEX_SZ)];
 	
 	out->x = tx;
 	out->y = ty;

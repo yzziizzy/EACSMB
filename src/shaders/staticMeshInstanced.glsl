@@ -41,8 +41,8 @@ mat4 rotationMatrix(vec3 axis, float angle) {
 void main() {
 	vec4 pos = v_pos_in;
 	pos *= rotationMatrix(i_dir_in, 3.14/2);
-	pos += vec4(i_pos_in, 0);
 	pos *= vec4(i_scale_in, 1);
+	pos += vec4(i_pos_in, 0);
 	
 	gl_Position = (mProj * mView * mModel) * (pos);// * i_scale_in;
 	vs_norm = v_norm_in; // normalize(vec4(1,1,1,0));

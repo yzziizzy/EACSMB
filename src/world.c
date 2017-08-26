@@ -19,19 +19,19 @@ void World_init(World* w) {
 	
 	StaticMeshInstance smi[] = {
 		{
-			{1,1,16},
+			{1,1,45.21},
 			{1, 0, 0},
-			{.05, .05, .05 },
+			{.005, .005, .005 },
 		},
 		{
-			{10,10,16},
+			{5,5,46.56},
 			{1, 0, 0},
-			{.05, .05, .05 },
+			{.005, .005, .005 },
 		},
 		{
-			{20,20,16},
+			{20,20,45},
 			{1, 0, 0},
-			{.05, .05, .05 },
+			{.01, .01, .01 },
 		},
 	};
 	
@@ -60,12 +60,12 @@ int World_spawnAt_StaticMesh(World* w, int smIndex, Vector* location) {
 	printf("map h at [%.1f, %.1f]: %.4f\n", location->x, location->y, h);
 	
 	// spawn instance
-	smi.pos.x = location->x / 8;
-	smi.pos.y = location->y / 8;
-	smi.pos.z = 16;//h;
+	smi.pos.x = location->x;
+	smi.pos.y = location->y;
+	smi.pos.z = h;
 	
 	smi.dir = (Vector){1, 0, 0};
-	smi.scale = (Vector){.05, .05, .05 };
+	smi.scale = (Vector){.005, .005, .005 };
 	
 	meshManager_addInstance(w->smm, smIndex, &smi);
 	meshManager_updateInstances(w->smm);
