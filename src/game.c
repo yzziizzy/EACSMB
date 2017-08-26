@@ -48,10 +48,6 @@ GUIText* gt, *gt_sel, *gt_emit;
 GUIText* gtRenderMode;
 GUIText* gtSelectionDisabled;
 
-//TextRes* arial, *arialsdf;
-//ShaderProgram* textProg;
-//Matrix textProj, textModel;
-//TextRenderInfo* strRI;
 
 Texture* cnoise;
 Emitter* dust;
@@ -202,7 +198,8 @@ void initGame(XStuff* xs, GameState* gs) {
 
 	
 	gs->world = calloc(1, sizeof(*gs->world));
-	World_init(gs->world); 
+	World_init(gs->world);
+	gs->world->gs = gs;
 	
 	
 	dust = makeEmitter();
@@ -344,6 +341,8 @@ void handleInput(GameState* gs, InputState* is) {
 	}
 	
 	if(is->clickButton == 1) {
+		World_spawnAt_StaticMesh(gs->world, 0, &gs->cursorPos);
+		
 		/*
 		flattenArea(gs->map.tb,
 			gs->cursorPos.x - 5,

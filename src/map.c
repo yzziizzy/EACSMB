@@ -1062,15 +1062,18 @@ void setZone(MapInfo *mi, int x1, int y1, int x2, int y2, int zone) {
 
 
 
+
 void getTerrainHeight(MapInfo* map, Vector2i* coords, int coordLen, float* heightsOut) {
 	int i;
-	
+	Vector2i* coord = coords;
+	float* hout = heightsOut;
 	
 	for(i = 0; i < coordLen; i++) {
 		
+		*hout = map->originMB->tb.zs[coord->x + (coord->y * TERR_TEX_SZ)];
 		
-		
-		
+		coord++;
+		hout++;
 	}
 	
 	

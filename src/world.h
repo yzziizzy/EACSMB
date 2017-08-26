@@ -2,6 +2,7 @@
 #define __EACSMB_world_h__
 
 
+#include "ds.h"
 #include "map.h"
 #include "staticMesh.h"
 
@@ -9,7 +10,8 @@
 struct GameState;
 
 
-// World is the entire world. Scene is the part you can see.
+// World is the entire world's contents. Scene is the part you can see.
+// eventually, probably, the graphics data will be moved into Scene
 
 // no drawing is handled by the World code. It is for managment and operations only.
 // drawing is too complicated and crosses too many lines to fit here.
@@ -32,6 +34,7 @@ typedef struct World {
 
 void World_drawSolid(World* w, Matrix* view, Matrix* proj);
 
+int World_spawnAt_StaticMesh(World* w, int smIndex, Vector* location);
 
 
 

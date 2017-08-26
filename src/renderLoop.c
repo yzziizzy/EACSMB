@@ -365,19 +365,17 @@ void selectionPass(XStuff* xs, GameState* gs, InputState* is) {
 
 void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
-	Vector2 c2;
-	
-	c2.x = 300; //cursorp.x;
-	c2.y = 300; //cursorp.z;
-	
+
 	
 	// draw terrain
 // 	drawTerrainBlock(&gs->map, msGetTop(&gs->model), msGetTop(&gs->view), msGetTop(&gs->proj), &gs->cursorPos);
-	drawTerrain(&gs->scene.map, &gs->perViewUB, &gs->cursorPos, &gs->screen.wh);
+	//drawTerrain(&gs->scene.map, &gs->perViewUB, &gs->cursorPos, &gs->screen.wh);
+	
+	World_drawTerrain(gs->world);
 	
 	renderMarker(gs, 0,0);
 
-	World_drawSolid(gs->world, msGetTop(&gs->view), msGetTop(&gs->proj));
+	World_drawSolids(gs->world, msGetTop(&gs->view), msGetTop(&gs->proj));
 
 /*
 	gui_RenderAll(gs);
