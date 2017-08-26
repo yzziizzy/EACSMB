@@ -1,0 +1,450 @@
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+
+#include "game.h"
+#include "scene.h"
+#include "shader.h"
+
+#include "c_json/json.h"
+#include "json_gl.h"
+
+
+GLuint fsQuadVAO, fsQuadVBO;
+ShaderProgram* shadingProg;
+
+
+
+
+
+void initFSQuad() {
+	float vertices[] = {
+		-1.0, -1.0, 0.0,
+		-1.0, 1.0, 0.0,
+		1.0, -1.0, 0.0,
+		1.0, 1.0, 0.0
+	};
+
+	glGenVertexArrays(1, &fsQuadVAO);
+	glBindVertexArray(fsQuadVAO);
+	
+	glGenBuffers(1, &fsQuadVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, fsQuadVBO);
+	
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 12, 0);
+
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+
+}
+
+void drawFSQuad() {
+	
+	glBindVertexArray(fsQuadVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, fsQuadVBO);
+	glexit("quad vbo");
+	
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glexit("quad draw");
+	
+}
+
+
+
+
+
+
+static void unpack_fbo(json_value_t* p, char* key, FBOTexConfig* cfg) {
+	char* a, *b, *c;
+	json_value_t* o, *v1, *v2, *v3;
+	
+	json_obj_get_key(p, key, &o);
+	
+	json_obj_get_key(o, "internalType", &v1); a = v1->v.str;
+	json_as_GLenum(v1, &cfg->internalType);
+	
+	json_obj_get_key(o, "format", &v2); b = v2->v.str;
+	json_as_GLenum(v2, &cfg->format);
+	
+	json_obj_get_key(o, "size", &v3); c = v3->v.str;
+	json_as_GLenum(v3, &cfg->size);
+	
+	printf("fbo cfg from json: %s: %x, %s: %x, %s: %x\n", a, cfg->internalType, b, cfg->format, c, cfg->size);
+}
+
+
+void setupFBOs(GameState* gs, int resized) {
+	int ww = gs->screen.wh.x;
+	int wh = gs->screen.wh.y;
+	
+	if(gs->fboTextures) {
+		destroyFBOTextures(gs->fboTextures);
+		free(gs->fboTextures);
+	}
+	
+	json_file_t* jsf = json_load_path("assets/config/fbo.json");
+	
+	json_value_t* tex;
+	json_obj_get_key(jsf->root, "textures", &tex);
+	
+	FBOTexConfig texcfg2[6];
+	unpack_fbo(tex, "diffuse", &texcfg2[0]);
+	unpack_fbo(tex, "normal", &texcfg2[1]);
+	unpack_fbo(tex, "selection", &texcfg2[2]);
+	unpack_fbo(tex, "lighting", &texcfg2[3]);
+	unpack_fbo(tex, "depth", &texcfg2[4]);
+	texcfg2[5].internalType = 0;
+	texcfg2[5].format = 0;
+	texcfg2[5].size = 0;
+	
+	/*
+	FBOTexConfig texcfg[6];
+	
+	json_obj_unpack_struct(tex, 
+		JSON_UNPACK(&texcfg[0], internalType, JSON_TYPE_STRING), 
+		JSON_UNPACK(&texcfg[0], internalType, JSON_TYPE_STRING), 
+		JSON_UNPACK(&texcfg[0], internalType, JSON_TYPE_STRING), 
+		JSON_UNPACK(&texcfg[0], internalType, JSON_TYPE_STRING)
+					 
+					 
+	);
+	*/
+	
+	// backing textures
+	FBOTexConfig texcfg[] = {
+		{GL_RGB, GL_RGB, GL_UNSIGNED_BYTE},
+		{GL_RGB, GL_RGB, GL_UNSIGNED_BYTE},
+		{GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE},
+		{GL_RGB16F, GL_RGB, GL_HALF_FLOAT},
+		{GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_FLOAT},
+		{0,0,0}
+	};
+
+	printf("\nfbo cfg from code: %x, %x, %x\n", GL_RGB, GL_RGB, GL_UNSIGNED_BYTE);
+	printf("fbo cfg from code: %x, %x, %x\n", GL_RGB, GL_RGB, GL_UNSIGNED_BYTE);
+	printf("fbo cfg from code: %x, %x, %x\n", GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
+	printf("fbo cfg from code: %x, %x, %x\n", GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
+	printf("fbo cfg from code: %x, %x, %x\n", GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_FLOAT);
+
+	
+	GLuint* texids = initFBOTextures(ww, wh, texcfg2);
+	
+	gs->diffuseTexBuffer = texids[0];
+	gs->normalTexBuffer = texids[1];
+	gs->selectionTexBuffer = texids[2];
+	gs->lightingTexBuffer = texids[3];
+	gs->depthTexBuffer = texids[4];
+	
+	printf("New Main Depth: %d \n", texids[3]);
+	
+	// main gbuffer setup
+	if(gs->gbuf.fb) { // evil abstraction breaking. meh.
+		destroyFBO(&gs->gbuf);
+	}
+	
+	FBOConfig gbufConf[] = {
+		{GL_COLOR_ATTACHMENT0, gs->diffuseTexBuffer },
+		{GL_COLOR_ATTACHMENT1, gs->normalTexBuffer },
+		{GL_COLOR_ATTACHMENT2, gs->lightingTexBuffer },
+		{GL_DEPTH_ATTACHMENT, gs->depthTexBuffer },
+		{0,0}
+	};
+	
+	initFBO(&gs->gbuf, gbufConf);
+	
+	// decal pass framebufer
+	FBOConfig decalConf[] = {
+		{GL_COLOR_ATTACHMENT0, gs->diffuseTexBuffer },
+		{GL_COLOR_ATTACHMENT1, gs->normalTexBuffer },
+		{GL_COLOR_ATTACHMENT2, gs->lightingTexBuffer },
+		{GL_DEPTH_ATTACHMENT,  gs->depthTexBuffer },
+		{0,0}
+	};
+	// depth buffer is also bound as a texture but disabled for writing
+	
+	initFBO(&gs->decalbuf, decalConf);
+	
+	// lighting pass framebufer
+	FBOConfig lightingConf[] = {
+		{GL_COLOR_ATTACHMENT0, gs->lightingTexBuffer },
+		{GL_DEPTH_ATTACHMENT,  gs->depthTexBuffer },
+		{0,0}
+	};
+	// depth buffer is also bound as a texture but disabled for writing
+	
+	initFBO(&gs->lightingbuf, lightingConf);
+	
+	// selection pass framebufer
+	FBOConfig selectionConf[] = {
+// 		{GL_COLOR_ATTACHMENT0, gs->diffuseTexBuffer },
+// 		{GL_COLOR_ATTACHMENT1, gs->normalTexBuffer },
+		{GL_COLOR_ATTACHMENT0, gs->selectionTexBuffer },
+		{GL_DEPTH_ATTACHMENT,  gs->depthTexBuffer },
+		{0,0}
+	};
+	// depth buffer is also bound as a texture but disabled for writing
+	
+	initFBO(&gs->selectionbuf, selectionConf);
+	
+	
+	// pbo's for selection buffer
+	gs->readPBO = -1;
+	gs->activePBO = 0;
+	
+	if(gs->selectionPBOs[0]) {
+		glDeleteBuffers(2, gs->selectionPBOs);
+		glexit("");
+	}
+	
+	glGenBuffers(2, gs->selectionPBOs);
+	glexit("");
+	
+	glBindBuffer(GL_PIXEL_PACK_BUFFER, gs->selectionPBOs[0]);
+	glexit("");
+	glBufferData(GL_PIXEL_PACK_BUFFER, ww * wh * 4, NULL, GL_DYNAMIC_READ);
+	glexit("");
+	glBindBuffer(GL_PIXEL_PACK_BUFFER, gs->selectionPBOs[1]);
+	glexit("");
+	glBufferData(GL_PIXEL_PACK_BUFFER, ww * wh * 4, NULL, GL_DYNAMIC_READ);
+	glexit("");
+	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+	
+	if(gs->selectionData) free(gs->selectionData);
+	printf("seldata size %d\n", ww * wh * 4);
+	gs->selectionData = malloc(ww * wh * 4);
+}
+
+
+
+
+void initRenderLoop(GameState* gs) {
+	
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	
+	setupFBOs(gs, 0);
+		
+	shadingProg = loadCombinedProgram("shading");
+	
+	glProgramUniform1i(shadingProg->id, glGetUniformLocation(shadingProg->id, "sDiffuse"), 0);
+	glProgramUniform1i(shadingProg->id, glGetUniformLocation(shadingProg->id, "sNormals"), 1);
+	glProgramUniform1i(shadingProg->id, glGetUniformLocation(shadingProg->id, "sDepth"), 2);
+	glProgramUniform1i(shadingProg->id, glGetUniformLocation(shadingProg->id, "sSelection"), 3);
+	glProgramUniform1i(shadingProg->id, glGetUniformLocation(shadingProg->id, "sLighting"), 4);
+	
+	glBindTexture(GL_TEXTURE_2D, 0);
+	
+	
+	initFSQuad();
+	
+	
+	
+}
+
+
+void shadingPass(GameState* gs) {
+	
+	Matrix world, projView, viewWorld;
+	
+	world = IDENT_MATRIX;
+	
+	glUseProgram(shadingProg->id);
+	glexit("shading prog");
+
+	glActiveTexture(GL_TEXTURE0 + 0);
+	glBindTexture(GL_TEXTURE_2D, gs->diffuseTexBuffer);
+	
+	glActiveTexture(GL_TEXTURE0 + 1);
+	glBindTexture(GL_TEXTURE_2D, gs->normalTexBuffer);
+
+	glActiveTexture(GL_TEXTURE0 + 2);
+	glBindTexture(GL_TEXTURE_2D, gs->depthTexBuffer);
+
+	glActiveTexture(GL_TEXTURE0 + 3);
+	glBindTexture(GL_TEXTURE_2D, gs->selectionTexBuffer);
+
+	
+	glUniform1i(glGetUniformLocation(shadingProg->id, "debugMode"), gs->debugMode);
+	glUniform2f(glGetUniformLocation(shadingProg->id, "clipPlanes"), gs->nearClipPlane, gs->farClipPlane);
+	
+	glexit("shading samplers");
+	
+//	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "world"), 1, GL_FALSE, world.m);
+	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "mViewProj"), 1, GL_FALSE, msGetTop(&gs->proj)->m);
+	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "mWorldView"), 1, GL_FALSE, msGetTop(&gs->view)->m);
+
+	mInverse(msGetTop(&gs->proj), &projView);
+	mInverse(msGetTop(&gs->view), &viewWorld);
+	
+	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "mProjView"), 1, GL_FALSE, projView.m);
+	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "mViewWorld"), 1, GL_FALSE, viewWorld.m);
+
+	glexit("shading world");
+
+	glUniform3fv(glGetUniformLocation(shadingProg->id, "sunNormal"), 1, (float*)&gs->sunNormal);
+	
+	if(gs->screen.resized) {
+		glUniform2fv(glGetUniformLocation(shadingProg->id, "resolution"), 1, (float*)&gs->screen.wh);
+	}
+	
+	drawFSQuad();
+	glexit("post quad draw");
+	
+	
+	gui_RenderAll(gs);
+	
+	
+}
+
+
+
+#define PF_START(x) gs->perfTimes.x = getCurrentTime()
+#define PF_STOP(x) gs->perfTimes.x = timeSince(gs->perfTimes.x)
+
+void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
+	gs->frameCount++;
+	
+	checkResize(xs,gs);
+	
+		PF_START(preframe);
+	preFrame(gs);
+		PF_STOP(preframe);
+	
+	handleInput(gs, is);
+	
+	//setUpView(gs);
+	updateView(xs, gs, is);
+	
+	
+	if(gs->hasMoved && gs->lastSelectionFrame < gs->frameCount - 8 && !gs->selectionPassDisabled) {
+		printf("doing selection pass %d\n", gs->frameCount);
+		gs->hasMoved = 0;
+		gs->lastSelectionFrame = gs->frameCount; 
+		
+		// really just the selection pass
+			PF_START(selection);
+		glDepthFunc(GL_LESS);
+		//glDisable(GL_DEPTH_TEST);
+		
+		glBindFramebuffer(GL_FRAMEBUFFER, gs->selectionbuf.fb);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		
+		depthPrepass(xs, gs, is);
+		
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, gs->selectionbuf.fb);
+		
+		//glEnable(GL_DEPTH_TEST);
+		glReadBuffer(GL_COLOR_ATTACHMENT0);
+		
+		printf("is buffer %d\n", gs->selectionPBOs[gs->activePBO]);
+		glBindBuffer(GL_PIXEL_PACK_BUFFER, gs->selectionPBOs[gs->activePBO]);
+		
+		glexit("selection buff");
+		//printf("cursor pixels: %f, %f\n", is->cursorPosPixels.x, is->cursorPosPixels.y);
+		
+		glReadPixels(
+			0, //is->cursorPosPixels.x,
+			0, //is->cursorPosPixels.y,
+			gs->screen.wh.x,
+			gs->screen.wh.y,
+			GL_RGBA,
+			GL_UNSIGNED_BYTE,
+			0);
+		
+		glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+
+		glexit("read selection");
+		glexit("");
+		
+		if(gs->selectionFence) glDeleteSync(gs->selectionFence);
+		gs->selectionFence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+		
+		gs->selectionFrame = gs->frameCount;
+
+		
+		
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			PF_STOP(selection);
+			
+	}
+	
+	
+	checkCursor(gs, is);
+	// update world state
+// 	glBeginQuery(GL_TIME_ELAPSED, gs->queries.dtime[gs->queries.dtimenum]);
+	query_queue_start(&gs->queries.draw);
+
+	
+	glBindFramebuffer(GL_FRAMEBUFFER, gs->gbuf.fb);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	
+		
+		PF_START(draw);
+		//static int fnum = 0;
+		//printf("frame %d\n", fnum++);
+		
+		glexit("");
+	
+	// clear color buffer for actual rendering
+	//glClear(GL_COLOR_BUFFER_BIT);
+	glerr("pre shader create 1d");
+	glDepthFunc(GL_LEQUAL);
+	glerr("pre shader create e");
+	
+	renderFrame(xs, gs, is);
+	
+		
+		PF_STOP(draw);
+		PF_START(decal);
+
+	// decals
+	glBindFramebuffer(GL_FRAMEBUFFER, gs->decalbuf.fb);
+	
+	glDepthMask(GL_FALSE); // disable depth writes for decals
+	
+	renderDecals(xs, gs, is);
+	
+	renderParticles(xs, gs, is); // particles are alpha blended and need to be on top of decals
+	
+	glDepthMask(GL_TRUE);
+		
+		PF_STOP(decal);
+	
+	
+	cleanUpView(xs, gs, is);
+	
+	// draw to the screen
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	
+	
+	shadingPass(gs);
+	
+	//renderUI(xs, gs);
+	
+	gs->screen.resized = 0;
+
+	postFrame(gs);
+	//glEndQuery(GL_TIME_ELAPSED);
+	
+	
+	query_queue_stop(&gs->queries.draw);
+	
+	
+	glXSwapBuffers(xs->display, xs->clientWin);
+
+	
+	
+}
+
+
+

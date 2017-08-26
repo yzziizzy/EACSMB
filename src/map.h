@@ -148,7 +148,7 @@ typedef struct MapLayer {
 		MapLayer_Terrain terrain;
 		MapLayer_Roads roads;
 		MapLayer_Zones zones;
-	}
+	};
 } MapLayer;
 
 

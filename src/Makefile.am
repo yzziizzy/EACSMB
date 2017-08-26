@@ -16,10 +16,12 @@ eacsmb_SOURCES = main.c \
 	window.c \
 	shader.c \
 	game.c \
+	renderLoop.c \
 	gui.c \
 	ds.c \
 	cursor.c \
 	scene.c \
+	world.c \
 	emitter.c \
 	terrain.c \
 	map.c \

@@ -20,6 +20,7 @@
 
 
 
+
 static void render_DrawArraysInstanced(RC_DrawArraysInstanced* cb) {
 	
 	glBindVertexArray(rc->vao);
@@ -120,6 +121,11 @@ RenderCommand* render_GetCommandSlot(RenderCommandQueue* rcq) {
 	if(rcq->next_index >= rcq->alloc_len) return NULL; 
 	return &rcq->cmds[rcq->next_index++];
 }
+
+
+
+
+
 
 
 

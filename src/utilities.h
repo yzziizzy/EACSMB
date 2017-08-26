@@ -100,12 +100,21 @@ void* ar_alloc_internal(void* ar, int sz, int cnt);
 
 
 
+// cpu clock stuff
+double getCurrentTime();
+double timeSince(double past);
 
 
+// gpu timer queries
+typedef struct QueryQueue {
+	GLuint qids[6];
+	int head, used;
+} QueryQueue;
 
-
-
-
+void query_queue_init(QueryQueue* q);
+void query_queue_start(QueryQueue* q);
+void query_queue_stop(QueryQueue* q);
+int query_queue_try_result(QueryQueue* q, uint64_t* time);
 
 
 char* readFile(char* path, int* srcLen);

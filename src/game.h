@@ -2,12 +2,16 @@
 #ifndef __EACSMB_GAME_H__
 #define __EACSMB_GAME_H__
 
+#include "common_math.h"
+#include "common_gl.h"
+
 #include "config.h" // UserConfig
 #include "uniformBuffer.h"
 #include "fbo.h"
 #include "scene.h"
+#include "window.h"
 
-
+struct World;
 
 typedef struct GameScreen {
 	
@@ -31,10 +35,7 @@ typedef struct GameSettings {
 	
 } GameSettings;
 
-typedef struct QueryQueue {
-	GLuint qids[6];
-	int head, used;
-} QueryQueue;
+
 
 
 typedef struct PerViewUniforms {
@@ -76,6 +77,7 @@ typedef struct GameState {
 	char readPBO, activePBO;
 	
 	Scene scene;
+	struct World* world;
 	
 	UniformBuffer perViewUB;
 	UniformBuffer perFrameUB;
@@ -160,6 +162,7 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is);
 
 void setGameSettings(GameSettings* g, UserConfig* u);
 
+void initRenderLoop(GameState* gs);
 
 
 #endif // __EACSMB_GAME_H__
