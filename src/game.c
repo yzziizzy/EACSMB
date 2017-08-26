@@ -641,65 +641,6 @@ void updateView(XStuff* xs, GameState* gs, InputState* is) {
 }
 
 
-void cleanUpView(XStuff* xs, GameState* gs, InputState* is) {
-	msPop(&gs->view);
-	msPop(&gs->proj);
-	
-	uniformBuffer_finish(&gs->perFrameUB);
-	uniformBuffer_finish(&gs->perViewUB);
-}
-
-void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
-	
-	//mModel = IDENT_MATRIX;
-	
-	Vector2 c2;
-	
-	c2.x = 300; //cursorp.x;
-	c2.y = 300; //cursorp.z;
-	
-	//updateView(xs, gs, is);
-	
-	// draw terrain
-// 	drawTerrainBlock(&gs->map, msGetTop(&gs->model), msGetTop(&gs->view), msGetTop(&gs->proj), &gs->cursorPos);
-	drawTerrain(&gs->scene.map, &gs->perViewUB, &gs->cursorPos, &gs->screen.wh);
-	
-	renderMarker(gs, 0,0);
-
-	//drawStaticMesh(testmesh, msGetTop(&gs->view), msGetTop(&gs->proj));
-	meshManager_draw(meshman, msGetTop(&gs->view), msGetTop(&gs->proj));
-
-
-/*
-	gui_RenderAll(gs);
-	*/
-
-}
-
-
-void renderDecals(XStuff* xs, GameState* gs, InputState* is) {
-	/*
-	glActiveTexture(GL_TEXTURE0 + 8);
-	glexit("shading tex 5");
-	glBindTexture(GL_TEXTURE_2D, gs->depthTexBuffer);
-	glUniform1i(glGetUniformLocation(shadingProg->id, "sDepth"), 8);
-	
-	*/
-	
-	drawTerrainRoads(gs->depthTexBuffer, &gs->scene.map, msGetTop(&gs->view), msGetTop(&gs->proj), &gs->cursorPos, &gs->screen.wh);
-	
-	glexit("render decals");
-}
-
-
-void renderParticles(XStuff* xs, GameState* gs, InputState* is) {
-	
-	
-	Draw_Emitter(dust, msGetTop(&gs->view), msGetTop(&gs->proj), gs->frameTime);
-	
-	glexit("render particles");
-}
-
 
 
 
@@ -781,8 +722,30 @@ void checkResize(XStuff* xs, GameState* gs) {
 
 
 
+#define PF_START(x) gs->perfTimes.x = getCurrentTime()
+#define PF_STOP(x) gs->perfTimes.x = timeSince(gs->perfTimes.x)
 
+void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
+	gs->frameCount++;
+	
+	checkResize(xs,gs);
+	
+		PF_START(preframe);
+	preFrame(gs);
+		PF_STOP(preframe);
+	
+	handleInput(gs, is);
+	
+	//setUpView(gs);
+	updateView(xs, gs, is);
+	
+	checkCursor(gs, is);
+	
+	
+	drawFrame(xs, gs, is);
+	
+	
+	gs->screen.resized = 0;
 
-
-
-
+	postFrame(gs);
+}
