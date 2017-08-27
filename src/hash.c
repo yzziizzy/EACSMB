@@ -18,13 +18,24 @@ static size_t find_bucket(HashTable* obj, uint64_t hash, char* key);
  
 HashTable* HT_create(int allocPOT) {
 	
-	int pot, allocSz;
 	HashTable* obj;
-	
-	pot = allocPOT < 4 ? 4 : allocPOT;
 	
 	obj = malloc(sizeof(*obj));
 	if(!obj) return NULL;
+	
+	if(HT_init(obj, allocPOT)) {
+		free(obj);
+		return NULL;
+	}
+	
+	return obj;
+}
+
+
+int HT_init(HashTable* obj, int allocPOT) {
+	int pot, allocSz;
+	
+	pot = allocPOT < 4 ? 4 : allocPOT;
 	
 	obj->fill = 0;
 	obj->alloc_size = 1 << pot;
@@ -32,12 +43,12 @@ HashTable* HT_create(int allocPOT) {
 	obj->shrink_ratio = 99.0f; // set greater than 1.0 to entirely disable
 	obj->buckets = calloc(1, sizeof(*obj->buckets) * obj->alloc_size);
 	if(!obj->buckets) {
-		free(obj);
-		return NULL;
+		return 1;
 	}
 	
-	return obj;
+	return 0;
 }
+
 
 void HT_destroy(HashTable* obj, int free_values_too) {
 	int i, n;

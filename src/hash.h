@@ -24,6 +24,7 @@ typedef struct hash_table {
 // NOTE: if you pass in garbage pointers you deserve the segfault
 
 HashTable* HT_create(int allocPOT);
+int HT_init(HashTable* obj, int allocPOT);
 void HT_destroy(HashTable* obj, int free_values_too);
 int HT_resize(HashTable* obj, int newSize);
 int HT_get(HashTable* obj, char* key, void** val);

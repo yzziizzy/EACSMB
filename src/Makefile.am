@@ -22,6 +22,7 @@ eacsmb_SOURCES = main.c \
 	cursor.c \
 	scene.c \
 	world.c \
+	itemLoader.c \
 	emitter.c \
 	terrain.c \
 	map.c \

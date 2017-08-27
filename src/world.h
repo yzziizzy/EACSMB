@@ -11,6 +11,24 @@
 
 struct GameState;
 
+enum {
+	ITEM_TYPE_UNKNOWN = 0,
+	ITEM_TYPE_STATICMESH,
+	ITEM_TYPE_EMITTER
+};
+
+
+typedef struct {
+	int type;
+	int index;
+	Vector offset;
+} ItemPart;
+
+typedef struct {
+	char* name;
+	int numParts;
+	ItemPart* parts;
+} Item;
 
 // World is the entire world's contents. Scene is the part you can see.
 // eventually, probably, the graphics data will be moved into Scene
@@ -26,6 +44,9 @@ typedef struct World {
 	RoadBlock* roads;
 	
 	MapInfo map;
+	
+	VEC(Item*) items;
+	HashTable(int) itemLookup;
 	
 } World;
 
@@ -44,6 +65,7 @@ int World_spawnAt_StaticMesh(World* w, int smIndex, Vector* location);
 void World_spawnAt_Road(World* w, Vector2* start,  Vector2* stop);
 
 
+void loadItemConfig(World* w, char* path);
 
 
 

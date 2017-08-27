@@ -5,6 +5,7 @@
 
 #include "utilities.h"
 
+
 #include "game.h"
 #include "world.h"
 #include "scene.h"
@@ -14,9 +15,16 @@
 
 void World_init(World* w) {
 	
+
+	HT_init(&w->itemLookup, 4);
+	
 	initMap(&w->map);
 	w->smm = meshManager_alloc();
 	meshManager_readConfigFile(w->smm, "assets/config/models.json");
+	
+	w->emitters = makeEmitter();
+	
+	loadItemConfig(w, "assets/config/items.json");
 	
 	meshManager_updateGeometry(w->smm);
 	
@@ -47,7 +55,7 @@ void World_init(World* w) {
 	
 	
 	// HACK: emitters 
-	w->emitters = makeEmitter();
+
 
 	
 		
@@ -145,14 +153,6 @@ void World_drawSolids(World* w, Matrix* view, Matrix* proj) {
 void World_drawDecals(World* w, Matrix* view, Matrix* proj) {
 	drawRoad(w->roads, w->gs->depthTexBuffer, view, proj);
 }
-
-
-
-
-
-
-
-
 
 
 

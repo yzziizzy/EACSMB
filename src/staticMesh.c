@@ -154,6 +154,8 @@ MeshManager* meshManager_alloc() {
 	mm = calloc(1, sizeof(MeshManager));
 
 	VEC_INIT(&mm->meshes);
+	HT_init(&mm->lookup, 6);
+	HT_init(&mm->textureLookup, 6);
 //	VEC_INIT(&mm->instances);
 	
 //	glBindVertexArray(vao);
@@ -161,7 +163,7 @@ MeshManager* meshManager_alloc() {
 	
 	//local vbo for collected mesh geometry
 	//glGenBuffers(2, mm->instVBO);
-
+	return mm;
 }
 
 void meshManager_readConfigFile(MeshManager* mm, char* configPath) {
@@ -203,7 +205,7 @@ void meshManager_readConfigFile(MeshManager* mm, char* configPath) {
 			sm->texIndex = meshManager_addTexture(mm, path);
 		}
 		
-		meshManager_addMesh(mm, sm);
+		meshManager_addMesh(mm, sm->name, sm);
 		
 	}
 	
@@ -246,14 +248,29 @@ int meshManager_addInstance(MeshManager* mm, int meshIndex, const StaticMeshInst
 	return VEC_LEN(&msh->instances);
 }
 
+// returns the index of the instance
+int meshManager_lookupName(MeshManager* mm, char* name) {
+	
+	int index;
+	
+	if(!HT_get(&mm->lookup, name, &index)) {
+		return index;
+	}
+	
+	return -1;
+}
+
 // returns the index if the mesh
-int meshManager_addMesh(MeshManager* mm, StaticMesh* sm) {
+int meshManager_addMesh(MeshManager* mm, char* name, StaticMesh* sm) {
+	int index;
 	
 	VEC_PUSH(&mm->meshes, sm);
 	mm->totalVertices += sm->vertexCnt;
+	index = VEC_LEN(&mm->meshes);
 	
+	HT_set(&mm->lookup, name, index);
 	
-	return VEC_LEN(&mm->meshes);
+	return index;
 }
 
 
