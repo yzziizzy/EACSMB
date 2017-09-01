@@ -30,6 +30,21 @@ typedef struct {
 	ItemPart* parts;
 } Item;
 
+
+
+typedef struct {
+	ItemPart* part;
+	int parentItemInst;
+} PartInstance;
+
+typedef struct {
+	Item* item;
+	Vector pos;
+	PartInstance parts[];
+} ItemInstance;
+
+
+
 // World is the entire world's contents. Scene is the part you can see.
 // eventually, probably, the graphics data will be moved into Scene
 
@@ -47,6 +62,9 @@ typedef struct World {
 	
 	VEC(Item*) items;
 	HashTable(int) itemLookup;
+	
+	VEC(ItemInstance*) itemInstances;
+	VEC(PartInstance*) partInstances;
 	
 } World;
 

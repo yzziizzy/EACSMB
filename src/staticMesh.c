@@ -215,7 +215,7 @@ void meshManager_readConfigFile(MeshManager* mm, char* configPath) {
 
 int meshManager_addTexture(MeshManager* mm, char* path) {
 	Texture* tex;
-	int index;
+	int64_t index;
 	
 	// TODO: use lookup first
 	
@@ -251,7 +251,7 @@ int meshManager_addInstance(MeshManager* mm, int meshIndex, const StaticMeshInst
 // returns the index of the instance
 int meshManager_lookupName(MeshManager* mm, char* name) {
 	
-	int index;
+	int64_t index;
 	
 	if(!HT_get(&mm->lookup, name, &index)) {
 		return index;
@@ -268,7 +268,7 @@ int meshManager_addMesh(MeshManager* mm, char* name, StaticMesh* sm) {
 	mm->totalVertices += sm->vertexCnt;
 	index = VEC_LEN(&mm->meshes);
 	
-	HT_set(&mm->lookup, name, index);
+	HT_set(&mm->lookup, name, index -1);
 	
 	return index;
 }

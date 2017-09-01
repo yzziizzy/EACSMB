@@ -329,8 +329,9 @@ void handleInput(GameState* gs, InputState* is) {
 	}
 	
 	if(is->clickButton == 1) {
-		World_spawnAt_StaticMesh(gs->world, 0, &gs->cursorPos);
+		//World_spawnAt_StaticMesh(gs->world, 0, &gs->cursorPos);
 		
+		World_spawnAt_Item(gs->world, "gazebbq", &gs->cursorPos);
 		/*
 		flattenArea(gs->map.tb,
 			gs->cursorPos.x - 5,

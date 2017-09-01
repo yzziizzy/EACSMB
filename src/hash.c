@@ -1,6 +1,7 @@
  
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <stdint.h>
 
@@ -24,6 +25,7 @@ HashTable* HT_create(int allocPOT) {
 	if(!obj) return NULL;
 	
 	if(HT_init(obj, allocPOT)) {
+		fprintf(stderr, "Failed to initialized hash table\n");
 		free(obj);
 		return NULL;
 	}

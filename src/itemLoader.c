@@ -35,6 +35,7 @@ ItemPart* findPart(World* w, char* typeName, char* name, ItemPart* part) {
 		case ITEM_TYPE_EMITTER:
 			printf("!!! NYI: lookup of emitter instance for ItemParts\n");
 			//part->index = meshManager_lookupName(w->smm, name);
+			part->index = 0;
 			break;
 			
 		default:
@@ -70,11 +71,12 @@ void loadItemConfig(World* w, char* path) {
 		json_array_node_t* j_part_node;
 		
 		item = calloc(1, sizeof(*item));
-		item->name = itemName;
+		item->name = strdup(itemName);
 		
 		json_obj_get_key(j_item, "parts", &j_parts);
 		
 		len = json_array_length(j_parts);
+		item->numParts = len;
 		item->parts = calloc(1, len * sizeof(*item->parts));
 		
 		// collect up all the parts
@@ -103,7 +105,10 @@ void loadItemConfig(World* w, char* path) {
 		
 		// add item to the list
 		VEC_PUSH(&w->items, item);
-		HT_set(&w->itemLookup, itemName, VEC_LEN(&w->items));
+		if(!HT_set(&w->itemLookup, item->name, VEC_LEN(&w->items) - 1)) {
+			printf(stderr, "failed to register item '%s'\n", item->name);
+		}
+		
 	}
 	
 }
