@@ -22,8 +22,11 @@
 
 
 static GLuint vao;
+static GLuint vaoSingle;
 static GLuint color_ul, model_ul, view_ul, proj_ul;
+static GLuint single_color_ul, single_model_ul, single_view_ul, single_proj_ul;
 static ShaderProgram* prog;
+static ShaderProgram* progSingle;
 Texture* tex;
 
 
@@ -45,17 +48,34 @@ void initStaticMeshes() {
 	};
 	
 	vao = makeVAO(opts);
+	
+	VAOConfig opts_single[] = {
+		// per vertex
+		{3, GL_FLOAT}, // position
+		{3, GL_FLOAT}, // normal
+		{2, GL_UNSIGNED_SHORT}, // tex
+		
+		{0, 0}
+	};
+	
+	vaoSingle = makeVAO(opts_single);
 
 	glexit("static mesh vao");
 	
 	// shader
 //  	prog = loadCombinedProgram("staticMesh");
+	progSingle = loadCombinedProgram("staticMesh");
 	prog = loadCombinedProgram("staticMeshInstanced");
 	
 	model_ul = glGetUniformLocation(prog->id, "mModel");
 	view_ul = glGetUniformLocation(prog->id, "mView");
 	proj_ul = glGetUniformLocation(prog->id, "mProj");
 	color_ul = glGetUniformLocation(prog->id, "color");
+	
+	single_model_ul = glGetUniformLocation(progSingle->id, "mModel");
+	single_view_ul = glGetUniformLocation(progSingle->id, "mView");
+	single_proj_ul = glGetUniformLocation(progSingle->id, "mProj");
+	single_color_ul = glGetUniformLocation(progSingle->id, "color");
 	
 	glexit("static mesh shader");
 	
@@ -77,23 +97,62 @@ void drawStaticMesh(StaticMesh* m, Matrix* view, Matrix* proj) {
 //	mScale3f(150, 150, 150, &model);
 	//mTrans3f(0,0,0, &model);
 	
-	glUseProgram(prog->id);
+	glUseProgram(progSingle->id);
 
-	glUniformMatrix4fv(model_ul, 1, GL_FALSE, &model.m);
-	glUniformMatrix4fv(view_ul, 1, GL_FALSE, &view->m);
-	glUniformMatrix4fv(proj_ul, 1, GL_FALSE, &proj->m);
-	glUniform3f(color_ul, .5, .2, .9);
+	glUniformMatrix4fv(single_model_ul, 1, GL_FALSE, &model.m);
+	glUniformMatrix4fv(single_view_ul, 1, GL_FALSE, &view->m);
+	glUniformMatrix4fv(single_proj_ul, 1, GL_FALSE, &proj->m);
+	glUniform3f(single_color_ul, .5, .2, .9);
 	
-	glBindVertexArray(vao);
+	glBindVertexArray(vaoSingle);
 	glBindBuffer(GL_ARRAY_BUFFER, m->vbo);
 	glexit("mesh vbo");
 	
-
+	if(m->indexWidth == 0) {
 	
-	glDrawArrays(GL_TRIANGLES, 0, m->vertexCnt);
-	glexit("mesh draw");
+		glDrawArrays(GL_TRIANGLES, 0, m->vertexCnt);
+		glexit("mesh draw");
+		
+	}
+	else { // indexed rendering
+		
+		glDrawElements(GL_TRIANGLES, m->indexCnt, GL_UNSIGNED_SHORT, m->indices.w16);
+		glexit("");
+		
+	}
+}
+
+
+void StaticMesh_updateBuffers(StaticMesh* sm) {
+	
+	glexit("before static mesh vbo load");
+	glBindVertexArray(vaoSingle);
+	
+	glGenBuffers(1, &sm->vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, sm->vbo);
+	
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 2*3*4 + 4, 0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 2*3*4 + 4, 12);
+	glVertexAttribPointer(2, 2, GL_UNSIGNED_SHORT, GL_TRUE, 2*3*4 + 4, 24);
+
+	glBufferData(GL_ARRAY_BUFFER, sm->vertexCnt * sizeof(StaticMeshVertex), sm->vertices, GL_STATIC_DRAW);
+	glexit("");
+	
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+	glexit("static mesh vbo load");
+	
+	if(sm->indexWidth > 0) {
+		
+		// TODO IBO's
+	}
 	
 }
+
+
 
 StaticMesh* StaticMeshFromOBJ(OBJContents* obj) {
 	

@@ -15,6 +15,7 @@ eacsmb_SOURCES = main.c \
 	road.c \
 	window.c \
 	shader.c \
+	pipe.c \
 	game.c \
 	renderLoop.c \
 	gui.c \

@@ -74,7 +74,7 @@ void main() {
 		vec3 viewpos = (inverse(mViewProj * mWorldView) * vec4(0,0,0,1)).xyz;
 		
 		vec3 viewdir = normalize(viewpos - pos);
-		vec3 sundir = normalize(vec3(3,3,20));
+		vec3 sundir = normalize(vec3(3,3,3));
 		
 		float lambertian = max(dot(sundir, normal), 0.0);
 		

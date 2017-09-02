@@ -5,6 +5,7 @@
 #include "ds.h"
 #include "map.h"
 #include "road.h"
+#include "pipe.h"
 #include "emitter.h"
 #include "staticMesh.h"
 
@@ -65,6 +66,10 @@ typedef struct World {
 	
 	VEC(ItemInstance*) itemInstances;
 	VEC(PartInstance*) partInstances;
+	
+	
+	PipeSegment testmesh;
+	
 	
 } World;
 

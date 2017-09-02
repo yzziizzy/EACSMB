@@ -30,11 +30,22 @@ typedef struct StaticMeshInstance {
 typedef struct StaticMesh {
 	char* name;
 	
+	GLuint polyMode; // only GL_TRIANGLES supported, for now
+	
 	// always GL_TRIANGLES
 	StaticMeshVertex* vertices;
 	int vertexCnt;
 	
+	union {
+		uint8_t* w8;
+		uint16_t* w16;
+		uint32_t* w32;
+	} indices;
+	int indexCnt;
+	int indexWidth; // 0 = no index usage
+	
 	GLuint vbo;
+	GLuint ibo;
 	GLuint texID;
 	
 	int texIndex; // index to meshman texture table
@@ -58,6 +69,7 @@ typedef struct MeshManager {
 	// need a sync object
 	GLuint instVBO;
 	GLuint geomVBO;
+	GLuint geomIBO;
 	
 	VEC(Texture*) textures;
 	HashTable(int) textureLookup;
@@ -69,6 +81,7 @@ void initStaticMeshes();
 StaticMesh* StaticMeshFromOBJ(OBJContents* obj);
 
 void drawStaticMesh(StaticMesh* m, Matrix* view, Matrix* proj);
+void StaticMesh_updateBuffers(StaticMesh* sm);
 
 MeshManager* meshManager_alloc();
 void meshManager_draw(MeshManager* mm, Matrix* view, Matrix* proj);

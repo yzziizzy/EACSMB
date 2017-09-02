@@ -2,6 +2,9 @@
 #ifndef __EACSMB_UTILITIES_H__
 #define __EACSMB_UTILITIES_H__
 
+#include <stdio.h> // fprintf
+#include <stdlib.h> // exit
+
 #define USE_KHR_DEBUG
 #define NO_GL_GET_ERR_DEBUG
 

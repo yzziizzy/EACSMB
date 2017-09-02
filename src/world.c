@@ -51,10 +51,10 @@ void World_init(World* w) {
 		},
 	};
 	
-	meshManager_addInstance(w->smm, 0, &smi[0]);
+//	meshManager_addInstance(w->smm, 0, &smi[0]);
 //	meshManager_addInstance(w->smm, 0, &smi[1]);
 //	meshManager_addInstance(w->smm, 0, &smi[2]);
-	meshManager_updateInstances(w->smm);
+//	meshManager_updateInstances(w->smm);
 	
 	
 	
@@ -77,6 +77,10 @@ void World_init(World* w) {
 	rbAddRoad(w->roads, &rcp, &id);
 	
 	roadblock_update_vbo(w->roads);
+	
+	
+	Pipe_init(&w->testmesh);
+	
 }
 
 
