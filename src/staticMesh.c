@@ -40,9 +40,9 @@ void initStaticMeshes() {
 		{2, GL_UNSIGNED_SHORT}, // tex
 		
 		// per instance 
-		{3, GL_FLOAT}, // position
-		{3, GL_FLOAT}, // direction
-		{3, GL_FLOAT}, // scale
+		{4, GL_FLOAT}, // position, scale
+		{4, GL_FLOAT}, // direction, rotation
+		{4, GL_FLOAT}, // alpha, x, x, x
 		
 		{0, 0}
 	};
@@ -409,9 +409,9 @@ void meshManager_updateInstances(MeshManager* mm) {
 	glEnableVertexAttribArray(3);
 	glEnableVertexAttribArray(4);
 	glEnableVertexAttribArray(5);
-	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 3*3*4, 0);
-	glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 3*3*4, 1*3*4);
-	glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, 3*3*4, 2*3*4);
+	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 3*4*4, 0);
+	glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 3*4*4, 1*4*4);
+	glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 3*4*4, 2*4*4);
 	
 	glVertexAttribDivisor(3, 1);
 	glVertexAttribDivisor(4, 1);

@@ -35,20 +35,10 @@ void World_init(World* w) {
 	
 	StaticMeshInstance smi[] = {
 		{
-			{1,1,4},
-			{1, 0, 0},
-			{2.5, 2.5, 2.5 },
-		},
-		{
-			{5,5,4},
-			{1, 0, 0},
-			{2.05, 2.05, 2.05 },
-		},
-		{
-			{20,20,45},
-			{1, 0, 0},
-			{2.01, .01, 2.01 },
-		},
+			{1,1,4}, 2.5,
+			{1, 0, 0}, 0.0,
+			.9, 0,0,0
+		}
 	};
 	
 //	meshManager_addInstance(w->smm, 0, &smi[0]);
@@ -171,8 +161,12 @@ int World_spawnAt_StaticMesh(World* w, int smIndex, Vector* location) {
 	smi.pos.y = location->y;
 	smi.pos.z = h + .5; // HACK +.5z for gazebo origin offset
 	
+	smi.scale = 1;
+	
 	smi.dir = (Vector){1, 0, 0};
-	smi.scale = (Vector){1,1,1 };
+	smi.rot = F_PI / 2.0;
+	
+	smi.alpha = 1.0;
 	
 	meshManager_addInstance(w->smm, smIndex, &smi);
 	meshManager_updateInstances(w->smm);

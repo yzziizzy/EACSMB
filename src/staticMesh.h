@@ -19,8 +19,12 @@ typedef struct StaticMeshVertex {
 
 typedef struct StaticMeshInstance {
 	Vector pos;
+	float scale;
+	
 	Vector dir;
-	Vector scale;
+	float rot;
+	
+	float alpha, x1, x2, x3;
 	// alpha, glow, blink
 } StaticMeshInstance;
 

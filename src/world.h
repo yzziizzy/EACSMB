@@ -46,6 +46,24 @@ typedef struct {
 
 
 
+struct OrientData {
+	Vector pos;
+	float scale;
+	
+	Vector dir;
+	float rot;
+	
+	float alpha;
+};
+
+struct ItemFlags {
+	unsigned char shouldDelete : 1; 
+	unsigned char wasDeleted : 1; 
+	
+};
+
+
+
 // World is the entire world's contents. Scene is the part you can see.
 // eventually, probably, the graphics data will be moved into Scene
 
@@ -67,6 +85,9 @@ typedef struct World {
 	VEC(ItemInstance*) itemInstances;
 	VEC(PartInstance*) partInstances;
 	
+	VEC(struct OrientData) orients;
+	
+	VEC(struct ItemFlags) flags;
 	
 	PipeSegment testmesh;
 	
