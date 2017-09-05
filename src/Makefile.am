@@ -9,6 +9,7 @@ eacsmb_SOURCES = main.c \
 	config.c \
 	dumpImage.c \
 	objloader.c \
+	meshBuilder.c \
 	staticMesh.c \
 	uniformBuffer.c \
 	fbo.c \

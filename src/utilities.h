@@ -5,6 +5,8 @@
 #include <stdio.h> // fprintf
 #include <stdlib.h> // exit
 
+#include "common_gl.h"
+
 #define USE_KHR_DEBUG
 #define NO_GL_GET_ERR_DEBUG
 

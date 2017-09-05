@@ -1,0 +1,20 @@
+{
+	op: "compose",
+	children: [
+		{
+			op: "cylinder",
+			radius: 15.2,
+			length: 20,
+		},
+		{
+			op: "cylinder",
+			radius: 4.2,
+			length: 100,
+		},
+		{
+			op: "cylinder",
+			radius: 3.2,
+			length: 150,
+		}
+	]
+}
