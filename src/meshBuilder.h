@@ -72,6 +72,7 @@ typedef struct {
 
 
 union MB_operation {
+	enum MB_op_type type;
 	MB_compose_params compose;
 	MB_transform_params transform;
 	MB_cylinder_params cylinder;

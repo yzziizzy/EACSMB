@@ -16,7 +16,10 @@
 
 
 
-
+static MeshData* compose(MB_compose_params* params);
+static MeshData* process_op(MB_operation* op);
+static void append_mesh(MeshData* in, MeshData* out);
+static void createCylinder(MB_cylinder_params* params, MeshData* md);
 
 
 static MeshData* mdcreate() {
@@ -53,19 +56,42 @@ static void append_mesh(MeshData* in, MeshData* out) {
 }
 
 
-static void compose(MB_compose_params* params, MeshData* md) {
-	
+static MeshData* compose(MB_compose_params* params) {
+	MeshData* md;
 	int i, len;
 	
+	md = mdcreate();
 	len = VEC_LEN(&params->children);
 	
 	for(i = 0; i < len; i++) {
-		append_mesh(&VEC_ITEM(&params->children, i), md);
+		MeshData* mdc;
+		
+		mdc = process_op(&VEC_ITEM(&params->children, i));
+		append_mesh(mdc, md);
+		
+		free(mdc);
 	}
 	
+	return md;
 }
 
-
+static MeshData* process_op(MB_operation* op) {
+	MeshData* md;
+	int i;
+	
+	
+	if(op->type == MB_OP_COMPOSE) {
+		return compose(op);
+	}
+	else if(op->type == MB_OP_CREATE_CYLINDER) {
+		createCylinder(op, md);
+	}
+	else {
+		fprintf(stderr, "!!! MeshBuilder: unimplemented operation.\n");
+	}
+	
+	
+}
 
 static void transform(MB_transform_params* params, MeshData* md) {
 	
@@ -210,6 +236,20 @@ static void createCylinder(MB_cylinder_params* params, MeshData* md) {
 	}
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+/////// json parsing ////////
 
 static MB_operation* handle_obj(json_value_t* obj);
 
