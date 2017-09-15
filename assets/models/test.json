@@ -5,16 +5,22 @@
 			op: "cylinder",
 			radius: 15.2,
 			length: 20,
+			linear_segments: 10,
+			radial_segments: 2
 		},
 		{
 			op: "cylinder",
 			radius: 4.2,
-			length: 100,
+			length: 100
+			linear_segments: 10,
+			radial_segments: 2
 		},
 		{
 			op: "cylinder",
 			radius: 3.2,
-			length: 150,
+			length: 150
+			linear_segments: 10,
+			radial_segments: 2
 		}
 	]
 }

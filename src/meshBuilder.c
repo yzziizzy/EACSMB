@@ -67,9 +67,12 @@ static MeshData* compose(MB_compose_params* params) {
 		MeshData* mdc;
 		
 		mdc = process_op(&VEC_ITEM(&params->children, i));
-		append_mesh(mdc, md);
-		
-		free(mdc);
+		if(mdc) {
+			append_mesh(mdc, md);
+			
+			free(mdc);
+		}
+		else fprintf(stderr, "!!! MeshBuilder: op failed inside compose\n");
 	}
 	
 	return md;
@@ -84,13 +87,16 @@ static MeshData* process_op(MB_operation* op) {
 		return compose(op);
 	}
 	else if(op->type == MB_OP_CREATE_CYLINDER) {
+		md = mdcreate();
 		createCylinder(op, md);
+		
+		return md;
 	}
 	else {
-		fprintf(stderr, "!!! MeshBuilder: unimplemented operation.\n");
+		fprintf(stderr, "!!! MeshBuilder: unimplemented operation #%d.\n", op->type);
 	}
 	
-	
+	return NULL;
 }
 
 static void transform(MB_transform_params* params, MeshData* md) {
@@ -186,11 +192,13 @@ static void createCylinder(MB_cylinder_params* params, MeshData* md) {
 	MeshBuilderVertex vert;
 	
 	// save for constructing the indices.
-	int start_vertex = VEC_LEN(&md->verts) - 1;
+	int start_vertex = VEC_LEN(&md->verts) + 1;
 	
 	int sections = params->linear_segments;
 	float radius = params->radius;
 	float length = params->length;
+	
+	printf("generating cylinder %f x %f [%d sections]\n", radius, length, sections);
 	
 	// create vertices
 	for(j = 0; j < 2; j++) {
@@ -265,9 +273,13 @@ static struct {char* name; int code;} op_lookup[] = {
 static int lookup_name(char* n) {
 	int i;
 	int len = sizeof(op_lookup) / sizeof(op_lookup[0]);
+	printf("name: %s, len: %d \n", n, len);
 	for(i = 0; i < len; i++) {
 		if(0 == strcmp(n, op_lookup[i].name)) return op_lookup[i].code;
 	}
+	
+	fprintf(stderr, "Unknown operation name: '%s'\n", n);
+	
 	return MB_OP_NONE;
 }
 
@@ -283,11 +295,13 @@ static MB_operation* handle_cylinder(json_value_t* obj) {
 	params = calloc(1, sizeof(*params));
 	CHECK_OOM(params);
 	
+	params->type = MB_OP_CREATE_CYLINDER;
+	
 	json_obj_get_key(obj, "length", &v);
 	json_as_float(v, &params->length);
 	
 	json_obj_get_key(obj, "radius", &v);
-	json_as_float(v, &params->length);
+	json_as_float(v, &params->radius);
 
 	json_obj_get_key(obj, "linear_segments", &v);
 	json_as_int(v, &n);
@@ -309,6 +323,8 @@ static MB_operation* handle_arr(json_value_t* arr) {
 	
 	params = calloc(1, sizeof(*params));
 	CHECK_OOM(params);
+	
+	params->type = MB_OP_COMPOSE;
 	
 	n = arr->v.arr->head;
 	while(n) {
@@ -371,8 +387,8 @@ static MB_operation* read_json(char* path) {
 	json_file_t* jsf;
 	
 	jsf = json_load_path(path);
-	if(jsf) {
-		fprintf(stderr, "!!! MeshBuilder: could not read file '%s'", path);
+	if(!jsf) {
+		fprintf(stderr, "!!! MeshBuilder: could not read file '%s'\n", path);
 		return NULL;
 	}
 	
@@ -382,10 +398,24 @@ static MB_operation* read_json(char* path) {
 }
 
 
-void meshBuilder_test() {
+MeshData* meshBuilder_test() {
+	MeshData* md;
+	MB_operation* root;
+	
+	
+	root = read_json("assets/models/test.json");
+	if(!root) {
+		printf("failed to read test json file\n");
+		exit(1);
+	}
+	
+	md = process_op(root);
+	if(!md) {
+		printf("failed to process mesh operations \n");
+		exit(1);
+	}
 	
 	
 	
-	
-	
+	return md;
 }

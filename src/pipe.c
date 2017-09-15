@@ -2,25 +2,8 @@
 
 
 #include "pipe.h"
+#include "meshBuilder.h"
 
-
-typedef struct MeshData {
-	SMVList verts;
-	VEC(int) indices;
-	
-} MeshData;
-
-MeshData* mdcreate() {
-	MeshData* md;
-	
-	md = calloc(1, sizeof(*md));
-	CHECK_OOM(md);
-	
-	VEC_INIT(&md->verts);
-	VEC_INIT(&md->indices);
-	
-	return md;
-}
 
 
 
@@ -31,7 +14,7 @@ void initPipes() {
 	
 }
 
-
+/*
 
 static void createTetrahedron(float size, MeshData* md) {
 	StaticMeshVertex vert;
@@ -132,7 +115,7 @@ static void createCylinder(float radius, float length, int sections, MeshData* m
 }
 
 
-
+*/
 
 
 void Pipe_init(PipeSegment* ps) {
@@ -143,9 +126,13 @@ void Pipe_init(PipeSegment* ps) {
 	
 	ps->length = 200;
 	
-	md = mdcreate();
-	createCylinder(40, ps->length, 20, md);
+	//md = mdcreate();
+	//createCylinder(40, ps->length, 20, md);
 	//createTetrahedron(10, md);
+	
+	
+	md = meshBuilder_test();
+	
 	
 	// initialize a static mesh object and fill it with the mesh data
 	sm = calloc(1, sizeof(*sm));
@@ -164,12 +151,12 @@ void Pipe_init(PipeSegment* ps) {
 	CHECK_OOM(sm->indices.w16);
 	
 	// copy data
-	for(i = 0; i < sm->vertexCnt; i++) sm->vertices[i] = VEC_ITEM(&md->verts, i);
+	for(i = 0; i < sm->vertexCnt; i++) sm->vertices[i] = *((StaticMeshVertex*)&VEC_ITEM(&md->verts, i));
 	for(i = 0; i < sm->indexCnt; i++) sm->indices.w16[i] = VEC_ITEM(&md->indices, i);
 	
 	for(i = 0; i < sm->vertexCnt; i++) {
-// 		Vector* v = &sm->vertices[i].v;
-// 		printf("%d - [%.2f, %.2f, %.2f]\n", i, v->x, v->y, v->z);
+		Vector* v = &sm->vertices[i].v;
+		printf("%d - [%.2f, %.2f, %.2f]\n", i, v->x, v->y, v->z);
 		uint16_t* t = &sm->vertices[i].t;
 		printf("%d - [%d, %d]\n", i, t[0], t[1]);
 	}
