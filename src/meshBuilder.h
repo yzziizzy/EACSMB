@@ -27,6 +27,7 @@ typedef struct MeshData {
 enum MB_op_type {
 	MB_OP_NONE = 0,
 	MB_OP_COMPOSE,
+	MB_OP_TRANSFORM,
 	MB_OP_CREATE_CYLINDER,
 	MB_OP_CREATE_CUBE,
 	MB_OP_CREATE_SPHERE,
@@ -44,6 +45,8 @@ typedef struct {
 } MB_compose_params;
 
 
+
+// TODO: skew, bend, twist, non-linear scaling
 typedef struct {
 	enum MB_op_type type;
 	
@@ -52,7 +55,7 @@ typedef struct {
 	Vector direction;
 	float rotation;
 	
-	MB_operation* child;
+	VEC(MB_operation) children;
 } MB_transform_params;
 
 

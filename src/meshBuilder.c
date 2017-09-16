@@ -19,7 +19,7 @@
 static MeshData* compose(MB_compose_params* params);
 static MeshData* process_op(MB_operation* op);
 static void append_mesh(MeshData* in, MeshData* out);
-static void createCylinder(MB_cylinder_params* params, MeshData* md);
+static MeshData* createCylinder(MB_cylinder_params* params);
 
 
 static MeshData* mdcreate() {
@@ -37,8 +37,9 @@ static MeshData* mdcreate() {
 
 static void append_mesh(MeshData* in, MeshData* out) {
 	int i, len;
-	int base_vertex = VEC_LEN(&out->verts) - 1;
+	int base_vertex = VEC_LEN(&out->verts);
 	
+	printf("base vertex: %d \n", base_vertex);
 	// copy vertices
 	len = VEC_LEN(&in->verts);
 	
@@ -49,6 +50,7 @@ static void append_mesh(MeshData* in, MeshData* out) {
 	
 	// copy and adjust indices
 	len = VEC_LEN(&in->indices);
+	printf("index len: %d \n", len);
 	
 	for(i = 0; i < len; i++) {
 		VEC_PUSH(&out->indices, VEC_ITEM(&in->indices, i) + base_vertex );
@@ -56,17 +58,17 @@ static void append_mesh(MeshData* in, MeshData* out) {
 }
 
 
-static MeshData* compose(MB_compose_params* params) {
+static MeshData* compose_internal(VEC(MB_operation)* ops) {
 	MeshData* md;
 	int i, len;
 	
 	md = mdcreate();
-	len = VEC_LEN(&params->children);
+	len = VEC_LEN(ops);
 	
 	for(i = 0; i < len; i++) {
 		MeshData* mdc;
 		
-		mdc = process_op(&VEC_ITEM(&params->children, i));
+		mdc = process_op(&VEC_ITEM(ops, i));
 		if(mdc) {
 			append_mesh(mdc, md);
 			
@@ -78,55 +80,45 @@ static MeshData* compose(MB_compose_params* params) {
 	return md;
 }
 
-static MeshData* process_op(MB_operation* op) {
-	MeshData* md;
-	int i;
-	
-	
-	if(op->type == MB_OP_COMPOSE) {
-		return compose(op);
-	}
-	else if(op->type == MB_OP_CREATE_CYLINDER) {
-		md = mdcreate();
-		createCylinder(op, md);
-		
-		return md;
-	}
-	else {
-		fprintf(stderr, "!!! MeshBuilder: unimplemented operation #%d.\n", op->type);
-	}
-	
-	return NULL;
+static MeshData* compose(MB_compose_params* params) {
+	return compose_internal(&params->children);
 }
 
-static void transform(MB_transform_params* params, MeshData* md) {
+
+static MeshData* transform(MB_transform_params* params) {
+	MeshData* md;
+	int i, len;
+	MBVList* l;
 	
-	int i;
-	MBVList* l = &md->verts;
-	int len = VEC_LEN(l);
-	float scale;
-/*	 TODO: rewrite with matrices
-	// translate position
-	if(vMag(&params->position) > 0.00001) {
-		for(i = 0; i < len; i++) {
-			vAdd(&params->position, &VEC_ITEM(l, i).v, &VEC_ITEM(l, i).v);
-		}
+	Matrix m = IDENT_MATRIX, tmp = IDENT_MATRIX;
+	
+	// TODO probably broken somehow
+	
+	// prepare the matrix
+	Vector v = {20,2,2};
+
+	
+	mTransv(&params->position, &m);
+	mScalev(&params->scale, &m);
+	
+		// broken
+	//mRotv(&params->direction, params->rotation, &m);
+
+	
+	// gather and transform the data
+	md = compose_internal(&params->children);
+	//return md;
+	l = &md->verts;
+	len = VEC_LEN(l);
+	
+	for(i = 0; i < len; i++) {
+		printf("in [%.2f, %.2f, %.2f] ", VEC_ITEM(l, i).v.x, VEC_ITEM(l, i).v.y, VEC_ITEM(l, i).v.z ); 
+		//vAdd(&v, &VEC_ITEM(l, i).v, &VEC_ITEM(l, i).v);
+		vMatrixMul(&VEC_ITEM(l, i).v, &m, &VEC_ITEM(l, i).v);
+		printf("-> [%.2f, %.2f, %.2f] \n", VEC_ITEM(l, i).v.x, VEC_ITEM(l, i).v.y, VEC_ITEM(l, i).v.z ); 
 	}
 	
-	// rotation
-	if(vMag(&params->direction) > 0.00001 || fabs(params->rotation) > 0.0001 ) {
-		fprintf(stderr, "!!! MeshBuilder: transform rotation specified but not implemented.\n");
-	}
-	
-	// scale
-	scale = vMag(&params->scale);
-	if(scale > 1.00001 || scale < .9999) {
-		for(i = 0; i < len; i++) {
-			vMul(&params->scale, &VEC_ITEM(l, i).v, &VEC_ITEM(l, i).v);
-		}
-	}
-	*/
-	
+	return md;
 }
 
 
@@ -187,13 +179,14 @@ static void createTetrahedron(float size, MeshData* md) {
 }
 
 
-static void createCylinder(MB_cylinder_params* params, MeshData* md) {
+static MeshData* createCylinder(MB_cylinder_params* params) {
 	int i, j;
 	MeshBuilderVertex vert;
+	MeshData* md;
+	
+	md = mdcreate();
 	
 	// save for constructing the indices.
-	int start_vertex = VEC_LEN(&md->verts) + 1;
-	
 	int sections = params->linear_segments;
 	float radius = params->radius;
 	float length = params->length;
@@ -221,7 +214,7 @@ static void createCylinder(MB_cylinder_params* params, MeshData* md) {
 	}
 	
 	// fill in indices
-	int ring1 = start_vertex, ring2 = start_vertex + sections;
+	int ring1 = 0, ring2 = sections;
 	for(i = 0; i < sections; i++) {
 		int r1v1 = ring1 + i;
 		int r1v2 = ring1 + ((i + 1) % sections);
@@ -242,10 +235,33 @@ static void createCylinder(MB_cylinder_params* params, MeshData* md) {
 	if(params->cap_min || params->cap_max) {
 		fprintf(stderr, "!!! MeshBuilder: cylinder end caps specified but not implemented.\n");
 	}
+	
+	return md;
 }
 
 
 
+
+static MeshData* process_op(MB_operation* op) {
+	MeshData* md;
+	int i;
+	
+	
+	if(op->type == MB_OP_COMPOSE) {
+		return compose(op);
+	}
+	else if(op->type == MB_OP_TRANSFORM) {
+		return transform(op);
+	}
+	else if(op->type == MB_OP_CREATE_CYLINDER) {
+		return createCylinder(op);
+	}
+	else {
+		fprintf(stderr, "!!! MeshBuilder: unimplemented operation #%d.\n", op->type);
+	}
+	
+	return NULL;
+}
 
 
 
@@ -264,6 +280,7 @@ static MB_operation* handle_obj(json_value_t* obj);
 static struct {char* name; int code;} op_lookup[] = {
 	{"none", MB_OP_NONE},
 	{"compose", MB_OP_COMPOSE},
+	{"transform", MB_OP_TRANSFORM},
 	{"cylinder", MB_OP_CREATE_CYLINDER},
 	{"cube", MB_OP_CREATE_CUBE},
 	{"sphere", MB_OP_CREATE_SPHERE},
@@ -317,15 +334,9 @@ static MB_operation* handle_cylinder(json_value_t* obj) {
 }
 
 
-static MB_operation* handle_arr(json_value_t* arr) {
+static void handle_arr_internal(json_value_t* arr, VEC(MB_operation)* kids) {
 	json_array_node_t* n;
-	MB_compose_params* params;
-	
-	params = calloc(1, sizeof(*params));
-	CHECK_OOM(params);
-	
-	params->type = MB_OP_COMPOSE;
-	
+
 	n = arr->v.arr->head;
 	while(n) {
 		json_value_t* v;
@@ -335,12 +346,24 @@ static MB_operation* handle_arr(json_value_t* arr) {
 		
 		mbop = handle_obj(v);
 		if(mbop) {
-			VEC_PUSH(&params->children, *mbop);
+			VEC_PUSH(kids, *mbop);
 		}
-		
 		
 		n = n->next;
 	}
+}
+
+
+static MB_operation* handle_arr(json_value_t* arr) {
+	json_array_node_t* n;
+	MB_compose_params* params;
+	
+	params = calloc(1, sizeof(*params));
+	CHECK_OOM(params);
+	
+	params->type = MB_OP_COMPOSE;
+	
+	handle_arr_internal(arr, &params->children);
 	
 	return params;
 }
@@ -353,6 +376,36 @@ static MB_operation* handle_compose(json_value_t* obj) {
 	return handle_arr(v);
 }
 
+static MB_operation* handle_transform(json_value_t* obj) {
+	MB_transform_params* params;
+	json_value_t* v;
+	
+	params = calloc(1, sizeof(*params));
+	CHECK_OOM(params);
+	
+	params->type = MB_OP_TRANSFORM;
+	
+	json_obj_get_key(obj, "position", &v);
+	json_as_vector(v, 3, &params->position);
+	
+	json_obj_get_key(obj, "direction", &v);
+	json_as_vector(v, 3, &params->direction);
+	vNorm(&params->direction, &params->direction);
+	
+	json_obj_get_key(obj, "scale", &v);
+	json_as_vector(v, 3, &params->scale);
+	
+	json_obj_get_key(obj, "rotation", &v);
+	json_as_float(v, &params->rotation);
+	
+	
+	//parse internal array
+	json_obj_get_key(obj, "children", &v);
+	handle_arr_internal(v, &params->children);
+	
+	return params;
+}
+
 
 static MB_operation* handle_obj(json_value_t* obj) {
 	enum MB_op_type type;
@@ -362,6 +415,7 @@ static MB_operation* handle_obj(json_value_t* obj) {
 	static MB_operation* (*fntable[])(json_value_t*) = {
 		NULL,
 		handle_compose,
+		handle_transform,
 		handle_cylinder
 	};
 	
