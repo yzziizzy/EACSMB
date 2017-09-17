@@ -22,6 +22,7 @@ static MeshData* process_op(MB_operation* op);
 static void append_mesh(MeshData* in, MeshData* out);
 static MeshData* createCylinder(MB_cylinder_params* params);
 static MeshData* build_cylinder(MB_cylinder_params* params);
+static MeshData* build_box(MB_box_params* params);
 
 
 typedef MeshData* (*buildfn)(MB_operation*);
@@ -47,7 +48,7 @@ static struct {
 	[MB_OP_COMPOSE] = {"compose", MB_OP_COMPOSE, handle_compose, (buildfn)build_compose},
 	[MB_OP_TRANSFORM] = {"transform", MB_OP_TRANSFORM, handle_transform, (buildfn)build_transform},
 	[MB_OP_CREATE_CYLINDER] = {"cylinder", MB_OP_CREATE_CYLINDER, handle_cylinder, (buildfn)build_cylinder},
-	[MB_OP_CREATE_BOX] = {"box", MB_OP_CREATE_BOX, handle_box, NULL},
+	[MB_OP_CREATE_BOX] = {"box", MB_OP_CREATE_BOX, handle_box, (buildfn)build_box},
 	[MB_OP_CREATE_SPHERE] = {"sphere", MB_OP_CREATE_SPHERE, handle_sphere, NULL},
 	[MB_OP_CREATE_PYRAMID] = {"pyramid", MB_OP_CREATE_PYRAMID, handle_pyramid, NULL},
 
@@ -212,6 +213,170 @@ static void createTetrahedron(float size, MeshData* md) {
 	
 }
 
+
+static MeshData* build_box(MB_box_params* params) {
+	MeshBuilderVertex vert;
+	MeshData* md;
+	int base_vertex = 0;
+	Vector min, max;
+	
+	md = mdcreate();
+	
+	max.x = params->size.x;
+	max.y = params->size.y;
+	max.z = params->size.z;
+	
+	min.x = 0;
+	min.y = 0;
+	min.z = 0;
+	
+	
+	// -x face
+	vert = (MeshBuilderVertex){.v = {min.x, min.y, min.z}, .n = {-1, 0, 0}, .t = {0, 0}};
+	VEC_PUSH(&md->verts, vert);
+
+	vert = (MeshBuilderVertex){.v = {min.x, min.y, max.z}, .n = {-1, 0, 0}, .t = {0, 65535}};
+	VEC_PUSH(&md->verts, vert);
+
+	vert = (MeshBuilderVertex){.v = {min.x, max.y, min.z}, .n = {-1, 0, 0}, .t = {65535, 0}};
+	VEC_PUSH(&md->verts, vert);
+
+	vert = (MeshBuilderVertex){.v = {min.x, max.y, max.z}, .n = {-1, 0, 0}, .t = {65535, 65535}};
+	VEC_PUSH(&md->verts, vert);
+	
+	VEC_PUSH(&md->indices, base_vertex + 0);
+	VEC_PUSH(&md->indices, base_vertex + 1);
+	VEC_PUSH(&md->indices, base_vertex + 2);
+	
+	VEC_PUSH(&md->indices, base_vertex + 1);
+	VEC_PUSH(&md->indices, base_vertex + 2);
+	VEC_PUSH(&md->indices, base_vertex + 3);
+
+	base_vertex += 4;
+	
+	
+	// +x face
+	vert = (MeshBuilderVertex){.v = {max.x, min.y, min.z}, .n = {1, 0, 0}, .t = {0, 0}};
+	VEC_PUSH(&md->verts, vert);
+
+	vert = (MeshBuilderVertex){.v = {max.x, min.y, max.z}, .n = {1, 0, 0}, .t = {0, 65535}};
+	VEC_PUSH(&md->verts, vert);
+
+	vert = (MeshBuilderVertex){.v = {max.x, max.y, min.z}, .n = {1, 0, 0}, .t = {65535, 0}};
+	VEC_PUSH(&md->verts, vert);
+
+	vert = (MeshBuilderVertex){.v = {max.x, max.y, max.z}, .n = {1, 0, 0}, .t = {65535, 65535}};
+	VEC_PUSH(&md->verts, vert);
+	
+	VEC_PUSH(&md->indices, base_vertex + 0);
+	VEC_PUSH(&md->indices, base_vertex + 1);
+	VEC_PUSH(&md->indices, base_vertex + 2);
+	
+	VEC_PUSH(&md->indices, base_vertex + 1);
+	VEC_PUSH(&md->indices, base_vertex + 2);
+	VEC_PUSH(&md->indices, base_vertex + 3);
+
+	base_vertex += 4;
+	
+	
+	// -y face
+	vert = (MeshBuilderVertex){.v = {min.x, min.y, min.z}, .n = {0, -1, 0}, .t = {0, 0}};
+	VEC_PUSH(&md->verts, vert);
+
+	vert = (MeshBuilderVertex){.v = {min.x, min.y, max.z}, .n = {0, -1, 0}, .t = {0, 65535}};
+	VEC_PUSH(&md->verts, vert);
+
+	vert = (MeshBuilderVertex){.v = {max.x, min.y, min.z}, .n = {0, -1, 0}, .t = {65535, 0}};
+	VEC_PUSH(&md->verts, vert);
+
+	vert = (MeshBuilderVertex){.v = {max.x, min.y, max.z}, .n = {0, -1, 0}, .t = {65535, 65535}};
+	VEC_PUSH(&md->verts, vert);
+	
+	VEC_PUSH(&md->indices, base_vertex + 0);
+	VEC_PUSH(&md->indices, base_vertex + 1);
+	VEC_PUSH(&md->indices, base_vertex + 2);
+	
+	VEC_PUSH(&md->indices, base_vertex + 1);
+	VEC_PUSH(&md->indices, base_vertex + 2);
+	VEC_PUSH(&md->indices, base_vertex + 3);
+
+	base_vertex += 4;
+	
+	
+	// +y face
+	vert = (MeshBuilderVertex){.v = {min.x, max.y, min.z}, .n = {0, 1, 0}, .t = {0, 0}};
+	VEC_PUSH(&md->verts, vert);
+
+	vert = (MeshBuilderVertex){.v = {min.x, max.y, max.z}, .n = {0, 1, 0}, .t = {0, 65535}};
+	VEC_PUSH(&md->verts, vert);
+
+	vert = (MeshBuilderVertex){.v = {max.x, max.y, min.z}, .n = {0, 1, 0}, .t = {65535, 0}};
+	VEC_PUSH(&md->verts, vert);
+
+	vert = (MeshBuilderVertex){.v = {max.x, max.y, max.z}, .n = {0, 1, 0}, .t = {65535, 65535}};
+	VEC_PUSH(&md->verts, vert);
+	
+	VEC_PUSH(&md->indices, base_vertex + 0);
+	VEC_PUSH(&md->indices, base_vertex + 1);
+	VEC_PUSH(&md->indices, base_vertex + 2);
+	
+	VEC_PUSH(&md->indices, base_vertex + 1);
+	VEC_PUSH(&md->indices, base_vertex + 2);
+	VEC_PUSH(&md->indices, base_vertex + 3);
+
+	base_vertex += 4;
+	
+	
+	// -z face
+	vert = (MeshBuilderVertex){.v = {min.x, min.y, min.z}, .n = {0, 0, -1}, .t = {0, 0}};
+	VEC_PUSH(&md->verts, vert);
+
+	vert = (MeshBuilderVertex){.v = {min.x, max.y, min.z}, .n = {0, 0, -1}, .t = {0, 65535}};
+	VEC_PUSH(&md->verts, vert);
+
+	vert = (MeshBuilderVertex){.v = {max.x, min.y, min.z}, .n = {0, 0, -1}, .t = {65535, 0}};
+	VEC_PUSH(&md->verts, vert);
+
+	vert = (MeshBuilderVertex){.v = {max.x, max.y, min.z}, .n = {0, 0, -1}, .t = {65535, 65535}};
+	VEC_PUSH(&md->verts, vert);
+	
+	VEC_PUSH(&md->indices, base_vertex + 0);
+	VEC_PUSH(&md->indices, base_vertex + 1);
+	VEC_PUSH(&md->indices, base_vertex + 2);
+	
+	VEC_PUSH(&md->indices, base_vertex + 1);
+	VEC_PUSH(&md->indices, base_vertex + 2);
+	VEC_PUSH(&md->indices, base_vertex + 3);
+
+	base_vertex += 4;
+	
+	
+	// +z face
+	vert = (MeshBuilderVertex){.v = {min.x, min.y, max.z}, .n = {0, 0, 1}, .t = {0, 0}};
+	VEC_PUSH(&md->verts, vert);
+
+	vert = (MeshBuilderVertex){.v = {min.x, max.y, max.z}, .n = {0, 0, 1}, .t = {0, 65535}};
+	VEC_PUSH(&md->verts, vert);
+
+	vert = (MeshBuilderVertex){.v = {max.x, min.y, max.z}, .n = {0, 0, 1}, .t = {65535, 0}};
+	VEC_PUSH(&md->verts, vert);
+
+	vert = (MeshBuilderVertex){.v = {max.x, max.y, max.z}, .n = {0, 0, 1}, .t = {65535, 65535}};
+	VEC_PUSH(&md->verts, vert);
+	
+	VEC_PUSH(&md->indices, base_vertex + 0);
+	VEC_PUSH(&md->indices, base_vertex + 1);
+	VEC_PUSH(&md->indices, base_vertex + 2);
+	
+	VEC_PUSH(&md->indices, base_vertex + 1);
+	VEC_PUSH(&md->indices, base_vertex + 2);
+	VEC_PUSH(&md->indices, base_vertex + 3);
+
+	base_vertex += 4;
+	
+	
+	return md;
+}
 
 static MeshData* build_cylinder(MB_cylinder_params* params) {
 	int i, j;
@@ -411,7 +576,7 @@ static MB_operation* handle_cylinder(json_value_t* obj) {
 }
 
 
-static void handle_arr_internal(json_value_t* arr, VEC(MB_operation*)* kids) {
+static void handle_arr_internal(json_value_t* arr, MB_op_list* kids) {
 	json_array_node_t* n;
 
 	n = arr->v.arr->head;

@@ -1,13 +1,11 @@
 {
 	op: "compose",
 	children: [
-		/*{
-			op: "cylinder",
-			radius: 15.2,
-			length: 20,
-			linear_segments: 10,
-			radial_segments: 2
-		},*/
+		{
+			op: "box",
+			size: [100, 100, 100],
+			origin: [.5, .7, .9]
+		},
 		{
 			op: "cylinder",
 			radius: 14.2,
