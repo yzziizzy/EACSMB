@@ -29,19 +29,22 @@ enum MB_op_type {
 	MB_OP_COMPOSE,
 	MB_OP_TRANSFORM,
 	MB_OP_CREATE_CYLINDER,
-	MB_OP_CREATE_CUBE,
+	MB_OP_CREATE_BOX,
 	MB_OP_CREATE_SPHERE,
-	MB_OP_CREATE_PYRAMID
+	MB_OP_CREATE_PYRAMID,
+	
+	MB_OP_MAX_VALUE
 };
 
 
 
 typedef union MB_operation MB_operation;
 
+typedef VEC(MB_operation*) MB_op_list; 
 
 typedef struct {
 	enum MB_op_type type;
-	VEC(MB_operation) children;
+	MB_op_list children;
 } MB_compose_params;
 
 
@@ -55,9 +58,28 @@ typedef struct {
 	Vector direction;
 	float rotation;
 	
-	VEC(MB_operation) children;
+	MB_op_list children;
 } MB_transform_params;
 
+
+typedef struct {
+	enum MB_op_type type;
+	
+	float radius;
+	int radial_segments;
+	int vertical_segments;
+	
+} MB_sphere_params;
+
+
+typedef struct {
+	enum MB_op_type type;
+	
+	float height;
+	float radius;
+	int segments;
+	
+} MB_pyramid_params;
 
 
 typedef struct {
@@ -73,6 +95,13 @@ typedef struct {
 } MB_cylinder_params;
 
 
+typedef struct {
+	enum MB_op_type type;
+	
+	Vector size;
+	Vector origin; // normalized coordinates within the box
+	
+} MB_box_params;
 
 union MB_operation {
 	enum MB_op_type type;

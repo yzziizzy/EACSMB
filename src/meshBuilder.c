@@ -16,10 +16,43 @@
 
 
 
-static MeshData* compose(MB_compose_params* params);
+static MeshData* build_transform(MB_transform_params* params);
+static MeshData* build_compose(MB_compose_params* params);
 static MeshData* process_op(MB_operation* op);
 static void append_mesh(MeshData* in, MeshData* out);
 static MeshData* createCylinder(MB_cylinder_params* params);
+static MeshData* build_cylinder(MB_cylinder_params* params);
+
+
+typedef MeshData* (*buildfn)(MB_operation*);
+
+
+static MB_operation* handle_obj(json_value_t* obj);
+static MB_operation* handle_box(json_value_t* obj);
+static MB_operation* handle_cylinder(json_value_t* obj);
+static MB_operation* handle_sphere(json_value_t* obj);
+static MB_operation* handle_pyramid(json_value_t* obj);
+static MB_operation* handle_compose(json_value_t* obj);
+static MB_operation* handle_transform(json_value_t* obj);
+static MB_operation* handle_transform_internal(json_value_t* obj);
+
+static struct {
+	char* name; 
+	int code;
+	MB_operation* (*parser)(json_value_t*);
+	MeshData* (*builder)(MB_operation*);
+} op_lookup[MB_OP_MAX_VALUE] = {
+	
+	[MB_OP_NONE] = {"none", MB_OP_NONE, NULL, NULL},
+	[MB_OP_COMPOSE] = {"compose", MB_OP_COMPOSE, handle_compose, (buildfn)build_compose},
+	[MB_OP_TRANSFORM] = {"transform", MB_OP_TRANSFORM, handle_transform, (buildfn)build_transform},
+	[MB_OP_CREATE_CYLINDER] = {"cylinder", MB_OP_CREATE_CYLINDER, handle_cylinder, (buildfn)build_cylinder},
+	[MB_OP_CREATE_BOX] = {"box", MB_OP_CREATE_BOX, handle_box, NULL},
+	[MB_OP_CREATE_SPHERE] = {"sphere", MB_OP_CREATE_SPHERE, handle_sphere, NULL},
+	[MB_OP_CREATE_PYRAMID] = {"pyramid", MB_OP_CREATE_PYRAMID, handle_pyramid, NULL},
+
+};
+
 
 
 static MeshData* mdcreate() {
@@ -58,7 +91,8 @@ static void append_mesh(MeshData* in, MeshData* out) {
 }
 
 
-static MeshData* compose_internal(VEC(MB_operation)* ops) {
+
+static MeshData* compose_internal(MB_op_list* ops) {
 	MeshData* md;
 	int i, len;
 	
@@ -68,7 +102,7 @@ static MeshData* compose_internal(VEC(MB_operation)* ops) {
 	for(i = 0; i < len; i++) {
 		MeshData* mdc;
 		
-		mdc = process_op(&VEC_ITEM(ops, i));
+		mdc = process_op(VEC_ITEM(ops, i));
 		if(mdc) {
 			append_mesh(mdc, md);
 			
@@ -80,12 +114,12 @@ static MeshData* compose_internal(VEC(MB_operation)* ops) {
 	return md;
 }
 
-static MeshData* compose(MB_compose_params* params) {
+static MeshData* build_compose(MB_compose_params* params) {
 	return compose_internal(&params->children);
 }
 
 
-static MeshData* transform(MB_transform_params* params) {
+static MeshData* build_transform(MB_transform_params* params) {
 	MeshData* md;
 	int i, len;
 	MBVList* l;
@@ -179,7 +213,7 @@ static void createTetrahedron(float size, MeshData* md) {
 }
 
 
-static MeshData* createCylinder(MB_cylinder_params* params) {
+static MeshData* build_cylinder(MB_cylinder_params* params) {
 	int i, j;
 	MeshBuilderVertex vert;
 	MeshData* md;
@@ -245,22 +279,17 @@ static MeshData* createCylinder(MB_cylinder_params* params) {
 static MeshData* process_op(MB_operation* op) {
 	MeshData* md;
 	int i;
+	buildfn fn;
 	
-	
-	if(op->type == MB_OP_COMPOSE) {
-		return compose(op);
-	}
-	else if(op->type == MB_OP_TRANSFORM) {
-		return transform(op);
-	}
-	else if(op->type == MB_OP_CREATE_CYLINDER) {
-		return createCylinder(op);
-	}
-	else {
+	fn = op_lookup[op->type].builder;
+	if(!fn) {
 		fprintf(stderr, "!!! MeshBuilder: unimplemented operation #%d.\n", op->type);
+		return NULL;
 	}
 	
-	return NULL;
+	md = fn(op);
+	
+	return md;
 }
 
 
@@ -275,17 +304,8 @@ static MeshData* process_op(MB_operation* op) {
 
 /////// json parsing ////////
 
-static MB_operation* handle_obj(json_value_t* obj);
 
-static struct {char* name; int code;} op_lookup[] = {
-	{"none", MB_OP_NONE},
-	{"compose", MB_OP_COMPOSE},
-	{"transform", MB_OP_TRANSFORM},
-	{"cylinder", MB_OP_CREATE_CYLINDER},
-	{"cube", MB_OP_CREATE_CUBE},
-	{"sphere", MB_OP_CREATE_SPHERE},
-	{"pyramid", MB_OP_CREATE_PYRAMID}
-};
+
 
 static int lookup_name(char* n) {
 	int i;
@@ -302,7 +322,64 @@ static int lookup_name(char* n) {
 
 
 
+static MB_operation* check_for_transform(MB_operation* this, json_value_t* obj) {
+	MB_transform_params* params;
+	json_value_t* v;
+	
+	json_obj_get_key(obj, "transform", &v);
+	if(!v) return this;
+	
+	params = handle_transform_internal(v);
+	VEC_PUSH(&params->children, this);
+	
+	return params;
+}
 
+
+
+static MB_operation* handle_sphere(json_value_t* obj) {
+	MB_sphere_params* params;
+	json_value_t* v;
+	
+	params = calloc(1, sizeof(*params));
+	CHECK_OOM(params);
+	
+	params->type = MB_OP_CREATE_BOX;
+	
+	
+	return check_for_transform(params, obj);
+}
+
+static MB_operation* handle_pyramid(json_value_t* obj) {
+	MB_pyramid_params* params;
+	json_value_t* v;
+	
+	params = calloc(1, sizeof(*params));
+	CHECK_OOM(params);
+	
+	params->type = MB_OP_CREATE_BOX;
+	
+	
+	return check_for_transform(params, obj);
+}
+
+static MB_operation* handle_box(json_value_t* obj) {
+	MB_box_params* params;
+	json_value_t* v;
+	
+	params = calloc(1, sizeof(*params));
+	CHECK_OOM(params);
+	
+	params->type = MB_OP_CREATE_BOX;
+	
+	json_obj_get_key(obj, "size", &v);
+	json_as_vector(v, 3, &params->size);
+	
+	json_obj_get_key(obj, "origin", &v);
+	json_as_vector(v, 3, &params->origin);
+
+	return check_for_transform(params, obj);
+}
 
 static MB_operation* handle_cylinder(json_value_t* obj) {
 	MB_cylinder_params* params;
@@ -330,11 +407,11 @@ static MB_operation* handle_cylinder(json_value_t* obj) {
 	
 	// TODO: cap_min, cap_max
 	
-	return params;
+	return check_for_transform(params, obj);
 }
 
 
-static void handle_arr_internal(json_value_t* arr, VEC(MB_operation)* kids) {
+static void handle_arr_internal(json_value_t* arr, VEC(MB_operation*)* kids) {
 	json_array_node_t* n;
 
 	n = arr->v.arr->head;
@@ -346,7 +423,7 @@ static void handle_arr_internal(json_value_t* arr, VEC(MB_operation)* kids) {
 		
 		mbop = handle_obj(v);
 		if(mbop) {
-			VEC_PUSH(kids, *mbop);
+			VEC_PUSH(kids, mbop);
 		}
 		
 		n = n->next;
@@ -376,7 +453,7 @@ static MB_operation* handle_compose(json_value_t* obj) {
 	return handle_arr(v);
 }
 
-static MB_operation* handle_transform(json_value_t* obj) {
+static MB_operation* handle_transform_internal(json_value_t* obj) {
 	MB_transform_params* params;
 	json_value_t* v;
 	
@@ -398,7 +475,15 @@ static MB_operation* handle_transform(json_value_t* obj) {
 	json_obj_get_key(obj, "rotation", &v);
 	json_as_float(v, &params->rotation);
 	
+	return params;
+}
+
+static MB_operation* handle_transform(json_value_t* obj) {
+	MB_transform_params* params;
+	json_value_t* v;
 	
+	params = handle_transform_internal(obj);
+
 	//parse internal array
 	json_obj_get_key(obj, "children", &v);
 	handle_arr_internal(v, &params->children);
@@ -411,13 +496,7 @@ static MB_operation* handle_obj(json_value_t* obj) {
 	enum MB_op_type type;
 	char* tname;
 	json_value_t* v;
-	
-	static MB_operation* (*fntable[])(json_value_t*) = {
-		NULL,
-		handle_compose,
-		handle_transform,
-		handle_cylinder
-	};
+	MB_operation* (*fn)(json_value_t*);
 	
 	if(obj->type == JSON_TYPE_ARRAY) {
 		return handle_arr(obj);
@@ -433,7 +512,10 @@ static MB_operation* handle_obj(json_value_t* obj) {
 		return NULL;
 	}
 	
-	return fntable[type](obj);
+	fn = op_lookup[type].parser;
+	
+	if(!fn) return NULL;
+	return fn(obj);
 }
 
 static MB_operation* read_json(char* path) {
