@@ -227,9 +227,9 @@ static MeshData* build_sphere(MB_sphere_params* params) {
 	float dphi = F_PI / params->vertical_segments;
 	float dtheta = F_2PI / params->radial_segments;
 	
-	// BUG: broken somehow
+	// BUG: probably make a few extra degenerate polys
 	
-	for(lat = 0; lat < params->vertical_segments; lat++) { // the poles are duplicated due to texture coordinates
+	for(lat = 0; lat < params->vertical_segments + 1; lat++) { // the poles are duplicated due to texture coordinates
 		for(lon = 0; lon <= params->radial_segments; lon++) {
 			float sp = sin(dphi * lat);
 			float spr = sp * radius;
@@ -237,18 +237,18 @@ static MeshData* build_sphere(MB_sphere_params* params) {
 			vert = (MeshBuilderVertex){
 				.v = {sin(lon * dtheta) * spr, cos(lon * dtheta) * spr, radius * cos(dphi * lat)},
 				.n = {sin(lon * dtheta) * sp, cos(lon * dtheta) * sp, cos(dphi * lat)}, // TODO normalize
-				.t = {lon, lat} // BUG wrong
+				.t = {((float)lon / (float)params->radial_segments) * 65535, ((float)lat / (float)params->vertical_segments) * 65535} // BUG wrong
 			};
 			VEC_PUSH(&md->verts, vert);
 		}
 	}
 	
 	// the sphere is a just a rectangular patch from an index perspective
-	for(y = 0; y < params->vertical_segments; y++) {
+	for(y = 0; y < params->vertical_segments + 1; y++) {
 		int row1 = y * params->radial_segments;
 		int row2 = (y + 1) * params->radial_segments;
 		
-		for(x = 0; x <  params->radial_segments; x++) {
+		for(x = 0; x < params->radial_segments; x++) {
 			
 			VEC_PUSH(&md->indices, row1 + x);
 			VEC_PUSH(&md->indices, row1 + x + 1);
@@ -576,7 +576,7 @@ static MB_operation* handle_sphere(json_value_t* obj) {
 	
 	json_obj_get_key(obj, "vertical_segments", &v);
 	json_as_int(v, &i);
-	params->radial_segments = i;
+	params->vertical_segments = i;
 	
 	return check_for_transform(params, obj);
 }
