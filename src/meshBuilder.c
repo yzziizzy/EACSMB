@@ -23,6 +23,7 @@ static void append_mesh(MeshData* in, MeshData* out);
 static MeshData* createCylinder(MB_cylinder_params* params);
 static MeshData* build_cylinder(MB_cylinder_params* params);
 static MeshData* build_box(MB_box_params* params);
+static MeshData* build_sphere(MB_sphere_params* params);
 
 
 typedef MeshData* (*buildfn)(MB_operation*);
@@ -49,7 +50,7 @@ static struct {
 	[MB_OP_TRANSFORM] = {"transform", MB_OP_TRANSFORM, handle_transform, (buildfn)build_transform},
 	[MB_OP_CREATE_CYLINDER] = {"cylinder", MB_OP_CREATE_CYLINDER, handle_cylinder, (buildfn)build_cylinder},
 	[MB_OP_CREATE_BOX] = {"box", MB_OP_CREATE_BOX, handle_box, (buildfn)build_box},
-	[MB_OP_CREATE_SPHERE] = {"sphere", MB_OP_CREATE_SPHERE, handle_sphere, NULL},
+	[MB_OP_CREATE_SPHERE] = {"sphere", MB_OP_CREATE_SPHERE, handle_sphere, (buildfn)build_sphere},
 	[MB_OP_CREATE_PYRAMID] = {"pyramid", MB_OP_CREATE_PYRAMID, handle_pyramid, NULL},
 
 };
@@ -214,6 +215,55 @@ static void createTetrahedron(float size, MeshData* md) {
 }
 
 
+static MeshData* build_sphere(MB_sphere_params* params) {
+	MeshData* md;
+	int lon, lat;
+	int x, y;
+	MeshBuilderVertex vert;
+	
+	md = mdcreate();
+	
+	float radius = params->radius;
+	float dphi = F_PI / params->vertical_segments;
+	float dtheta = F_2PI / params->radial_segments;
+	
+	// BUG: broken somehow
+	
+	for(lat = 0; lat < params->vertical_segments; lat++) { // the poles are duplicated due to texture coordinates
+		for(lon = 0; lon <= params->radial_segments; lon++) {
+			float sp = sin(dphi * lat);
+			float spr = sp * radius;
+			
+			vert = (MeshBuilderVertex){
+				.v = {sin(lon * dtheta) * spr, cos(lon * dtheta) * spr, radius * cos(dphi * lat)},
+				.n = {sin(lon * dtheta) * sp, cos(lon * dtheta) * sp, cos(dphi * lat)}, // TODO normalize
+				.t = {lon, lat} // BUG wrong
+			};
+			VEC_PUSH(&md->verts, vert);
+		}
+	}
+	
+	// the sphere is a just a rectangular patch from an index perspective
+	for(y = 0; y < params->vertical_segments; y++) {
+		int row1 = y * params->radial_segments;
+		int row2 = (y + 1) * params->radial_segments;
+		
+		for(x = 0; x <  params->radial_segments; x++) {
+			
+			VEC_PUSH(&md->indices, row1 + x);
+			VEC_PUSH(&md->indices, row1 + x + 1);
+			VEC_PUSH(&md->indices, row2 + x + 1);
+			
+			VEC_PUSH(&md->indices, row1 + x);
+			VEC_PUSH(&md->indices, row2 + x + 1);
+			VEC_PUSH(&md->indices, row2 + x);
+			
+		}
+	}
+	
+	return md;
+}
+
 static MeshData* build_box(MB_box_params* params) {
 	MeshBuilderVertex vert;
 	MeshData* md;
@@ -231,6 +281,7 @@ static MeshData* build_box(MB_box_params* params) {
 	min.z = 0;
 	
 	
+	// TODO: origin offsets
 	// -x face
 	vert = (MeshBuilderVertex){.v = {min.x, min.y, min.z}, .n = {-1, 0, 0}, .t = {0, 0}};
 	VEC_PUSH(&md->verts, vert);
@@ -489,10 +540,14 @@ static int lookup_name(char* n) {
 
 static MB_operation* check_for_transform(MB_operation* this, json_value_t* obj) {
 	MB_transform_params* params;
-	json_value_t* v;
+	json_value_t* v = NULL;
 	
-	json_obj_get_key(obj, "transform", &v);
-	if(!v) return this;
+	if(json_obj_get_key(obj, "transform", &v)) {
+		return this;
+	}
+	if(!v) {
+		printf("v is null but get_key returned success\n");
+	}
 	
 	params = handle_transform_internal(v);
 	VEC_PUSH(&params->children, this);
@@ -505,12 +560,23 @@ static MB_operation* check_for_transform(MB_operation* this, json_value_t* obj) 
 static MB_operation* handle_sphere(json_value_t* obj) {
 	MB_sphere_params* params;
 	json_value_t* v;
+	int64_t i;
 	
 	params = calloc(1, sizeof(*params));
 	CHECK_OOM(params);
 	
-	params->type = MB_OP_CREATE_BOX;
+	params->type = MB_OP_CREATE_SPHERE;
 	
+	json_obj_get_key(obj, "radius", &v);
+	json_as_float(v, &params->radius);
+	
+	json_obj_get_key(obj, "radial_segments", &v);
+	json_as_int(v, &i);
+	params->radial_segments = i;
+	
+	json_obj_get_key(obj, "vertical_segments", &v);
+	json_as_int(v, &i);
+	params->radial_segments = i;
 	
 	return check_for_transform(params, obj);
 }

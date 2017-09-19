@@ -91,7 +91,7 @@ void terrain_readConfigJSON(TerrainTexInfo* tti, char* path) {
 		printf("loading tex: %s\n", tt->name);
 		
 		ret = json_obj_get_key(tc, "diffuse", &v);
-		if(!ret || v) { 
+		if(!ret && v) { 
 			json_as_string(v, &tmp);
 			tt->paths.diffuse = strdup(tmp);
 			printf("%s, got diffuse: %s \n", tt->name, tt->paths.diffuse);
@@ -99,7 +99,7 @@ void terrain_readConfigJSON(TerrainTexInfo* tti, char* path) {
 		}
 
 		ret = json_obj_get_key(tc, "normal", &v);
-		if(ret && !v) {
+		if(!ret && v) {
 			json_as_string(v, &tmp);
 			tt->paths.normal = strdup(tmp);
 			
@@ -107,7 +107,7 @@ void terrain_readConfigJSON(TerrainTexInfo* tti, char* path) {
 		}
 		
 		ret = json_obj_get_key(tc, "displacement", &v);
-		if(ret && !v) {
+		if(!ret && v) {
 			json_as_string(v, &tmp);
 			tt->paths.displacement = strdup(tmp);
 			
@@ -115,7 +115,7 @@ void terrain_readConfigJSON(TerrainTexInfo* tti, char* path) {
 		}
 		
 		ret = json_obj_get_key(tc, "specular", &v);
-		if(ret && !v) {
+		if(!ret && v) {
 			json_as_string(v, &tmp);
 			tt->paths.specular = strdup(tmp);
 			
@@ -123,7 +123,7 @@ void terrain_readConfigJSON(TerrainTexInfo* tti, char* path) {
 		}
 		
 		ret = json_obj_get_key(tc, "reflectivity", &v);
-		if(ret && !v) {
+		if(!ret && v) {
 			json_as_string(v, &tmp);
 			tt->paths.reflectivity = strdup(tmp);
 			
