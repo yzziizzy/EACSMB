@@ -47,7 +47,7 @@ static TextRes* getFont(char* name) {
 	char* filename;
 	
 	// try the cache first
-	if(HT_get(font_cache, name, &tr)) {
+	if(!HT_get(font_cache, name, &tr)) {
 		return tr;
 	}
 	

@@ -14,7 +14,7 @@
 
  
 static uint64_t hash_key(char* key, size_t len);
-static size_t find_bucket(HashTable* obj, uint64_t hash, char* key);
+static int64_t find_bucket(HashTable* obj, uint64_t hash, char* key);
  
  
 HashTable* HT_create(int allocPOT) {
@@ -84,8 +84,8 @@ static uint64_t hash_key(char* key, size_t len) {
 	return hash[0];
 }
 
-static size_t find_bucket(HashTable* obj, uint64_t hash, char* key) {
-	size_t startBucket, bi;
+static int64_t find_bucket(HashTable* obj, uint64_t hash, char* key) {
+	int64_t startBucket, bi;
 	
 	bi = startBucket = hash % obj->alloc_size; 
 	
@@ -124,7 +124,7 @@ static size_t find_bucket(HashTable* obj, uint64_t hash, char* key) {
 int HT_resize(HashTable* obj, int newSize) {
 	struct hash_bucket* old, *op;
 	size_t oldlen = obj->alloc_size;
-	size_t i, n, bi;
+	int64_t i, n, bi;
 	
 	old = op = obj->buckets;
 	
@@ -153,12 +153,15 @@ int HT_resize(HashTable* obj, int newSize) {
 // *val == NULL && return > 0  means the key was not found;
 int HT_get(HashTable* obj, char* key, void** val) {
 	uint64_t hash;
-	size_t bi;
+	int64_t bi;
 	
 	hash = hash_key(key, -1);
 	
 	bi = find_bucket(obj, hash, key);
-	if(bi < 0) return 1;
+	if(bi < 0 || obj->buckets[bi].key == NULL) {
+		*val = NULL;
+		return 1;
+	}
 	
 	*val = obj->buckets[bi].value; 
 	return 0;
@@ -167,7 +170,7 @@ int HT_get(HashTable* obj, char* key, void** val) {
 // zero for success
 int HT_set(HashTable* obj, char* key, void* val) {
 	uint64_t hash;
-	size_t bi;
+	int64_t bi;
 	
 	// check size and grow if necessary
 	if(obj->fill / obj->alloc_size >= obj->grow_ratio) {
@@ -196,7 +199,7 @@ int HT_set(HashTable* obj, char* key, void* val) {
 // zero for success
 int HT_delete(HashTable* obj, char* key) {
 	uint64_t hash;
-	size_t bi, empty_bi, nat_bi;
+	int64_t bi, empty_bi, nat_bi;
 	
 	size_t alloc_size = obj->alloc_size;
 	
