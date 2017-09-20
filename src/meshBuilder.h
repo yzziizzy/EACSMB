@@ -33,6 +33,12 @@ enum MB_op_type {
 	MB_OP_CREATE_SPHERE,
 	MB_OP_CREATE_PYRAMID,
 	
+	// not implemented
+	MB_OP_CREATE_TETRAHEDRON, 
+	MB_OP_CREATE_ICOSAHEDRON,
+	
+	MB_OP_SUBDIVIDE,
+	
 	MB_OP_MAX_VALUE
 };
 
@@ -78,6 +84,7 @@ typedef struct {
 	float height;
 	float radius;
 	int segments;
+	int base_segments;
 	
 } MB_pyramid_params;
 
@@ -88,6 +95,7 @@ typedef struct {
 	float length;
 	float radius;
 	
+	// TODO: segments along the shaft
 	int linear_segments;
 	int radial_segments;
 	
@@ -108,6 +116,9 @@ union MB_operation {
 	MB_compose_params compose;
 	MB_transform_params transform;
 	MB_cylinder_params cylinder;
+	MB_box_params box;
+	MB_sphere_params sphere;
+	MB_pyramid_params pyramid;
 };
 
 

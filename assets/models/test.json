@@ -2,12 +2,19 @@
 	op: "compose",
 	children: [
 		{
+			op: "pyramid",
+			height: 30,
+			radius: 10,
+			segments: 6,
+			base_segments: 1
+		},
+	/*	{
 			op: "sphere",
-			radius: 100,
+			radius: 3,
 			radial_segments: 8,
 			vertical_segments: 8,
-		}
-/*		,{
+		},
+		{
 			op: "box",
 			size: [100, 100, 100],
 			origin: [.5, .7, .9]
@@ -42,6 +49,6 @@
 					radial_segments: 2
 				}
 			]
-		}*/
+		} */
 	]
 }

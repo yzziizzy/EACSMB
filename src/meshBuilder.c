@@ -24,6 +24,7 @@ static MeshData* createCylinder(MB_cylinder_params* params);
 static MeshData* build_cylinder(MB_cylinder_params* params);
 static MeshData* build_box(MB_box_params* params);
 static MeshData* build_sphere(MB_sphere_params* params);
+static MeshData* build_pyramid(MB_pyramid_params* params);
 
 
 typedef MeshData* (*buildfn)(MB_operation*);
@@ -36,7 +37,7 @@ static MB_operation* handle_sphere(json_value_t* obj);
 static MB_operation* handle_pyramid(json_value_t* obj);
 static MB_operation* handle_compose(json_value_t* obj);
 static MB_operation* handle_transform(json_value_t* obj);
-static MB_operation* handle_transform_internal(json_value_t* obj);
+static MB_transform_params* handle_transform_internal(json_value_t* obj);
 
 static struct {
 	char* name; 
@@ -51,7 +52,7 @@ static struct {
 	[MB_OP_CREATE_CYLINDER] = {"cylinder", MB_OP_CREATE_CYLINDER, handle_cylinder, (buildfn)build_cylinder},
 	[MB_OP_CREATE_BOX] = {"box", MB_OP_CREATE_BOX, handle_box, (buildfn)build_box},
 	[MB_OP_CREATE_SPHERE] = {"sphere", MB_OP_CREATE_SPHERE, handle_sphere, (buildfn)build_sphere},
-	[MB_OP_CREATE_PYRAMID] = {"pyramid", MB_OP_CREATE_PYRAMID, handle_pyramid, NULL},
+	[MB_OP_CREATE_PYRAMID] = {"pyramid", MB_OP_CREATE_PYRAMID, handle_pyramid, (buildfn)build_pyramid},
 
 };
 
@@ -263,6 +264,52 @@ static MeshData* build_sphere(MB_sphere_params* params) {
 	
 	return md;
 }
+
+static MeshData* build_pyramid(MB_pyramid_params* params) {
+	MeshBuilderVertex vert;
+	MeshData* md;
+	int base_vertex = 0;
+	int i, h;
+	
+	md = mdcreate();
+	
+	float dtheta = F_2PI / params->segments;
+	float radius = params->radius;
+	float height = params->height;
+	
+	for(h = 0; h < 2; h++) {
+		for(i = 0; i <= params->segments; i++) {
+			
+			// BUG: normal is broken
+			
+			vert = (MeshBuilderVertex){
+				.v = {sin(i * dtheta) * radius * (float)!h, cos(dtheta * i) * radius * (float)!h, (float)h * height},
+				.n = {sin(i * dtheta) * radius, cos(i * dtheta) * radius * h, h * height},
+				.t = {((float)i / (float)params->segments) * 65535, h * 65535} // BUG wrong
+			};
+			VEC_PUSH(&md->verts, vert);
+		}
+	}
+	
+	
+	
+	// the pyramid's sides are a just a rectangular patch from an index perspective
+	int row1 = 0;
+	int row2 = params->segments;
+	
+	for(i = 0; i < params->segments; i++) {
+		VEC_PUSH(&md->indices, row1 + i);
+		VEC_PUSH(&md->indices, row1 + i + 1);
+		VEC_PUSH(&md->indices, row2 + i + 1);
+	}
+	
+	
+	// TODO: bottom
+	
+
+	return md;
+}
+
 
 static MeshData* build_box(MB_box_params* params) {
 	MeshBuilderVertex vert;
@@ -552,7 +599,7 @@ static MB_operation* check_for_transform(MB_operation* this, json_value_t* obj) 
 	params = handle_transform_internal(v);
 	VEC_PUSH(&params->children, this);
 	
-	return params;
+	return (MB_operation*)params;
 }
 
 
@@ -578,20 +625,35 @@ static MB_operation* handle_sphere(json_value_t* obj) {
 	json_as_int(v, &i);
 	params->vertical_segments = i;
 	
-	return check_for_transform(params, obj);
+	return check_for_transform((MB_operation*)params, obj);
 }
 
 static MB_operation* handle_pyramid(json_value_t* obj) {
 	MB_pyramid_params* params;
 	json_value_t* v;
+	int64_t i;
 	
 	params = calloc(1, sizeof(*params));
 	CHECK_OOM(params);
 	
-	params->type = MB_OP_CREATE_BOX;
+	params->type = MB_OP_CREATE_PYRAMID;
 	
 	
-	return check_for_transform(params, obj);
+	json_obj_get_key(obj, "height", &v);
+	json_as_float(v, &params->height);
+	
+	json_obj_get_key(obj, "radius", &v);
+	json_as_float(v, &params->radius);
+	
+	json_obj_get_key(obj, "segments", &v);
+	json_as_int(v, &i);
+	params->segments = i;
+	
+	json_obj_get_key(obj, "base_segments", &v);
+	json_as_int(v, &i);
+	params->base_segments = i;
+	
+	return check_for_transform((MB_operation*)params, obj);
 }
 
 static MB_operation* handle_box(json_value_t* obj) {
@@ -609,7 +671,7 @@ static MB_operation* handle_box(json_value_t* obj) {
 	json_obj_get_key(obj, "origin", &v);
 	json_as_vector(v, 3, &params->origin);
 
-	return check_for_transform(params, obj);
+	return check_for_transform((MB_operation*)params, obj);
 }
 
 static MB_operation* handle_cylinder(json_value_t* obj) {
@@ -638,7 +700,7 @@ static MB_operation* handle_cylinder(json_value_t* obj) {
 	
 	// TODO: cap_min, cap_max
 	
-	return check_for_transform(params, obj);
+	return check_for_transform((MB_operation*)params, obj);
 }
 
 
@@ -673,7 +735,7 @@ static MB_operation* handle_arr(json_value_t* arr) {
 	
 	handle_arr_internal(arr, &params->children);
 	
-	return params;
+	return (MB_operation*)params;
 }
 
 static MB_operation* handle_compose(json_value_t* obj) {
@@ -684,7 +746,7 @@ static MB_operation* handle_compose(json_value_t* obj) {
 	return handle_arr(v);
 }
 
-static MB_operation* handle_transform_internal(json_value_t* obj) {
+static MB_transform_params* handle_transform_internal(json_value_t* obj) {
 	MB_transform_params* params;
 	json_value_t* v;
 	
@@ -706,7 +768,7 @@ static MB_operation* handle_transform_internal(json_value_t* obj) {
 	json_obj_get_key(obj, "rotation", &v);
 	json_as_float(v, &params->rotation);
 	
-	return params;
+	return (MB_operation*)params;
 }
 
 static MB_operation* handle_transform(json_value_t* obj) {
@@ -719,7 +781,7 @@ static MB_operation* handle_transform(json_value_t* obj) {
 	json_obj_get_key(obj, "children", &v);
 	handle_arr_internal(v, &params->children);
 	
-	return params;
+	return (MB_operation*)params;
 }
 
 
