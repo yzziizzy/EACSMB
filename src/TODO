@@ -2,6 +2,8 @@
 SOONER:
 -------------------
 
+fix alpha blending blowing out normals
+
 some sort of generic 3d marker utility
 3d axis indicators
 
@@ -17,17 +19,15 @@ decal mesh generation
 
 
 clean up text rendering function
-spaces in fonts don't work right - maybe fixed?
 gui toolkit
 
 standard base set of uniforms for all shaders (depends on #include partially)
 rebuild eye/view code
 
 
-proper terrain scaling (kinda done)
-simplex noise (perlin artifacts look terrible)
+proper terrain scaling (mostly done)
 
-implement real lighting
+implement real lighting - partially done
 
 dummy textures
 
@@ -37,7 +37,6 @@ extrusion of a 2d shape along a spline
 adjust shader log text for real line numbers
 add #include support to shaders
 
-add dragging support to input handling
 build real input handling code
 
 
