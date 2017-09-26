@@ -102,14 +102,14 @@ void loadItemConfig(World* w, char* path) {
 			
 			j_part_node = j_part_node->next;
 		}
-		
+
 		// add item to the list
 		VEC_PUSH(&w->items, item);
-		if(!HT_set(&w->itemLookup, item->name, VEC_LEN(&w->items) - 1)) {
-			printf(stderr, "failed to register item '%s'\n", item->name);
-		}
-		
+		if(HT_set(&w->itemLookup, item->name, VEC_LEN(&w->items) - 1)) {
+ 			fprintf(stderr, "failed to register item '%s'\n", item->name);
+ 		}
 	}
+	
 	
 }
 
