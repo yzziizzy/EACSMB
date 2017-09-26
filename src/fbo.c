@@ -36,18 +36,12 @@ GLuint* initFBOTextures(int w, int h, FBOTexConfig* cfg) {
 	
 	texids = calloc(1, len + 1);
 	
-	printf("len %d\n" ,len);
-	printf("w %d\n" ,w);
-	printf("h %d\n" ,h);
-	
 	glGenTextures(len, texids);
 	
 	// allocate storage for each texture
 	for(i = 0; i < len; i++) {
 		
 		glBindTexture(GL_TEXTURE_2D, texids[i]);
-		
-		printf("texid %d\n", texids[i]);
 		
 		glexit(" -- tex buffer creation");
 
@@ -56,9 +50,8 @@ GLuint* initFBOTextures(int w, int h, FBOTexConfig* cfg) {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		
-		printf("it %d, f %d, s %d \n", cfg[i].internalType, cfg[i].format, cfg[i].size);
 		// just depth textures for this one
-		if(cfg[i].format == GL_DEPTH_COMPONENT) { printf("depth \n");
+		if(cfg[i].format == GL_DEPTH_COMPONENT) {
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
 		}
 		glexit("pre tex buffer creation");
@@ -121,7 +114,7 @@ void initFBO(Framebuffer* fb, FBOConfig* cfg) {
 		printf("fbo status invalid\n");
 		exit(1);
 	}
-	printf("FBO created.\n");
+	//printf("FBO created.\n");
 	
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glexit("unbind fb");

@@ -105,7 +105,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	gs->screen.resized = 0;
 	
 	
-	printf("w: %d, h: %d\n", ww, wh);
+	//printf("w: %d, h: %d\n", ww, wh);
 	
 	
 	initUniformBuffers();
@@ -114,7 +114,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	uniformBuffer_init(&gs->perFrameUB, sizeof(PerFrameUniforms));
 	
 	
-	printf("diffuse2: %d\n",gs->diffuseTexBuffer);
+	//printf("diffuse2: %d\n",gs->diffuseTexBuffer);
 	// set up the Geometry Buffer
 
 	initRenderLoop(gs);
@@ -128,6 +128,7 @@ void initGame(XStuff* xs, GameState* gs) {
 // 		exit(3);
 // 	};
 
+	/*
 	getPrintGLEnum(GL_MAX_COLOR_ATTACHMENTS, "meh");
 	getPrintGLEnum(GL_MAX_DRAW_BUFFERS, "meh");
 	getPrintGLEnum(GL_MAX_FRAMEBUFFER_WIDTH, "meh");
@@ -147,7 +148,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	getPrintGLEnum(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, "meh");
 	getPrintGLEnum(GL_MAX_UNIFORM_BLOCK_SIZE, "meh");
 	
-	
+	*/
 	
 	// set up matrix stacks
 	MatrixStack* view, *proj;
@@ -277,7 +278,7 @@ void preFrame(GameState* gs) {
 		val = glClientWaitSync(gs->selectionFence, 0, 0);
 		
 		if(val == GL_CONDITION_SATISFIED || val == GL_ALREADY_SIGNALED) {
-			printf("signaled %d\n", gs->frameCount - gs->selectionFrame);
+			//printf("signaled %d\n", gs->frameCount - gs->selectionFrame);
 			glDeleteSync(gs->selectionFence);
 			gs->selectionFence = 0;
 			
@@ -658,7 +659,7 @@ void checkResize(XStuff* xs, GameState* gs) {
 		
 		// TODO: destroy all the textures too
 		
-		printf("screen 0 resized\n");
+		//printf("screen 0 resized\n");
 		
 		viewWH.x = xs->winAttr.width;
 		viewWH.y = xs->winAttr.height;
@@ -672,7 +673,7 @@ void checkResize(XStuff* xs, GameState* gs) {
 		
 		setupFBOs(gs, 1);
 		
-		printf("diffuse2: %d\n",gs->diffuseTexBuffer);
+		//printf("diffuse2: %d\n",gs->diffuseTexBuffer);
 	}
 }
 

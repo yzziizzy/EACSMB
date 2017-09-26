@@ -74,7 +74,7 @@ static void unpack_fbo(json_value_t* p, char* key, FBOTexConfig* cfg) {
 	json_obj_get_key(o, "size", &v3); c = v3->v.str;
 	json_as_GLenum(v3, &cfg->size);
 	
-	printf("fbo cfg from json: %s: %x, %s: %x, %s: %x\n", a, cfg->internalType, b, cfg->format, c, cfg->size);
+	//printf("fbo cfg from json: %s: %x, %s: %x, %s: %x\n", a, cfg->internalType, b, cfg->format, c, cfg->size);
 }
 
 
@@ -102,6 +102,10 @@ void setupFBOs(GameState* gs, int resized) {
 	texcfg2[5].format = 0;
 	texcfg2[5].size = 0;
 	
+	json_free(jsf->root);
+	free(jsf->root);
+	free(jsf);
+	
 	/*
 	FBOTexConfig texcfg[6];
 	
@@ -125,12 +129,13 @@ void setupFBOs(GameState* gs, int resized) {
 		{0,0,0}
 	};
 
+	/*
 	printf("\nfbo cfg from code: %x, %x, %x\n", GL_RGB, GL_RGB, GL_UNSIGNED_BYTE);
 	printf("fbo cfg from code: %x, %x, %x\n", GL_RGB, GL_RGB, GL_UNSIGNED_BYTE);
 	printf("fbo cfg from code: %x, %x, %x\n", GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
 	printf("fbo cfg from code: %x, %x, %x\n", GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
 	printf("fbo cfg from code: %x, %x, %x\n", GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_FLOAT);
-
+	*/
 	
 	GLuint* texids = initFBOTextures(ww, wh, texcfg2);
 	
@@ -140,7 +145,7 @@ void setupFBOs(GameState* gs, int resized) {
 	gs->lightingTexBuffer = texids[3];
 	gs->depthTexBuffer = texids[4];
 	
-	printf("New Main Depth: %d \n", texids[3]);
+	//printf("New Main Depth: %d \n", texids[3]);
 	
 	// main gbuffer setup
 	if(gs->gbuf.fb) { // evil abstraction breaking. meh.
@@ -215,7 +220,7 @@ void setupFBOs(GameState* gs, int resized) {
 	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 	
 	if(gs->selectionData) free(gs->selectionData);
-	printf("seldata size %d\n", ww * wh * 4);
+	//printf("seldata size %d\n", ww * wh * 4);
 	gs->selectionData = malloc(ww * wh * 4);
 }
 
