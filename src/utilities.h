@@ -88,21 +88,6 @@ struct array_info {
 };
 
 
-// get the array info struct
-#define ar_info(ar) (&(((struct array_info*)(ar))[-1]))
-
-
-#define ar_hasRoom(ar, n) (ar_info(ar)->next_index + n < ar_info(ar)->alloc_cnt)
-#define ar_append(ar, x) do{ if(ar_hasRoom(ar)) { ar[ar_info(ar)->next_index++] = (x); } }while(0)
-#define ar_append_direct(ar, x) do{ (ar)[ar_info(ar)->next_index++] = (x); }while(0)
-#define ar_remove(ar)  do{ if(ar_info(ar)->next_index > 0) { ar_info(ar)->next_index--; } }while(0)
-#define ar_tail(ar) (ar[ar_info(ar)->next_index])
-
-#define ar_alloc(ar, cnt) (ar_alloc_internal((ar), sizeof(*(ar)), cnt)) 
-
-void* ar_alloc_internal(void* ar, int sz, int cnt);
-
-
 
 
 // cpu clock stuff

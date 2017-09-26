@@ -4,6 +4,8 @@
 #include "common_gl.h"
 #include "common_math.h"
 
+#include "ds.h"
+
 // grouped by attribute
 typedef struct  __attribute__ ((__packed__)) EmitterInstance {
 	Vector pos; 
@@ -39,8 +41,8 @@ typedef struct Emitter {
 	GLuint points_vbo; // just to annoy you
 	GLuint instance_vbo;
 	
-	EmitterSprite* sprite;
-	EmitterInstance* instances;
+	VEC(EmitterSprite) sprite;
+	VEC(EmitterInstance) instances;
 	
 } Emitter;
 

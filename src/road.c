@@ -11,6 +11,7 @@
 
 #include "c3dlas/c3dlas.h"
 
+#include "ds.h"
 #include "utilities.h"
 #include "objloader.h"
 #include "shader.h"
@@ -70,7 +71,7 @@ void initRoads() {
 	int segments = 255;
 	
 	segments++; //the end cap
-	RoadVertex* vertices = malloc(4 * segments * sizeof(RoadVertex));
+	RoadVertex* vertices = malloc(4 * segments * sizeof(*vertices));
 	indices = malloc((20 + (2 * segments * 3)) * sizeof(unsigned short));
 	
 	// oriented along the y axis, with x=0 being the center and .5 units to each side
@@ -178,23 +179,19 @@ void initRoads() {
 
 
 RoadBlock* allocRoadBlock() {
-	RoadBlock* rb = calloc(1, sizeof(RoadBlock));
+	RoadBlock* rb = calloc(1, sizeof(*rb));
 	return rb;
 }
 
 void initRoadBlock(RoadBlock* rb) {
 	
 	rb->maxRoads = 256;
-	rb->cps = ar_alloc(rb->cps, rb->maxRoads);
+	VEC_INIT(&rb->cps);
 }
 
 int rbAddRoad(RoadBlock* rb, RoadControlPoint* rcp, int* out_id) {
 	
-	if(ar_hasRoom(rb->cps, 1)) {
-		printf("in instance here\n");
-		ar_append_direct(rb->cps, *rcp);
-	}
-	
+	VEC_PUSH(&rb->cps, *rcp);
 	rb->dirty = 1;
 }
 
@@ -236,7 +233,7 @@ void drawRoad(RoadBlock* rb, GLuint dtex, Matrix* view, Matrix* proj) {
 
 
 	//                              3 strips, 2 endcaps, 2 primitive restarts
-	glDrawElementsInstanced(GL_TRIANGLE_STRIP, 3 * 256 * 2 + 2 + 2 + 2, GL_UNSIGNED_SHORT, indices, ar_info(rb->cps)->next_index);
+	glDrawElementsInstanced(GL_TRIANGLE_STRIP, 3 * 256 * 2 + 2 + 2 + 2, GL_UNSIGNED_SHORT, indices, VEC_LEN(&rb->cps));
 	glexit("road draw");
 	
 }
@@ -255,7 +252,7 @@ void roadblock_update_vbo(RoadBlock* rb) {
 	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 4*4 + 2*4, 0);
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 4*4 + 2*4, 4*4);
 
-	glBufferData(GL_ARRAY_BUFFER, ar_info(rb->cps)->next_index * sizeof(RoadControlPoint), rb->cps, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, VEC_LEN(&rb->cps) * sizeof(RoadControlPoint), VEC_DATA(&rb->cps), GL_STATIC_DRAW);
 	
 	glVertexAttribDivisor(1, 1);
 	glVertexAttribDivisor(2, 1);

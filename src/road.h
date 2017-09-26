@@ -24,7 +24,7 @@ typedef struct RoadSpline {
 typedef struct RoadBlock {
 	int nextRoad, maxRoads;
 	
-	RoadControlPoint* cps; 
+	VEC(RoadControlPoint) cps; 
 	
 	char dirty;
 	

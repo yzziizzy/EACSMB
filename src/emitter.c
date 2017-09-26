@@ -147,10 +147,13 @@ Emitter* makeEmitter() {
 	e = calloc(1, sizeof(Emitter));
 	
 	e->particleNum = 100;
-	e->sprite = s = calloc(1, e->particleNum *  sizeof(EmitterSprite));
-	e->instances = ar_alloc(e->instances, 200);
+	VEC_INIT(&e->sprite);
+	VEC_INIT(&e->instances);
 	
 	for(i = 0; i < e->particleNum; i++) {
+		VEC_INC(&e->sprite);
+		s = &VEC_ITEM(&e->sprite, i);
+		
 		s->start_pos.x = frand(-.5, .5); 
 		s->start_pos.y = frand(-.5, .5); 
 		s->start_pos.z = frand(0, 1); 
@@ -176,8 +179,6 @@ Emitter* makeEmitter() {
 		
 		s->fade_in = frand(1, 2);
 		s->fade_out = frand(2, 4);
-		
-		s++;
 	}
 
 
@@ -201,7 +202,7 @@ Emitter* makeEmitter() {
 	glEnableVertexAttribArray(4);
 	glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 4*4*5, 4*4*4);
 
-	glBufferData(GL_ARRAY_BUFFER, e->particleNum * sizeof(EmitterSprite), e->sprite, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, VEC_LEN(&e->sprite) * sizeof(*VEC_DATA(&e->sprite)), VEC_DATA(&e->sprite), GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
@@ -216,15 +217,9 @@ Emitter* makeEmitter() {
 
 // ei is copied internally
 void emitterAddInstance(Emitter* e, EmitterInstance* ei) {
-	//return;
-	printf("out instance here %d\n", ar_info(e->instances)->next_index );
-	if(ar_hasRoom(e->instances, 1)) {
-		printf("in instance here\n");
-		ar_append_direct(e->instances, *ei);
-		e->instanceNum++;
-	}
-	
-	
+
+	VEC_PUSH(&e->instances, *ei);
+	e->instanceNum++;
 }
 
 void emitter_update_vbo(Emitter* e) {
@@ -238,8 +233,8 @@ void emitter_update_vbo(Emitter* e) {
 	glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 2*4*4, 0*4*4);
 	glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, 2*4*4, 1*4*4);
 
-	printf("instance pos %d %f %f %f \n",  sizeof(EmitterInstance), e->instances[0].pos.x, e->instances[0].pos.y, e->instances[0].pos.z);
-	glBufferData(GL_ARRAY_BUFFER, e->instanceNum * sizeof(EmitterInstance), e->instances, GL_STATIC_DRAW);
+	//printf("instance pos %d %f %f %f \n",  sizeof(EmitterInstance), e->instances[0].pos.x, e->instances[0].pos.y, e->instances[0].pos.z);
+	glBufferData(GL_ARRAY_BUFFER, VEC_LEN(&e->instances) * sizeof(*VEC_DATA(&e->instances)), VEC_DATA(&e->instances), GL_STATIC_DRAW);
 	
 	glVertexAttribDivisor(5, 1);
 	glVertexAttribDivisor(6, 1);
@@ -292,7 +287,7 @@ void Draw_Emitter(Emitter* e, Matrix* view, Matrix* proj, double time) {
 	glexit("emitter vbo");
 
 	//printf("num, inst: %d, %d\n", e->particleNum, e->instanceNum);                         
-	glDrawArraysInstanced(GL_POINTS, 0, e->particleNum, e->instanceNum);
+	glDrawArraysInstanced(GL_POINTS, 0, VEC_LEN(&e->sprite), VEC_LEN(&e->instances));
 	glexit("emitter draw");
 	
 	setUBOFence();

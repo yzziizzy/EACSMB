@@ -336,7 +336,7 @@ void selectionPass(XStuff* xs, GameState* gs, InputState* is) {
 	//glEnable(GL_DEPTH_TEST);
 	glReadBuffer(GL_COLOR_ATTACHMENT0);
 	
-	printf("is buffer %d\n", gs->selectionPBOs[gs->activePBO]);
+	//printf("is buffer %d\n", gs->selectionPBOs[gs->activePBO]);
 	glBindBuffer(GL_PIXEL_PACK_BUFFER, gs->selectionPBOs[gs->activePBO]);
 	
 	glexit("selection buff");
@@ -436,7 +436,7 @@ void cleanUpView(XStuff* xs, GameState* gs, InputState* is) {
 void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	if(gs->hasMoved && gs->lastSelectionFrame < gs->frameCount - 8 && !gs->selectionPassDisabled) {
-		printf("doing selection pass %d\n", gs->frameCount);
+		//printf("doing selection pass %d\n", gs->frameCount);
 		gs->hasMoved = 0;
 		
 		selectionPass(xs, gs, is);
