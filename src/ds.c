@@ -2,8 +2,37 @@
 #include "ds.h"
 
 
+// super nifty site:
+// http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
+static int inline nextPOT(int in) {
+	
+	in--;
+	in |= in >> 1;
+	in |= in >> 2;
+	in |= in >> 4;
+	in |= in >> 8;
+	in |= in >> 16;
+	in++;
+	
+	return in;
+}
 
 
+void inline vec_resize_to(void** data, size_t* size, size_t elem_size, size_t new_size) {
+	void* tmp;
+	
+	if(*size >= new_size) return;
+	
+	*size *= nextPOT(new_size);
+	
+	tmp = realloc(*data, *size * elem_size);
+	if(!tmp) {
+		fprintf(stderr, "Out of memory in vector resize");
+		return;
+	}
+	
+	*data = tmp;
+}
 
 void inline vec_resize(void** data, size_t* size, size_t elem_size) {
 	void* tmp;
@@ -30,3 +59,4 @@ ptrdiff_t inline vec_find(void* data, size_t len, size_t stride, void* search) {
 	
 	return -1;
 }
+

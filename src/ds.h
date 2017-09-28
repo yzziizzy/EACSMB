@@ -83,9 +83,53 @@ do { \
 	VEC_ALLOC(x) = 0; \
 } while(0)
 
+#define VEC_COPY(copy, orig) \
+do { \
+	void* tmp; \
+	tmp = realloc(VEC_DATA(copy), VEC_ALLOC(orig) * sizeof(*VEC_DATA(orig)) ); \
+	if(!tmp) { \
+		fprintf(stderr, "Out of memory in vector copy"); \
+		return; \
+	} \
+	\
+	VEC_DATA(copy) = tmp; \
+	VEC_LEN(copy) = VEC_LEN(orig); \
+	VEC_ALLOC(copy) = VEC_ALLOC(orig); \
+	\
+	memcpy(VEC_DATA(copy), VEC_DATA(orig),  VEC_LEN(orig) * sizeof(*VEC_DATA(orig))); \
+} while(0)
 
 
+#define VEC_REVERSE(x) \
+do { \
+	size_t i, j; \
+	void* tmp = alloca(sizeof(*VEC_DATA(x))); \
+	for(i = 0, j = VEC_LEN(x); i < j; i++, j--) { \
+		memcpy(tmp, VEC_DATA(x)[i]); \
+		memcpy(VEC_DATA(x)[i], VEC_DATA(x)[j]); \
+		memcpy(VEC_DATA(x)[j], tmp); \
+	} \
+} while(0)
 
+
+#define VEC_SPLICE(x, y, where) \
+do { \
+	if(VEC_ALLOC(x) < VEC_LEN(x) + VEC_LEN(y)) { \
+		vec_resize_to((void**)&VEC_DATA(x), &VEC_ALLOC(x), sizeof(*VEC_DATA(x)), VEC_LEN(x) + VEC_LEN(y)); \
+	} \
+	\
+	memcpy( /* move the rest of x forward */ \
+		VEC_DATA(x) + where + VEC_LEN(y), \
+		VEC_DATA(x) + where,  \
+		(VEC_LEN(x) - where) * sizeof(*VEC_DATA(x)) \
+	); \
+	memcpy( /* copy y into the space created */ \
+		VEC_DATA(x) + where, \
+		VEC_DATA(y),  \
+		VEC_LEN(y) * sizeof(*VEC_DATA(y)) \
+	); \
+} while(0)
+	
 
 
 void inline vec_resize(void** data, size_t* size, size_t elem_size);
