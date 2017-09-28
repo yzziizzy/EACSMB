@@ -11,6 +11,7 @@
 
 #include "utilities.h"
 #include "shader.h"
+#include "hash.h"
 
 
 const int BUFFER_SZ = 1024 * 8;
@@ -148,6 +149,317 @@ GLenum nameToEnum(char* name) {
 	return -1;
 }
 
+
+/**** newer shit ****/
+
+
+
+typedef VEC(char*) stringlist;
+
+typedef struct {
+	char* src;
+	char* file_path;
+	int file_line;
+} LineInfo;
+
+typedef struct {
+	VEC(LineInfo) lines;
+	VEC(char*) strings; // only used in final separated shaders
+	char* path;
+	
+	uint32_t version;
+	GLuint id;
+	
+} NewShaderSource;
+
+typedef struct {
+	HashTable(NewShaderSource*) sources;
+	
+	char* name;
+	
+	NewShaderSource* shaders[6];
+	
+	GLuint id;
+	
+} NewShaderProgram;
+
+
+// removes \n chars
+void strsplit(char* source, stringlist* out) { 
+	char* s = source;
+	char* lstart = source;
+	
+	while(*s) {
+		if(*s == '\n') {
+			VEC_PUSH(out, strndup(lstart, s - lstart));
+			lstart = s + 1;
+		}
+		s++;
+	}
+	
+	// handle the last line
+	if(s > lstart) {
+		VEC_PUSH(out, strndup(lstart, s - lstart));
+	}
+}
+
+NewShaderSource* makeShaderSource() {
+	NewShaderSource* n;
+	
+	n = calloc(1, sizeof(*n));
+	CHECK_OOM(n);
+	
+	VEC_INIT(&n->lines);
+	VEC_INIT(&n->strings);
+}
+
+NewShaderSource* loadNewShaderSource(char* path) {
+	NewShaderSource* ss;
+	stringlist l;
+	int i;
+	char* source;
+
+	
+	source = readFile(path, NULL);
+	if(!source) {
+		// TODO copypasta, fix this
+		fprintf(stderr, "failed to load shader file '%s'\n", path);
+		return NULL;
+	}
+	
+	VEC_INIT(&l);
+	ss = makeShaderSource();
+	
+	ss->path = path;
+	strsplit(source, &l);
+	
+	for(i = 0; i < VEC_LEN(&l); i++) {
+		LineInfo* li;
+		VEC_INC(&ss->lines);
+		
+		li = &VEC_ITEM(&ss->lines, i);
+		li->src = VEC_ITEM(&l, i);
+		li->file_path = path;
+		li->file_line = i + 1;
+	}
+	
+	VEC_FREE(&l);
+	
+	return ss;
+}
+
+
+char* extractFileName(char* src) {
+	char* path, *s, *e;
+	int delim;
+	
+	s = src;
+	
+	// skip spaces
+	while(*s && *s == ' ') s++;
+	
+	delim = *s++;
+	e = strchr(s, delim);
+	path = strndup(s, e - s);
+	
+	return path;
+}
+
+char* realFromSiblingPath(char* sibling, char* file) {
+	char* falsePath, *realPath;
+	
+	char* fuckdirname = strdup(sibling);
+	char* dir;
+	
+	dir = dirname(fuckdirname);
+	
+	falsePath = pathJoin(dir, file);
+	
+	realPath = realpath(falsePath, NULL);
+	if(!realPath) {
+		// handle errno
+	}
+	
+	free(fuckdirname);
+	free(falsePath);
+	
+	return realPath;
+}
+
+void processIncludes(NewShaderProgram* sp, NewShaderSource* ss) {
+	int i;
+	char* s, *includeFileName, *includeFilePath;
+	
+	for(i = 0; i < VEC_LEN(&ss->lines); i++) {
+		NewShaderSource* iss;
+		LineInfo* li = &VEC_ITEM(&ss->lines, i);
+		
+		
+		if(0 == strncmp("#include", li->src, strlen("#include"))) {
+			s = li->src + strlen("#include");
+			
+			includeFileName = extractFileName(s);
+			includeFilePath = realFromSiblingPath(ss->path, includeFileName);
+			
+			// TODO: recursion detection
+			iss = loadNewShaderSource(includeFilePath);
+			
+			//HT_set(&sp->sources, includeFilePath, iss);
+			
+			// insert the included lines into this file's lines
+			VEC_SPLICE(&ss->lines, &iss->lines, i+1);
+			
+			// comment out this line
+			li->src[0] = '/';
+			li->src[1] = '/';
+			
+			// the spliced in lines are ahead of the loop counter.
+			// recursion is not necessary
+		}
+		
+	}
+}
+
+
+void extractShaders(NewShaderProgram* sp, NewShaderSource* raw) {
+	int i;
+	char* s;
+	char typeName[24];
+	int commonVersion = 0;
+	
+	NewShaderSource* curShader = NULL;
+	
+	/*
+	NewShaderSource* common;
+	common = makeShaderSource();
+	*/
+	
+	for(i = 0; i < VEC_LEN(&raw->lines); i++) {
+		int cnt, index;
+		int version;
+		LineInfo* li = &VEC_ITEM(&raw->lines, i);
+		
+		
+		// extract the GLSL version to be prepended to the shader
+		if(0 == strncmp("#version", li->src, strlen("#version"))) {
+			s = li->src + strlen("#version");
+			
+			sscanf(s, " %d", &version);
+			
+			if(!curShader) {
+				commonVersion = version;
+			}
+			else {
+				curShader->version = version;
+			}
+			
+			// comment out this line
+			li->src[0] = '/';
+			li->src[1] = '/';
+		}
+		else if(0 == strncmp("#shader", li->src, strlen("#shader"))) {
+			s = li->src + strlen("#shader");
+			
+			cnt = sscanf(s, " %23s", typeName); // != 1 for failure
+			if(cnt == EOF || cnt == 0) {
+				printf("failure scanning shader type name\n");
+				continue;
+			}
+			
+			index = nameToIndex(typeName);
+			
+			sp->shaders[index] = curShader = makeShaderSource();
+			
+			if(commonVersion) curShader->version = commonVersion;
+			
+			// make room for the version directive, added later
+			VEC_INC(&curShader->lines);
+			VEC_INC(&curShader->strings);
+			
+			// comment out this line
+			li->src[0] = '/';
+			li->src[1] = '/';
+		}
+		else {
+			if(curShader) {
+				// copy line 
+				VEC_PUSH(&curShader->lines, *li);
+				VEC_PUSH(&curShader->strings, li->src);
+			}
+		}
+		
+	}
+	
+	
+	// fill in version info
+	for(i = 0; i < 6; i++) {
+		NewShaderSource* ss = sp->shaders[i];
+		char* s;
+		
+		if(!ss) continue;
+		
+		s = malloc(20);
+		sprintf(s, "#version %0.3u", ss->version);
+		VEC_ITEM(&ss->strings, 0) = s;
+		VEC_ITEM(&ss->lines, 0).src = s;
+		VEC_ITEM(&ss->lines, 0).file_path = NULL;
+		VEC_ITEM(&ss->lines, 0).file_line = -1;
+	}
+}
+
+
+
+NewShaderProgram* makeShaderProgram() {
+	NewShaderProgram* sp;
+	
+	sp = calloc(1, sizeof(*sp));
+	CHECK_OOM(sp);
+	
+	HT_init(&sp->sources, 0);
+	
+	return sp;
+}
+
+
+NewShaderProgram* loadNewProgram(char* path) {
+	NewShaderProgram* sp;
+	NewShaderSource* ss;
+	
+	sp = makeShaderProgram();
+	
+	ss = loadNewShaderSource(path);
+	
+	processIncludes(sp, ss);
+	extractShaders(sp, ss);
+	
+	int i;
+	for(i = 0; i < VEC_LEN(&sp->shaders[0]->lines); i++) {
+		printf("%s:%d: '%s'\n", 
+			VEC_ITEM(&sp->shaders[0]->lines, i).file_path,
+			VEC_ITEM(&sp->shaders[0]->lines, i).file_line,
+			VEC_ITEM(&sp->shaders[0]->lines, i).src
+		);
+	}
+	
+	
+	return sp;
+}
+
+
+void testsplit(char* source) {
+	int i;
+	NewShaderSource* ss;
+	
+	loadNewProgram(source);
+// 	ss = loadNewShaderSource(source);
+	
+	
+
+	
+}
+
+
+/*^^^ newer shit ^^^*/
 
 
 int extractShader(char** source, GLuint progID) {
@@ -649,6 +961,9 @@ ShaderProgram* loadCombinedProgram(char* path) {
 		return NULL;
 	}
 	
+	// HACK
+	testsplit(spath);
+	exit(1);
 	
 	//parse out the contents one shader at a time
 	

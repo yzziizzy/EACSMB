@@ -2,6 +2,10 @@
 SOONER:
 -------------------
 
+sane version of dirname
+
+organized logging
+
 fix alpha blending blowing out normals
 
 some sort of generic 3d marker utility
