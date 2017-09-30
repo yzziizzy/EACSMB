@@ -27,6 +27,7 @@
 #include "texture.h"
 #include "window.h"
 #include "staticMesh.h"
+#include "dynamicMesh.h"
 #include "road.h"
 #include "map.h"
 #include "game.h"
@@ -176,6 +177,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	
 	
 	initStaticMeshes();
+	initDynamicMeshes();
 	initRoads();
 	initEmitters();
 	

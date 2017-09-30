@@ -11,6 +11,7 @@ eacsmb_SOURCES = main.c \
 	objloader.c \
 	meshBuilder.c \
 	staticMesh.c \
+	dynamicMesh.c \
 	uniformBuffer.c \
 	fbo.c \
 	road.c \

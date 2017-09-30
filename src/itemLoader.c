@@ -12,6 +12,9 @@ int partTypeLookup(char* name) {
 	if(0 == strcmp("staticMesh", name)) {
 		return ITEM_TYPE_STATICMESH;
 	}
+	else if(0 == strcmp("dynamicMesh", name)) {
+		return ITEM_TYPE_DYNAMICMESH;
+	}
 	else if(0 == strcmp("emitter", name)) {
 		return ITEM_TYPE_EMITTER;
 	}
@@ -28,6 +31,10 @@ ItemPart* findPart(World* w, char* typeName, char* name, ItemPart* part) {
 	part->type = partTypeLookup(typeName);
 	
 	switch(part->type) {
+		case ITEM_TYPE_DYNAMICMESH:
+			part->index = dynamicMeshManager_lookupName(w->dmm, name);
+			break;
+			
 		case ITEM_TYPE_STATICMESH:
 			part->index = meshManager_lookupName(w->smm, name);
 			break;

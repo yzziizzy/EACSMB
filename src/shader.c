@@ -14,6 +14,12 @@
 #include "hash.h"
 
 
+/*
+TODO:
+clean up debug file/line info
+capture compile errors and translat to actual file and line
+*/
+
 const char* SHADER_BASE_PATH = "./src/shaders/";
 
 

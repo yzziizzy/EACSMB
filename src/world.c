@@ -22,16 +22,19 @@ void World_init(World* w) {
 	HT_init(&w->itemLookup, 4);
 	
 	initMap(&w->map);
-	w->smm = meshManager_alloc();
+	w->smm = dynamicMeshManager_alloc();
+	w->dmm = meshManager_alloc();
 	
 	
 	meshManager_readConfigFile(w->smm, "assets/config/models.json");
+	dynamicMeshManager_readConfigFile(w->dmm, "assets/config/models.json");
 	
 	w->emitters = makeEmitter();
 	
 	loadItemConfig(w, "assets/config/items.json");
 	
 	meshManager_updateGeometry(w->smm);
+	dynamicMeshManager_updateGeometry(w->dmm);
 	
 	StaticMeshInstance smi[] = {
 		{
@@ -105,6 +108,9 @@ static int spawnPart(World* w, ItemPart* part, Vector* center) {
 	vAdd(center, &part->offset, &loc);
 	
 	switch(part->type) {
+		case ITEM_TYPE_DYNAMICMESH:
+			return World_spawnAt_DynamicMesh(w, part->index, &loc);
+		
 		case ITEM_TYPE_STATICMESH:
 			return World_spawnAt_StaticMesh(w, part->index, &loc);
 		
@@ -141,6 +147,37 @@ int World_spawnAt_Item(World* w, char* itemName, Vector* location) {
 	
 }
 
+
+int World_spawnAt_DynamicMesh(World* w, int dmIndex, Vector* location) {
+	DynamicMeshInstance dmi;
+	float h;
+	
+	Vector2i loci;
+	
+	loci.x = location->x;
+	loci.y = location->y;
+	
+	// look up the height there.
+	getTerrainHeight(&w->map, &loci, 1, &h);
+	
+	printf("map h at [%.1f, %.1f]: %.4f\n", location->x, location->y, h);
+	
+	// spawn instance
+	dmi.pos.x = location->x;
+	dmi.pos.y = location->y;
+	dmi.pos.z = h + .5; // HACK +.5z for gazebo origin offset
+	
+	dmi.scale = 1;
+	
+	dmi.dir = (Vector){1, 0, 0};
+	dmi.rot = F_PI / 2.0;
+	
+	dmi.alpha = 1.0;
+	
+	dynamicMeshManager_addInstance(w->dmm, dmIndex, &dmi);
+	dynamicMeshManager_updateInstances(w->dmm);
+	
+}
 
 int World_spawnAt_StaticMesh(World* w, int smIndex, Vector* location) {
 	StaticMeshInstance smi;
@@ -225,6 +262,7 @@ void World_drawTerrain(World* w) {
 
 void World_drawSolids(World* w, Matrix* view, Matrix* proj) {
 	meshManager_draw(w->smm, view, proj);
+	dynamicMeshManager_draw(w->dmm, view, proj);
 	
 	Draw_Emitter(w->emitters, view, proj, w->gs->frameTime);
 }

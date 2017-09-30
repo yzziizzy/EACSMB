@@ -8,6 +8,7 @@
 #include "pipe.h"
 #include "emitter.h"
 #include "staticMesh.h"
+#include "dynamicMesh.h"
 
 
 struct GameState;
@@ -15,6 +16,7 @@ struct GameState;
 enum {
 	ITEM_TYPE_UNKNOWN = 0,
 	ITEM_TYPE_STATICMESH,
+	ITEM_TYPE_DYNAMICMESH,
 	ITEM_TYPE_EMITTER
 };
 
@@ -73,6 +75,7 @@ typedef struct World {
 	struct GameState* gs; // pointer to parent
 	
 	MeshManager* smm;
+	DynamicMeshManager* dmm;
 	Emitter* emitters;
 	
 	RoadBlock* roads;
@@ -105,6 +108,7 @@ void World_drawSolids(World* w, Matrix* view, Matrix* proj);
 void World_drawDecals(World* w, Matrix* view, Matrix* proj);
 
 
+int World_spawnAt_DynamicMesh(World* w, int dmIndex, Vector* location);
 int World_spawnAt_StaticMesh(World* w, int smIndex, Vector* location);
 void World_spawnAt_Road(World* w, Vector2* start,  Vector2* stop);
 

@@ -2,7 +2,7 @@
 	gazebbq: {
 		parts: [
 			{
-				type: "staticMesh",
+				type: "dynamicMesh",
 				name: "gazebo",
 				position: [3,3,0]
 			},

@@ -196,6 +196,7 @@ GLuint makeVAO(VAOConfig* details) {
 	int i; // packed data is expected
 	uintptr_t offset = 0;
 	int stride = 0;
+	int attrSlot = 0;
 	GLuint vao;
 	
 	
@@ -206,6 +207,9 @@ GLuint makeVAO(VAOConfig* details) {
 	for(i = 0; details[i].sz != 0; i++) {
 		int type_size = 0;
 		switch(details[i].type) {
+			case GL_DOUBLE: 
+				type_size = 8; 
+				break;
 			case GL_FLOAT: 
 				type_size = 4; 
 				break;
@@ -216,6 +220,9 @@ GLuint makeVAO(VAOConfig* details) {
 			case GL_BYTE: 
 			case GL_UNSIGNED_BYTE: 
 				type_size = 1; 
+				break;
+			case GL_MATRIX_EXT: // abused for this function. does not conflict with anything
+				type_size = 4*16; 
 				break;
 			default:
 				fprintf(stderr, "Unsupported VAO type\n");
@@ -232,7 +239,13 @@ GLuint makeVAO(VAOConfig* details) {
 		glEnableVertexAttribArray(i);
 		t = details[i].type;
 		if(t == GL_FLOAT) { // works only for my usage
-			glVertexAttribFormat(i, details[i].sz, t, GL_FALSE, (void*)offset);
+			glVertexAttribFormat(attrSlot, details[i].sz, t, GL_FALSE, (void*)offset);
+		}
+		else if(t == GL_MATRIX_EXT) {
+			glVertexAttribFormat(attrSlot++, 4, GL_FLOAT, GL_FALSE, (void*)offset);
+			glVertexAttribFormat(attrSlot++, 4, GL_FLOAT, GL_FALSE, (void*)offset+4*4);
+			glVertexAttribFormat(attrSlot++, 4, GL_FLOAT, GL_FALSE, (void*)offset+4*8);
+			glVertexAttribFormat(attrSlot  , 4, GL_FLOAT, GL_FALSE, (void*)offset+4*12);
 		}
 		else {
 			glVertexAttribIFormat(i, details[i].sz, t, (void*)offset);
@@ -244,6 +257,7 @@ GLuint makeVAO(VAOConfig* details) {
 		else ds = 4;
 		
 		offset += ds * details[i].sz;
+		attrSlot++;
 	}
 	glexit("vao init");
 	
