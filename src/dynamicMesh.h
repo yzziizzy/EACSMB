@@ -13,6 +13,10 @@
 #include "texture.h"
 
 
+// must be at least 3. higher values may waste large amounts of vram
+#define DMM_INST_VBO_BUFFER_DEPTH 3
+
+
 typedef struct DynamicMeshVertex {
 	Vector v, n;
 	struct {
@@ -73,9 +77,13 @@ typedef struct DynamicMeshManager {
 	
 	//VEC(StaticMeshInstance*) instances;
 	
-	int activePosVBO;
-	// need a sync object
+	// data for persistently mapped instance vbo
 	GLuint instVBO;
+	GLsync instFences[DMM_INST_VBO_BUFFER_DEPTH];
+	int instNextRegion;
+	size_t instRegionSize; // in bytes
+	void* instDataPtr;
+	
 	GLuint geomVBO;
 	GLuint geomIBO;
 	

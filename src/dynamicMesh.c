@@ -39,10 +39,10 @@ void initDynamicMeshes() {
 		{2, GL_UNSIGNED_SHORT}, // tex
 		
 		// per instance 
-		{4, GL_FLOAT}, // position, scale
-		{4, GL_FLOAT}, // direction, rotation
-		{4, GL_FLOAT}, // alpha, x, x, x
-		{4, GL_FLOAT}, // alpha, x, x, x
+		{4, GL_FLOAT}, // model-world matrix
+		{4, GL_FLOAT}, // 
+		{4, GL_FLOAT}, // 
+		{4, GL_FLOAT}, // 
 		
 		{0, 0}
 	};
@@ -69,8 +69,37 @@ void initDynamicMeshes() {
 	glexit("");
 }
 
+// terrible code, but use for now
+static int waitSync(GLuint id) {
+	GLenum ret;
+	if(!id || !glIsSync(id)) return 1;
+	while(1) {
+		ret = glClientWaitSync(id, GL_SYNC_FLUSH_COMMANDS_BIT, 1);
+		glexit("");
+		if(ret == GL_ALREADY_SIGNALED || ret == GL_CONDITION_SATISFIED)
+			return 0;
+	}
+}
+
+static Matrix* beginWrite(DynamicMeshManager* dmm) {
+	// the fence at index n protects from writing to index n.
+	// it is set after commands for n - 1;
+	waitSync(dmm->instFences[dmm->instNextRegion]);
+	
+	return &dmm->instDataPtr[dmm->instNextRegion * dmm->instRegionSize];
+}
 
 
+static void finishWrite(DynamicMeshManager* dmm) {
+	
+	if(dmm->instFences[dmm->instNextRegion]) glDeleteSync(dmm->instFences[dmm->instNextRegion]);
+	glexit("");
+	dmm->instFences[dmm->instNextRegion] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+	glexit("");
+	
+	dmm->instNextRegion = (dmm->instNextRegion + 1) % DMM_INST_VBO_BUFFER_DEPTH; // BUG: make sure this is the right one
+	
+}
 /*
 void DynamicMesh_updateBuffers(DynamicMesh* sm) {
 	
@@ -160,6 +189,8 @@ DynamicMesh* DynamicMeshFromOBJ(OBJContents* obj) {
 
 DynamicMeshManager* dynamicMeshManager_alloc() {
 	DynamicMeshManager* mm;
+	GLbitfield flags;
+	size_t vbo_size;
 	
 	
 	mm = calloc(1, sizeof(*mm));
@@ -167,13 +198,48 @@ DynamicMeshManager* dynamicMeshManager_alloc() {
 	VEC_INIT(&mm->meshes);
 	HT_init(&mm->lookup, 6);
 	HT_init(&mm->textureLookup, 6);
-//	VEC_INIT(&mm->instances);
+
 	
-//	glBindVertexArray(vao);
+	glBindVertexArray(vao);
+
+	
+	// HACK
+	mm->instRegionSize = sizeof(Matrix) * 128;
+	
+	mm->instNextRegion = 0;
+	memset(mm->instFences, 0, sizeof(mm->instFences));
+	
+	flags =  GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
+	vbo_size = mm->instRegionSize * DMM_INST_VBO_BUFFER_DEPTH;
+	
+	glGenBuffers(1, &mm->instVBO);
+	
+	glBindBuffer(GL_ARRAY_BUFFER, mm->instVBO);
+	glBufferStorage(GL_ARRAY_BUFFER, vbo_size, NULL, flags);
+	
+	glEnableVertexAttribArray(3);
+	glEnableVertexAttribArray(4);
+	glEnableVertexAttribArray(5);
+	glEnableVertexAttribArray(6);
+	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 4*4*4, 0);
+	glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 4*4*4, 1*4*4);
+	glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 4*4*4, 2*4*4);
+	glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, 4*4*4, 3*4*4);
+	
+	glVertexAttribDivisor(3, 1);
+	glVertexAttribDivisor(4, 1);
+	glVertexAttribDivisor(5, 1);
+	glVertexAttribDivisor(6, 1);
 	
 	
-	//local vbo for collected mesh geometry
-	//glGenBuffers(2, mm->instVBO);
+	
+	mm->instDataPtr = glMapBufferRange(GL_ARRAY_BUFFER, 0, vbo_size, flags);
+	glexit("dynamic mesh persistent map");
+	
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	
+	printf("dynamic mesh manager allocated: %x \n", mm->instDataPtr);
+	
 	return mm;
 }
 
@@ -355,6 +421,7 @@ void dynamicMeshManager_updateInstances(DynamicMeshManager* mm) {
 	// HACK
 	dynamicMeshManager_updateMatrices(mm);
 	
+	/*
 	if(glIsBuffer(mm->instVBO)) glDeleteBuffers(1, &mm->instVBO);
 	glGenBuffers(1, &mm->instVBO);
 	
@@ -402,12 +469,20 @@ void dynamicMeshManager_updateInstances(DynamicMeshManager* mm) {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 	glexit("");
+	*/
 }
 
 
 
 void dynamicMeshManager_updateMatrices(DynamicMeshManager* dmm) {
 	int mesh_index, i;
+	
+	Matrix* vmem = beginWrite(dmm);
+	if(!vmem) {
+		printf("attempted to update invalid dynamic mesh manager\n");
+		return;
+	}
+	printf("updating dynamic mesh manager data\n");
 	
 	for(mesh_index = 0; mesh_index < VEC_LEN(&dmm->meshes); mesh_index++) {
 		DynamicMesh* dm = VEC_ITEM(&dmm->meshes, mesh_index);
@@ -422,10 +497,13 @@ void dynamicMeshManager_updateMatrices(DynamicMeshManager* dmm) {
 			mRot3f(1, 0, 0, F_PI / 2, &m);
 			//mScalev(&dmi->scale, &m);
 			
-			VEC_ITEM(&dm->instMatrices, i) = m;
+			// only write sequentially. random access is very bad.
+			vmem[i] = m;
 		}
 		
 	}
+	
+	finishWrite(dmm);
 }
 
 

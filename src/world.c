@@ -22,8 +22,8 @@ void World_init(World* w) {
 	HT_init(&w->itemLookup, 4);
 	
 	initMap(&w->map);
-	w->smm = dynamicMeshManager_alloc();
-	w->dmm = meshManager_alloc();
+	w->dmm = dynamicMeshManager_alloc();
+	w->smm = meshManager_alloc();
 	
 	
 	meshManager_readConfigFile(w->smm, "assets/config/models.json");
