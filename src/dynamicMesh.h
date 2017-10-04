@@ -11,6 +11,7 @@
 #include "hash.h"
 
 #include "texture.h"
+#include "pcBuffer.h"
 
 
 // must be at least 3. higher values may waste large amounts of vram
@@ -76,6 +77,8 @@ typedef struct DynamicMeshManager {
 	int totalInstances;
 	
 	//VEC(StaticMeshInstance*) instances;
+	
+	PCBuffer instVB;
 	
 	// data for persistently mapped instance vbo
 	GLuint instVBO;

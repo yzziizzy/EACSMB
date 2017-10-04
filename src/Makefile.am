@@ -13,6 +13,7 @@ eacsmb_SOURCES = main.c \
 	staticMesh.c \
 	dynamicMesh.c \
 	uniformBuffer.c \
+	pcBuffer.c \
 	fbo.c \
 	road.c \
 	window.c \

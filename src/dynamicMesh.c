@@ -69,66 +69,6 @@ void initDynamicMeshes() {
 	glexit("");
 }
 
-// terrible code, but use for now
-static int waitSync(GLuint id) {
-	GLenum ret;
-	if(!id || !glIsSync(id)) return 1;
-	while(1) {
-		ret = glClientWaitSync(id, GL_SYNC_FLUSH_COMMANDS_BIT, 1);
-		glexit("");
-		if(ret == GL_ALREADY_SIGNALED || ret == GL_CONDITION_SATISFIED)
-			return 0;
-	}
-}
-
-static Matrix* beginWrite(DynamicMeshManager* dmm) {
-	// the fence at index n protects from writing to index n.
-	// it is set after commands for n - 1;
-	waitSync(dmm->instFences[dmm->instNextRegion]);
-	
-	return &dmm->instDataPtr[dmm->instNextRegion * dmm->instRegionSize];
-}
-
-
-static void finishWrite(DynamicMeshManager* dmm) {
-	
-	if(dmm->instFences[dmm->instNextRegion]) glDeleteSync(dmm->instFences[dmm->instNextRegion]);
-	glexit("");
-	dmm->instFences[dmm->instNextRegion] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-	glexit("");
-	
-	dmm->instNextRegion = (dmm->instNextRegion + 1) % DMM_INST_VBO_BUFFER_DEPTH; // BUG: make sure this is the right one
-	
-}
-/*
-void DynamicMesh_updateBuffers(DynamicMesh* sm) {
-	
-	glexit("before dynamic mesh vbo load");
-	glBindVertexArray(vaoSingle);
-	
-	glGenBuffers(1, &sm->vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, sm->vbo);
-	
-	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
-	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 2*3*4 + 4, 0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 2*3*4 + 4, 12);
-	glVertexAttribPointer(2, 2, GL_UNSIGNED_SHORT, GL_TRUE, 2*3*4 + 4, 24);
-
-	glBufferData(GL_ARRAY_BUFFER, sm->vertexCnt * sizeof(DynamicMeshVertex), sm->vertices, GL_STATIC_DRAW);
-	glexit("");
-	
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
-	glexit("dynamic mesh vbo load");
-	
-	if(sm->indexWidth > 0) {
-		
-		// TODO IBO's
-	}
-	
-}*/
 
 
 
@@ -198,24 +138,12 @@ DynamicMeshManager* dynamicMeshManager_alloc() {
 	VEC_INIT(&mm->meshes);
 	HT_init(&mm->lookup, 6);
 	HT_init(&mm->textureLookup, 6);
-
+	
 	
 	glBindVertexArray(vao);
-
 	
-	// HACK
-	mm->instRegionSize = sizeof(Matrix) * 128;
 	
-	mm->instNextRegion = 0;
-	memset(mm->instFences, 0, sizeof(mm->instFences));
-	
-	flags =  GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
-	vbo_size = mm->instRegionSize * DMM_INST_VBO_BUFFER_DEPTH;
-	
-	glGenBuffers(1, &mm->instVBO);
-	
-	glBindBuffer(GL_ARRAY_BUFFER, mm->instVBO);
-	glBufferStorage(GL_ARRAY_BUFFER, vbo_size, NULL, flags);
+	PCBuffer_startInit(&mm->instVB, 128 * sizeof(Matrix), GL_ARRAY_BUFFER);
 	
 	glEnableVertexAttribArray(3);
 	glEnableVertexAttribArray(4);
@@ -231,14 +159,7 @@ DynamicMeshManager* dynamicMeshManager_alloc() {
 	glVertexAttribDivisor(5, 1);
 	glVertexAttribDivisor(6, 1);
 	
-	
-	
-	mm->instDataPtr = glMapBufferRange(GL_ARRAY_BUFFER, 0, vbo_size, flags);
-	glexit("dynamic mesh persistent map");
-	
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	
-	printf("dynamic mesh manager allocated: %x \n", mm->instDataPtr);
+	PCBuffer_finishInit(&mm->instVB);
 	
 	return mm;
 }
@@ -322,7 +243,6 @@ int dynamicMeshManager_addInstance(DynamicMeshManager* mm, int meshIndex, const 
 	msh = VEC_DATA(&mm->meshes)[meshIndex];
 	VEC_PUSH(&msh->instances, *smi);
 	VEC_INC(&msh->instMatrices);
-	printf("mat len %d \n",  VEC_LEN(&msh->instMatrices));
 	
 	return VEC_LEN(&msh->instances);
 }
@@ -412,64 +332,12 @@ void dynamicMeshManager_updateInstances(DynamicMeshManager* mm) {
 	int i, mesh_index, vertex_offset;
 	DynamicMeshInstance* buf_ptr;
 	
-	printf("updateing dynamic mesh instances\n");
+	printf("updating dynamic mesh instances\n");
 	
 	glBindVertexArray(vao);
 	
-	// TODO: deal with vbo cycling
-	
 	// HACK
 	dynamicMeshManager_updateMatrices(mm);
-	
-	/*
-	if(glIsBuffer(mm->instVBO)) glDeleteBuffers(1, &mm->instVBO);
-	glGenBuffers(1, &mm->instVBO);
-	
-	glBindBuffer(GL_ARRAY_BUFFER, mm->instVBO);
-	glexit("");
-	//GL_DYNAMIC_STORAGE_BIT so we can use glBufferSubData() later
-	glBufferStorage(GL_ARRAY_BUFFER, mm->totalInstances * sizeof(Matrix), NULL, GL_DYNAMIC_STORAGE_BIT | GL_MAP_WRITE_BIT);
-	glexit("");
-	printf("total instances %d\n", mm->totalInstances);
-	
-	glEnableVertexAttribArray(3);
-	glEnableVertexAttribArray(4);
-	glEnableVertexAttribArray(5);
-	glEnableVertexAttribArray(6);
-	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 4*4*4, 0);
-	glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 4*4*4, 1*4*4);
-	glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 4*4*4, 2*4*4);
-	glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, 4*4*4, 3*4*4);
-	
-	glVertexAttribDivisor(3, 1);
-	glVertexAttribDivisor(4, 1);
-	glVertexAttribDivisor(5, 1);
-	glVertexAttribDivisor(6, 1);
-	
-	buf_ptr = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-	glexit("");
-	
-	// copy in data
-	vertex_offset = 0;
-	for(mesh_index = 0; mesh_index < VEC_LEN(&mm->meshes); mesh_index++) {
-		// TODO: offsets for rendering
-		
-		int instlen = VEC_LEN(&VEC_ITEM(&mm->meshes, mesh_index)->instMatrices); //mm->inst_buf_info[mesh_index].cnt;
-		
-		memcpy(
-			buf_ptr, 
-			VEC_DATA(&VEC_ITEM(&mm->meshes, mesh_index)->instMatrices), 
-			instlen * sizeof(Matrix)
-		);
-	}
-	
-	
-	glUnmapBuffer(GL_ARRAY_BUFFER);
-	
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
-	glexit("");
-	*/
 }
 
 
@@ -477,7 +345,10 @@ void dynamicMeshManager_updateInstances(DynamicMeshManager* mm) {
 void dynamicMeshManager_updateMatrices(DynamicMeshManager* dmm) {
 	int mesh_index, i;
 	
-	Matrix* vmem = beginWrite(dmm);
+	
+	
+	Matrix* vmem = PCBuffer_beginWrite(&dmm->instVB);
+	
 	if(!vmem) {
 		printf("attempted to update invalid dynamic mesh manager\n");
 		return;
@@ -503,7 +374,7 @@ void dynamicMeshManager_updateMatrices(DynamicMeshManager* dmm) {
 		
 	}
 	
-	finishWrite(dmm);
+	PCBuffer_finishWrite(&dmm->instVB);
 }
 
 
@@ -551,7 +422,20 @@ void dynamicMeshManager_draw(DynamicMeshManager* mm, Matrix* view, Matrix* proj)
 	
 	glBindVertexArray(vao);
 	glBindBuffer(GL_ARRAY_BUFFER, mm->geomVBO);
-	glBindBuffer(GL_ARRAY_BUFFER, mm->instVBO);
+	
+	
+	PCBuffer_bind(&mm->instVB);
+	
+	/*
+// 	// BUG HACK BUG
+	fix here. this is the problem
+	glBindBufferRange(
+		GL_ARRAY_BUFFER, 
+		0, 
+		mm->instVBO, 
+		ub->next_region * ub->region_size, 
+		ub->region_size);
+	*/
 	
 //	glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
 	
