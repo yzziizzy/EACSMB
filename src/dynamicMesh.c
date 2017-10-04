@@ -19,6 +19,17 @@
 
 
 
+
+typedef  struct {
+	GLuint  count;
+	GLuint  instanceCount;
+	GLuint  first;
+	GLuint  baseInstance;
+} DrawArraysIndirectCommand;
+
+
+
+
 static GLuint vao;
 static GLuint color_ul, model_ul, view_ul, proj_ul;
 static ShaderProgram* prog;
@@ -160,6 +171,16 @@ DynamicMeshManager* dynamicMeshManager_alloc() {
 	glVertexAttribDivisor(6, 1);
 	
 	PCBuffer_finishInit(&mm->instVB);
+	
+	
+	PCBuffer_startInit(
+		&mm->indirectCmds, 
+		16 * sizeof(DrawArraysIndirectCommand), 
+		GL_DRAW_INDIRECT_BUFFER
+	);
+	PCBuffer_finishInit(&mm->indirectCmds);
+
+	
 	
 	return mm;
 }
@@ -370,13 +391,6 @@ void dynamicMeshManager_updateMatrices(DynamicMeshManager* dmm) {
 
 
 
-typedef  struct {
-	GLuint  count;
-	GLuint  instanceCount;
-	GLuint  first;
-	GLuint  baseInstance;
-} DrawArraysIndirectCommand;
-
 
 void dynamicMeshManager_draw(DynamicMeshManager* mm, Matrix* view, Matrix* proj) {
 	
@@ -404,12 +418,6 @@ void dynamicMeshManager_draw(DynamicMeshManager* mm, Matrix* view, Matrix* proj)
 	glUniform3f(color_ul, .5, .2, .9);
 	
 	
-	DrawArraysIndirectCommand cmds[20];
-	
-	cmds[0].count = VEC_ITEM(&mm->meshes, 0)->vertexCnt; // number of polys
-	cmds[0].instanceCount = VEC_LEN(&VEC_ITEM(&mm->meshes, 0)->instances); // number of instances
-	cmds[0].first = 0; // offset of this mesh into the instances
-	cmds[0].baseInstance = 0; // offset into instanced vertex attributes
 
 	//printf("instance count %d, %d\n", cmds[0].instanceCount, cmds[0].count);
 	
@@ -430,15 +438,25 @@ void dynamicMeshManager_draw(DynamicMeshManager* mm, Matrix* view, Matrix* proj)
 		ub->region_size);
 	*/
 	
-//	glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
-	
+	glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
 
-	glDrawArraysInstancedBaseInstance(GL_TRIANGLES, 0, cmds[0].count, cmds[0].instanceCount,
-		(128 * ((mm->instVB.nextRegion) % PC_BUFFER_DEPTH) ));
-//	glMultiDrawArraysIndirect(GL_TRIANGLES, cmds, 1, 0);
+	
+	DrawArraysIndirectCommand* cmds = PCBuffer_beginWrite(&mm->indirectCmds);
+	
+	cmds[0].count = VEC_ITEM(&mm->meshes, 0)->vertexCnt; // number of polys
+	cmds[0].instanceCount = VEC_LEN(&VEC_ITEM(&mm->meshes, 0)->instances); // number of instances
+	cmds[0].first = 0; // offset of this mesh into the instances
+	cmds[0].baseInstance = (128 * ((mm->instVB.nextRegion) % PC_BUFFER_DEPTH)); // offset into instanced vertex attributes
+
+	PCBuffer_bind(&mm->indirectCmds);
+	
+//	glDrawArraysInstancedBaseInstance(GL_TRIANGLES, 0, cmds[0].count, cmds[0].instanceCount,
+//		(128 * ((mm->instVB.nextRegion) % PC_BUFFER_DEPTH)) );
+	glMultiDrawArraysIndirect(GL_TRIANGLES, 0, 1, 0);
 	glexit("multidrawarraysindirect");
 	
 	PCBuffer_afterDraw(&mm->instVB);
+	PCBuffer_afterDraw(&mm->indirectCmds);
 	
 }
 

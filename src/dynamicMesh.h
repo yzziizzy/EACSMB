@@ -78,6 +78,7 @@ typedef struct DynamicMeshManager {
 	
 	//VEC(StaticMeshInstance*) instances;
 	
+	PCBuffer indirectCmds;
 	PCBuffer instVB;
 	
 	// data for persistently mapped instance vbo
