@@ -122,12 +122,6 @@ GLuint makeVAO(VAOConfig* details);
 
 void initKHRDebug();
 
-inline float frand(float low, float high);
-float fclamp(float val, float min, float max);
-float fclampNorm(float val);
-
-int iclamp(int val, int min, int max);
-int iclampNorm(int val);
 
 size_t strlnlen(const char* s);
 char* strlndup(const char* s);

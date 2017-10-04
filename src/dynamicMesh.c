@@ -327,19 +327,6 @@ void dynamicMeshManager_updateGeometry(DynamicMeshManager* mm) {
 	glexit(__FILE__);
 }
 
-void dynamicMeshManager_updateInstances(DynamicMeshManager* mm) {
-	
-	int i, mesh_index, vertex_offset;
-	DynamicMeshInstance* buf_ptr;
-	
-	printf("updating dynamic mesh instances\n");
-	
-	glBindVertexArray(vao);
-	
-	// HACK
-	dynamicMeshManager_updateMatrices(mm);
-}
-
 
 
 void dynamicMeshManager_updateMatrices(DynamicMeshManager* dmm) {
@@ -353,8 +340,7 @@ void dynamicMeshManager_updateMatrices(DynamicMeshManager* dmm) {
 		printf("attempted to update invalid dynamic mesh manager\n");
 		return;
 	}
-	printf("updating dynamic mesh manager data\n");
-	
+
 	for(mesh_index = 0; mesh_index < VEC_LEN(&dmm->meshes); mesh_index++) {
 		DynamicMesh* dm = VEC_ITEM(&dmm->meshes, mesh_index);
 		
@@ -363,6 +349,11 @@ void dynamicMeshManager_updateMatrices(DynamicMeshManager* dmm) {
 			Matrix m = IDENT_MATRIX, tmp = IDENT_MATRIX;
 			
 			mTransv(&dmi->pos, &m);
+			
+			// HACK
+			Vector noise;
+			vRandom(&(Vector){-1,-1,-1}, &(Vector){1,1,1}, &noise);
+			mTransv(&noise, &m);
 			
 			// z-up hack for now
 			mRot3f(1, 0, 0, F_PI / 2, &m);
@@ -374,7 +365,6 @@ void dynamicMeshManager_updateMatrices(DynamicMeshManager* dmm) {
 		
 	}
 	
-	PCBuffer_finishWrite(&dmm->instVB);
 }
 
 
@@ -392,6 +382,9 @@ void dynamicMeshManager_draw(DynamicMeshManager* mm, Matrix* view, Matrix* proj)
 	
 	GLuint tex_ul;
 	Matrix model;
+	
+	// HACK: put elsewhere
+	dynamicMeshManager_updateMatrices(mm);
 	
 	//mFastMul(view, proj, &mvp);
 	mIdent(&model);
@@ -440,10 +433,12 @@ void dynamicMeshManager_draw(DynamicMeshManager* mm, Matrix* view, Matrix* proj)
 //	glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
 	
 
-	glDrawArraysInstancedBaseInstance(GL_TRIANGLES, 0, cmds[0].count, cmds[0].instanceCount, 0);
+	glDrawArraysInstancedBaseInstance(GL_TRIANGLES, 0, cmds[0].count, cmds[0].instanceCount,
+		(128 * ((mm->instVB.nextRegion) % PC_BUFFER_DEPTH) ));
 //	glMultiDrawArraysIndirect(GL_TRIANGLES, cmds, 1, 0);
 	glexit("multidrawarraysindirect");
 	
+	PCBuffer_afterDraw(&mm->instVB);
 	
 }
 

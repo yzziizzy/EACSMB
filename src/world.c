@@ -175,8 +175,7 @@ int World_spawnAt_DynamicMesh(World* w, int dmIndex, Vector* location) {
 	dmi.alpha = 1.0;
 	
 	dynamicMeshManager_addInstance(w->dmm, dmIndex, &dmi);
-	dynamicMeshManager_updateInstances(w->dmm);
-	
+	// note: dynamic mesh instances are updated every frame automatically
 }
 
 int World_spawnAt_StaticMesh(World* w, int smIndex, Vector* location) {

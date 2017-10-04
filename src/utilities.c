@@ -268,28 +268,6 @@ GLuint makeVAO(VAOConfig* details) {
 
 
 
-// numeric stuff
-inline float frand(float low, float high) {
-	return low + ((high - low) * ((double)rand() / (double)RAND_MAX));
-}
-
-float fclamp(float val, float min, float max) {
-	return fmin(max, fmax(min, val));
-}
-
-float fclampNorm(float val) {
-	return fclamp(val, 0.0f, 1.0f);
-}
-
-int iclamp(int val, int min, int max) {
-	return MIN(max, MAX(min, val));
-}
-
-int iclampNorm(int val) {
-	return iclamp(val, 0, 1);
-}
-
-
 // length of the line, or length of the string if no \n found
 size_t strlnlen(const char* s) {
 	char* n;

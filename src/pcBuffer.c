@@ -68,7 +68,7 @@ void* PCBuffer_beginWrite(PCBuffer* b) {
 }
 
 
-void PCBuffer_finishWrite(PCBuffer* b) {
+void PCBuffer_afterDraw(PCBuffer* b) {
 	
 	if(b->fences[b->nextRegion]) glDeleteSync(b->fences[b->nextRegion]);
 	glexit("");

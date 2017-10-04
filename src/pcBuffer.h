@@ -33,7 +33,7 @@ void PCBuffer_startInit(PCBuffer* b, size_t size, GLenum type);
 void PCBuffer_finishInit(PCBuffer* b);
 
 void* PCBuffer_beginWrite(PCBuffer* b);
-void PCBuffer_finishWrite(PCBuffer* b);
+void PCBuffer_afterDraw(PCBuffer* b);
 void PCBuffer_bind(PCBuffer* b);
 
 

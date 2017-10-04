@@ -98,7 +98,6 @@ typedef struct DynamicMeshManager {
 
 
 void dynamicMeshManager_draw(DynamicMeshManager* mm, Matrix* view, Matrix* proj);
-void dynamicMeshManager_updateInstances(DynamicMeshManager* mm);
 void dynamicMeshManager_updateGeometry(DynamicMeshManager* mm);
 int dynamicMeshManager_addMesh(DynamicMeshManager* mm, char* name, DynamicMesh* sm);
 int dynamicMeshManager_lookupName(DynamicMeshManager* mm, char* name);
