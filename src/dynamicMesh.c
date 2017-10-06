@@ -224,7 +224,8 @@ void dynamicMeshManager_readConfigFile(DynamicMeshManager* mm, char* configPath)
 			dm->texIndex = dynamicMeshManager_addTexture(mm, path);
 		}
 		
-		dynamicMeshManager_addMesh(mm, dm->name, dm);
+		int ind = dynamicMeshManager_addMesh(mm, dm->name, dm);
+		printf("DM added mesh %d: %s \n", ind, dm->name);
 		
 	}
 	
@@ -254,13 +255,14 @@ int dynamicMeshManager_addInstance(DynamicMeshManager* mm, int meshIndex, const 
 	DynamicMesh* msh; 
 	DynamicMeshInstance* s;
 	
-	if(meshIndex > VEC_LEN(&mm->meshes)) {
+	if(meshIndex >= VEC_LEN(&mm->meshes)) {
 		fprintf(stderr, "mesh manager addInstance out of bounds: %d, %d\n", (int)VEC_LEN(&mm->meshes), meshIndex);
 		return -1;
 	}
 	
 	mm->totalInstances++;
 	
+	printf("adding instance: %d ", meshIndex);
 	msh = VEC_DATA(&mm->meshes)[meshIndex];
 	VEC_PUSH(&msh->instances, *smi);
 	VEC_INC(&msh->instMatrices);
@@ -274,9 +276,10 @@ int dynamicMeshManager_lookupName(DynamicMeshManager* mm, char* name) {
 	int64_t index;
 	
 	if(!HT_get(&mm->lookup, name, &index)) {
+		printf("dynamic mesh found: %s -> %d\n", name, index);
 		return index;
 	}
-	
+	printf("dynamic mesh not found: %s\n", name);
 	return -1;
 }
 
@@ -290,7 +293,7 @@ int dynamicMeshManager_addMesh(DynamicMeshManager* mm, char* name, DynamicMesh* 
 	
 	HT_set(&mm->lookup, name, index -1);
 	
-	return index;
+	return index - 1;
 }
 
 
@@ -298,7 +301,8 @@ int dynamicMeshManager_addMesh(DynamicMeshManager* mm, char* name, DynamicMesh* 
 // should only used for initial setup
 void dynamicMeshManager_updateGeometry(DynamicMeshManager* mm) {
 	
-	int i, offset;
+	int i;
+	size_t offset;
 	
 	glBindVertexArray(vao);
 	
@@ -325,22 +329,49 @@ void dynamicMeshManager_updateGeometry(DynamicMeshManager* mm) {
 */
 
 
-	glBufferStorage(GL_ARRAY_BUFFER, mm->totalVertices * sizeof(DynamicMeshVertex), NULL, GL_DYNAMIC_STORAGE_BIT);
+	printf("DM total vertices: %d\n", mm->totalVertices);
+	glBufferStorage(GL_ARRAY_BUFFER, mm->totalVertices * sizeof(DynamicMeshVertex), NULL, GL_MAP_WRITE_BIT | GL_DYNAMIC_STORAGE_BIT);
 	glexit("");
 	
 	
+	void* buf = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+	glexit("");
+	
 	offset = 0;
 	for(i = 0; i < VEC_LEN(&mm->meshes); i++) {
+		DynamicMesh* dm = VEC_ITEM(&mm->meshes, i);
 		
-		glBufferSubData(
-			GL_ARRAY_BUFFER, 
-			offset, 
-			VEC_ITEM(&mm->meshes, i)->vertexCnt * sizeof(DynamicMeshVertex), 
-			VEC_ITEM(&mm->meshes, i)->vertices);
-		//glBufferData(GL_ARRAY_BUFFER, m->vertexCnt * sizeof(DynamicMeshVertex), m->vertices, GL_STATIC_DRAW);
-	
-		offset += VEC_ITEM(&mm->meshes, i)->vertexCnt * sizeof(DynamicMeshVertex);
+		memcpy(buf + offset, dm->vertices, dm->vertexCnt * sizeof(DynamicMeshVertex));
+
+		printf("DM upload geom > offset: %d, cnt: %d, size: %d  \n", 
+			   offset, dm->vertexCnt, dm->vertexCnt * sizeof(DynamicMeshVertex));
+		
+		
+		
+		offset += dm->vertexCnt * sizeof(DynamicMeshVertex);
 	}
+	
+	
+	glUnmapBuffer(GL_ARRAY_BUFFER);
+	
+	
+// 	offset = 0;
+// 	for(i = 0; i < VEC_LEN(&mm->meshes); i++) {
+// 		
+// 		printf("DM upload> vertex cnt: %d, size: %d, offset: %d\n",
+// 			   VEC_ITEM(&mm->meshes, i)->vertexCnt, 
+// 			   VEC_ITEM(&mm->meshes, i)->vertexCnt * sizeof(DynamicMeshVertex),
+// 			   offset
+// 			  ); 
+// 		glBufferSubData(
+// 			GL_ARRAY_BUFFER, 
+// 			offset, 
+// 			VEC_ITEM(&mm->meshes, i)->vertexCnt * sizeof(DynamicMeshVertex), 
+// 			VEC_ITEM(&mm->meshes, i)->vertices);
+// 		//glBufferData(GL_ARRAY_BUFFER, m->vertexCnt * sizeof(DynamicMeshVertex), m->vertices, GL_STATIC_DRAW);
+// 	
+// 		offset += VEC_ITEM(&mm->meshes, i)->vertexCnt * sizeof(DynamicMeshVertex);
+// 	}
 	
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
@@ -362,6 +393,7 @@ void dynamicMeshManager_updateMatrices(DynamicMeshManager* dmm) {
 		return;
 	}
 
+	
 	for(mesh_index = 0; mesh_index < VEC_LEN(&dmm->meshes); mesh_index++) {
 		DynamicMesh* dm = VEC_ITEM(&dmm->meshes, mesh_index);
 		
@@ -374,16 +406,18 @@ void dynamicMeshManager_updateMatrices(DynamicMeshManager* dmm) {
 			// HACK
 			Vector noise;
 			vRandom(&(Vector){-1,-1,-1}, &(Vector){1,1,1}, &noise);
-			mTransv(&noise, &m);
+			//mTransv(&noise, &m);
 			
 			// z-up hack for now
 			mRot3f(1, 0, 0, F_PI / 2, &m);
 			//mScalev(&dmi->scale, &m);
 			
 			// only write sequentially. random access is very bad.
-			vmem[i] = m;
+			*vmem = m;
+			vmem++;
 		}
 		
+		//vmem += VEC_LEN(&dm->instances);
 	}
 	
 }
@@ -443,16 +477,37 @@ void dynamicMeshManager_draw(DynamicMeshManager* mm, Matrix* view, Matrix* proj)
 	
 	DrawArraysIndirectCommand* cmds = PCBuffer_beginWrite(&mm->indirectCmds);
 	
-	cmds[0].count = VEC_ITEM(&mm->meshes, 0)->vertexCnt; // number of polys
-	cmds[0].instanceCount = VEC_LEN(&VEC_ITEM(&mm->meshes, 0)->instances); // number of instances
-	cmds[0].first = 0; // offset of this mesh into the instances
-	cmds[0].baseInstance = (128 * ((mm->instVB.nextRegion) % PC_BUFFER_DEPTH)); // offset into instanced vertex attributes
-
-	PCBuffer_bind(&mm->indirectCmds);
+	int index_offset = 0;
+	int instance_offset = 0;
+	int mesh_index;
+	for(mesh_index = 0; mesh_index < VEC_LEN(&mm->meshes); mesh_index++) {
+		DynamicMesh* dm = VEC_ITEM(&mm->meshes, mesh_index);
+			
+		cmds[mesh_index].first = index_offset; // offset of this mesh into the instances
+		cmds[mesh_index].count = dm->vertexCnt; // number of polys
+		
+		// offset into instanced vertex attributes
+		cmds[mesh_index].baseInstance = (128 * ((mm->instVB.nextRegion) % PC_BUFFER_DEPTH)) + instance_offset; 
+		// number of instances
+		cmds[mesh_index].instanceCount = VEC_LEN(&dm->instances); 
+		
+		//*
+		printf("DM draw %d > ind. offset: %d, vertices: %d, instances: %d, base instance: %d \n",
+			mesh_index, index_offset, dm->vertexCnt, VEC_LEN(&dm->instances),
+			(128 * ((mm->instVB.nextRegion) % PC_BUFFER_DEPTH)) + instance_offset
+		);//*/
+		index_offset += dm->vertexCnt;// * sizeof(DynamicMeshVertex);//dm->indexCnt;
+		instance_offset += VEC_LEN(&dm->instances);
+		
+	}
 	
-//	glDrawArraysInstancedBaseInstance(GL_TRIANGLES, 0, cmds[0].count, cmds[0].instanceCount,
-//		(128 * ((mm->instVB.nextRegion) % PC_BUFFER_DEPTH)) );
-	glMultiDrawArraysIndirect(GL_TRIANGLES, 0, 1, 0);
+	PCBuffer_bind(&mm->indirectCmds);
+	/*
+	glDrawArraysInstancedBaseInstance(GL_TRIANGLES, cmds[0].first, cmds[0].count, cmds[0].instanceCount, cmds[0].baseInstance);
+	glDrawArraysInstanced(GL_TRIANGLES, 552, 4422, cmds[1].instanceCount);//, cmds[1].baseInstance);
+	glDrawArraysInstancedBaseInstance(GL_TRIANGLES, cmds[2].first, cmds[2].count, cmds[2].instanceCount, cmds[2].baseInstance);*/
+
+ 	glMultiDrawArraysIndirect(GL_TRIANGLES, 0, VEC_LEN(&mm->meshes), 0);
 	glexit("multidrawarraysindirect");
 	
 	PCBuffer_afterDraw(&mm->instVB);

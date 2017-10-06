@@ -174,7 +174,10 @@ int World_spawnAt_DynamicMesh(World* w, int dmIndex, Vector* location) {
 	
 	dmi.alpha = 1.0;
 	
-	dynamicMeshManager_addInstance(w->dmm, dmIndex, &dmi);
+	int ind;
+	ind = rand() > (RAND_MAX / 2) ? 0 : 1;
+	printf("rand mesh: %d\n", ind);
+	dynamicMeshManager_addInstance(w->dmm, 0, &dmi);
 	// note: dynamic mesh instances are updated every frame automatically
 }
 

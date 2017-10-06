@@ -354,16 +354,16 @@ void meshManager_updateGeometry(MeshManager* mm) {
 // 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*3*4 + 4, 0);
 // 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3*3*4 + 4, 1*3*4);
 // 	glVertexAttribPointer(2, 2, GL_UNSIGNED_SHORT, GL_TRUE, 2*3*4 + 4, 2*3*4);
-/*
+
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 	glEnableVertexAttribArray(2);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 2*3*4 + 4, 0);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 2*3*4 + 4, 12);
 	glVertexAttribPointer(2, 2, GL_UNSIGNED_SHORT, GL_TRUE, 2*3*4 + 4, 24);
-*/
 
 
+	printf("SM total vertices: %d\n", mm->totalVertices);
 	glBufferStorage(GL_ARRAY_BUFFER, mm->totalVertices * sizeof(StaticMeshVertex), NULL, GL_DYNAMIC_STORAGE_BIT);
 	glexit("");
 	
@@ -371,6 +371,7 @@ void meshManager_updateGeometry(MeshManager* mm) {
 	offset = 0;
 	for(i = 0; i < VEC_LEN(&mm->meshes); i++) {
 		
+		printf("SM upload> vertex cnt: %d, offset: %d\n",VEC_ITEM(&mm->meshes, i)->vertexCnt, offset); 
 		glBufferSubData(
 			GL_ARRAY_BUFFER, 
 			offset, 
