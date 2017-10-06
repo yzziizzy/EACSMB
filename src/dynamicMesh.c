@@ -311,25 +311,14 @@ void dynamicMeshManager_updateGeometry(DynamicMeshManager* mm) {
 	
 	glBindBuffer(GL_ARRAY_BUFFER, mm->geomVBO);
 	
-	//GL_DYNAMIC_STORAGE_BIT so we can use glBufferSubData() later
-	
-// 	glEnableVertexAttribArray(0);
-// 	glEnableVertexAttribArray(1);
-// 	glEnableVertexAttribArray(2);
-// 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*3*4 + 4, 0);
-// 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3*3*4 + 4, 1*3*4);
-// 	glVertexAttribPointer(2, 2, GL_UNSIGNED_SHORT, GL_TRUE, 2*3*4 + 4, 2*3*4);
-/*
+
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 	glEnableVertexAttribArray(2);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 2*3*4 + 4, 0);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 2*3*4 + 4, 12);
 	glVertexAttribPointer(2, 2, GL_UNSIGNED_SHORT, GL_TRUE, 2*3*4 + 4, 24);
-*/
 
-
-	printf("DM total vertices: %d\n", mm->totalVertices);
 	glBufferStorage(GL_ARRAY_BUFFER, mm->totalVertices * sizeof(DynamicMeshVertex), NULL, GL_MAP_WRITE_BIT | GL_DYNAMIC_STORAGE_BIT);
 	glexit("");
 	
@@ -342,11 +331,6 @@ void dynamicMeshManager_updateGeometry(DynamicMeshManager* mm) {
 		DynamicMesh* dm = VEC_ITEM(&mm->meshes, i);
 		
 		memcpy(buf + offset, dm->vertices, dm->vertexCnt * sizeof(DynamicMeshVertex));
-
-		printf("DM upload geom > offset: %d, cnt: %d, size: %d  \n", 
-			   offset, dm->vertexCnt, dm->vertexCnt * sizeof(DynamicMeshVertex));
-		
-		
 		
 		offset += dm->vertexCnt * sizeof(DynamicMeshVertex);
 	}
@@ -354,24 +338,6 @@ void dynamicMeshManager_updateGeometry(DynamicMeshManager* mm) {
 	
 	glUnmapBuffer(GL_ARRAY_BUFFER);
 	
-	
-// 	offset = 0;
-// 	for(i = 0; i < VEC_LEN(&mm->meshes); i++) {
-// 		
-// 		printf("DM upload> vertex cnt: %d, size: %d, offset: %d\n",
-// 			   VEC_ITEM(&mm->meshes, i)->vertexCnt, 
-// 			   VEC_ITEM(&mm->meshes, i)->vertexCnt * sizeof(DynamicMeshVertex),
-// 			   offset
-// 			  ); 
-// 		glBufferSubData(
-// 			GL_ARRAY_BUFFER, 
-// 			offset, 
-// 			VEC_ITEM(&mm->meshes, i)->vertexCnt * sizeof(DynamicMeshVertex), 
-// 			VEC_ITEM(&mm->meshes, i)->vertices);
-// 		//glBufferData(GL_ARRAY_BUFFER, m->vertexCnt * sizeof(DynamicMeshVertex), m->vertices, GL_STATIC_DRAW);
-// 	
-// 		offset += VEC_ITEM(&mm->meshes, i)->vertexCnt * sizeof(DynamicMeshVertex);
-// 	}
 	
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
@@ -461,16 +427,6 @@ void dynamicMeshManager_draw(DynamicMeshManager* mm, Matrix* view, Matrix* proj)
 	
 	PCBuffer_bind(&mm->instVB);
 	
-	/*
-// 	// BUG HACK BUG
-	fix here. this is the problem
-	glBindBufferRange(
-		GL_ARRAY_BUFFER, 
-		0, 
-		mm->instVBO, 
-		ub->next_region * ub->region_size, 
-		ub->region_size);
-	*/
 	
 	glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
 
@@ -491,21 +447,12 @@ void dynamicMeshManager_draw(DynamicMeshManager* mm, Matrix* view, Matrix* proj)
 		// number of instances
 		cmds[mesh_index].instanceCount = VEC_LEN(&dm->instances); 
 		
-		//*
-		printf("DM draw %d > ind. offset: %d, vertices: %d, instances: %d, base instance: %d \n",
-			mesh_index, index_offset, dm->vertexCnt, VEC_LEN(&dm->instances),
-			(128 * ((mm->instVB.nextRegion) % PC_BUFFER_DEPTH)) + instance_offset
-		);//*/
 		index_offset += dm->vertexCnt;// * sizeof(DynamicMeshVertex);//dm->indexCnt;
 		instance_offset += VEC_LEN(&dm->instances);
 		
 	}
 	
 	PCBuffer_bind(&mm->indirectCmds);
-	/*
-	glDrawArraysInstancedBaseInstance(GL_TRIANGLES, cmds[0].first, cmds[0].count, cmds[0].instanceCount, cmds[0].baseInstance);
-	glDrawArraysInstanced(GL_TRIANGLES, 552, 4422, cmds[1].instanceCount);//, cmds[1].baseInstance);
-	glDrawArraysInstancedBaseInstance(GL_TRIANGLES, cmds[2].first, cmds[2].count, cmds[2].instanceCount, cmds[2].baseInstance);*/
 
  	glMultiDrawArraysIndirect(GL_TRIANGLES, 0, VEC_LEN(&mm->meshes), 0);
 	glexit("multidrawarraysindirect");

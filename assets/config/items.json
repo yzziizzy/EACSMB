@@ -8,7 +8,7 @@
 			},
 			{
 				type: "dynamicMesh",
-				name: "gazebo",
+				name: "fence",
 				position: [-3,3,0]
 			},
 			{
