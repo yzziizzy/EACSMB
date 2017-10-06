@@ -7,6 +7,7 @@
 #include "ds.h"
 #include "hash.h"
 
+#include "pcBuffer.h"
 #include "texture.h"
 
 
@@ -68,6 +69,8 @@ typedef struct MeshManager {
 	int totalInstances;
 	
 	//VEC(StaticMeshInstance*) instances;
+	
+	PCBuffer indirectCmds;
 	
 	int activePosVBO;
 	// need a sync object

@@ -20,14 +20,6 @@
 
 
 
-typedef  struct {
-	GLuint  count;
-	GLuint  instanceCount;
-	GLuint  first;
-	GLuint  baseInstance;
-} DrawArraysIndirectCommand;
-
-
 
 
 static GLuint vao;

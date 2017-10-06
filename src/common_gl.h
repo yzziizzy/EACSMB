@@ -15,5 +15,15 @@
 
 
 
+// GLEW lacks this for some reason
+typedef  struct {
+	GLuint  count;
+	GLuint  instanceCount;
+	GLuint  first;
+	GLuint  baseInstance;
+} DrawArraysIndirectCommand;
+
+
+
 
 #endif // __common_gl_h__
