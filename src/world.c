@@ -19,10 +19,15 @@ void World_init(World* w) {
 	VEC_INIT(&w->partInstances);
 	VEC_INIT(&w->items);
 	
+	// TODO: handle last frame's data on first frame
+	VEC_INIT(&w->orients[0]);
+	VEC_INIT(&w->orients[1]);
+	w->curOrient = 0;
+	
 	HT_init(&w->itemLookup, 4);
 	
 	initMap(&w->map);
-	w->dmm = dynamicMeshManager_alloc();
+	w->dmm = dynamicMeshManager_alloc(512);
 	w->smm = meshManager_alloc();
 	
 	

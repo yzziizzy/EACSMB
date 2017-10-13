@@ -53,9 +53,11 @@ struct OrientData {
 	float scale;
 	
 	Vector dir;
+	float alpha;
+	
+	Vector rotAxis;
 	float rot;
 	
-	float alpha;
 };
 
 struct ItemFlags {
@@ -88,7 +90,10 @@ typedef struct World {
 	VEC(ItemInstance*) itemInstances;
 	VEC(PartInstance*) partInstances;
 	
-	VEC(struct OrientData) orients;
+	VEC(uint32_t) itemOrientKeys;
+	
+	int curOrient;
+	VEC(struct OrientData) orients[2];
 	
 	VEC(struct ItemFlags) flags;
 	

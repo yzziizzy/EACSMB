@@ -130,7 +130,7 @@ DynamicMesh* DynamicMeshFromOBJ(OBJContents* obj) {
 
 
 
-DynamicMeshManager* dynamicMeshManager_alloc() {
+DynamicMeshManager* dynamicMeshManager_alloc(int maxInstances) {
 	DynamicMeshManager* mm;
 	GLbitfield flags;
 	size_t vbo_size;
@@ -142,11 +142,12 @@ DynamicMeshManager* dynamicMeshManager_alloc() {
 	HT_init(&mm->lookup, 6);
 	HT_init(&mm->textureLookup, 6);
 	
+	mm->maxInstances = maxInstances;
 	
 	glBindVertexArray(vao);
 	
 	
-	PCBuffer_startInit(&mm->instVB, 128 * sizeof(Matrix), GL_ARRAY_BUFFER);
+	PCBuffer_startInit(&mm->instVB, mm->maxInstances * sizeof(Matrix), GL_ARRAY_BUFFER);
 	
 	glEnableVertexAttribArray(3);
 	glEnableVertexAttribArray(4);
@@ -435,7 +436,7 @@ void dynamicMeshManager_draw(DynamicMeshManager* mm, Matrix* view, Matrix* proj)
 		cmds[mesh_index].count = dm->vertexCnt; // number of polys
 		
 		// offset into instanced vertex attributes
-		cmds[mesh_index].baseInstance = (128 * ((mm->instVB.nextRegion) % PC_BUFFER_DEPTH)) + instance_offset; 
+		cmds[mesh_index].baseInstance = (mm->maxInstances * ((mm->instVB.nextRegion) % PC_BUFFER_DEPTH)) + instance_offset; 
 		// number of instances
 		cmds[mesh_index].instanceCount = VEC_LEN(&dm->instances); 
 		

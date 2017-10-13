@@ -76,6 +76,8 @@ typedef struct DynamicMeshManager {
 	int totalVertices;
 	int totalInstances;
 	
+	int maxInstances;
+	
 	//VEC(StaticMeshInstance*) instances;
 	
 	PCBuffer indirectCmds;
@@ -111,24 +113,12 @@ void DynamicMesh_updateBuffers(DynamicMesh* sm);
 void drawDynamicMesh(DynamicMesh* m, Matrix* view, Matrix* proj);
 void initDynamicMeshes();
 
+DynamicMeshManager* dynamicMeshManager_alloc(int maxInstances);
 
 void dynamicMeshManager_updateMatrices(DynamicMeshManager* dmm);
 
 
-/*
 
-typedef struct DynamicMeshManager {
-	
-	GLuint fences[UNIFORM_BUFFER_DEPTH];
-	int next_region;
-	
-	size_t region_size;
-	void* data_ptr;
-	
-	
-} DynamicMeshManager;
-
-*/
 
 
 
