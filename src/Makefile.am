@@ -46,7 +46,7 @@ eacsmb_LDADD =  \
 	-lX11 -lfreetype -lfontconfig -lpng \
 	-lGL -lGLU -lGLEW
 	 
-AM_CFLAGS = "-I/usr/include/freetype2" -g -DLINUX -Wno-unused-result
+AM_CFLAGS = "-I/usr/include/freetype2" -std=gnu11 -g -DLINUX -Wno-unused-result
 AM_CXXFLAGS = $(AM_CFLAGS)
 
 

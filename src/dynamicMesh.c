@@ -121,11 +121,17 @@ DynamicMesh* DynamicMeshFromOBJ(OBJContents* obj) {
 	glexit("dynamic mesh vbo load");
 	
 	printf("-----loaded---------------\n");
-	VEC_INIT(&m->instances);
+	
+	m->curFrameIndex = 0;
+	VEC_INIT(&m->instances[0]);
+	VEC_INIT(&m->instances[1]);
+	
 	VEC_INIT(&m->instMatrices);
 	
 	return m;
 }
+
+
 
 
 
@@ -257,10 +263,11 @@ int dynamicMeshManager_addInstance(DynamicMeshManager* mm, int meshIndex, const 
 	
 	printf("adding instance: %d ", meshIndex);
 	msh = VEC_DATA(&mm->meshes)[meshIndex];
-	VEC_PUSH(&msh->instances, *smi);
+	VEC_PUSH(&msh->instances[0], *smi);
+	VEC_PUSH(&msh->instances[1], *smi);
 	VEC_INC(&msh->instMatrices);
 	
-	return VEC_LEN(&msh->instances);
+	return VEC_LEN(&msh->instances[0]);
 }
 
 // returns the index of the instance
@@ -356,8 +363,9 @@ void dynamicMeshManager_updateMatrices(DynamicMeshManager* dmm) {
 	for(mesh_index = 0; mesh_index < VEC_LEN(&dmm->meshes); mesh_index++) {
 		DynamicMesh* dm = VEC_ITEM(&dmm->meshes, mesh_index);
 		
-		for(i = 0; i < VEC_LEN(&dm->instances); i++) {
-			DynamicMeshInstance* dmi = &VEC_ITEM(&dm->instances, i);
+		// TODO make instances switch per frame
+		for(i = 0; i < VEC_LEN(&dm->instances[0]); i++) {
+			DynamicMeshInstance* dmi = &VEC_ITEM(&dm->instances[0], i);
 			Matrix m = IDENT_MATRIX, tmp = IDENT_MATRIX;
 			
 			mTransv(&dmi->pos, &m);
@@ -438,10 +446,10 @@ void dynamicMeshManager_draw(DynamicMeshManager* mm, Matrix* view, Matrix* proj)
 		// offset into instanced vertex attributes
 		cmds[mesh_index].baseInstance = (mm->maxInstances * ((mm->instVB.nextRegion) % PC_BUFFER_DEPTH)) + instance_offset; 
 		// number of instances
-		cmds[mesh_index].instanceCount = VEC_LEN(&dm->instances); 
+		cmds[mesh_index].instanceCount = VEC_LEN(&dm->instances[0]); 
 		
 		index_offset += dm->vertexCnt;// * sizeof(DynamicMeshVertex);//dm->indexCnt;
-		instance_offset += VEC_LEN(&dm->instances);
+		instance_offset += VEC_LEN(&dm->instances[0]);
 		
 	}
 	

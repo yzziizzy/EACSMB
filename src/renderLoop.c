@@ -383,7 +383,7 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	World_drawSolids(gs->world, msGetTop(&gs->view), msGetTop(&gs->proj));
 
 	
-	drawStaticMesh(gs->world->testmesh.sm, msGetTop(&gs->view), msGetTop(&gs->proj));
+	//drawStaticMesh(gs->world->testmesh.sm, msGetTop(&gs->view), msGetTop(&gs->proj));
 	
 /*
 	gui_RenderAll(gs);

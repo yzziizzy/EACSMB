@@ -68,7 +68,7 @@ void Pipe_init(PipeSegment* ps) {
 	
 	StaticMesh_updateBuffers(sm);
 	
-	ps->sm = sm;
+	//ps->sm = sm;
 	
 	
 	
@@ -77,6 +77,48 @@ void Pipe_init(PipeSegment* ps) {
 
 
 
+
+PipeLine* Pipe_create(Vector* points, int numpts) {
+	int i;
+	PipeLine* pl;
+	
+	
+	pl = calloc(1, sizeof(*pl));
+	CHECK_OOM(pl);
+	
+	pl->pipeScale = 1.0;
+	pl->jointScale = 1.0;
+	
+	VEC_INIT(&pl->segments);
+	VEC_INIT(&pl->joints);
+	
+	// TODO:
+	// sum length
+	
+	for(i = 1; i < numpts; i++) {
+		Vector* st = &points[i-1];
+		Vector* ed = &points[i];
+		
+		PipeSegment s = {
+			.start = *st,
+			.end = *ed,
+			.length = 3.5, // TODO: fix
+		}; 
+		
+		VEC_PUSH(&pl->segments, s);
+		
+		PipeJoint j = {
+			.pos = *ed,
+			.dir = {0,1,0}, // TODO: fix
+		};
+		
+		VEC_PUSH(&pl->joints, j);
+		
+		
+	}
+	
+	return pl;
+}
 
 
 

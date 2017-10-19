@@ -62,7 +62,8 @@ typedef struct DynamicMesh {
 	
 	int texIndex; // index to meshman texture table
 	
-	VEC(DynamicMeshInstance) instances;
+	int curFrameIndex;
+	VEC(DynamicMeshInstance) instances[2];
 	VEC(Matrix) instMatrices;
 	
 } DynamicMesh;

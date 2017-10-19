@@ -1,5 +1,6 @@
 
 #include "ds.h"
+#include <string.h>
 
 
 // super nifty site:
@@ -18,7 +19,7 @@ static int inline nextPOT(int in) {
 }
 
 
-void inline vec_resize_to(void** data, size_t* size, size_t elem_size, size_t new_size) {
+void vec_resize_to(void** data, size_t* size, size_t elem_size, size_t new_size) {
 	void* tmp;
 	
 	if(*size >= new_size) return;
@@ -34,7 +35,7 @@ void inline vec_resize_to(void** data, size_t* size, size_t elem_size, size_t ne
 	*data = tmp;
 }
 
-void inline vec_resize(void** data, size_t* size, size_t elem_size) {
+void vec_resize(void** data, size_t* size, size_t elem_size) {
 	void* tmp;
 	
 	if(*size < 8) *size = 8;
@@ -49,7 +50,7 @@ void inline vec_resize(void** data, size_t* size, size_t elem_size) {
 	*data = tmp;
 }
  
-ptrdiff_t inline vec_find(void* data, size_t len, size_t stride, void* search) {
+ptrdiff_t vec_find(void* data, size_t len, size_t stride, void* search) {
 	size_t i;
 	for(i = 0; i < len; i++) {
 		if(memcmp(data + (i * stride), search, stride)) {
