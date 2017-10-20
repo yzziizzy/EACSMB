@@ -197,6 +197,21 @@ StaticMesh* StaticMeshFromOBJ(OBJContents* obj) {
 	glBindVertexArray(0);
 	glexit("static mesh vbo load");
 	
+	
+	// index buffer
+	
+	glGenBuffers(1, &m->ibo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m->ibo);
+	
+	glBufferStorage(GL_ELEMENT_ARRAY_BUFFER, m->vertexCnt * sizeof(uint16_t), NULL, GL_MAP_WRITE_BIT);
+
+	uint16_t* ib = glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
+	for(i = 0; i < m->vertexCnt; i++) ib[i] = i;
+	glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
+	
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	
+	
 	printf("-----loaded---------------\n");
 	VEC_INIT(&m->instances);
 	
