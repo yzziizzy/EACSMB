@@ -66,6 +66,7 @@ typedef struct MeshManager {
 	VEC(StaticMesh*) meshes;
 	HashTable(int) lookup;
 	int totalVertices;
+	int totalIndices;
 	int totalInstances;
 	
 	//VEC(StaticMeshInstance*) instances;

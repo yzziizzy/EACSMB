@@ -199,17 +199,26 @@ StaticMesh* StaticMeshFromOBJ(OBJContents* obj) {
 	
 	
 	// index buffer
+	// TODO: fix above code to deduplicate vertices
+	m->indexWidth = 2;
+	m->indexCnt = m->vertexCnt;
 	
-	glGenBuffers(1, &m->ibo);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m->ibo);
+	m->indices.w16 = malloc(sizeof(*m->indices.w16) * m->indexCnt);
+	CHECK_OOM(m->indices.w16);
 	
-	glBufferStorage(GL_ELEMENT_ARRAY_BUFFER, m->vertexCnt * sizeof(uint16_t), NULL, GL_MAP_WRITE_BIT);
-
-	uint16_t* ib = glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
-	for(i = 0; i < m->vertexCnt; i++) ib[i] = i;
-	glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
+	for(i = 0; i < m->vertexCnt; i++) m->indices.w16[i] = i;
 	
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	
+// 	glGenBuffers(1, &m->ibo);
+// 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m->ibo);
+// 	
+// 	glBufferStorage(GL_ELEMENT_ARRAY_BUFFER, m->vertexCnt * sizeof(uint16_t), NULL, GL_MAP_WRITE_BIT);
+// 
+// 	uint16_t* ib = glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
+// 	for(i = 0; i < m->vertexCnt; i++) ib[i] = i;
+// 	glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
+// 	
+// 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	
 	
 	printf("-----loaded---------------\n");
@@ -341,6 +350,7 @@ int meshManager_addMesh(MeshManager* mm, char* name, StaticMesh* sm) {
 	
 	VEC_PUSH(&mm->meshes, sm);
 	mm->totalVertices += sm->vertexCnt;
+	mm->totalIndices += sm->indexCnt;
 	index = VEC_LEN(&mm->meshes);
 	
 	HT_set(&mm->lookup, name, index -1);
@@ -389,6 +399,30 @@ void meshManager_updateGeometry(MeshManager* mm) {
 	
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+	
+	
+	// index buffers
+	if(glIsBuffer(mm->geomIBO)) glDeleteBuffers(1, &mm->geomIBO);
+	glGenBuffers(1, &mm->geomIBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mm->geomIBO);
+	
+	glBufferStorage(GL_ELEMENT_ARRAY_BUFFER, mm->totalIndices * sizeof(uint16_t), NULL, GL_MAP_WRITE_BIT);
+
+	uint16_t* ib = glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
+	
+	offset = 0;
+	for(i = 0; i < VEC_LEN(&mm->meshes); i++) {
+		
+		memcpy(ib + offset, VEC_ITEM(&mm->meshes, i)->indices.w16, VEC_ITEM(&mm->meshes, i)->indexCnt * sizeof(uint16_t));
+		//for(i = 0; i < m->vertexCnt; i++) ib[i] = i;
+		
+		offset += VEC_ITEM(&mm->meshes, i)->indexCnt;
+	}
+	
+	glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
+	
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	
 	
 	glexit(__FILE__);
 }
@@ -497,6 +531,7 @@ void meshManager_draw(MeshManager* mm, Matrix* view, Matrix* proj) {
 	glBindVertexArray(vao);
 	glBindBuffer(GL_ARRAY_BUFFER, mm->geomVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, mm->instVBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mm->geomIBO);
 	
 	
 	glMultiDrawArraysIndirect(GL_TRIANGLES, 0, VEC_LEN(&mm->meshes), 0);
