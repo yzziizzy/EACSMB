@@ -513,14 +513,14 @@ void meshManager_draw(MeshManager* mm, Matrix* view, Matrix* proj) {
 		StaticMesh* sm = VEC_ITEM(&mm->meshes, mesh_index);
 			
 		cmds[mesh_index].first = index_offset; // offset of this mesh into the instances
-		cmds[mesh_index].count = sm->vertexCnt; // number of polys
+		cmds[mesh_index].count = sm->indexCnt; // number of polys
 		
 		// offset into instanced vertex attributes
 		cmds[mesh_index].baseInstance = instance_offset; 
 		// number of instances
 		cmds[mesh_index].instanceCount = VEC_LEN(&sm->instances); 
 		
-		index_offset += sm->vertexCnt;// * sizeof(DynamicMeshVertex);//sm->indexCnt;
+		index_offset += sm->indexCnt;// * sizeof(DynamicMeshVertex);//sm->indexCnt;
 		instance_offset += VEC_LEN(&sm->instances);
 		
 	}

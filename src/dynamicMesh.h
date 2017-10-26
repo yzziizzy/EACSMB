@@ -75,6 +75,7 @@ typedef struct DynamicMeshManager {
 	VEC(DynamicMesh*) meshes;
 	HashTable(int) lookup;
 	int totalVertices;
+	int totalIndices;
 	int totalInstances;
 	
 	int maxInstances;
@@ -86,11 +87,6 @@ typedef struct DynamicMeshManager {
 	
 	// data for persistently mapped instance vbo
 	GLuint instVBO;
-	GLsync instFences[DMM_INST_VBO_BUFFER_DEPTH];
-	int instNextRegion;
-	size_t instRegionSize; // in bytes
-	void* instDataPtr;
-	
 	GLuint geomVBO;
 	GLuint geomIBO;
 	

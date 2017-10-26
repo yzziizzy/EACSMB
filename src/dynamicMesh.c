@@ -98,27 +98,17 @@ DynamicMesh* DynamicMeshFromOBJ(OBJContents* obj) {
 		m->vertices[i].t.v = obj->faces[i].t.y * 65535;
 	}
 	
-	glexit("before dynamic mesh vbo load");
-	glBindVertexArray(vao);
-	glexit("");
+	// index buffer
+	// TODO: fix above code to deduplicate vertices
+	m->indexWidth = 2;
+	m->indexCnt = m->vertexCnt;
 	
-	glGenBuffers(1, &m->vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, m->vbo);
+	m->indices.w16 = malloc(sizeof(*m->indices.w16) * m->indexCnt);
+	CHECK_OOM(m->indices.w16);
 	
-	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
-	glEnableVertexAttribArray(2);
+	for(i = 0; i < m->vertexCnt; i++) m->indices.w16[i] = i;
 	
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 2*3*4 + 4, 0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 2*3*4 + 4, 12);
-	glVertexAttribPointer(2, 2, GL_UNSIGNED_SHORT, GL_TRUE, 2*3*4 + 4, 24);
-
-	glBufferData(GL_ARRAY_BUFFER, m->vertexCnt * sizeof(DynamicMeshVertex), m->vertices, GL_STATIC_DRAW);
-	glexit("");
 	
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
-	glexit("dynamic mesh vbo load");
 	
 	printf("-----loaded---------------\n");
 	
@@ -127,6 +117,7 @@ DynamicMesh* DynamicMeshFromOBJ(OBJContents* obj) {
 	VEC_INIT(&m->instances[1]);
 	
 	VEC_INIT(&m->instMatrices);
+	
 	
 	return m;
 }
@@ -289,6 +280,7 @@ int dynamicMeshManager_addMesh(DynamicMeshManager* mm, char* name, DynamicMesh* 
 	
 	VEC_PUSH(&mm->meshes, sm);
 	mm->totalVertices += sm->vertexCnt;
+	mm->totalIndices += sm->indexCnt;
 	index = VEC_LEN(&mm->meshes);
 	
 	HT_set(&mm->lookup, name, index -1);
@@ -341,6 +333,35 @@ void dynamicMeshManager_updateGeometry(DynamicMeshManager* mm) {
 	
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+	
+	
+	
+	
+	// index buffers
+	if(glIsBuffer(mm->geomIBO)) glDeleteBuffers(1, &mm->geomIBO);
+	glGenBuffers(1, &mm->geomIBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mm->geomIBO);
+	
+	glBufferStorage(GL_ELEMENT_ARRAY_BUFFER, mm->totalIndices * sizeof(uint16_t), NULL, GL_MAP_WRITE_BIT);
+
+	uint16_t* ib = glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
+	
+	offset = 0;
+	for(i = 0; i < VEC_LEN(&mm->meshes); i++) {
+		
+		memcpy(ib + offset, VEC_ITEM(&mm->meshes, i)->indices.w16, VEC_ITEM(&mm->meshes, i)->indexCnt * sizeof(uint16_t));
+		//for(i = 0; i < m->vertexCnt; i++) ib[i] = i;
+		
+		offset += VEC_ITEM(&mm->meshes, i)->indexCnt;
+	}
+	
+	glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
+	
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	
+	
+	
+	
 	
 	glexit(__FILE__);
 }
@@ -424,6 +445,7 @@ void dynamicMeshManager_draw(DynamicMeshManager* mm, Matrix* view, Matrix* proj)
 	
 	glBindVertexArray(vao);
 	glBindBuffer(GL_ARRAY_BUFFER, mm->geomVBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mm->geomIBO);
 	
 	
 	PCBuffer_bind(&mm->instVB);
@@ -441,14 +463,14 @@ void dynamicMeshManager_draw(DynamicMeshManager* mm, Matrix* view, Matrix* proj)
 		DynamicMesh* dm = VEC_ITEM(&mm->meshes, mesh_index);
 			
 		cmds[mesh_index].first = index_offset; // offset of this mesh into the instances
-		cmds[mesh_index].count = dm->vertexCnt; // number of polys
+		cmds[mesh_index].count = dm->indexCnt; // number of polys
 		
 		// offset into instanced vertex attributes
 		cmds[mesh_index].baseInstance = (mm->maxInstances * ((mm->instVB.nextRegion) % PC_BUFFER_DEPTH)) + instance_offset; 
 		// number of instances
 		cmds[mesh_index].instanceCount = VEC_LEN(&dm->instances[0]); 
 		
-		index_offset += dm->vertexCnt;// * sizeof(DynamicMeshVertex);//dm->indexCnt;
+		index_offset += dm->indexCnt;// * sizeof(DynamicMeshVertex);//dm->indexCnt;
 		instance_offset += VEC_LEN(&dm->instances[0]);
 		
 	}
