@@ -13,7 +13,7 @@
 
 struct GameState;
 
-enum {
+enum ItemTypes {
 	ITEM_TYPE_UNKNOWN = 0,
 	ITEM_TYPE_STATICMESH,
 	ITEM_TYPE_DYNAMICMESH,
@@ -67,6 +67,29 @@ struct ItemFlags {
 };
 
 
+typedef struct SimpleKinematics {
+	Vector velocity;
+	float angularVelocity;
+	
+	Vector acceleration;
+	float angularAcceleration;
+	
+	Vector axisOfRotation;
+	
+} SimpleKinematics;
+
+
+
+static const uint32_t ITEM_BASE_IDS[] = {
+	[ITEM_TYPE_UNKNOWN] =     4000000000,
+	[ITEM_TYPE_STATICMESH] =  0000000000,
+	[ITEM_TYPE_DYNAMICMESH] = 1000000000,
+};
+
+static inline uint32_t itemBaseID(enum ItemTypes e) {
+	return ITEM_BASE_IDS[e];
+}
+
 
 // World is the entire world's contents. Scene is the part you can see.
 // eventually, probably, the graphics data will be moved into Scene
@@ -92,10 +115,18 @@ typedef struct World {
 	
 	VEC(uint32_t) itemOrientKeys;
 	
+	VEC(struct OrientData) staticOrients[2];
+	
 	int curOrient;
 	VEC(struct OrientData) orients[2];
 	
+	VEC(uint32_t) simpleKinematicsKeys;
+	VEC(struct SimpleKinematics) simpleKinematics;
+	
+	
 	VEC(struct ItemFlags) flags;
+	
+	
 	
 	PipeSegment testmesh;
 	

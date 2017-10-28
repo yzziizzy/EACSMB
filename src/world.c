@@ -280,6 +280,15 @@ void World_drawDecals(World* w, Matrix* view, Matrix* proj) {
 
 
 
+void World_addSimpleKinematics(World* w, int itemNum) {
+	
+	SimpleKinematics sk;
+	memset(&sk, 0, sizeof(sk));
+	
+	VEC_PUSH(&w->simpleKinematicsKeys, itemNum);
+	VEC_PUSH(&w->simpleKinematics, sk);
+	
+} 
 
 
 
