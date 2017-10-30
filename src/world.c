@@ -78,7 +78,7 @@ void World_init(World* w) {
 	
 	// water plane, temporary hack
 	w->wp = calloc(1, sizeof(*w->wp));
-	
+	WaterPlane_create(w->wp, 200, &(Vector){0,0,0});
 	
 	Pipe_init(&w->testmesh);
 	
@@ -272,6 +272,8 @@ void World_drawSolids(World* w, Matrix* view, Matrix* proj) {
 	dynamicMeshManager_draw(w->dmm, view, proj);
 	
 	Draw_Emitter(w->emitters, view, proj, w->gs->frameTime);
+	
+	WaterPlane_draw(w->wp, view, proj);
 }
 
 

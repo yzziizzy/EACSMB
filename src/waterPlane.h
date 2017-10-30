@@ -37,7 +37,7 @@ typedef struct WaterPlane {
 
 
 void initWaterPlane();
-void drawWaterPlane(WaterPlane* wp, Matrix* view, Matrix* proj);
+void WaterPlane_draw(WaterPlane* wp, Matrix* view, Matrix* proj);
 void WaterPlane_create(WaterPlane* wp, float size, Vector* pos);
 
 #endif // __EACSMB_WATERPLANE_H__

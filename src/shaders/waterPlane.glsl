@@ -5,8 +5,7 @@
 #version 430 core
 
 layout (location = 0) in vec3 pos_in;
-layout (location = 1) in vec3 norm_in;
-layout (location = 2) in vec2 tex_in;
+layout (location = 1) in vec2 tex_in;
 
 
 uniform mat4 mModel;
@@ -19,7 +18,7 @@ out vec2 vs_tex;
 
 void main() {
 	gl_Position = (mProj * mView * mModel) * vec4(pos_in, 1);
-	vs_norm = vec4(norm_in, 1); // normalize(vec4(1,1,1,0));
+	vs_norm = vec4(0,1,0, 1); // normalize(vec4(1,1,1,0));
 	vs_tex = tex_in;
 }
 
@@ -37,6 +36,11 @@ in vec2 vs_tex;
 // fragment shader
 uniform vec4 color;
 
+uniform globalTimer {
+	float timeSeconds;
+	float timeFractional;
+};
+
 
 layout(location = 0) out vec4 out_Color;
 layout(location = 1) out vec4 out_Normal;
@@ -44,8 +48,15 @@ layout(location = 1) out vec4 out_Normal;
 
 void main(void) {
 	
- 	out_Color = vec4(vs_tex.xy, 0, 1); //vs_norm;
-//	out_Color = vec4(1,0, 0, 1); //vs_norm;
+	float speed = .1; // radians per second 
+	
+	// TODO: move to uniform
+	float theta = mod(timeSeconds * speed, 6.28) + (timeFractional * speed);
+	
+	
+	
+// 	out_Color = vec4(vs_tex.xy, 0, 1); //vs_norm;
+	out_Color = vec4(1,0, 0, 1); //vs_norm;
 	out_Normal = normalize(vs_norm);
 }
 

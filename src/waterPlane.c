@@ -55,7 +55,7 @@ void initWaterPlane() {
 
 
 
-void drawWaterPlane(WaterPlane* wp, Matrix* view, Matrix* proj) {
+void WaterPlane_draw(WaterPlane* wp, Matrix* view, Matrix* proj) {
 	
 	Matrix model;
 	
@@ -85,35 +85,40 @@ void WaterPlane_create(WaterPlane* wp, float size, Vector* pos) {
 	
 	wp->vertexCnt = 6;
 	
+	glBindVertexArray(vao);
+	
 	glGenBuffers(1, &wp->vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, wp->vbo);
+	glexit("");
 	
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*4 + 4, 0);
 	glVertexAttribPointer(1, 2, GL_UNSIGNED_SHORT, GL_TRUE, 3*4 + 4, 3*4);
 
-	glBufferStorage(GL_ELEMENT_ARRAY_BUFFER, wp->vertexCnt * sizeof(struct WaterPlaneVertex), NULL, GL_MAP_WRITE_BIT);
+	glexit("");
+	
+	glBufferStorage(GL_ARRAY_BUFFER, wp->vertexCnt * sizeof(struct WaterPlaneVertex), NULL, GL_MAP_WRITE_BIT);
  
 	struct WaterPlaneVertex* d = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
 	
 	d[0].pos = (Vector){0,0,0};
 	d[0].t = (UVPair){0,0};
 	
-	d[1].pos = (Vector){1,0,0};
+	d[1].pos = (Vector){size,0,0};
 	d[1].t = (UVPair){65535,0};
 	
-	d[2].pos = (Vector){1,0,1};
+	d[2].pos = (Vector){size,0,size};
 	d[2].t = (UVPair){65535, 65535};
 
 	
 	d[3].pos = (Vector){0,0,0};
 	d[3].t = (UVPair){0,0};
 	
-	d[4].pos = (Vector){1,0,1};
+	d[4].pos = (Vector){size,0,size};
 	d[4].t = (UVPair){65535, 65535};
 	
-	d[5].pos = (Vector){0,0,1};
+	d[5].pos = (Vector){0,0,size};
 	d[5].t = (UVPair){0,65535};
 	
 	
