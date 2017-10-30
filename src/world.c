@@ -76,6 +76,9 @@ void World_init(World* w) {
 	
 	roadblock_update_vbo(w->roads);
 	
+	// water plane, temporary hack
+	w->wp = calloc(1, sizeof(*w->wp));
+	
 	
 	Pipe_init(&w->testmesh);
 	

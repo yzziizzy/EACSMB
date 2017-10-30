@@ -9,6 +9,7 @@
 #include "emitter.h"
 #include "staticMesh.h"
 #include "dynamicMesh.h"
+#include "waterPlane.h"
 
 
 struct GameState;
@@ -104,6 +105,8 @@ typedef struct World {
 	Emitter* emitters;
 	
 	RoadBlock* roads;
+	
+	WaterPlane* wp;
 	
 	MapInfo map;
 	

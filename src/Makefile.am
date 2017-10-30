@@ -16,6 +16,7 @@ eacsmb_SOURCES = main.c \
 	pcBuffer.c \
 	fbo.c \
 	road.c \
+	waterPlane.c \
 	window.c \
 	shader.c \
 	pipe.c \
