@@ -50,6 +50,17 @@ out vec2 te_tex[];
 out vec2 te_tile[];;
 out int te_InstanceID[];
 
+
+bool inBox(vec4 v) {
+	const float low = -1.0;
+	const float high = 1.0;
+	if(low > v.x || v.x > high) return false;
+	if(low > v.y || v.y > high) return false;
+	if(low > v.z || v.z > high) return false;
+	
+	return true;
+}
+
 void main() {
  
 	if(gl_InvocationID == 0) {
@@ -63,6 +74,22 @@ void main() {
 		w1 /= w1.w;
 		w2 /= w2.w;
 		w3 /= w3.w;
+		
+		// cull patches outside the view frustum
+		// TODO: sample height map and adjust corners
+		if((!inBox(w0) && !inBox(w1) && !inBox(w2) && !inBox(w3))) {
+			
+			// discard the patch entirely
+			gl_TessLevelOuter[0] = 0; 
+			gl_TessLevelOuter[1] = 0; 
+			gl_TessLevelOuter[2] = 0; 
+			gl_TessLevelOuter[3] = 0;
+			gl_TessLevelInner[0] = 0;
+			gl_TessLevelInner[1] = 0;
+			
+			return;
+		}
+
 		
 		float lod = 128;
 
