@@ -51,12 +51,20 @@ void main(void) {
 	float speed = .1; // radians per second 
 	
 	// TODO: move to uniform
-	float theta = mod(timeSeconds * speed, 6.28) + (timeFractional * speed);
+	//float theta = mod(timeSeconds * speed, 6.28) + (timeFractional * speed);
 	
+	out_Color = vec4(
+		sin(vs_tex.x * 30),
+		cos(vs_tex.y * 30),
+		0, 1);
 	
-	
+/*	out_Color = vec4(
+		vs_tex.x,
+		vs_tex.y,
+		0, 1);
+	*/
 // 	out_Color = vec4(vs_tex.xy, 0, 1); //vs_norm;
-	out_Color = vec4(1,0, 0, 1); //vs_norm;
+//	out_Color = vec4(1,0, 0, 1); //vs_norm;
 	out_Normal = normalize(vs_norm);
 }
 

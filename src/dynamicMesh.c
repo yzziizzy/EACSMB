@@ -14,6 +14,7 @@
 #include "utilities.h"
 #include "objloader.h"
 #include "shader.h"
+#include "pass.h"
 
 #include "c_json/json.h"
 
@@ -28,11 +29,15 @@ static ShaderProgram* prog;
 Texture* tex;
 
 
-
+static void preFrame(PassFrameParams* pfp, DynamicMeshManager* dmm);
+static void draw(PassDrawParams* pdp, GLuint progID, DynamicMeshManager* dmm);
+static void postFrame(DynamicMeshManager* dmm);
 
 
 
 void initDynamicMeshes() {
+	
+	PassDrawable* pd;
 	
 	// VAO
 	VAOConfig opts[] = {
@@ -70,6 +75,16 @@ void initDynamicMeshes() {
 	glBindTexture(GL_TEXTURE_2D, tex->tex_id);
 	
 	glexit("");
+	
+	
+	
+	pd = Pass_allocDrawable("dynamic mesh manager");
+	pd->preFrame = preFrame;
+	pd->draw = draw;
+	pd->postFrame = postFrame;
+	pd->prog = prog;
+	
+	Pass_registerDrawable(pd);
 }
 
 
@@ -419,8 +434,7 @@ void dynamicMeshManager_draw(DynamicMeshManager* mm, Matrix* view, Matrix* proj)
 	GLuint tex_ul;
 	Matrix model;
 	
-	// HACK: put elsewhere
-	dynamicMeshManager_updateMatrices(mm);
+
 	
 	//mFastMul(view, proj, &mvp);
 	mIdent(&model);
@@ -487,5 +501,85 @@ void dynamicMeshManager_draw(DynamicMeshManager* mm, Matrix* view, Matrix* proj)
 
 
 
+
+static void preFrame(PassFrameParams* pfp, DynamicMeshManager* dmm) {
+	
+	dynamicMeshManager_updateMatrices(dmm);
+	
+	// set up the indirect draw commands
+	DrawArraysIndirectCommand* cmds = PCBuffer_beginWrite(&mm->indirectCmds);
+	
+	int index_offset = 0;
+	int instance_offset = 0;
+	int mesh_index;
+	for(mesh_index = 0; mesh_index < VEC_LEN(&mm->meshes); mesh_index++) {
+		DynamicMesh* dm = VEC_ITEM(&mm->meshes, mesh_index);
+			
+		cmds[mesh_index].first = index_offset; // offset of this mesh into the instances
+		cmds[mesh_index].count = dm->indexCnt; // number of polys
+		
+		// offset into instanced vertex attributes
+		cmds[mesh_index].baseInstance = (mm->maxInstances * ((mm->instVB.nextRegion) % PC_BUFFER_DEPTH)) + instance_offset; 
+		// number of instances
+		cmds[mesh_index].instanceCount = VEC_LEN(&dm->instances[0]); 
+		
+		index_offset += dm->indexCnt;// * sizeof(DynamicMeshVertex);//dm->indexCnt;
+		instance_offset += VEC_LEN(&dm->instances[0]);
+		
+	}
+	
+	
+	
+
+	
+	
+}
+
+// this one has to handle different views, such as shadow mapping and reflections
+
+static void draw(PassDrawParams* pdp, GLuint progID, DynamicMeshManager* dmm) {
+	
+	
+		// matrices and uniforms
+	GLuint tex_ul;
+	Matrix model;
+	
+
+	
+	//mFastMul(view, proj, &mvp);
+	mIdent(&model);
+	// HACK fix later
+	mScale3f(150, 150, 150, &model);
+	//mTrans3f(0,0,0, &model);
+	
+	tex_ul = glGetUniformLocation(prog->id, "sTexture");
+	glProgramUniform1i(prog->id, tex_ul, 8);
+	
+	glUseProgram(prog->id);
+	glexit("");
+
+	glUniformMatrix4fv(model_ul, 1, GL_FALSE, &model.m);
+	glUniformMatrix4fv(view_ul, 1, GL_FALSE, &view->m);
+	glUniformMatrix4fv(proj_ul, 1, GL_FALSE, &proj->m);
+	glUniform3f(color_ul, .5, .2, .9);
+	
+	// ---------------------------------
+	
+	glBindVertexArray(vao);
+	glBindBuffer(GL_ARRAY_BUFFER, mm->geomVBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mm->geomIBO);
+	
+	PCBuffer_bind(&mm->instVB);
+	PCBuffer_bind(&mm->indirectCmds);
+	
+	glMultiDrawArraysIndirect(GL_TRIANGLES, 0, VEC_LEN(&mm->meshes), 0);
+	glexit("multidrawarraysindirect");
+
+}
+
+static void postFrame(DynamicMeshManager* dmm) {
+	PCBuffer_afterDraw(&mm->instVB);
+	PCBuffer_afterDraw(&mm->indirectCmds);
+}
 
 

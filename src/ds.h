@@ -28,7 +28,7 @@ do { \
 #define VEC_DATA(x) ((x)->data)
 #define VEC_ITEM(x, i) (VEC_DATA(x)[(i)])
 
-#define VEC_TAIL(x) (VEC_DATA(x)[VEC_LEN(x)])
+#define VEC_TAIL(x) (VEC_DATA(x)[VEC_LEN(x)-1])
 #define VEC_HEAD(x) (VEC_DATA(x)[0])
 
 #define VEC_FIND(x, ptr_o) vec_find(VEC_DATA(x), VEC_LEN(x), sizeof(*VEC_DATA(x)), ptr_o)
