@@ -13,6 +13,7 @@
 #include <GL/glx.h>
 #include <GL/glu.h>
 
+#include "hash.h"
 #include "utilities.h"
 #include "texture.h"
 
@@ -20,8 +21,71 @@
 #include <setjmp.h>
 
 
+// something more sophisticated will be needed for tex arrays and view sharing
+// a start is a start
+struct TexEntry {
+	Texture* tex;
+	
+	int refs;
+};
 
 
+static HashTable(TexEntry*) texLookup;
+
+
+
+
+
+Texture* Texture_acquirePath(char* path) {
+	struct TexEntry* e;
+	Texture* t;
+	
+	if(strlen(path) == 0) {
+		return NULL;
+	}
+	
+	// check the cache
+	if(HT_get(&texLookup, path, &e) && e->tex) {
+		e->refs++;
+		return e->tex;
+	}
+	
+	
+	t = loadBitmapTexture(path);
+	if(!t) return NULL;
+	
+	e = malloc(sizeof(*e));
+	e->refs = 1;
+	e->tex = t;
+	
+	HT_set(&texLookup, path, e);
+	
+	return t;
+}
+
+void Texture_release(Texture* tex) {
+	struct TexEntry* e;
+	
+	if(strlen(tex->name) == 0) {
+		return NULL;
+	}
+	
+		// check the cache
+	if(HT_get(&texLookup, tex->name, &e)) {
+		if(e->refs > 0) {
+			e->refs--;
+		}
+		else {
+			fprintf(stderr, "Texture refs below zero: %s\n", tex->name);
+		}
+	}
+}
+
+
+// global init fn
+void initTextures() {
+	HT_init(&texLookup, 5);
+}
 
 
 Texture* loadDataTexture(unsigned char* data, short width, short height) {
@@ -187,7 +251,7 @@ Texture* loadBitmapTexture(char* path) {
 	dt = (Texture*)malloc(sizeof(Texture));
 	dt->width = png->width;
 	dt->height = png->height;
-	
+	dt->name = path;
 
 	glGenTextures(1, &dt->tex_id);
 	glActiveTexture(GL_TEXTURE0);

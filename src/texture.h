@@ -7,6 +7,7 @@ typedef struct {
 	short width;
 	short height;
 	
+	char* name;
 	
 } Texture;
 
@@ -34,6 +35,11 @@ Texture* loadBitmapTexture(char* path);
 
 
 TexArray* loadTexArray(char** files);
+
+
+//Texture* Texture_acquireCustom(char* name);
+Texture* Texture_acquirePath(char* path);
+void Texture_release(Texture* tex);
 
 
 
