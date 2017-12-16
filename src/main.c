@@ -21,6 +21,8 @@
 #include "c3dlas/meshgen.h"
 #include "text/text.h"
 
+#include "log.h"
+
 #include "utilities.h"
 #include "config.h"
 #include "shader.h"
@@ -40,6 +42,8 @@ int main(int argc, char* argv[]) {
 	int first = 1;
 	int configStatus = 0;
 	char* wd;
+	
+	initLog(0);
 	
 	// init some path info. 
 	wd = getcwd(NULL, 0);
