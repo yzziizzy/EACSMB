@@ -8,7 +8,7 @@
 typedef struct UniformBuffer {
 	
 	GLuint ubo;
-	GLuint fences[UNIFORM_BUFFER_DEPTH];
+	GLsync fences[UNIFORM_BUFFER_DEPTH];
 	int next_region;
 	
 	size_t region_size;

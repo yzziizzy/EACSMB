@@ -262,7 +262,7 @@ void World_spawnAt_Road(World* w, Vector2* start,  Vector2* stop) {
 
 
 void World_drawTerrain(World* w) {
-	drawTerrain(&w->gs->scene.map, &w->gs->perViewUB, &w->gs->cursorPos, &w->gs->screen.wh);
+	drawTerrain(&w->map, &w->gs->perViewUB, &w->gs->cursorPos, &w->gs->screen.wh);
 }
 
 

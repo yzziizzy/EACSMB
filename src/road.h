@@ -36,6 +36,7 @@ void drawRoad(RoadBlock* rb, GLuint dtex, Matrix* view, Matrix* proj);
 void roadblock_update_vbo(RoadBlock* rb);
 RoadBlock* allocRoadBlock();
 
+void initRoads(); 
 
 
 #endif // __EACSMB_ROAD_H__

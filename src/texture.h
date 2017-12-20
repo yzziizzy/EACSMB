@@ -42,7 +42,7 @@ Texture* Texture_acquirePath(char* path);
 void Texture_release(Texture* tex);
 
 
-
+void initTextures();
 
 
 

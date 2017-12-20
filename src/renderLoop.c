@@ -106,36 +106,6 @@ void setupFBOs(GameState* gs, int resized) {
 	free(jsf->root);
 	free(jsf);
 	
-	/*
-	FBOTexConfig texcfg[6];
-	
-	json_obj_unpack_struct(tex, 
-		JSON_UNPACK(&texcfg[0], internalType, JSON_TYPE_STRING), 
-		JSON_UNPACK(&texcfg[0], internalType, JSON_TYPE_STRING), 
-		JSON_UNPACK(&texcfg[0], internalType, JSON_TYPE_STRING), 
-		JSON_UNPACK(&texcfg[0], internalType, JSON_TYPE_STRING)
-					 
-					 
-	);
-	*/
-	
-	// backing textures
-	FBOTexConfig texcfg[] = {
-		{GL_RGB, GL_RGB, GL_UNSIGNED_BYTE},
-		{GL_RGB, GL_RGB, GL_UNSIGNED_BYTE},
-		{GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE},
-		{GL_RGB16F, GL_RGB, GL_HALF_FLOAT},
-		{GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_FLOAT},
-		{0,0,0}
-	};
-
-	/*
-	printf("\nfbo cfg from code: %x, %x, %x\n", GL_RGB, GL_RGB, GL_UNSIGNED_BYTE);
-	printf("fbo cfg from code: %x, %x, %x\n", GL_RGB, GL_RGB, GL_UNSIGNED_BYTE);
-	printf("fbo cfg from code: %x, %x, %x\n", GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
-	printf("fbo cfg from code: %x, %x, %x\n", GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
-	printf("fbo cfg from code: %x, %x, %x\n", GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_FLOAT);
-	*/
 	
 	GLuint* texids = initFBOTextures(ww, wh, texcfg2);
 	

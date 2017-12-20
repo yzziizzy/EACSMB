@@ -27,8 +27,14 @@ HashTable* HT_create(int allocPOT);
 int HT_init(HashTable* obj, int allocPOT);
 void HT_destroy(HashTable* obj, int free_values_too);
 int HT_resize(HashTable* obj, int newSize);
+
+// returns 0 if val is set to the value
+// *val == NULL && return > 0  means the key was not found;
 int HT_get(HashTable* obj, char* key, void** val);
+
+// zero for success
 int HT_set(HashTable* obj, char* key, void* val);
+
 int HT_delete(HashTable* obj, char* key);
 
 // iteration. no order. results undefined if modified while iterating

@@ -7,7 +7,26 @@
 		depth: {internalType: "GL_DEPTH_COMPONENT32", format: "GL_DEPTH_COMPONENT", size: "GL_FLOAT"},
 	},
 	
-	
+	framebuffers: {
+		gbuf: [
+			{ tex: "diffuse",   target: 0 },  
+			{ tex: "normal",    target: 1 },  
+			{ tex: "selection", target: 2 },  
+			{ tex: "lighting",  target: 3 },  
+			{ tex: "depth",     target: 4 }
+		],
+		decals: [
+			{ tex: "diffuse",   target: 0 },  
+			{ tex: "normal",    target: 1 },  
+			{ tex: "selection", target: 2 },  
+			{ tex: "lighting",  target: 3 },  
+			{ tex: "depth",     target: 4 }
+		],
+		lighting: [
+			{ tex: "lighting",  target: 0 },  
+		]
+		
+	}
 	
 	
 	

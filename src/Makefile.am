@@ -15,6 +15,7 @@ eacsmb_SOURCES = main.c \
 	uniformBuffer.c \
 	pcBuffer.c \
 	fbo.c \
+	pass.c \
 	road.c \
 	waterPlane.c \
 	window.c \
@@ -24,6 +25,7 @@ eacsmb_SOURCES = main.c \
 	renderLoop.c \
 	gui.c \
 	ds.c \
+	log.c \
 	cursor.c \
 	scene.c \
 	world.c \

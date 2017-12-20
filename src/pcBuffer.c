@@ -7,7 +7,7 @@
 
 
 
-static int waitSync(GLuint id); 
+static int waitSync(GLsync id); 
 
 
 PCBuffer* PCBuffer_alloc(size_t size, GLenum type) {
@@ -64,7 +64,7 @@ void* PCBuffer_beginWrite(PCBuffer* b) {
 	// it is set after commands for n - 1;
 	waitSync(b->fences[b->nextRegion]);
 	
-	return &b->dataPtr[b->nextRegion * b->bufferSize];
+	return b->dataPtr + (b->nextRegion * b->bufferSize);
 }
 
 
@@ -87,7 +87,7 @@ void PCBuffer_bind(PCBuffer* b) {
 
 
 // terrible code, but use for now
-static int waitSync(GLuint id) {
+static int waitSync(GLsync id) {
 	GLenum ret;
 	if(!id || !glIsSync(id)) return 1;
 	while(1) {

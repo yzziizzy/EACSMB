@@ -12,7 +12,6 @@
 #include "json_gl.h"
 
 #include "utilities.h"
-#include "objloader.h"
 #include "shader.h"
 #include "staticMesh.h"
 #include "emitter.h"
@@ -20,6 +19,9 @@
 #include "map.h"
 #include "fbo.h"
 
+
+
+/*
 
 static void unpack_fbo(json_value_t* p, char* key, FBOTexConfig* cfg) {
 	char* a, *b, *c;
@@ -85,25 +87,26 @@ struct EmitterSprite_gen_info {
 	float fade_in, fade_out, unallocated_1, unallocated_2;
 };
 
+*/
 
-void scene_init(Scene* sc) {
+void Scene_init(Scene* sc) {
 	
-	void* iter;
-	char* key;
-	json_value_t* v, *tex;
-	json_file_t* jsf;
+	// TODO: rename to new conventions
+	//initMap(&sc->map);
 	
-	initMap(&sc->map);
+	VEC_INIT(&sc->allDrawables);
 	
-	jsf = json_load_path("assets/config/emitters.json");
 	
-	// do shit
-	iter = NULL;
-	while(json_obj_next(jsf->root, &iter, &key, &v)) {
-		
-		
-		
-	}
+	// solids
+	
+	// decals
+	
+	// alpha
+	
+	// TODO: shading
+	
+	
+	
 	
 	
 }

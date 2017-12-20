@@ -155,7 +155,7 @@ void renderMarker(GameState* gs, int tx, int ty) {
 	
 // 	printf("x: %f, y: %f\n", gs->cursorPos.x, gs->cursorPos.y);
 	
-	tileCenterWorld(&gs->scene.map, (int)gs->cursorPos.x, (int)gs->cursorPos.y, &p);
+	tileCenterWorld(&gs->world->map, (int)gs->cursorPos.x, (int)gs->cursorPos.y, &p);
 	
 // 	printf("z: %f\n", p.z);
 	

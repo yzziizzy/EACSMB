@@ -10,6 +10,10 @@
 #define USE_KHR_DEBUG
 #define NO_GL_GET_ERR_DEBUG
 
+
+void _glexit(char* msg, const char* file, int line, const char* func);
+char* _glerr(char* msg, const char* file, int line, const char* func);
+
 // i pronounce this one like "Grexit", greece's only smart move which they won't make cause they're greedy, short-sighted and dumb. just like the rest of us.
 #define glexit(msg) _glexit(msg, __FILE__, __LINE__, __func__)
 

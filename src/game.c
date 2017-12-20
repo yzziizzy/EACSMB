@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include <math.h>
+#include <time.h>
 
 
 
@@ -34,6 +35,7 @@
 #include "game.h"
 #include "emitter.h"
 #include "scene.h"
+#include "world.h"
 #include "gui.h"
 
 
@@ -56,6 +58,10 @@ Emitter* dust;
 
 
 
+
+// in renderLoop.c, a temporary factoring before a proper renderer is designed
+void drawFrame(XStuff* xs, GameState* gs, InputState* is);
+void setupFBOs(GameState* gs, int resized);
 
 
 // MapBlock* map;
@@ -177,15 +183,18 @@ void initGame(XStuff* xs, GameState* gs) {
 	gs->lookCenter.y = 128;
 	
 	
+	initTextures();
+	
 	initStaticMeshes();
 	initDynamicMeshes();
 	initRoads();
 	initWaterPlane();
 	initEmitters();
 	
+	
 	// initialize all those magic globals
 // 	initMap(&gs->map);
-	scene_init(&gs->scene);
+	Scene_init(&gs->scene);
 	
 	
 	gui_Init();
@@ -205,6 +214,8 @@ void initGame(XStuff* xs, GameState* gs) {
 	gs->world = calloc(1, sizeof(*gs->world));
 	World_init(gs->world);
 	gs->world->gs = gs;
+	
+
 	
 }
 
@@ -358,7 +369,7 @@ void handleInput(GameState* gs, InputState* is) {
 		*/
 	}
 	
-	static dragstart = -1;
+	static int dragstart = -1;
 	if(is->buttonDown == 1) {
 		gs->mouseDownPos.x = gs->cursorPos.x;
 		gs->mouseDownPos.y = gs->cursorPos.y;
@@ -465,7 +476,7 @@ void handleInput(GameState* gs, InputState* is) {
 		printf("near: %f, far: %f\n", gs->nearClipPlane, gs->farClipPlane);
 	}
 	
-	static lastChange = 0;
+	static int lastChange = 0;
 	static char* modeStrings[] = {
 		"",
 		"diffuse",
@@ -539,7 +550,7 @@ void depthPrepass(XStuff* xs, GameState* gs, InputState* is) {
 
 	// draw terrain
 // 	drawTerrainBlockDepth(&gs->map, msGetTop(&gs->model), msGetTop(&gs->view), msGetTop(&gs->proj));
-	drawTerrainDepth(&gs->scene.map, &gs->perViewUB, &gs->screen.wh);
+	drawTerrainDepth(&gs->world->map, &gs->perViewUB, &gs->screen.wh);
 	
 	//msPop(&gs->view);
 	//msPop(&gs->proj);
@@ -633,7 +644,7 @@ void checkCursor(GameState* gs, InputState* is) {
 	gs->cursorTilePos.y = u.rgb[1];
 	gs->cursorTilePos.z = u.rgb[2];
 	
-	struct sGL_RG8* off = &gs->scene.map.offsetData[(int)gs->cursorTilePos.z]; 
+	struct sGL_RG8* off = &gs->world->map.offsetData[(int)gs->cursorTilePos.z]; 
 	
 	gs->cursorPos.x = (off->x * 256.0) + gs->cursorTilePos.x;
 	gs->cursorPos.y = (off->y * 256.0) + gs->cursorTilePos.y;

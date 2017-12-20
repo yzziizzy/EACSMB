@@ -486,7 +486,6 @@ void dynamicMeshManager_draw(DynamicMeshManager* mm, Matrix* view, Matrix* proj)
 		
 		index_offset += dm->indexCnt;// * sizeof(DynamicMeshVertex);//dm->indexCnt;
 		instance_offset += VEC_LEN(&dm->instances[0]);
-		
 	}
 	
 	PCBuffer_bind(&mm->indirectCmds);
@@ -502,9 +501,9 @@ void dynamicMeshManager_draw(DynamicMeshManager* mm, Matrix* view, Matrix* proj)
 
 
 
-static void preFrame(PassFrameParams* pfp, DynamicMeshManager* dmm) {
+static void preFrame(PassFrameParams* pfp, DynamicMeshManager* mm) {
 	
-	dynamicMeshManager_updateMatrices(dmm);
+	dynamicMeshManager_updateMatrices(mm);
 	
 	// set up the indirect draw commands
 	DrawArraysIndirectCommand* cmds = PCBuffer_beginWrite(&mm->indirectCmds);
@@ -558,26 +557,26 @@ static void draw(PassDrawParams* pdp, GLuint progID, DynamicMeshManager* dmm) {
 	glUseProgram(prog->id);
 	glexit("");
 
-	glUniformMatrix4fv(model_ul, 1, GL_FALSE, &model.m);
-	glUniformMatrix4fv(view_ul, 1, GL_FALSE, &view->m);
-	glUniformMatrix4fv(proj_ul, 1, GL_FALSE, &proj->m);
+	glUniformMatrix4fv(model_ul, 1, GL_FALSE, model.m);
+	glUniformMatrix4fv(view_ul, 1, GL_FALSE, pdp->worldView->m);
+	glUniformMatrix4fv(proj_ul, 1, GL_FALSE, pdp->viewProj->m);
 	glUniform3f(color_ul, .5, .2, .9);
 	
 	// ---------------------------------
 	
 	glBindVertexArray(vao);
-	glBindBuffer(GL_ARRAY_BUFFER, mm->geomVBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mm->geomIBO);
+	glBindBuffer(GL_ARRAY_BUFFER, dmm->geomVBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, dmm->geomIBO);
 	
-	PCBuffer_bind(&mm->instVB);
-	PCBuffer_bind(&mm->indirectCmds);
+	PCBuffer_bind(&dmm->instVB);
+	PCBuffer_bind(&dmm->indirectCmds);
 	
-	glMultiDrawArraysIndirect(GL_TRIANGLES, 0, VEC_LEN(&mm->meshes), 0);
+	glMultiDrawArraysIndirect(GL_TRIANGLES, 0, VEC_LEN(&dmm->meshes), 0);
 	glexit("multidrawarraysindirect");
 
 }
 
-static void postFrame(DynamicMeshManager* dmm) {
+static void postFrame(DynamicMeshManager* mm) {
 	PCBuffer_afterDraw(&mm->instVB);
 	PCBuffer_afterDraw(&mm->indirectCmds);
 }

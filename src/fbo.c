@@ -130,3 +130,15 @@ void destroyFBO(Framebuffer* fb) {
 }
 
 
+
+void Framebuffer_bind(Framebuffer* fb) {
+	if(!fb->isBound) {
+		glBindFramebuffer(GL_FRAMEBUFFER, fb->fb);
+		glexit("");
+	}
+}
+
+void Framebuffer_unbind() {
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glexit("");
+}
