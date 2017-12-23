@@ -283,9 +283,6 @@ void shadingPass(GameState* gs) {
 	
 	gui_RenderAll(gs);
 	
-	// HACK
-	guiWindowRender(gs, gwTest);
-	
 }
 
 

@@ -9,35 +9,37 @@
 #include "game.h"
 
 
-enum GUIType {
-	GUITYPE_None,
-	GUITYPE_Text,
-	GUITYPE_Window,
-	
-	GUITYPE_MAX_VALUE
+
+
+typedef union GUIObject GUIObject;
+
+
+struct gui_vtbl {
+	void (*Render)(GUIObject* go, GameState* gs);
+	void (*Delete)(GUIObject* go);
+	GUIObject* (*HitTest)(GUIObject* go, Vector2 testPos);
 };
 
 
-union GUIObject;
-
-typedef struct {
+typedef struct GUIHeader {
 	Vector2 topleft;
 	Vector2 size;
 	float scale; // meaning scale, apparently
+	float alpha;
 	
 	AABB2 hitbox;
 	
 	char hidden;
 	char deleted;
 	
-	enum GUIType type;
+	struct gui_vtbl* vt;
 	
 	VEC(union GUIObject*) children;
 	
 } GUIHeader;
 
 
-typedef struct {
+typedef struct GUIText {
 	GUIHeader header;
 	
 	
@@ -68,11 +70,11 @@ typedef struct GUIWindow {
 
 
 
-typedef union GUIObject {
+union GUIObject {
 	GUIHeader h;
 	GUIText text;
 	GUIWindow window;
-} GUIObject;
+};
 
 
 GUIText* guiTextNew(char* str, Vector* pos, float size, char* fontname);
@@ -80,17 +82,14 @@ void gui_Init();
 void gui_RenderAll(GameState* gs);
 
 GUIObject* guiHitTest(GUIObject* go, Vector2 testPos);
+void guiDelete(GUIObject* go);
+void guiRender(GUIObject* go, GameState* gs);
 
 
-void guiTextRender(GUIText* gt, GameState* gs);
-void guiTextDelete(GUIText* gt);
 void guiTextSetValue(GUIText* gt, char* newval);
-
 
 GUIWindow* guiWindowNew(Vector* pos, Vector2* size);
 
-void guiWindowRender(GUIWindow* gw, GameState* gs);
-void guiWindowDelete(GUIWindow* gw);
 
 
 

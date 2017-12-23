@@ -11,7 +11,7 @@
 #include "utilities.h"
 
 
-VEC(GUIText*) gui_list; 
+VEC(GUIObject*) gui_list; 
 
 HashTable* font_cache; // TextRes*
 
@@ -20,6 +20,18 @@ ShaderProgram* windowProg;
 
 static GLuint vaoWindow;
 static GLuint vboWindow;
+
+
+GUIObject* guiBaseHitTest(GUIObject* go, Vector2 testPos);
+
+
+void guiWindowRender(GUIWindow* gw, GameState* gs);
+void guiWindowDelete(GUIWindow* gw);
+
+void guiTextRender(GUIText* gt, GameState* gs);
+void guiTextDelete(GUIText* gt);
+
+
 
 /*
 	//arial = LoadFont("Arial", 32, NULL);
@@ -124,9 +136,35 @@ void gui_Init() {
 }
 
 
+void guiRender(GUIObject* go, GameState* gs) {
+	if(go->h.vt->Render)
+		go->h.vt->Render(go, gs);
+} 
+
+void guiDelete(GUIObject* go) {
+	go->h.deleted = 1;
+	
+	if(go->h.vt->Delete)
+		go->h.vt->Delete(go);
+} 
+
+GUIObject* guiHitTest(GUIObject* go, Vector2 testPos) {
+	if(go->h.vt->Render)
+		return go->h.vt->HitTest(go, testPos);
+	
+	return guiBaseHitTest(go, testPos);
+} 
 
 
 GUIText* guiTextNew(char* str, Vector* pos, float size, char* fontname) {
+	
+	static struct gui_vtbl static_vt = {
+		.Render = guiTextRender,
+		.Delete = guiTextDelete,
+	};
+	
+	
+	
 	
 	GUIText* gt;
 	
@@ -136,6 +174,8 @@ GUIText* guiTextNew(char* str, Vector* pos, float size, char* fontname) {
 	
 	gt = calloc(1, sizeof(*gt));
 	CHECK_OOM(gt);
+	
+	gt->header.vt = &static_vt; 
 	
 	if(pos) vCopy(pos, &gt->pos);
 	gt->size = size;
@@ -156,12 +196,9 @@ GUIText* guiTextNew(char* str, Vector* pos, float size, char* fontname) {
 	return gt;
 }
 
-void guiDelete(GUIHeader* gh) {
-	gh->deleted = 1;
-}
 
 
-GUIObject* guiHitTest(GUIObject* go, Vector2 testPos) {
+GUIObject* guiBaseHitTest(GUIObject* go, Vector2 testPos) {
 	GUIHeader* h = &go->h; 
 	
 	int in = boxContainsPoint2(&h->hitbox, &testPos);
@@ -196,7 +233,8 @@ void gui_RenderAll(GameState* gs) {
 	
 	for(i = 0; i < VEC_LEN(&gui_list); i++) {
 		
-		guiTextRender(VEC_DATA(&gui_list)[i], gs);
+		//guiTextRender(VEC_DATA(&gui_list)[i], gs);
+		guiRender(VEC_DATA(&gui_list)[i], gs);
 	}
 }
 
@@ -250,6 +288,11 @@ void guiTextRender(GUIText* gt, GameState* gs) {
 	glexit("text drawing");
 }
 
+void guiTextDelete(GUIText* gt) {
+	printf("NIH guiTextDelete " __FILE__ ":%d\n", __LINE__);
+}
+
+
 
 
 
@@ -257,9 +300,16 @@ GUIWindow* guiWindowNew(Vector* pos, Vector2* size) {
 	
 	GUIWindow* gw;
 	
+	static struct gui_vtbl static_vt = {
+		.Render = guiWindowRender,
+		.Delete = guiWindowDelete
+	};
+	
 	
 	gw = calloc(1, sizeof(*gw));
 	CHECK_OOM(gw);
+	
+	gw->header.vt = & static_vt;
 	
 	//if(pos) vCopy(pos, &gw->header.pos);
 //	gt->size = size;
@@ -267,6 +317,9 @@ GUIWindow* guiWindowNew(Vector* pos, Vector2* size) {
 	unsigned int colors[] = {
 		0x88FF88FF, INT_MAX
 	};
+	
+	
+	VEC_PUSH(&gui_list, gw);
 	
 	return gw;
 }
