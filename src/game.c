@@ -51,6 +51,7 @@ float zoom;
 GUIText* gt, *gt_sel, *gt_emit;
 GUIText* gtRenderMode;
 GUIText* gtSelectionDisabled;
+GUIWindow* gwTest;
 
 
 Texture* cnoise;
@@ -205,6 +206,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	gtRenderMode = guiTextNew("", &(Vector){8.0,1.0,0.0}, 6.0f, "Arial");
 	gtSelectionDisabled = guiTextNew("", &(Vector){8.0,2.0,0.0}, 6.0f, "Arial");
 	
+	gwTest = guiWindowNew(NULL, NULL);
 	
 	//initUI(gs);
 	initMarker();

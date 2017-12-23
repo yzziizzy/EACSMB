@@ -29,7 +29,9 @@ void Log_internal(char* msg, const char* file, int line, const char* function) {
 }
 
 
-
+void Log_flush() {
+	fsync(logfile);
+}
 
 
 

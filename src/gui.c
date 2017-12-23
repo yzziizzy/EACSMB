@@ -16,6 +16,10 @@ VEC(GUIText*) gui_list;
 HashTable* font_cache; // TextRes*
 
 ShaderProgram* textProg;
+ShaderProgram* windowProg;
+
+static GLuint vaoWindow;
+static GLuint vboWindow;
 
 /*
 	//arial = LoadFont("Arial", 32, NULL);
@@ -78,6 +82,44 @@ void gui_Init() {
 	font_cache = HT_create(2);
 	
 	textProg = loadCombinedProgram("guiTextSDF");
+	windowProg = loadCombinedProgram("guiWindow");
+	
+	
+	// window VAO
+	VAOConfig opts[] = {
+		// per vertex
+		{2, GL_FLOAT}, // position
+		
+		{0, 0}
+	};
+	
+	vaoWindow = makeVAO(opts);
+	
+	
+	glBindVertexArray(vaoWindow);
+	
+	glGenBuffers(1, &vboWindow);
+	glBindBuffer(GL_ARRAY_BUFFER, vboWindow);
+	
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*4, 0);
+	
+	Vector2 data[] = {
+		{0,0},
+		{0,1},
+		{1,0},
+		{1,1}
+	};
+	
+	glBufferData(GL_ARRAY_BUFFER, sizeof(data), data, GL_STATIC_DRAW);
+	glexit("");
+	
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+	glexit("");
+	
+	
+	
 	
 }
 
@@ -162,7 +204,7 @@ void guiTextRender(GUIText* gt, GameState* gs) {
 	msIdent(&textModel);
 	msScale3f(gt->size * .01, gt->size* .01, gt->size * .01, &textModel);
 	msTransv(&gt->pos, &textModel);
-	
+
 	GLuint tp_ul = glGetUniformLocation(textProg->id, "mProj");
 	GLuint tm_ul = glGetUniformLocation(textProg->id, "mModel");
 	GLuint ts_ul = glGetUniformLocation(textProg->id, "fontTex");
@@ -190,9 +232,71 @@ void guiTextRender(GUIText* gt, GameState* gs) {
 	glexit("text vbo bind");
 	glDrawArrays(GL_TRIANGLES, 0, gt->strRI->vertexCnt);
 	glexit("text drawing");
+}
+
+
+
+
+GUIWindow* guiWindowNew(Vector* pos, Vector2* size) {
+	
+	GUIWindow* gw;
+	
+	
+	gw = calloc(1, sizeof(*gw));
+	CHECK_OOM(gw);
+	
+	//if(pos) vCopy(pos, &gw->header.pos);
+//	gt->size = size;
+	
+	unsigned int colors[] = {
+		0x88FF88FF, INT_MAX
+	};
+	
+	return gw;
+}
+
+
+void guiWindowRender(GUIWindow* gw, GameState* gs) {
+	
+	Matrix proj = IDENT_MATRIX;
+	
+	static GLuint proj_ul;
+	static GLuint tlx_tly_w_h_ul;
+	static GLuint z_alpha__ul;
+	static GLuint color_ul;
+	
+	if(!proj_ul) proj_ul = glGetUniformLocation(windowProg->id, "mProj");
+	if(!tlx_tly_w_h_ul) tlx_tly_w_h_ul = glGetUniformLocation(windowProg->id, "tlx_tly_w_h");
+	if(!z_alpha__ul) z_alpha__ul = glGetUniformLocation(windowProg->id, "z_alpha_");
+	if(!color_ul) color_ul = glGetUniformLocation(windowProg->id, "color");
 	
 	
 	
+	
+	mOrtho(0, 1, 0, 1, 0, 1, &proj);
+	
+	
+	glUseProgram(windowProg->id);
+	glexit("");
+	
+	glUniformMatrix4fv(proj_ul, 1, GL_FALSE, &proj.m);
+	glUniform4f(tlx_tly_w_h_ul, .1, .1, .8, .8);
+	glUniform4f(z_alpha__ul, -.1, .5, 0, 0); // BUG z is a big messed up; -.1 works but .1 doesn't.
+	glUniform3f(color_ul, .1, .5, .1); // BUG z is a big messed up; -.1 works but .1 doesn't.
+
+	glBindVertexArray(vaoWindow);
+	glBindBuffer(GL_ARRAY_BUFFER, vboWindow);
+	
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glexit("");
+}
+
+void guiWindowDelete(GUIWindow* gw) {
 	
 }
+
+
+
+
+
 

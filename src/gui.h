@@ -11,7 +11,7 @@
 
 typedef struct {
 	Vector pos;
-	float size;
+	float size; // meaning scale, apparently
 	
 	char hidden;
 	char deleted;
@@ -36,6 +36,18 @@ typedef struct {
 	
 } GUIText;
 
+typedef struct GUIWindow {
+	GUIHeader header;
+	
+	Vector2 size;
+	
+	uint32_t color;
+	
+	float zindex;
+	
+} GUIWindow;
+
+
 
 
 GUIText* guiTextNew(char* str, Vector* pos, float size, char* fontname);
@@ -47,6 +59,10 @@ void guiTextDelete(GUIText* gt);
 void guiTextSetValue(GUIText* gt, char* newval);
 
 
+GUIWindow* guiWindowNew(Vector* pos, Vector2* size);
+
+void guiWindowRender(GUIWindow* gw, GameState* gs);
+void guiWindowDelete(GUIWindow* gw);
 
 
 

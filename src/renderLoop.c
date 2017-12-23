@@ -5,6 +5,7 @@
 
 
 #include "game.h"
+#include "gui.h"
 #include "scene.h"
 #include "shader.h"
 
@@ -15,7 +16,7 @@
 GLuint fsQuadVAO, fsQuadVBO;
 ShaderProgram* shadingProg;
 
-
+extern GUIWindow* gwTest;
 
 
 
@@ -282,6 +283,8 @@ void shadingPass(GameState* gs) {
 	
 	gui_RenderAll(gs);
 	
+	// HACK
+	guiWindowRender(gs, gwTest);
 	
 }
 

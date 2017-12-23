@@ -3,8 +3,10 @@
 
 
 #define Log(msg) Log_internal(msg, __FILE__, __LINE__, __function__)
+#define Logf(msg) Log_internal(msg, __FILE__, __LINE__, __function__)
 
 void Log_internal(char* msg, const char* file, int line, const char* function);
+void Log_flush();
 
 
 
