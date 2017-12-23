@@ -130,9 +130,6 @@ void gui_Init() {
 	glBindVertexArray(0);
 	glexit("");
 	
-	
-	
-	
 }
 
 
@@ -149,11 +146,15 @@ void guiDelete(GUIObject* go) {
 } 
 
 GUIObject* guiHitTest(GUIObject* go, Vector2 testPos) {
-	if(go->h.vt->Render)
+	if(go->h.vt->HitTest)
 		return go->h.vt->HitTest(go, testPos);
 	
 	return guiBaseHitTest(go, testPos);
 } 
+
+void guiHeaderInit(GUIHeader* gh) {
+	VEC_INIT(&gh->children);
+}
 
 
 GUIText* guiTextNew(char* str, Vector* pos, float size, char* fontname) {
@@ -175,6 +176,7 @@ GUIText* guiTextNew(char* str, Vector* pos, float size, char* fontname) {
 	gt = calloc(1, sizeof(*gt));
 	CHECK_OOM(gt);
 	
+	guiHeaderInit(&gt->header);
 	gt->header.vt = &static_vt; 
 	
 	if(pos) vCopy(pos, &gt->pos);
@@ -309,7 +311,13 @@ GUIWindow* guiWindowNew(Vector* pos, Vector2* size) {
 	gw = calloc(1, sizeof(*gw));
 	CHECK_OOM(gw);
 	
+	guiHeaderInit(&gw->header);
 	gw->header.vt = & static_vt;
+	
+	gw->header.hitbox.min.x = .1;
+	gw->header.hitbox.min.y = .1;
+	gw->header.hitbox.max.x = .9;
+	gw->header.hitbox.max.y = .9;
 	
 	//if(pos) vCopy(pos, &gw->header.pos);
 //	gt->size = size;

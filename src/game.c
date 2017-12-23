@@ -346,10 +346,24 @@ void handleInput(GameState* gs, InputState* is) {
 		exit(0);
 	}
 	
+	
+	
+	
 	if(is->clickButton == 1) {
+		
+		
+		
+		//printf("\n\n----> %f, %f \n", is->cursorPos.x, is->cursorPos.y);
+		if(guiHitTest(gwTest, is->cursorPos)) {
+			printf("@@clicked in window \n");
+		}
+		else {
+			World_spawnAt_Item(gs->world, "gazebbq", &gs->cursorPos);
+		}
+
 		//World_spawnAt_StaticMesh(gs->world, 0, &gs->cursorPos);
 		
-		World_spawnAt_Item(gs->world, "gazebbq", &gs->cursorPos);
+		
 		/*
 		flattenArea(gs->map.tb,
 			gs->cursorPos.x - 5,
@@ -389,6 +403,8 @@ void handleInput(GameState* gs, InputState* is) {
 			
 			World_spawnAt_Road(gs->world, &gs->mouseDownPos, &gs->cursorPos);
 		}
+		
+		
 		
 	}
 	

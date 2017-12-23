@@ -196,8 +196,8 @@ void processEvents(XStuff* xs, InputState* st, int max_events) {
 			st->cursorPosPixels.x = CLAMP(0, clientX, xs->winAttr.width);
 			st->cursorPosPixels.y = CLAMP(0, xs->winAttr.height - clientY, xs->winAttr.height);
 		
-			st->cursorPos.x = clientX / xs->winAttr.width;
-			st->cursorPos.y = 1.0 - (clientY / xs->winAttr.height); // opengl is inverted to X
+			st->cursorPos.x = (float)clientX / (float)xs->winAttr.width;
+			st->cursorPos.y = 1.0 - ((float)clientY / (float)xs->winAttr.height); // opengl is inverted to X
 		}
 	}
 	
