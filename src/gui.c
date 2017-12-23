@@ -161,6 +161,22 @@ void guiDelete(GUIHeader* gh) {
 }
 
 
+GUIObject* guiHitTest(GUIObject* go, Vector2 testPos) {
+	GUIHeader* h = &go->h; 
+	
+	int in = boxContainsPoint2(&h->hitbox, &testPos);
+	if(!in) return NULL;
+	
+	int i;
+	for(i = 0; i < VEC_LEN(&h->children); i++) {
+		GUIObject* kid = guiHitTest(VEC_ITEM(&h->children, i), testPos);
+		if(kid) return kid;
+	}
+	
+	return go;
+}
+
+
 void guiTextSetValue(GUIText* gt, char* newval) {
 	unsigned int colors[] = {
 		0x88FF88FF, INT_MAX

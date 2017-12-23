@@ -9,12 +9,30 @@
 #include "game.h"
 
 
+enum GUIType {
+	GUITYPE_None,
+	GUITYPE_Text,
+	GUITYPE_Window,
+	
+	GUITYPE_MAX_VALUE
+};
+
+
+union GUIObject;
+
 typedef struct {
-	Vector pos;
-	float size; // meaning scale, apparently
+	Vector2 topleft;
+	Vector2 size;
+	float scale; // meaning scale, apparently
+	
+	AABB2 hitbox;
 	
 	char hidden;
 	char deleted;
+	
+	enum GUIType type;
+	
+	VEC(union GUIObject*) children;
 	
 } GUIHeader;
 
@@ -50,9 +68,19 @@ typedef struct GUIWindow {
 
 
 
+typedef union GUIObject {
+	GUIHeader h;
+	GUIText text;
+	GUIWindow window;
+} GUIObject;
+
+
 GUIText* guiTextNew(char* str, Vector* pos, float size, char* fontname);
 void gui_Init();
 void gui_RenderAll(GameState* gs);
+
+GUIObject* guiHitTest(GUIObject* go, Vector2 testPos);
+
 
 void guiTextRender(GUIText* gt, GameState* gs);
 void guiTextDelete(GUIText* gt);
