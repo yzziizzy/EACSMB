@@ -133,6 +133,20 @@ void gui_Init() {
 }
 
 
+// add root objects to the root list, record the parent otherwise
+void guiRegisterObject(GUIObject* o, GUIObject* parent) {
+	
+	o->h.parent = parent;
+	
+	if(!parent) {
+		VEC_PUSH(&gui_list, o);
+	}
+	else {
+		VEC_PUSH(&parent->h.children, o);
+	}
+}
+
+
 void guiRender(GUIObject* go, GameState* gs) {
 	if(go->h.vt->Render)
 		go->h.vt->Render(go, gs);
@@ -140,6 +154,11 @@ void guiRender(GUIObject* go, GameState* gs) {
 
 void guiDelete(GUIObject* go) {
 	go->h.deleted = 1;
+	
+	for(int i = 0; i < VEC_LEN(&go->h.children); i++) {
+		//guiTextRender(VEC_DATA(&gui_list)[i], gs);
+		guiDelete(VEC_ITEM(&go->h.children, i));
+	}
 	
 	if(go->h.vt->Delete)
 		go->h.vt->Delete(go);
@@ -193,7 +212,7 @@ GUIText* guiTextNew(char* str, Vector* pos, float size, char* fontname) {
 	}
 	
 	
-	VEC_PUSH(&gui_list, gt);
+	//VEC_PUSH(&gui_list, gt);
 	
 	return gt;
 }
@@ -232,6 +251,8 @@ void guiTextSetValue(GUIText* gt, char* newval) {
 
 void gui_RenderAll(GameState* gs) {
 	int i;
+	
+	// TODO: replace with rendering tree once all data is unified
 	
 	for(i = 0; i < VEC_LEN(&gui_list); i++) {
 		
@@ -298,7 +319,7 @@ void guiTextDelete(GUIText* gt) {
 
 
 
-GUIWindow* guiWindowNew(Vector* pos, Vector2* size) {
+GUIWindow* guiWindowNew(Vector2 pos, Vector2 size, float zIndex) {
 	
 	GUIWindow* gw;
 	
@@ -312,12 +333,16 @@ GUIWindow* guiWindowNew(Vector* pos, Vector2* size) {
 	CHECK_OOM(gw);
 	
 	guiHeaderInit(&gw->header);
-	gw->header.vt = & static_vt;
+	gw->header.vt = &static_vt;
 	
-	gw->header.hitbox.min.x = .1;
-	gw->header.hitbox.min.y = .1;
-	gw->header.hitbox.max.x = .9;
-	gw->header.hitbox.max.y = .9;
+	gw->header.topleft = pos;
+	gw->header.size = size;
+	gw->header.z = zIndex;
+	
+	gw->header.hitbox.min.x = pos.x;
+	gw->header.hitbox.min.y = pos.y;
+	gw->header.hitbox.max.x = pos.x + size.x;
+	gw->header.hitbox.max.y = pos.y + size.y;
 	
 	//if(pos) vCopy(pos, &gw->header.pos);
 //	gt->size = size;
@@ -327,7 +352,7 @@ GUIWindow* guiWindowNew(Vector* pos, Vector2* size) {
 	};
 	
 	
-	VEC_PUSH(&gui_list, gw);
+	//VEC_PUSH(&gui_list, gw);
 	
 	return gw;
 }
@@ -357,9 +382,14 @@ void guiWindowRender(GUIWindow* gw, GameState* gs) {
 	glexit("");
 	
 	glUniformMatrix4fv(proj_ul, 1, GL_FALSE, &proj.m);
-	glUniform4f(tlx_tly_w_h_ul, .1, .1, .8, .8);
+	glUniform4f(tlx_tly_w_h_ul, 
+		gw->header.topleft.x, 
+		gw->header.topleft.y, 
+		gw->header.size.x, 
+		gw->header.size.y 
+	);
 	glUniform4f(z_alpha__ul, -.1, .5, 0, 0); // BUG z is a big messed up; -.1 works but .1 doesn't.
-	glUniform3f(color_ul, .1, .5, .1); // BUG z is a big messed up; -.1 works but .1 doesn't.
+	glUniform3f(color_ul, gw->color.x, gw->color.y, gw->color.z); // BUG z is a big messed up; -.1 works but .1 doesn't.
 
 	glBindVertexArray(vaoWindow);
 	glBindBuffer(GL_ARRAY_BUFFER, vboWindow);
@@ -373,7 +403,18 @@ void guiWindowDelete(GUIWindow* gw) {
 }
 
 
-
+void guiTriggerClick(GUIEvent* e) {
+	GUIObject* c = e->currentTarget;
+	
+	if(!c) return;
+	
+	if(c->h.onClick)
+		c->h.onClick(e);
+	
+	e->currentTarget = c->h.parent;
+	
+	guiTriggerClick(e);
+}
 
 
 

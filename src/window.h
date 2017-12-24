@@ -67,6 +67,7 @@ typedef struct {
 	Vector2 clickPos;
 	Vector2 cursorPos;
 	Vector2 cursorPosPixels;
+	Vector2 cursorPosInv;
 	char clickButton;
 	char buttonUp;
 	char buttonDown;

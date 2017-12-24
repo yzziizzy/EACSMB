@@ -21,20 +21,41 @@ struct gui_vtbl {
 };
 
 
+
+typedef struct GUIEvent {
+	double eventTime;
+	Vector2 eventPos;
+	GUIObject* originalTarget;
+	GUIObject* currentTarget;
+	
+} GUIEvent;
+
+
+typedef int  (*GUI_OnClickFn)(GUIEvent* e);
+typedef void (*GUI_OnMouseEnterFn)(GUIEvent* e);
+typedef void (*GUI_OnMouseLeaveFn)(GUIEvent* e);
+
+
 typedef struct GUIHeader {
 	Vector2 topleft;
 	Vector2 size;
 	float scale; // meaning scale, apparently
 	float alpha;
+	float z;
 	
 	AABB2 hitbox;
 	
 	char hidden;
 	char deleted;
 	
+	VEC(union GUIObject*) children;
+	GUIObject* parent;
+	
 	struct gui_vtbl* vt;
 	
-	VEC(union GUIObject*) children;
+	GUI_OnClickFn onClick;
+	GUI_OnMouseEnterFn onMouseEnter;
+	GUI_OnMouseLeaveFn onMouseLeave;
 	
 } GUIHeader;
 
@@ -61,7 +82,8 @@ typedef struct GUIWindow {
 	
 	Vector2 size;
 	
-	uint32_t color;
+// 	uint32_t color;
+	Vector color;
 	
 	float zindex;
 	
@@ -88,17 +110,10 @@ void guiRender(GUIObject* go, GameState* gs);
 
 void guiTextSetValue(GUIText* gt, char* newval);
 
-GUIWindow* guiWindowNew(Vector* pos, Vector2* size);
+GUIWindow* guiWindowNew(Vector2 pos, Vector2 size, float zIndex);
 
-
-
-
-
-
-
-
-
-
+void guiTriggerClick(GUIEvent* e); 
+void guiRegisterObject(GUIObject* o, GUIObject* parent);
 
 
 

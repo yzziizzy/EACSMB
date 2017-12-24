@@ -37,6 +37,7 @@
 #include "scene.h"
 #include "world.h"
 #include "gui.h"
+#include "ui/simpleWindow.h"
 
 
 
@@ -51,7 +52,7 @@ float zoom;
 GUIText* gt, *gt_sel, *gt_emit;
 GUIText* gtRenderMode;
 GUIText* gtSelectionDisabled;
-GUIWindow* gwTest;
+GUISimpleWindow* gswTest;
 
 
 Texture* cnoise;
@@ -79,6 +80,11 @@ int _getPrintGLEnumMin(GLenum e, char* name, char* message) {
 	printf("%s: %d\n", name, i);
 	
 	return i;
+}
+
+
+int testClick(GUIEvent* e) {
+	printf("~~click handler~~ \n");
 }
 
 
@@ -206,7 +212,20 @@ void initGame(XStuff* xs, GameState* gs) {
 	gtRenderMode = guiTextNew("", &(Vector){8.0,1.0,0.0}, 6.0f, "Arial");
 	gtSelectionDisabled = guiTextNew("", &(Vector){8.0,2.0,0.0}, 6.0f, "Arial");
 	
-	gwTest = guiWindowNew(NULL, NULL);
+	
+
+// 	gwTest = guiWindowNew((Vector2){.2, .2}, (Vector2){.7, .7}, 0);
+// 	gwTest->header.onClick = testClick;
+	
+	gswTest = guiSimpleWindowNew((Vector2){.2, .2}, (Vector2){.7, .7}, 0);
+	//gswTest->header.onClick = testClick;
+	
+	guiRegisterObject(gswTest, NULL);
+	guiRegisterObject(gt, NULL);
+	guiRegisterObject(gt_sel, NULL);
+	guiRegisterObject(gt_emit, NULL);
+	guiRegisterObject(gtRenderMode, NULL);
+	guiRegisterObject(gtSelectionDisabled, NULL);
 	
 	//initUI(gs);
 	initMarker();
@@ -352,15 +371,22 @@ void handleInput(GameState* gs, InputState* is) {
 	if(is->clickButton == 1) {
 		
 		
-		
+		GUIObject* hit = guiHitTest(gswTest, is->cursorPosInv);
 		//printf("\n\n----> %f, %f \n", is->cursorPos.x, is->cursorPos.y);
-		if(guiHitTest(gwTest, is->cursorPos)) {
+		if(hit) {
 			printf("@@clicked in window \n");
+			
+			GUIEvent e;
+			e.originalTarget = hit;
+			e.currentTarget = hit;
+			e.eventPos = is->cursorPosInv;
+			
+			guiTriggerClick(&e);
 		}
 		else {
 			World_spawnAt_Item(gs->world, "gazebbq", &gs->cursorPos);
 		}
-
+		
 		//World_spawnAt_StaticMesh(gs->world, 0, &gs->cursorPos);
 		
 		
