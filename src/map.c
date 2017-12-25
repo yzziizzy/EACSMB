@@ -1076,7 +1076,7 @@ void getTerrainHeight(MapInfo* map, Vector2i* coords, int coordLen, float* heigh
 		int locx = coord->x % MAP_BLOCK_SZ;
 		int locy = coord->y % MAP_BLOCK_SZ;
 		
-		printf("data for b[%d, %d] l[%d, %d]\n", bix, biy, locx, locy);
+		//printf("data for b[%d, %d] l[%d, %d]\n", bix, biy, locx, locy);
 		
 		*hout = map->blocks[bix][biy]->tb.zs[locx + (locy * TERR_TEX_SZ)];
 		

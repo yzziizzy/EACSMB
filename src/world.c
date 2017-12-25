@@ -94,7 +94,7 @@ static Item* findItem(World* w, char* itemName) {
 		return -1;
 	}
 	
-	printf("index :%d\n", index);
+	//printf("index :%d\n", index);
 	return VEC_DATA(&w->items)[index];
 }
 
@@ -168,7 +168,7 @@ int World_spawnAt_DynamicMesh(World* w, int dmIndex, Vector* location) {
 	// look up the height there.
 	getTerrainHeight(&w->map, &loci, 1, &h);
 	
-	printf("map h at [%.1f, %.1f]: %.4f\n", location->x, location->y, h);
+	//printf("map h at [%.1f, %.1f]: %.4f\n", location->x, location->y, h);
 	
 	// spawn instance
 	dmi.pos.x = location->x;
@@ -198,7 +198,7 @@ int World_spawnAt_StaticMesh(World* w, int smIndex, Vector* location) {
 	// look up the height there.
 	getTerrainHeight(&w->map, &loci, 1, &h);
 	
-	printf("map h at [%.1f, %.1f]: %.4f\n", location->x, location->y, h);
+	//printf("map h at [%.1f, %.1f]: %.4f\n", location->x, location->y, h);
 	
 	// spawn instance
 	smi.pos.x = location->x;
@@ -228,7 +228,7 @@ int World_spawnAt_Emitter(World* w, int emitterIndex, Vector* location) {
 	// look up the height there.
 	getTerrainHeight(&w->map, &loci, 1, &h);
 	
-	printf("map h at [%.1f, %.1f]: %.4f\n", location->x, location->y, h);
+	// printf("map h at [%.1f, %.1f]: %.4f\n", location->x, location->y, h);
 	// emitter
 	EmitterInstance inst = {
 		.pos = (Vector){location->x, location->y, h + 2},

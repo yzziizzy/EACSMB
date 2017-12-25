@@ -416,16 +416,16 @@ void handleInput(GameState* gs, InputState* is) {
 		gs->mouseDownPos.x = gs->cursorPos.x;
 		gs->mouseDownPos.y = gs->cursorPos.y;
 		dragstart = getCurrentTime();
-		printf("start dragging at (%d,%d)\n", (int)gs->cursorPos.x, (int)gs->cursorPos.y);
+		//printf("start dragging at (%d,%d)\n", (int)gs->cursorPos.x, (int)gs->cursorPos.y);
 	}
 	if(is->buttonUp == 1) {
 		double dragtime = timeSince(dragstart);
 		if(dragtime < 0.7) {
-			printf("ignoring drag, too short: %.8f\n", dragtime);
+			//printf("ignoring drag, too short: %.8f\n", dragtime);
 		}
 		else {
 		//vCopy(&gs->cursorPos, &gs->mouseDownPos);
-			printf("stopped dragging at (%d,%d)\n", (int)gs->cursorPos.x, (int)gs->cursorPos.y);
+			//printf("stopped dragging at (%d,%d)\n", (int)gs->cursorPos.x, (int)gs->cursorPos.y);
 			
 			World_spawnAt_Road(gs->world, &gs->mouseDownPos, &gs->cursorPos);
 		}

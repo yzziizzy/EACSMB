@@ -267,7 +267,7 @@ int dynamicMeshManager_addInstance(DynamicMeshManager* mm, int meshIndex, const 
 	
 	mm->totalInstances++;
 	
-	printf("adding instance: %d ", meshIndex);
+	//printf("adding instance: %d ", meshIndex);
 	msh = VEC_DATA(&mm->meshes)[meshIndex];
 	VEC_PUSH(&msh->instances[0], *smi);
 	VEC_PUSH(&msh->instances[1], *smi);

@@ -14,10 +14,13 @@ static int closeClick(GUIEvent* e) {
 	
 	GUISimpleWindow* sw;
 	
+
 	sw = (GUISimpleWindow*)e->currentTarget;
 	
 	if(e->originalTarget == sw->closebutton) {
-		printf("close button clicked\n");
+		
+		sw->header.hidden = 1;
+		guiDelete(sw);
 	}
 	
 	//TODO no further bubbling
@@ -46,7 +49,7 @@ GUISimpleWindow* guiSimpleWindowNew(Vector2 pos, Vector2 size, float zIndex) {
 	
 	GUISimpleWindow* sw;
 	
-	float titleBarHeight = .01;
+	float tbh = .03; // titleBarHeight
 	
 	static struct gui_vtbl static_vt = {
 		.Render = guiSimpleWindowRender,
@@ -60,18 +63,30 @@ GUISimpleWindow* guiSimpleWindowNew(Vector2 pos, Vector2 size, float zIndex) {
 	guiHeaderInit(&sw->header);
 	sw->header.vt = &static_vt;
 	
+	sw->header.hitbox.min.x = pos.x;
+	sw->header.hitbox.min.y = pos.y;
+	sw->header.hitbox.max.x = pos.x + size.x;
+	sw->header.hitbox.max.y = pos.y + size.y;
 	
 	sw->bg = guiWindowNew(pos, size, zIndex);
 	sw->bg->color = (Vector){0.1, 0.9, 0.1};
 	guiRegisterObject(sw->bg, sw);
 	
-	sw->titlebar = guiWindowNew((Vector2){pos.x, pos.y}, (Vector2){size.x, titleBarHeight}, zIndex + .0001);
+	sw->titlebar = guiWindowNew(
+		(Vector2){pos.x, pos.y}, 
+		(Vector2){size.x, tbh}, 
+		zIndex + .0001
+	);
 	sw->titlebar->color = (Vector){0.9, 0.1, .9};
-	guiRegisterObject(sw->titlebar, sw);
+	guiRegisterObject(sw->titlebar, sw->bg);
 	
-	sw->closebutton = guiWindowNew((Vector2){pos.x + size.x - .01, pos.y + .001}, (Vector2){.009, .009}, zIndex + .0002);
+	sw->closebutton = guiWindowNew(
+		(Vector2){pos.x + size.x - tbh, pos.y + tbh * .05}, 
+		(Vector2){tbh * 0.9, tbh * 0.9},
+		zIndex + .0002
+	);
 	sw->closebutton->color = (Vector){0.9, 0.1, 0.1};
-	guiRegisterObject(sw->closebutton, sw);
+	guiRegisterObject(sw->closebutton, sw->titlebar);
 	
 	
 	sw->header.onClick = closeClick;

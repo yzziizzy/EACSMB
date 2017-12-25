@@ -75,6 +75,15 @@ do { \
 } while(0)
 
 
+// ruins order but it O(1). meh.
+#define VEC_RM(x, i) \
+do { \
+	if(VEC_LEN(x) < i) break; \
+	VEC_ITEM(x, i) = VEC_PEEK(x); \
+	VEC_LEN(x)--; \
+} while(0)
+
+
 #define VEC_FREE(x) \
 do { \
 	if(VEC_DATA(x)) free(VEC_DATA(x)); \

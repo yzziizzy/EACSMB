@@ -17,6 +17,7 @@ typedef union GUIObject GUIObject;
 struct gui_vtbl {
 	void (*Render)(GUIObject* go, GameState* gs);
 	void (*Delete)(GUIObject* go);
+	void (*Reap)(GUIObject* go);
 	GUIObject* (*HitTest)(GUIObject* go, Vector2 testPos);
 };
 
@@ -93,7 +94,8 @@ typedef struct GUIWindow {
 
 
 union GUIObject {
-	GUIHeader h;
+	GUIHeader h; // legacy
+	GUIHeader header;
 	GUIText text;
 	GUIWindow window;
 };
@@ -106,7 +108,8 @@ void gui_RenderAll(GameState* gs);
 GUIObject* guiHitTest(GUIObject* go, Vector2 testPos);
 void guiDelete(GUIObject* go);
 void guiRender(GUIObject* go, GameState* gs);
-
+void guiReap(GUIObject* go);
+int guiRemoveChild(GUIObject* parent, GUIObject* child);
 
 void guiTextSetValue(GUIText* gt, char* newval);
 

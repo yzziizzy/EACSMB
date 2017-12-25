@@ -7,11 +7,13 @@
 #include "window.h"
 #include "gui.h"
 #include "hash.h"
+#include "log.h"
 
 #include "utilities.h"
 
 
 VEC(GUIObject*) gui_list; 
+VEC(GUIObject*) gui_reap_queue; 
 
 HashTable* font_cache; // TextRes*
 
@@ -90,6 +92,9 @@ static TextRes* getFont(char* name) {
 
 void gui_Init() {
 	
+	VEC_INIT(&gui_list);
+	VEC_INIT(&gui_reap_queue);
+	
 	//init font cache
 	font_cache = HT_create(2);
 	
@@ -148,6 +153,8 @@ void guiRegisterObject(GUIObject* o, GUIObject* parent) {
 
 
 void guiRender(GUIObject* go, GameState* gs) {
+	if(go->h.hidden || go->h.deleted) return;
+	
 	if(go->h.vt->Render)
 		go->h.vt->Render(go, gs);
 } 
@@ -155,16 +162,49 @@ void guiRender(GUIObject* go, GameState* gs) {
 void guiDelete(GUIObject* go) {
 	go->h.deleted = 1;
 	
+	VEC_PUSH(&gui_reap_queue, go);
+	
 	for(int i = 0; i < VEC_LEN(&go->h.children); i++) {
 		//guiTextRender(VEC_DATA(&gui_list)[i], gs);
 		guiDelete(VEC_ITEM(&go->h.children, i));
 	}
 	
+
+	
 	if(go->h.vt->Delete)
 		go->h.vt->Delete(go);
 } 
 
+void guiReap(GUIObject* go) {
+	if(!go->h.deleted) {
+		Log("Attempting to reap non-deleted GUI Object");
+		return;
+	}
+	
+	// remove from parent
+	guiRemoveChild(go->h.parent, go);
+	
+	if(go->h.vt->Reap)
+		return go->h.vt->Reap(go);
+	
+}
+
+// NOT SMT SAFE; NO LOCKS
+int guiRemoveChild(GUIObject* parent, GUIObject* child) {
+	
+	if(!parent || !child) return 0;
+	
+	int i = VEC_FIND(&parent->h.children, child);
+	if(i < 0) return 1;
+	
+	VEC_RM(&parent->h.children, i);
+	
+	return 0;
+}
+
+
 GUIObject* guiHitTest(GUIObject* go, Vector2 testPos) {
+
 	if(go->h.vt->HitTest)
 		return go->h.vt->HitTest(go, testPos);
 	
@@ -221,7 +261,7 @@ GUIText* guiTextNew(char* str, Vector* pos, float size, char* fontname) {
 
 GUIObject* guiBaseHitTest(GUIObject* go, Vector2 testPos) {
 	GUIHeader* h = &go->h; 
-	
+
 	int in = boxContainsPoint2(&h->hitbox, &testPos);
 	if(!in) return NULL;
 	
@@ -255,7 +295,6 @@ void gui_RenderAll(GameState* gs) {
 	// TODO: replace with rendering tree once all data is unified
 	
 	for(i = 0; i < VEC_LEN(&gui_list); i++) {
-		
 		//guiTextRender(VEC_DATA(&gui_list)[i], gs);
 		guiRender(VEC_DATA(&gui_list)[i], gs);
 	}
