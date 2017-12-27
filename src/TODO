@@ -21,6 +21,9 @@ decal mesh generation
 	triangle clipping
 	terrain area stats
 
+switch to getopt lib
+	
+json saving
 
 clean up text rendering function
 gui toolkit
@@ -34,6 +37,8 @@ proper terrain scaling (mostly done)
 implement real lighting - partially done
 
 dummy textures
+
+texture generation from noise
 
 extrusion of a 2d shape along a spline
 	perhaps the shape is a spline, allowing even better LoD

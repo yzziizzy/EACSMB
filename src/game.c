@@ -38,6 +38,7 @@
 #include "world.h"
 #include "gui.h"
 #include "ui/simpleWindow.h"
+#include "ui/image.h"
 
 
 
@@ -53,7 +54,7 @@ GUIText* gt, *gt_sel, *gt_emit;
 GUIText* gtRenderMode;
 GUIText* gtSelectionDisabled;
 GUISimpleWindow* gswTest;
-
+GUIImage* giTest;
 
 Texture* cnoise;
 Emitter* dust;
@@ -190,6 +191,8 @@ void initGame(XStuff* xs, GameState* gs) {
 	gs->lookCenter.y = 128;
 	
 	
+	
+	
 	initTextures();
 	
 	initStaticMeshes();
@@ -220,12 +223,17 @@ void initGame(XStuff* xs, GameState* gs) {
 	gswTest = guiSimpleWindowNew((Vector2){.2, .2}, (Vector2){.7, .7}, 0);
 	//gswTest->header.onClick = testClick;
 	
+	giTest = guiImageNew((Vector2){.1,.5}, (Vector2){.1,.1}, 0);
+	
+	
 	guiRegisterObject(gswTest, NULL);
 	guiRegisterObject(gt, NULL);
 	guiRegisterObject(gt_sel, NULL);
 	guiRegisterObject(gt_emit, NULL);
 	guiRegisterObject(gtRenderMode, NULL);
 	guiRegisterObject(gtSelectionDisabled, NULL);
+	
+	guiRegisterObject(giTest, NULL);
 	
 	//initUI(gs);
 	initMarker();
@@ -235,8 +243,6 @@ void initGame(XStuff* xs, GameState* gs) {
 	gs->world = calloc(1, sizeof(*gs->world));
 	World_init(gs->world);
 	gs->world->gs = gs;
-	
-
 	
 }
 

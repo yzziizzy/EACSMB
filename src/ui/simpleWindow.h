@@ -2,11 +2,10 @@
 #define __EACSMB_ui_simpleWindow_h__
 
 
-#include "../gui.h"
 
 
 
-typedef struct {
+typedef struct GUISimpleWindow {
 	GUIHeader header;
 	
 	GUIWindow* bg;

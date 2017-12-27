@@ -92,17 +92,26 @@ typedef struct GUIWindow {
 
 
 
+#include "ui/simpleWindow.h"
+#include "ui/image.h"
+
 
 union GUIObject {
 	GUIHeader h; // legacy
 	GUIHeader header;
 	GUIText text;
 	GUIWindow window;
+	GUISimpleWindow simpleWindow;
+	GUIImage image;
 };
+
+
 
 
 GUIText* guiTextNew(char* str, Vector* pos, float size, char* fontname);
 void gui_Init();
+void gui_Image_Init(char* file);
+
 void gui_RenderAll(GameState* gs);
 
 GUIObject* guiHitTest(GUIObject* go, Vector2 testPos);

@@ -4,7 +4,7 @@
 
 
 
-#include "simpleWindow.h"
+#include "../gui.h"
 
 
 

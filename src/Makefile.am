@@ -25,6 +25,7 @@ eacsmb_SOURCES = main.c \
 	renderLoop.c \
 	gui.c \
 	ui/simpleWindow.c \
+	ui/image.c \
 	ds.c \
 	log.c \
 	cursor.c \

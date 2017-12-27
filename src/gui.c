@@ -135,6 +135,7 @@ void gui_Init() {
 	glBindVertexArray(0);
 	glexit("");
 	
+	gui_Image_Init("assets/config/guiIcons.json");
 }
 
 
