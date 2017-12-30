@@ -84,11 +84,6 @@ int _getPrintGLEnumMin(GLenum e, char* name, char* message) {
 }
 
 
-int testClick(GUIEvent* e) {
-	printf("~~click handler~~ \n");
-}
-
-
 void initGame(XStuff* xs, GameState* gs) {
 	int ww, wh;
 	
