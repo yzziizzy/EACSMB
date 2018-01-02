@@ -60,6 +60,8 @@ Texture* cnoise;
 Emitter* dust;
 
 
+BuilderPipeline* bpipe;
+
 
 
 // in renderLoop.c, a temporary factoring before a proper renderer is designed
@@ -238,6 +240,38 @@ void initGame(XStuff* xs, GameState* gs) {
 	gs->world = calloc(1, sizeof(*gs->world));
 	World_init(gs->world);
 	gs->world->gs = gs;
+	
+	
+	
+	bpipe = calloc(1, sizeof(*bpipe));
+	BuilderPipeline_init(bpipe);
+	
+	BuilderPass* pass;
+	
+	// geometry pass
+	pass = calloc(1, sizeof(*pass));
+	pass->prog = loadCombinedProgram("dynamicMeshInstanced");
+	pass->clearColor = 1;
+	pass->clearDepth = 1;
+	
+	pass->fboIndex = 0;
+	
+	BuilderPass_init(pass);
+	
+	VEC_PUSH(&bpipe->passes, pass);
+	
+	
+	// shading pass
+	pass = calloc(1, sizeof(*pass));
+	pass->prog = loadCombinedProgram("builderShading");
+	
+	pass->fboIndex = 1;
+	
+	BuilderPass_init(pass);
+	
+	VEC_PUSH(&bpipe->passes, pass);
+	
+	
 	
 }
 

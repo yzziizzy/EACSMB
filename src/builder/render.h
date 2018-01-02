@@ -25,6 +25,10 @@ typedef struct RenderParams {
 	Matrix* mWorldView;
 	Matrix* mViewProj;
 	
+	// inverse
+	Matrix* mViewWorld;
+	Matrix* mProjView;
+	
 	
 	//time
 	
@@ -75,6 +79,7 @@ typedef struct BuilderPipeline {
 	// fbo's
 	GLuint* backingTextures;
 	GLuint gbuf;
+	GLuint sbuf; // output buffer
 	
 	Framebuffer fbos[2];
 	

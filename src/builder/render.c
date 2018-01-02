@@ -46,8 +46,21 @@ void init_Builder() {
 
 
 
-void draw_quad(void* data, RenderParams* rp) {
+void shading_pass_render(void* data, RenderParams* rp) {
+//	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "world"), 1, GL_FALSE, world.m);
+	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "mViewProj"), 1, GL_FALSE, rp->mWorldView->m);
+	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "mWorldView"), 1, GL_FALSE, rp->mViewProj->m);
+
+// 	mInverse(msGetTop(&gs->proj), &projView);
+// 	mInverse(msGetTop(&gs->view), &viewWorld);
 	
+	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "mProjView"), 1, GL_FALSE, rp->mProjView->);
+	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "mViewWorld"), 1, GL_FALSE, rp->mViewWorld->m);
+	
+// 	glUniform3fv(glGetUniformLocation(shadingProg->id, "sunNormal"), 1, (float*)&gs->sunNormal);
+	
+	glUniform2iv(glGetUniformLocation(shadingProg->id, "resolution"), 1, (int*)&rp->fboSize);
+
 	glBindVertexArray(quadVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
 	glexit("quad vbo");
@@ -108,6 +121,14 @@ void Builder_initFBOs(BuilderPiperline* bp) {
 	};
 	
 	initFBO(&bp->gbuf, gbufConf);
+	
+	
+	FBOConfig sbufConf[] = {
+		{GL_COLOR_ATTACHMENT0, bp->backingTextures[OUTPUT] },
+		{0,0}
+	};
+	
+	initFBO(&bp->sbuf, sbufConf);
 	
 	
 	
