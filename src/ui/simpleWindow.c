@@ -70,7 +70,7 @@ GUISimpleWindow* guiSimpleWindowNew(Vector2 pos, Vector2 size, float zIndex) {
 	
 	sw->bg = guiWindowNew(pos, size, zIndex);
 	sw->bg->color = (Vector){0.1, 0.9, 0.1};
-	guiRegisterObject(sw->bg, sw);
+	guiRegisterObject(sw->bg, &sw->header);
 	
 	sw->titlebar = guiWindowNew(
 		(Vector2){pos.x, pos.y}, 
@@ -78,7 +78,7 @@ GUISimpleWindow* guiSimpleWindowNew(Vector2 pos, Vector2 size, float zIndex) {
 		zIndex + .0001
 	);
 	sw->titlebar->color = (Vector){0.9, 0.1, .9};
-	guiRegisterObject(sw->titlebar, sw->bg);
+	guiRegisterObject(sw->titlebar, &sw->bg->header);
 	
 	sw->closebutton = guiWindowNew(
 		(Vector2){pos.x + size.x - tbh, pos.y + tbh * .05}, 
@@ -86,7 +86,7 @@ GUISimpleWindow* guiSimpleWindowNew(Vector2 pos, Vector2 size, float zIndex) {
 		zIndex + .0002
 	);
 	sw->closebutton->color = (Vector){0.9, 0.1, 0.1};
-	guiRegisterObject(sw->closebutton, sw->titlebar);
+	guiRegisterObject(sw->closebutton, &sw->titlebar->header);
 	
 	
 	sw->header.onClick = closeClick;

@@ -8,6 +8,7 @@
 #include "gui.h"
 #include "scene.h"
 #include "shader.h"
+#include "builder/render.h"
 
 #include "c_json/json.h"
 #include "json_gl.h"
@@ -17,6 +18,7 @@ GLuint fsQuadVAO, fsQuadVBO;
 ShaderProgram* shadingProg;
 
 extern GUIWindow* gwTest;
+extern BuilderPipeline* bpipe;
 
 
 
@@ -404,6 +406,24 @@ void cleanUpView(XStuff* xs, GameState* gs, InputState* is) {
 #define PF_STOP(x) gs->perfTimes.x = timeSince(gs->perfTimes.x)
 
 void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
+	
+	// draw the builder stuff first
+	
+	if(bpipe) {
+		RenderParams rp;
+		
+		rp.fboSize = (Vector2i){100,100};
+		rp.mWorldView = msGetTop(&gs->view);
+		rp.mViewProj = msGetTop(&gs->proj);
+		
+		// TODO actual inverse matrices
+		rp.mViewWorld = msGetTop(&gs->view);
+		rp.mProjView = msGetTop(&gs->proj);
+		
+		BuilderPipeline_renderAll(bpipe, &rp);
+	}
+	
+	
 	
 	if(gs->hasMoved && gs->lastSelectionFrame < gs->frameCount - 8 && !gs->selectionPassDisabled) {
 		//printf("doing selection pass %d\n", gs->frameCount);

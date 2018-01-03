@@ -8,13 +8,8 @@
 typedef struct GUIImage {
 	GUIHeader header;
 	
-	GUIWindow* bg;
-	GUIWindow* titlebar;
-	GUIWindow* closebutton;
-	
-	GUIText* titleText;
-	
-	char* title;
+	int texIndex;
+	GLuint customTexID;
 	
 } GUIImage;
 
@@ -22,7 +17,7 @@ typedef struct GUIImage {
 
 
 
-GUIImage* guiImageNew(Vector2 pos, Vector2 size, float zIndex);
+GUIImage* guiImageNew(Vector2 pos, Vector2 size, float zIndex, int texIndex);
 
 
 

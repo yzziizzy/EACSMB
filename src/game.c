@@ -39,6 +39,7 @@
 #include "gui.h"
 #include "ui/simpleWindow.h"
 #include "ui/image.h"
+#include "builder/render.h"
 
 
 
@@ -220,7 +221,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	gswTest = guiSimpleWindowNew((Vector2){.2, .2}, (Vector2){.7, .7}, 0);
 	//gswTest->header.onClick = testClick;
 	
-	giTest = guiImageNew((Vector2){.1,.5}, (Vector2){.1,.1}, 0);
+	giTest = guiImageNew((Vector2){.1,.5}, (Vector2){.1,.1}, 0, 0);
 	
 	
 	guiRegisterObject(gswTest, NULL);
@@ -242,6 +243,8 @@ void initGame(XStuff* xs, GameState* gs) {
 	gs->world->gs = gs;
 	
 	
+	
+	init_Builder();
 	
 	bpipe = calloc(1, sizeof(*bpipe));
 	BuilderPipeline_init(bpipe);
@@ -272,12 +275,19 @@ void initGame(XStuff* xs, GameState* gs) {
 	VEC_PUSH(&bpipe->passes, pass);
 	
 	
-	
+	giTest->texIndex = -1;
+
 }
 
 
 
 void preFrame(GameState* gs) {
+	
+	// HACK
+	if(bpipe->backingTextures) {
+		giTest->customTexID = bpipe->backingTextures[4];
+	}
+	
 	
 	// update timers
 	char frameCounterBuf[128];

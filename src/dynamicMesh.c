@@ -77,7 +77,7 @@ void initDynamicMeshes() {
 	glexit("");
 	
 	
-	
+	/*
 	pd = Pass_allocDrawable("dynamic mesh manager");
 	pd->preFrame = preFrame;
 	pd->draw = draw;
@@ -85,6 +85,7 @@ void initDynamicMeshes() {
 	pd->prog = prog;
 	
 	Pass_registerDrawable(pd);
+	*/
 }
 
 

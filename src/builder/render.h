@@ -5,12 +5,13 @@
 
 
 
-
+#include "../ds.h"
 
 
 #include "../meshBuilder.h" 
 #include "../dynamicMesh.h" 
 #include "../shader.h" 
+#include "../fbo.h" 
 
 
 
@@ -38,7 +39,7 @@ typedef struct RenderParams {
 
 
 typedef struct BuilderRenderable {
-	void (*render)(void* data, RenderParams* rp);
+	void (*render)(void* data, ShaderProgram* prog, RenderParams* rp);
 	void* data;
 	
 	//shader here?
@@ -72,7 +73,7 @@ typedef struct BuilderPass {
 
 
 typedef struct BuilderPipeline {
-	DynamicMeshManager dmm;
+// 	DynamicMeshManager* dmm;
 	
 	Vector2i viewSz;
 	
@@ -89,8 +90,10 @@ typedef struct BuilderPipeline {
 
 
 
-void BuilderPipeline_renderAll(BuilderPiperline* bp, RenderParams* rp);
+void BuilderPipeline_renderAll(BuilderPipeline* bp, RenderParams* rp);
+void BuilderPass_renderAll(BuilderPass* bp, RenderParams* rp);
 
+void BuilderPipeline_init(BuilderPipeline* bp);
 
 
 

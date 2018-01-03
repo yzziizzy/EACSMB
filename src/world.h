@@ -146,7 +146,7 @@ void World_drawTerrain(World* w);
 void World_drawSolids(World* w, Matrix* view, Matrix* proj);
 void World_drawDecals(World* w, Matrix* view, Matrix* proj);
 
-
+int World_spawnAt_Item(World* w, char* itemName, Vector* location);
 int World_spawnAt_DynamicMesh(World* w, int dmIndex, Vector* location);
 int World_spawnAt_StaticMesh(World* w, int smIndex, Vector* location);
 void World_spawnAt_Road(World* w, Vector2* start,  Vector2* stop);

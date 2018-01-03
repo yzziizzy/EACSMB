@@ -125,7 +125,9 @@ void guiTextSetValue(GUIText* gt, char* newval);
 GUIWindow* guiWindowNew(Vector2 pos, Vector2 size, float zIndex);
 
 void guiTriggerClick(GUIEvent* e); 
-void guiRegisterObject(GUIObject* o, GUIObject* parent);
+
+#define guiRegisterObject(o, p) guiRegisterObject_(&(o)->header, p)
+void guiRegisterObject_(GUIHeader* o, GUIHeader* parent);
 
 
 

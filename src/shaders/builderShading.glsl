@@ -27,7 +27,6 @@ void main() {
 uniform sampler2D sDiffuse;
 uniform sampler2D sNormals;
 uniform sampler2D sDepth;
-uniform sampler2D sSelection;
 uniform sampler2D sLighting;
 
 uniform int debugMode;
@@ -51,7 +50,7 @@ void main() {
 	vec2 tex = gl_FragCoord.xy / resolution.xy;
 	vec3 normal = texture(sNormals, tex).xyz * 2 - 1;
 	
-	if(debugMode == 0) {
+	if(debugMode == 11110) {
 		// normal rendering
 		// reconstruct world coordinates
 		vec2 screenCoord = gl_FragCoord.xy / resolution.xy;
@@ -104,14 +103,11 @@ void main() {
 		// depth
 		FragColor = vec4(texture(sDepth, tex).rrr,  1.0);
 	}
-	else if(debugMode == 4) {
-		// selection buffer
-		FragColor = vec4(texture(sSelection, tex).rgb,  1.0);
-	}
 	else if(debugMode == 5) {
 		// lighting buffer
 		FragColor = vec4(texture(sLighting, tex).rgb,  1.0);
 	}
 
 //	FragColor = vec4(texture(sNormals, tex).rgb,  1.0);
+	FragColor = vec4(1.0, 0.1, 1.0,  1.0);
 }

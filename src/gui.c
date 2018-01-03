@@ -140,15 +140,15 @@ void gui_Init() {
 
 
 // add root objects to the root list, record the parent otherwise
-void guiRegisterObject(GUIObject* o, GUIObject* parent) {
+void guiRegisterObject_(GUIHeader* o, GUIHeader* parent) {
 	
-	o->h.parent = parent;
+	o->parent = parent;
 	
 	if(!parent) {
 		VEC_PUSH(&gui_list, o);
 	}
 	else {
-		VEC_PUSH(&parent->h.children, o);
+		VEC_PUSH(&parent->children, o);
 	}
 }
 

@@ -46,20 +46,20 @@ void init_Builder() {
 
 
 
-void shading_pass_render(void* data, RenderParams* rp) {
+void shading_pass_render(void* data, ShaderProgram* prog, RenderParams* rp) {
 //	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "world"), 1, GL_FALSE, world.m);
-	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "mViewProj"), 1, GL_FALSE, rp->mWorldView->m);
-	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "mWorldView"), 1, GL_FALSE, rp->mViewProj->m);
+	glUniformMatrix4fv(glGetUniformLocation(prog->id, "mViewProj"), 1, GL_FALSE, rp->mWorldView->m);
+	glUniformMatrix4fv(glGetUniformLocation(prog->id, "mWorldView"), 1, GL_FALSE, rp->mViewProj->m);
 
 // 	mInverse(msGetTop(&gs->proj), &projView);
 // 	mInverse(msGetTop(&gs->view), &viewWorld);
 	
-	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "mProjView"), 1, GL_FALSE, rp->mProjView->);
-	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "mViewWorld"), 1, GL_FALSE, rp->mViewWorld->m);
+	glUniformMatrix4fv(glGetUniformLocation(prog->id, "mProjView"), 1, GL_FALSE, rp->mProjView->m);
+	glUniformMatrix4fv(glGetUniformLocation(prog->id, "mViewWorld"), 1, GL_FALSE, rp->mViewWorld->m);
 	
 // 	glUniform3fv(glGetUniformLocation(shadingProg->id, "sunNormal"), 1, (float*)&gs->sunNormal);
 	
-	glUniform2iv(glGetUniformLocation(shadingProg->id, "resolution"), 1, (int*)&rp->fboSize);
+	glUniform2iv(glGetUniformLocation(prog->id, "resolution"), 1, (int*)&rp->fboSize);
 
 	glBindVertexArray(quadVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
@@ -78,13 +78,13 @@ enum {
 	LIGHTING,
 	DEPTH,
 	OUTPUT
-}
+};
 
 
 
 
 
-void Builder_initFBOs(BuilderPiperline* bp) {
+void Builder_initFBOs(BuilderPipeline* bp) {
 	
 	// diffuse, normal, lighting, depth, output, NULL
 	FBOTexConfig* texcfg = calloc(1, 6 * sizeof(*texcfg)); 
@@ -148,14 +148,14 @@ void BuilderPass_init(BuilderPass* bp, ShaderProgram* prog) {
 
 
 
-void BuilderPipeline_renderAll(BuilderPiperline* bp, RenderParams* rp) {
+void BuilderPipeline_renderAll(BuilderPipeline* bp, RenderParams* rp) {
 	
 	
 	for(int i = 0; i < VEC_LEN(&bp->passes); i++) {
 		BuilderPass* pass = VEC_ITEM(&bp->passes, i);
-		ShaderProgam* prog = pass->prog;
+		ShaderProgram* prog = pass->prog;
 		
-		glBindFramebuffer(GL_FRAMEBUFFER, bp->fbos[pass->fboIndex]);
+		glBindFramebuffer(GL_FRAMEBUFFER, bp->fbos[pass->fboIndex].fb);
 		
 		int clear = 0;
 		if(pass->clearColor) clear |= GL_COLOR_BUFFER_BIT;
@@ -163,28 +163,28 @@ void BuilderPipeline_renderAll(BuilderPiperline* bp, RenderParams* rp) {
 		if(clear) glClear(clear);
 		
 		// TODO: ensure the backin textures are not bound to an active fbo
-		if(bp->diffuseUL != -1) {
+		if(pass->diffuseUL != -1) {
 			glActiveTexture(GL_TEXTURE0 + 10);
-			glBindTexture(GL_TEXTURE_2D, bp->backingTexturesp[DIFFUSE]);
-			glProgramUniform1i(prog->id, bp->diffuseUL, 10);
+			glBindTexture(GL_TEXTURE_2D, bp->backingTextures[DIFFUSE]);
+			glProgramUniform1i(prog->id, pass->diffuseUL, 10);
 		}
 		
-		if(bp->normalsUL != -1) {
+		if(pass->normalsUL != -1) {
 			glActiveTexture(GL_TEXTURE0 + 11);
-			glBindTexture(GL_TEXTURE_2D, bp->backingTexturesp[NORMALS]);
-			glProgramUniform1i(prog->id, bp->normalsUL, 11);
+			glBindTexture(GL_TEXTURE_2D, bp->backingTextures[NORMAL]);
+			glProgramUniform1i(prog->id, pass->normalsUL, 11);
 		}
 		
-		if(bp->lightingUL != -1) {
+		if(pass->lightingUL != -1) {
 			glActiveTexture(GL_TEXTURE0 + 12);
-			glBindTexture(GL_TEXTURE_2D, bp->backingTexturesp[LIGHTING]);
-			glProgramUniform1i(prog->id, bp->lightingUL, 12);
+			glBindTexture(GL_TEXTURE_2D, bp->backingTextures[LIGHTING]);
+			glProgramUniform1i(prog->id, pass->lightingUL, 12);
 		}
 		
-		if(bp->depthUL != -1) {
+		if(pass->depthUL != -1) {
 			glActiveTexture(GL_TEXTURE0 + 13);
-			glBindTexture(GL_TEXTURE_2D, bp->backingTexturesp[DEPTH]);
-			glProgramUniform1i(prog->id, bp->depthUL, 13);
+			glBindTexture(GL_TEXTURE_2D, bp->backingTextures[DEPTH]);
+			glProgramUniform1i(prog->id, pass->depthUL, 13);
 		}
 		
 		
@@ -208,13 +208,17 @@ void BuilderPass_renderAll(BuilderPass* bp, RenderParams* rp) {
 	
 	for(i = 0; i < VEC_LEN(&bp->renderables); i++) {
 		BuilderRenderable* r = &VEC_ITEM(&bp->renderables, i);
-		r->render(r->data, rp;
+		r->render(r->data, bp->prog, rp);
 	}
 	
 }
 
 
-
+void BuilderPipeline_init(BuilderPipeline* bp) {
+	
+	VEC_INIT(&bp->passes);
+	
+}
 
 
 

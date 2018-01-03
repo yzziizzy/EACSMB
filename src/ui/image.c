@@ -121,6 +121,7 @@ void guiImageRender(GUIImage* im, GameState* gs) {
 	static GLuint z_alpha__ul;
 	static GLuint texIndex_ul;
 	static GLuint sTexture_ul;
+	static GLuint sCustomTexture_ul;
 	//static GLuint color_ul;
 	
 	if(!proj_ul) proj_ul = glGetUniformLocation(imageProg->id, "mProj");
@@ -128,6 +129,7 @@ void guiImageRender(GUIImage* im, GameState* gs) {
 	if(!z_alpha__ul) z_alpha__ul = glGetUniformLocation(imageProg->id, "z_alpha_");
 	if(!texIndex_ul) texIndex_ul = glGetUniformLocation(imageProg->id, "texIndex");
 	if(!sTexture_ul) sTexture_ul = glGetUniformLocation(imageProg->id, "sTexture");
+	if(!sCustomTexture_ul) sCustomTexture_ul = glGetUniformLocation(imageProg->id, "sCustomTexture");
 	//if(!color_ul) color_ul = glGetUniformLocation(imageProg->id, "color");
 	
 	
@@ -146,8 +148,12 @@ void guiImageRender(GUIImage* im, GameState* gs) {
 		im->header.size.y 
 	);
 	glUniform4f(z_alpha__ul, -.1, 1, 0, 0); // BUG z is a big messed up; -.1 works but .1 doesn't.
+	
+	glProgramUniform1i(imageProg->id, texIndex_ul, im->texIndex);
+	if(im->texIndex == -1) {
+		glProgramUniform1i(imageProg->id, sCustomTexture_ul, im->customTexID);
+	}
 	glProgramUniform1i(imageProg->id, sTexture_ul, 31);
-	glProgramUniform1i(imageProg->id, texIndex_ul, 0);
 	
 	glActiveTexture(GL_TEXTURE0 + 31);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, image_textures->tex_id);
@@ -170,7 +176,7 @@ void guiImageDelete(GUIImage* im) {
 
 
 
-GUIImage* guiImageNew(Vector2 pos, Vector2 size, float zIndex) {
+GUIImage* guiImageNew(Vector2 pos, Vector2 size, float zIndex, int texIndex) {
 	
 	GUIImage* im;
 	
@@ -196,6 +202,9 @@ GUIImage* guiImageNew(Vector2 pos, Vector2 size, float zIndex) {
 	im->header.topleft = pos;
 	im->header.size = size;
 	im->header.z = zIndex;
+	
+	im->texIndex = texIndex;
+	im->customTexID = 0;
 	
 	return im;
 }

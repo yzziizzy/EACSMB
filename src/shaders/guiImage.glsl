@@ -41,6 +41,7 @@ void main() {
 
 uniform vec3 color;
 uniform sampler2DArray sTexture;
+uniform sampler2D sCustomTexture;
 uniform int texIndex; 
 
 in vec2 tc;
@@ -58,7 +59,13 @@ void main(void) {
 	
 	vec4 edgeFactor = vec4(min(min(ei1, ei2), min(ei3, ei4)), 0,0,1).rrra;
 
-	vec4 tex = texture(sTexture, vec3(tc.xy, texIndex)).rgba;
+	vec4 tex;
+	if(texIndex != -1) {
+		tex = texture(sTexture, vec3(tc.xy, texIndex)).rgba;
+	}
+	else {
+		tex = texture(sCustomTexture, tc.xy).rgba;
+	}
 	
 	FragColor = vec4(tex.rgb, alpha * edgeFactor);
 //	FragColor = vec4(vec3(.1,.2,.8), alpha * edgeFactor);
