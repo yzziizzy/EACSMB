@@ -151,12 +151,15 @@ void guiImageRender(GUIImage* im, GameState* gs) {
 	
 	glProgramUniform1i(imageProg->id, texIndex_ul, im->texIndex);
 	if(im->texIndex == -1) {
-		glProgramUniform1i(imageProg->id, sCustomTexture_ul, im->customTexID);
+		glProgramUniform1i(imageProg->id, sCustomTexture_ul, 30);
 	}
 	glProgramUniform1i(imageProg->id, sTexture_ul, 31);
 	
-	glActiveTexture(GL_TEXTURE0 + 31);
-	glBindTexture(GL_TEXTURE_2D_ARRAY, image_textures->tex_id);
+	//glActiveTexture(GL_TEXTURE0 + 31);
+	//glBindTexture(GL_TEXTURE_2D_ARRAY, image_textures->tex_id);
+	
+	glActiveTexture(GL_TEXTURE0 + 30);
+	glBindTexture(GL_TEXTURE_2D, im->customTexID);
 	
 	//glUniform3f(color_ul, gw->color.x, gw->color.y, gw->color.z); // BUG z is a big messed up; -.1 works but .1 doesn't.
 

@@ -44,13 +44,15 @@ uniform mat4 mProjView;
 
 uniform vec2 resolution;
 
-out vec4 FragColor;
+layout(location = 0) out vec4 FragColor;
 
 void main() {
+	
 	vec2 tex = gl_FragCoord.xy / resolution.xy;
 	vec3 normal = texture(sNormals, tex).xyz * 2 - 1;
 	
-	if(debugMode == 11110) {
+	
+	if(1 == 1) {
 		// normal rendering
 		// reconstruct world coordinates
 		vec2 screenCoord = gl_FragCoord.xy / resolution.xy;
@@ -91,23 +93,8 @@ void main() {
 			FragColor = vec4(ambient + diffuseColor, 1.0);
 		}
 	}
-	else if(debugMode == 1) {
-		// diffuse
-		FragColor = vec4(texture(sDiffuse, tex).rgb,  1.0);
-	}
-	else if(debugMode == 2) {
-		// normals
-		FragColor = vec4(abs(texture(sNormals, tex).rgb * 2 - 1),  1.0);
-	}
-	else if(debugMode == 3) {
-		// depth
-		FragColor = vec4(texture(sDepth, tex).rrr,  1.0);
-	}
-	else if(debugMode == 5) {
-		// lighting buffer
-		FragColor = vec4(texture(sLighting, tex).rgb,  1.0);
-	}
 
-//	FragColor = vec4(texture(sNormals, tex).rgb,  1.0);
-	FragColor = vec4(1.0, 0.1, 1.0,  1.0);
+
+	FragColor = vec4(texture(sNormals, tex).rgb,  1.0);
+//	FragColor = vec4(.10, 0.8, .20,  1.0);
 }

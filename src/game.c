@@ -87,6 +87,23 @@ int _getPrintGLEnumMin(GLenum e, char* name, char* message) {
 }
 
 
+
+
+MeshManager* builder_smm;
+
+
+void geom_pass_render(MeshManager* mm, ShaderProgram* prog, RenderParams* rp) {
+	
+	meshManager_draw(mm, rp->mWorldView, rp->mViewProj);
+	
+}
+
+
+
+
+
+
+
 void initGame(XStuff* xs, GameState* gs) {
 	int ww, wh;
 	
@@ -221,7 +238,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	gswTest = guiSimpleWindowNew((Vector2){.2, .2}, (Vector2){.7, .7}, 0);
 	//gswTest->header.onClick = testClick;
 	
-	giTest = guiImageNew((Vector2){.1,.5}, (Vector2){.1,.1}, 0, 0);
+	giTest = guiImageNew((Vector2){.1,.2}, (Vector2){.8,.8}, 0, 0);
 	
 	
 	guiRegisterObject(gswTest, NULL);
@@ -249,34 +266,61 @@ void initGame(XStuff* xs, GameState* gs) {
 	bpipe = calloc(1, sizeof(*bpipe));
 	BuilderPipeline_init(bpipe);
 	
+	bpipe->viewSz = (Vector2i){300,300};
+	
 	BuilderPass* pass;
 	
 	// geometry pass
 	pass = calloc(1, sizeof(*pass));
-	pass->prog = loadCombinedProgram("dynamicMeshInstanced");
 	pass->clearColor = 1;
 	pass->clearDepth = 1;
 	
 	pass->fboIndex = 0;
 	
-	BuilderPass_init(pass);
+	BuilderPass_init(pass, loadCombinedProgram("dynamicMeshInstanced"));
+	
+	builder_smm = meshManager_alloc();
+	meshManager_readConfigFile(builder_smm, "assets/config/models.json");
+	meshManager_updateGeometry(builder_smm);
+	StaticMeshInstance smi[] = {
+		{
+			{1,1,4}, 2.5,
+			{1, 0, 0}, 0.0,
+			.9, 0,0,0
+		}
+	};
+	meshManager_addInstance(builder_smm, 0, &smi[0]);
+	meshManager_updateInstances(builder_smm);
+	
+	BuilderRenderable br1 = {
+		geom_pass_render, builder_smm
+	};
+	
+	VEC_PUSH(&pass->renderables, br1);
 	
 	VEC_PUSH(&bpipe->passes, pass);
 	
 	
 	// shading pass
 	pass = calloc(1, sizeof(*pass));
-	pass->prog = loadCombinedProgram("builderShading");
-	
 	pass->fboIndex = 1;
+	pass->clearColor = 1;
+	pass->clearDepth = 1;
 	
-	BuilderPass_init(pass);
+	
+	BuilderPass_init(pass, loadCombinedProgram("builderShading"));
 	
 	VEC_PUSH(&bpipe->passes, pass);
 	
+	BuilderRenderable br = {
+		shading_pass_render, NULL
+	};
+	
+	VEC_PUSH(&pass->renderables, br);
 	
 	giTest->texIndex = -1;
-
+	Builder_initFBOs(bpipe);
+	
 }
 
 
@@ -285,6 +329,9 @@ void preFrame(GameState* gs) {
 	
 	// HACK
 	if(bpipe->backingTextures) {
+		//printf("\n\n-----------\nbacking textures\n\n\n\n");
+			
+	//printf("output 2 tex: %d \n", bpipe->backingTextures[4]);
 		giTest->customTexID = bpipe->backingTextures[4];
 	}
 	

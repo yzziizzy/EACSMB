@@ -36,10 +36,11 @@ typedef struct RenderParams {
 } RenderParams;
 
 
+typedef void (*BuilderPassRenderFn)(void* data, ShaderProgram* prog, RenderParams* rp);
 
 
 typedef struct BuilderRenderable {
-	void (*render)(void* data, ShaderProgram* prog, RenderParams* rp);
+	BuilderPassRenderFn render;
 	void* data;
 	
 	//shader here?
@@ -79,8 +80,6 @@ typedef struct BuilderPipeline {
 	
 	// fbo's
 	GLuint* backingTextures;
-	GLuint gbuf;
-	GLuint sbuf; // output buffer
 	
 	Framebuffer fbos[2];
 	
@@ -89,12 +88,13 @@ typedef struct BuilderPipeline {
 } BuilderPipeline;
 
 
+void BuilderPass_init(BuilderPass* bp, ShaderProgram* prog); 
 
 void BuilderPipeline_renderAll(BuilderPipeline* bp, RenderParams* rp);
 void BuilderPass_renderAll(BuilderPass* bp, RenderParams* rp);
 
 void BuilderPipeline_init(BuilderPipeline* bp);
 
-
+void shading_pass_render(void* data, ShaderProgram* prog, RenderParams* rp);
 
 #endif // __EACSMB_builder_render_h__

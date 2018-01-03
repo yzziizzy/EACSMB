@@ -412,7 +412,7 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	if(bpipe) {
 		RenderParams rp;
 		
-		rp.fboSize = (Vector2i){100,100};
+		rp.fboSize = (Vector2i){300,300};
 		rp.mWorldView = msGetTop(&gs->view);
 		rp.mViewProj = msGetTop(&gs->proj);
 		
