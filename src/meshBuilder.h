@@ -121,6 +121,6 @@ union MB_operation {
 	MB_pyramid_params pyramid;
 };
 
-
+MeshData* meshBuilder_test();
 
 #endif // __EACSMB_meshBuilder_h__

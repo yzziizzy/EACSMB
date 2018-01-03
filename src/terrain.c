@@ -53,9 +53,6 @@ void terrain_readConfigJSON(TerrainTexInfo* tti, char* path) {
 	
 	jsf = json_load_path(path);
 	
-	
-	
-	char** a;
 	size_t l, i;
 	
 	int ret;
@@ -69,14 +66,11 @@ void terrain_readConfigJSON(TerrainTexInfo* tti, char* path) {
 	
 	// TODO: error handling
 	if(jsf->root->type != JSON_TYPE_OBJ) {
+		printf("invalid terrain tex config format\n");
 		return;
 	}
 
 	
-	a = malloc(l * 2 * sizeof(*a));
-	if(!a) {
-		return;
-	}
 	
 	// do shit
 	iter = NULL;

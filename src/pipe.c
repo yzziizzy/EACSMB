@@ -114,7 +114,6 @@ PipeLine* Pipe_create(Vector* points, int numpts) {
 		
 		VEC_PUSH(&pl->joints, j);
 		
-		
 	}
 	
 	return pl;
