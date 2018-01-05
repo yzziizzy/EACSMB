@@ -21,6 +21,7 @@ TexArray* image_textures;
 GLuint vaoImage, vboImage;
 
 ShaderProgram* imageProg;
+ShaderProgram* rtProg;
 
 
 void gui_Image_Init(char* file) {
@@ -68,6 +69,7 @@ void gui_Image_Init(char* file) {
 	
 	// gl stuff
 	imageProg = loadCombinedProgram("guiImage");
+	rtProg = loadCombinedProgram("guiRenderTarget");
 	
 	
 	// image VAO
@@ -215,6 +217,129 @@ GUIImage* guiImageNew(Vector2 pos, Vector2 size, float zIndex, int texIndex) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void guiRenderTargetRender(GUIRenderTarget* im, GameState* gs) {
+	
+	Matrix proj = IDENT_MATRIX;
+	
+	static GLuint proj_ul;
+	static GLuint tlx_tly_w_h_ul;
+	static GLuint z_alpha__ul;
+	static GLuint sTexture_ul;
+	//static GLuint color_ul;
+	
+	if(!proj_ul) proj_ul = glGetUniformLocation(rtProg->id, "mProj");
+	if(!tlx_tly_w_h_ul) tlx_tly_w_h_ul = glGetUniformLocation(rtProg->id, "tlx_tly_w_h");
+	if(!z_alpha__ul) z_alpha__ul = glGetUniformLocation(rtProg->id, "z_alpha_");
+	if(!sTexture_ul) sTexture_ul = glGetUniformLocation(rtProg->id, "sTexture");
+	//if(!color_ul) color_ul = glGetUniformLocation(rtProg->id, "color");
+	
+	
+	mOrtho(0, 1, 0, 1, 0, 1, &proj);
+	
+	
+	glUseProgram(rtProg->id);
+	glexit("");
+	
+	glUniformMatrix4fv(proj_ul, 1, GL_FALSE, &proj.m);
+	glUniform4f(tlx_tly_w_h_ul, 
+		im->header.topleft.x, 
+		im->header.topleft.y, 
+		im->header.size.x, 
+		im->header.size.y 
+	);
+	glUniform4f(z_alpha__ul, -.1, 1, 0, 0); // BUG z is a big messed up; -.1 works but .1 doesn't.
+	
+	glProgramUniform1i(rtProg->id, sTexture_ul, 30);
+	
+	glActiveTexture(GL_TEXTURE0 + 30);
+	glBindTexture(GL_TEXTURE_2D, im->texID);
+	
+	glBindVertexArray(vaoImage);
+	glBindBuffer(GL_ARRAY_BUFFER, vboImage);
+	
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glexit("");
+}
+
+void guiRenderTargetDelete(GUIRenderTarget* rt) {
+	
+	
+	
+	
+}
+
+void guiRenderTargetResize(GUIRenderTarget* rt, Vector newSz) {
+	
+	// rebuild fbos
+}
+
+
+
+
+
+
+
+
+GUIRenderTarget* guiRenderTargetNew(Vector2 pos, Vector2 size, GLuint tex) {
+	
+	GUIRenderTarget* im;
+	
+	float tbh = .03; // titleBarHeight
+	
+	static struct gui_vtbl static_vt = {
+		.Render = guiRenderTargetRender,
+		.Delete = guiRenderTargetDelete,
+		.Resize = guiRenderTargetResize
+	};
+	
+	
+	im = calloc(1, sizeof(*im));
+	CHECK_OOM(im);
+	
+	guiHeaderInit(&im->header);
+	im->header.vt = &static_vt;
+	
+	im->header.hitbox.min.x = pos.x;
+	im->header.hitbox.min.y = pos.y;
+	im->header.hitbox.max.x = pos.x + size.x;
+	im->header.hitbox.max.y = pos.y + size.y;
+	
+	im->header.topleft = pos;
+	im->header.size = size;
+	im->header.z = zIndex;
+	
+	im->texIndex = texIndex;
+	im->customTexID = 0;
+	
+	return im;
+}
 
 
 

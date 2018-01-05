@@ -18,6 +18,7 @@ struct gui_vtbl {
 	void (*Render)(GUIObject* go, GameState* gs);
 	void (*Delete)(GUIObject* go);
 	void (*Reap)(GUIObject* go);
+	void (*Resize)(GUIObject* go, Vector2 newSz);
 	GUIObject* (*HitTest)(GUIObject* go, Vector2 testPos);
 };
 

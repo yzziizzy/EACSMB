@@ -1,0 +1,128 @@
+#ifndef __EACSMB_pass_h__
+#define __EACSMB_pass_h__
+
+
+#include "common_gl.h"
+#include "common_math.h"
+
+#include "ds.h"
+#include "hash.h"
+
+#include "shader.h"
+
+
+// TODO: check alignment for ubo
+typedef struct PassDrawParams {
+	Matrix* mWorldView;
+	Matrix* mViewProj;
+	
+	// inverse
+	Matrix* mViewWorld;
+	Matrix* mProjView;
+	
+	Vector eyeVec;
+	Vector eyePos;
+	Vector sunVec;
+	
+	float timeSeconds;
+	float timeFractional;
+	float spinner;
+} PassDrawParams;
+
+typedef struct PassFrameParams {
+	PassDrawParams* dp;
+	
+	double timeElapsed; // time since last frame
+	double gameTime; // gets paused, persisted on save, etc
+	double wallTime; // from the first frame rendered this session
+} PassFrameParams;
+
+
+
+
+struct PassDrawable;
+
+typedef void (*PassDrawFn)(void* data, PassDrawable* drawable, PassDrawParams* dp);
+
+
+typedef struct PassDrawable {
+	
+	char* name;
+	
+	ShaderProgram* prog; 
+	
+	// where uniform buffers would be set up
+	void (*preFrame)(PassFrameParams*, void*);
+	
+	// might be called many times
+	PassDrawFn draw;
+	
+	// where circular buffers are rotated
+	void (*postFrame)(void*);
+	
+} PassDrawable;
+
+
+
+
+typedef struct RenderPass {
+	
+	char clearColor;
+	char clearDepth;
+	
+	char fboIndex;
+	// fbo config, texture bindings, etc
+	
+	ShaderProgram* prog;
+	
+	GLuint diffuseUL;
+	GLuint normalsUL;
+	GLuint lightingUL;
+	GLuint depthUL;
+	
+	
+	VEC(PassDrawable*) drawables;
+	
+} RenderPass;
+
+
+
+typedef struct RenderPipeline {
+	
+	Vector2i viewSz;
+	
+	// fbo's
+	GLuint* backingTextures;
+	Framebuffer fbos[2];
+	
+	VEC(RenderPass*) passes;
+	
+} RenderPipeline;
+
+
+
+int RenderPass_addDrawable(PassDrawable* d);
+
+void RenderPass_init(RenderPass* pass, ShaderProgram* prog); 
+
+void RenderPipeline_renderAll(RenderPipeline* rp, PassDrawParams* pdp);
+void RenderPass_renderAll(RenderPass* pass, PassDrawParams* pdp);
+
+void RenderPipeline_init(RenderPipeline* rp);
+
+GLuint RenderPipeline_getOutputTexture(RenderPipeline* rp)
+
+// TODO: fn to auto-add shading pass
+
+
+
+
+
+
+
+
+
+
+
+
+#endif // __EACSMB_pass_h__

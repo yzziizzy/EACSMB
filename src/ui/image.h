@@ -3,6 +3,9 @@
 
 
 
+#include "../pass.h"
+
+
 
 
 typedef struct GUIImage {
@@ -22,6 +25,19 @@ GUIImage* guiImageNew(Vector2 pos, Vector2 size, float zIndex, int texIndex);
 
 
 
+typedef struct GUIRenderTarget {
+	GUIHeader header;
+	
+	GLuint texID;
+	RenderPipeline* rpl;
+	
+	
+} GUIRenderTarget;
 
+GUIRenderTarget* guiRenderTargetNew(Vector2 pos, Vector2 size, GLuint tex);
+
+
+// also initialize GUIRenderTarget data
+void gui_Image_Init(char* file);
 
 #endif // __EACSMB_ui_image_h__
