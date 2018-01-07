@@ -110,6 +110,8 @@ void RenderPass_renderAll(RenderPass* pass, PassDrawParams* pdp);
 
 void RenderPipeline_init(RenderPipeline* rp);
 
+void RenderPipeline_rebuildFBOs(RenderPipeline* rp, Vector2 sz);
+
 GLuint RenderPipeline_getOutputTexture(RenderPipeline* rp)
 
 // TODO: fn to auto-add shading pass

@@ -190,6 +190,15 @@ void guiReap(GUIObject* go) {
 	
 }
 
+void guiResize(GUIHeader* gh, Vector2 newSz) {
+	if(gh->deleted) return;
+	
+	if(gh->vt->Resize)
+		gh->vt->Resize((GUIObject*)gh, newSz);
+	
+	// parents need to resize their children
+} 
+
 // NOT SMT SAFE; NO LOCKS
 int guiRemoveChild(GUIObject* parent, GUIObject* child) {
 	

@@ -298,6 +298,9 @@ void guiRenderTargetDelete(GUIRenderTarget* rt) {
 void guiRenderTargetResize(GUIRenderTarget* rt, Vector newSz) {
 	
 	// rebuild fbos
+	
+	RenderPipeline_rebuildFBOs(rpl, newSz);
+	
 }
 
 

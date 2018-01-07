@@ -119,6 +119,7 @@ GUIObject* guiHitTest(GUIObject* go, Vector2 testPos);
 void guiDelete(GUIObject* go);
 void guiRender(GUIObject* go, GameState* gs);
 void guiReap(GUIObject* go);
+void guiResize(GUIHeader* gh, Vector2 newSz);
 int guiRemoveChild(GUIObject* parent, GUIObject* child);
 
 void guiTextSetValue(GUIText* gt, char* newval);
