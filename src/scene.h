@@ -45,10 +45,10 @@ typedef struct QuadTree {
 
 typedef struct Scene {
 	
-	Pass* solids;
-	Pass* decals;
-	Pass* lighting;
-	
+// 	Pass* solids;
+// 	Pass* decals;
+// 	Pass* lighting;
+// 	
 	VEC(PassDrawable*) allDrawables;
 	
 } Scene;

@@ -559,8 +559,8 @@ static void draw(PassDrawParams* pdp, GLuint progID, DynamicMeshManager* dmm) {
 	glexit("");
 
 	glUniformMatrix4fv(model_ul, 1, GL_FALSE, model.m);
-	glUniformMatrix4fv(view_ul, 1, GL_FALSE, pdp->worldView->m);
-	glUniformMatrix4fv(proj_ul, 1, GL_FALSE, pdp->viewProj->m);
+	glUniformMatrix4fv(view_ul, 1, GL_FALSE, pdp->mWorldView->m);
+	glUniformMatrix4fv(proj_ul, 1, GL_FALSE, pdp->mViewProj->m);
 	glUniform3f(color_ul, .5, .2, .9);
 	
 	// ---------------------------------

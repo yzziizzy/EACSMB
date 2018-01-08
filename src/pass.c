@@ -23,20 +23,29 @@ enum {
 
 
 
-void Pass_initPass(Pass* p) {
+
+
+
+void RenderPipeline_rebuildFBOs(RenderPipeline* rp, Vector2i sz) {
 	
-	VEC_INIT(&p->drawables);
+	if(rp->viewSz.x == sz.x && rp->viewSz.x == sz.x && rp->backingTextures) {
+		// same size, already initialized.
+		return;
+	}
 	
-}
-
-
-
-
-void RenderPipeline_initFBOs(RendererPipeline* bp) {
-	
-	if(bp->viewSz.x * bp->viewSz.y < 0) {
+	if(sz.x * sz.y < 1) {
 		printf("render fbo size is less than zero\n");
 		return;
+	}
+	
+	rp->viewSz = sz;
+	
+	if(rp->backingTextures) {
+		destroyFBOTextures(rp->backingTextures);
+		free(rp->backingTextures);
+		
+		destroyFBO(&rp->fbos[0]);
+		destroyFBO(&rp->fbos[1]);
 	}
 	
 	// diffuse, normal, lighting, depth, output, NULL
@@ -64,35 +73,35 @@ void RenderPipeline_initFBOs(RendererPipeline* bp) {
 	
 	// TODO: clean up old backing textures if existing
 	
-	bp->backingTextures = initFBOTextures(bp->viewSz.x, bp->viewSz.y, texcfg);
+	rp->backingTextures = initFBOTextures(rp->viewSz.x, rp->viewSz.y, texcfg);
 	
 	
 	FBOConfig gbufConf[] = {
-		{GL_COLOR_ATTACHMENT0, bp->backingTextures[DIFFUSE] },
-		{GL_COLOR_ATTACHMENT1, bp->backingTextures[NORMAL] },
-		{GL_COLOR_ATTACHMENT2, bp->backingTextures[LIGHTING] },
-		{GL_DEPTH_ATTACHMENT, bp->backingTextures[DEPTH] },
+		{GL_COLOR_ATTACHMENT0, rp->backingTextures[DIFFUSE] },
+		{GL_COLOR_ATTACHMENT1, rp->backingTextures[NORMAL] },
+		{GL_COLOR_ATTACHMENT2, rp->backingTextures[LIGHTING] },
+		{GL_DEPTH_ATTACHMENT, rp->backingTextures[DEPTH] },
 		{0,0}
 	};
 	
-	initFBO(&bp->fbos[0], gbufConf);
+	initFBO(&rp->fbos[0], gbufConf);
 	
 	
 	FBOConfig sbufConf[] = {
-		{GL_COLOR_ATTACHMENT0, bp->backingTextures[OUTPUT] },
-		{GL_DEPTH_ATTACHMENT, bp->backingTextures[DEPTH2] },
+		{GL_COLOR_ATTACHMENT0, rp->backingTextures[OUTPUT] },
+		{GL_DEPTH_ATTACHMENT, rp->backingTextures[DEPTH2] },
 		{0,0}
 	};
 
-	initFBO(&bp->fbos[1], sbufConf);
+	initFBO(&rp->fbos[1], sbufConf);
 	
-	printf("output tex: %d \n", bp->backingTextures[OUTPUT]);
+	printf("output tex: %d \n", rp->backingTextures[OUTPUT]);
 
 }
 
 
 
-void RenderPass_init(RendererPass* bp, ShaderProgram* prog) {
+void RenderPass_init(RenderPass* bp, ShaderProgram* prog) {
 	
 	bp->prog = prog;
 	
@@ -163,15 +172,15 @@ void RenderPipeline_renderAll(RenderPipeline* bp, PassDrawParams* rp) {
 
 
 
-void RenderPass_renderAll(RenderPass* pass, PassDrawParams* rp) {
+void RenderPass_renderAll(RenderPass* pass, PassDrawParams* pdp) {
 	
 	int i;
 	
 	
-	for(i = 0; i < VEC_LEN(&pass->renderables); i++) {
-		PassDrawable* d = &VEC_ITEM(&pass->drawables, i);
+	for(i = 0; i < VEC_LEN(&pass->drawables); i++) {
+		PassDrawable* d = VEC_ITEM(&pass->drawables, i);
 		glUseProgram(pass->prog->id);
-		d->render(d->data, pass->prog, pass);
+		d->draw(d->data, d, pdp);
 	}
 	
 }

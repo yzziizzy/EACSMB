@@ -9,6 +9,7 @@
 #include "hash.h"
 
 #include "shader.h"
+#include "fbo.h"
 
 
 // TODO: check alignment for ubo
@@ -42,7 +43,7 @@ typedef struct PassFrameParams {
 
 struct PassDrawable;
 
-typedef void (*PassDrawFn)(void* data, PassDrawable* drawable, PassDrawParams* dp);
+typedef void (*PassDrawFn)(void* data, struct PassDrawable* drawable, PassDrawParams* dp);
 
 
 typedef struct PassDrawable {
@@ -50,6 +51,7 @@ typedef struct PassDrawable {
 	char* name;
 	
 	ShaderProgram* prog; 
+	void* data;
 	
 	// where uniform buffers would be set up
 	void (*preFrame)(PassFrameParams*, void*);
@@ -109,10 +111,9 @@ void RenderPipeline_renderAll(RenderPipeline* rp, PassDrawParams* pdp);
 void RenderPass_renderAll(RenderPass* pass, PassDrawParams* pdp);
 
 void RenderPipeline_init(RenderPipeline* rp);
+void RenderPipeline_rebuildFBOs(RenderPipeline* rp, Vector2i sz);
 
-void RenderPipeline_rebuildFBOs(RenderPipeline* rp, Vector2 sz);
-
-GLuint RenderPipeline_getOutputTexture(RenderPipeline* rp)
+GLuint RenderPipeline_getOutputTexture(RenderPipeline* rp);
 
 // TODO: fn to auto-add shading pass
 
