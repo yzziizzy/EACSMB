@@ -56,12 +56,14 @@ GUIText* gtRenderMode;
 GUIText* gtSelectionDisabled;
 GUISimpleWindow* gswTest;
 GUIImage* giTest;
+GUIRenderTarget* grtTest;
 
 Texture* cnoise;
 Emitter* dust;
 
 
 BuilderPipeline* bpipe;
+RenderPipeline* rpipe;
 
 
 
@@ -92,9 +94,9 @@ int _getPrintGLEnumMin(GLenum e, char* name, char* message) {
 MeshManager* builder_smm;
 
 
-void geom_pass_render(MeshManager* mm, ShaderProgram* prog, RenderParams* rp) {
+void geom_pass_render(MeshManager* mm, PassDrawable* pd, PassDrawParams* dp) {
 	
-	meshManager_draw(mm, rp->mWorldView, rp->mViewProj);
+	meshManager_draw(mm, dp->mWorldView, dp->mViewProj);
 	
 }
 
@@ -149,6 +151,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	// set up the Geometry Buffer
 
 	initRenderLoop(gs);
+	initRenderPipeline();
 	
 	// check some prerequisites
 // 	GLint MaxDrawBuffers = 0;
@@ -248,7 +251,6 @@ void initGame(XStuff* xs, GameState* gs) {
 	guiRegisterObject(gtRenderMode, NULL);
 	guiRegisterObject(gtSelectionDisabled, NULL);
 	
-	guiRegisterObject(giTest, NULL);
 	
 	//initUI(gs);
 	initMarker();
@@ -261,14 +263,14 @@ void initGame(XStuff* xs, GameState* gs) {
 	
 	
 	
-	init_Builder();
+// 	init_Builder();
 	
-	bpipe = calloc(1, sizeof(*bpipe));
-	BuilderPipeline_init(bpipe);
+	rpipe = calloc(1, sizeof(*rpipe));
+	RenderPipeline_init(rpipe);
 	
-	bpipe->viewSz = (Vector2i){300,300};
+	//rpipe->viewSz = (Vector2i){300,300};
 	
-	BuilderPass* pass;
+	RenderPass* pass;
 	
 	// geometry pass
 	pass = calloc(1, sizeof(*pass));
@@ -277,7 +279,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	
 	pass->fboIndex = 0;
 	
-	BuilderPass_init(pass, loadCombinedProgram("dynamicMeshInstanced"));
+	RenderPass_init(pass, loadCombinedProgram("dynamicMeshInstanced"));
 	
 	builder_smm = meshManager_alloc();
 	meshManager_readConfigFile(builder_smm, "assets/config/models.json");
@@ -292,50 +294,38 @@ void initGame(XStuff* xs, GameState* gs) {
 	meshManager_addInstance(builder_smm, 0, &smi[0]);
 	meshManager_updateInstances(builder_smm);
 	
-	BuilderRenderable br1 = {
-		geom_pass_render, builder_smm
-	};
+	PassDrawable* br1 = calloc(1, sizeof(*br1));
+	br1->draw = geom_pass_render;
+	br1->data = builder_smm;
 	
-	VEC_PUSH(&pass->renderables, br1);
+	VEC_PUSH(&pass->drawables, br1);
 	
-	VEC_PUSH(&bpipe->passes, pass);
-	
-	
-	// shading pass
-	pass = calloc(1, sizeof(*pass));
-	pass->fboIndex = 1;
-	pass->clearColor = 1;
-	pass->clearDepth = 1;
+	VEC_PUSH(&rpipe->passes, pass);
 	
 	
-	BuilderPass_init(pass, loadCombinedProgram("builderShading"));
+	RenderPipeline_addShadingPass(rpipe, "builderShading"); 
 	
-	VEC_PUSH(&bpipe->passes, pass);
+	//giTest->texIndex = -1;
+	//Builder_initFBOs(rpipe);
+	grtTest = guiRenderTargetNew((Vector2){.1,.2}, (Vector2){.8,.8}, rpipe);
+	guiRegisterObject(grtTest, NULL);
 	
-	BuilderRenderable br = {
-		shading_pass_render, NULL
-	};
-	
-	VEC_PUSH(&pass->renderables, br);
-	
-	giTest->texIndex = -1;
-	Builder_initFBOs(bpipe);
-	
+	guiResize(&grtTest->header, (Vector2){.79, .79});
 }
 
 
 
 void preFrame(GameState* gs) {
 	
-	// HACK
-	if(bpipe->backingTextures) {
-		//printf("\n\n-----------\nbacking textures\n\n\n\n");
-			
-	//printf("output 2 tex: %d \n", bpipe->backingTextures[4]);
-		giTest->customTexID = bpipe->backingTextures[4];
-	}
-	
-	
+// 	// HACK
+// 	if(bpipe->backingTextures) {
+// 		//printf("\n\n-----------\nbacking textures\n\n\n\n");
+// 			
+// 	//printf("output 2 tex: %d \n", bpipe->backingTextures[4]);
+// 		giTest->customTexID = bpipe->backingTextures[4];
+// 	}
+// 	
+// 	
 	// update timers
 	char frameCounterBuf[128];
 	unsigned int fpsColors[] = {0xeeeeeeff, 6, 0xeeee22ff, INT_MAX};

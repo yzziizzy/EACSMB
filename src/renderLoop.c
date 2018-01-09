@@ -18,7 +18,7 @@ GLuint fsQuadVAO, fsQuadVBO;
 ShaderProgram* shadingProg;
 
 extern GUIWindow* gwTest;
-extern BuilderPipeline* bpipe;
+extern RenderPipeline* rpipe;
 
 
 
@@ -409,10 +409,10 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	// draw the builder stuff first
 	
-	if(bpipe) {
-		RenderParams rp;
+	if(rpipe) {
+		PassDrawParams rp;
 		
-		rp.fboSize = (Vector2i){300,300};
+		//rp.fboSize = (Vector2i){300,300};
 		rp.mWorldView = msGetTop(&gs->view);
 		rp.mViewProj = msGetTop(&gs->proj);
 		
@@ -420,7 +420,7 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 		rp.mViewWorld = msGetTop(&gs->view);
 		rp.mProjView = msGetTop(&gs->proj);
 		
-		BuilderPipeline_renderAll(bpipe, &rp);
+		RenderPipeline_renderAll(rpipe, &rp);
 	}
 	
 	

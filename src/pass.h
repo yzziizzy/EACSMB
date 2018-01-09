@@ -102,16 +102,20 @@ typedef struct RenderPipeline {
 } RenderPipeline;
 
 
+void initRenderPipeline();
+
 
 int RenderPass_addDrawable(PassDrawable* d);
 
 void RenderPass_init(RenderPass* pass, ShaderProgram* prog); 
+void RenderPipeline_addShadingPass(RenderPipeline* rpipe, char* shaderName); 
 
 void RenderPipeline_renderAll(RenderPipeline* rp, PassDrawParams* pdp);
 void RenderPass_renderAll(RenderPass* pass, PassDrawParams* pdp);
 
 void RenderPipeline_init(RenderPipeline* rp);
 void RenderPipeline_rebuildFBOs(RenderPipeline* rp, Vector2i sz);
+void RenderPipeline_destroy(RenderPipeline* rp);
 
 GLuint RenderPipeline_getOutputTexture(RenderPipeline* rp);
 

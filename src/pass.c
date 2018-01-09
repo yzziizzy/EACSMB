@@ -9,6 +9,11 @@
 
 
 
+GLuint quadVAO, quadVBO;
+
+
+
+
 enum {
 	DIFFUSE = 0,
 	NORMAL,
@@ -17,6 +22,93 @@ enum {
 	OUTPUT,
 	DEPTH2
 };
+
+
+
+
+
+void initRenderPipeline() {
+	
+	float vertices[] = {
+		-1.0, -1.0, 0.0,
+		-1.0, 1.0, 0.0,
+		1.0, -1.0, 0.0,
+		1.0, 1.0, 0.0
+	};
+	
+	glGenVertexArrays(1, &quadVAO);
+	glBindVertexArray(quadVAO);
+	
+	glGenBuffers(1, &quadVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+	
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 12, 0);
+
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+	
+}
+
+
+
+
+static void shading_pass_render(void* data, PassDrawable* pd, PassDrawParams* pdp) {
+	ShaderProgram* prog = pd->prog;
+	
+//	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "world"), 1, GL_FALSE, world.m);
+	glUniformMatrix4fv(glGetUniformLocation(prog->id, "mViewProj"), 1, GL_FALSE, pdp->mWorldView->m);
+	glUniformMatrix4fv(glGetUniformLocation(prog->id, "mWorldView"), 1, GL_FALSE, pdp->mViewProj->m);
+	glexit("");
+	
+// 	mInverse(msGetTop(&gs->proj), &projView);
+// 	mInverse(msGetTop(&gs->view), &viewWorld);
+	
+	glUniformMatrix4fv(glGetUniformLocation(prog->id, "mProjView"), 1, GL_FALSE, pdp->mProjView->m);
+	glUniformMatrix4fv(glGetUniformLocation(prog->id, "mViewWorld"), 1, GL_FALSE, pdp->mViewWorld->m);
+	glexit("");
+	
+// 	glUniform3fv(glGetUniformLocation(shadingProg->id, "sunNormal"), 1, (float*)&gs->sunNormal);
+	
+// 	glUniform2iv(glGetUniformLocation(prog->id, "resolution"), 1, (int*)&rp->fboSize);
+	glUniform2f(glGetUniformLocation(prog->id, "resolution"), 300, 300);
+	glexit("");
+	
+	glBindVertexArray(quadVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+	glexit("quad vbo");
+
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glexit("quad draw");
+} 
+
+
+void RenderPipeline_addShadingPass(RenderPipeline* rpipe, char* shaderName) {
+	RenderPass* pass;
+	
+	// shading pass
+	pass = calloc(1, sizeof(*pass));
+	pass->fboIndex = 1;
+	pass->clearColor = 1;
+	pass->clearDepth = 1;
+	
+	
+	RenderPass_init(pass, loadCombinedProgram(shaderName));
+	
+	PassDrawable* d = calloc(1, sizeof(*d));
+	d->draw = shading_pass_render;
+	
+	
+	VEC_PUSH(&pass->drawables, d);
+	
+	
+	VEC_PUSH(&rpipe->passes, pass);
+	
+	
+}
+
 
 
 
@@ -113,6 +205,19 @@ void RenderPass_init(RenderPass* bp, ShaderProgram* prog) {
 	glerr("harmless");
 }
 
+
+void RenderPipeline_destroy(RenderPipeline* rp) {
+	
+	if(rp->backingTextures) {
+		destroyFBOTextures(rp->backingTextures);
+		free(rp->backingTextures);
+		
+		destroyFBO(&rp->fbos[0]);
+		destroyFBO(&rp->fbos[1]);
+	}
+	
+	// TODO: clean up all the children of the pass
+}
 
 
 void RenderPipeline_renderAll(RenderPipeline* bp, PassDrawParams* rp) {

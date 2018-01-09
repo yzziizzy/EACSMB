@@ -34,7 +34,7 @@ typedef struct GUIRenderTarget {
 	
 } GUIRenderTarget;
 
-GUIRenderTarget* guiRenderTargetNew(Vector2 pos, Vector2 size, GLuint tex);
+GUIRenderTarget* guiRenderTargetNew(Vector2 pos, Vector2 size, RenderPipeline* rpl);
 
 
 // also initialize GUIRenderTarget data

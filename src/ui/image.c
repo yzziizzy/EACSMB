@@ -289,18 +289,13 @@ void guiRenderTargetRender(GUIRenderTarget* im, GameState* gs) {
 }
 
 void guiRenderTargetDelete(GUIRenderTarget* rt) {
-	
-	
-	
-	
+	RenderPipeline_destroy(rt->rpl);
+	free(rt->rpl);
 }
 
-void guiRenderTargetResize(GUIRenderTarget* rt, Vector newSz) {
+void guiRenderTargetResize(GUIRenderTarget* rt, Vector2 newSz) {
 	
-	// rebuild fbos
-	
-	RenderPipeline_rebuildFBOs(rpl, newSz);
-	
+	RenderPipeline_rebuildFBOs(rt->rpl, (Vector2i){newSz.x, newSz.y});
 }
 
 
@@ -310,7 +305,7 @@ void guiRenderTargetResize(GUIRenderTarget* rt, Vector newSz) {
 
 
 
-GUIRenderTarget* guiRenderTargetNew(Vector2 pos, Vector2 size, GLuint tex) {
+GUIRenderTarget* guiRenderTargetNew(Vector2 pos, Vector2 size, RenderPipeline* rpl) {
 	
 	GUIRenderTarget* im;
 	
@@ -336,10 +331,10 @@ GUIRenderTarget* guiRenderTargetNew(Vector2 pos, Vector2 size, GLuint tex) {
 	
 	im->header.topleft = pos;
 	im->header.size = size;
-	im->header.z = zIndex;
+	im->header.z = 0;
 	
-	im->texIndex = texIndex;
-	im->customTexID = 0;
+	im->texID = -1;
+	im->rpl = rpl;
 	
 	return im;
 }
