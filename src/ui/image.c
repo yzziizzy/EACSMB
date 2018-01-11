@@ -260,9 +260,9 @@ void guiRenderTargetRender(GUIRenderTarget* im, GameState* gs) {
 	if(!sTexture_ul) sTexture_ul = glGetUniformLocation(rtProg->id, "sTexture");
 	//if(!color_ul) color_ul = glGetUniformLocation(rtProg->id, "color");
 	
+	if(im->texID == 0) return;
 	
 	mOrtho(0, 1, 0, 1, 0, 1, &proj);
-	
 	
 	glUseProgram(rtProg->id);
 	glexit("");
@@ -295,7 +295,11 @@ void guiRenderTargetDelete(GUIRenderTarget* rt) {
 
 void guiRenderTargetResize(GUIRenderTarget* rt, Vector2 newSz) {
 	
-	RenderPipeline_rebuildFBOs(rt->rpl, (Vector2i){newSz.x, newSz.y});
+// 	RenderPipeline_rebuildFBOs(rt->rpl, (Vector2i){newSz.x, newSz.y});
+	
+	printf("hack. need to get real pizel size here\n");
+	
+	RenderPipeline_rebuildFBOs(rt->rpl, (Vector2i){newSz.x * 600, newSz.y * 600});
 }
 
 
@@ -333,7 +337,7 @@ GUIRenderTarget* guiRenderTargetNew(Vector2 pos, Vector2 size, RenderPipeline* r
 	im->header.size = size;
 	im->header.z = 0;
 	
-	im->texID = -1;
+	im->texID = 0;
 	im->rpl = rpl;
 	
 	return im;

@@ -326,6 +326,9 @@ void preFrame(GameState* gs) {
 // 	}
 // 	
 // 	
+	if(rpipe)
+		grtTest->texID = RenderPipeline_getOutputTexture(rpipe);
+	
 	// update timers
 	char frameCounterBuf[128];
 	unsigned int fpsColors[] = {0xeeeeeeff, 6, 0xeeee22ff, INT_MAX};

@@ -99,7 +99,7 @@ void RenderPipeline_addShadingPass(RenderPipeline* rpipe, char* shaderName) {
 	
 	PassDrawable* d = calloc(1, sizeof(*d));
 	d->draw = shading_pass_render;
-	
+	d->prog = pass->prog;
 	
 	VEC_PUSH(&pass->drawables, d);
 	
@@ -222,6 +222,7 @@ void RenderPipeline_destroy(RenderPipeline* rp) {
 
 void RenderPipeline_renderAll(RenderPipeline* bp, PassDrawParams* rp) {
 	
+	if(!bp->backingTextures) return;
 	
 	for(int i = 0; i < VEC_LEN(&bp->passes); i++) {
 		RenderPass* pass = VEC_ITEM(&bp->passes, i);
@@ -294,7 +295,6 @@ void RenderPass_renderAll(RenderPass* pass, PassDrawParams* pdp) {
 void RenderPipeline_init(RenderPipeline* bp) {
 	
 	VEC_INIT(&bp->passes);
-	
 }
 
 
@@ -315,7 +315,10 @@ PassDrawable* Pass_allocDrawable(char* name) {
 
 
 
-
+GLuint RenderPipeline_getOutputTexture(RenderPipeline* rp) {
+	if(!rp->backingTextures) return 0;
+	return rp->backingTextures[OUTPUT];
+}
 
 
 
