@@ -95,6 +95,8 @@ typedef struct RenderPipeline {
 	
 	Vector2i viewSz;
 	
+	Vector4 clearColor;
+	
 	// fbo's
 	GLuint* backingTextures;
 	Framebuffer fbos[2];

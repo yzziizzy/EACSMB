@@ -95,6 +95,6 @@ void main() {
 	}
 
 
-	FragColor = vec4(texture(sNormals, tex).rgb,  1.0);
+	FragColor = vec4(texture(sDiffuse, tex).rgba);
 //	FragColor = vec4(.10, 0.8, .20,  1.0);
 }

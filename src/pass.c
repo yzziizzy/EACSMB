@@ -145,8 +145,8 @@ void RenderPipeline_rebuildFBOs(RenderPipeline* rp, Vector2i sz) {
 	// diffuse, normal, lighting, depth, output, NULL
 	FBOTexConfig* texcfg = calloc(1, 7 * sizeof(*texcfg)); 
 	
-	texcfg[DIFFUSE].internalType = GL_RGB;
-	texcfg[DIFFUSE].format = GL_RGB;
+	texcfg[DIFFUSE].internalType = GL_RGBA;
+	texcfg[DIFFUSE].format = GL_RGBA;
 	texcfg[DIFFUSE].size = GL_UNSIGNED_BYTE;
 	texcfg[NORMAL].internalType = GL_RGB;
 	texcfg[NORMAL].format = GL_RGB;
@@ -239,12 +239,12 @@ void RenderPipeline_renderAll(RenderPipeline* bp, PassDrawParams* rp) {
 		if(pass->clearDepth) clear |= GL_DEPTH_BUFFER_BIT;
 		if(clear) {
 			//printf("clearing builder fbo\n");
-		//	glClearColor(.8, .1, .3, 1.0);
+			glClearColor(bp->clearColor.x, bp->clearColor.y, bp->clearColor.z, bp->clearColor.w);
 			glClear(clear);
 		}
 		
 		// TODO: ensure the backin textures are not bound to an active fbo
-		if(pass->diffuseUL != -1) { printf("binding diffuse tex\n");
+		if(pass->diffuseUL != -1) {
 			glActiveTexture(GL_TEXTURE0 + 10);
 			glBindTexture(GL_TEXTURE_2D, bp->backingTextures[DIFFUSE]);
 			glProgramUniform1i(prog->id, pass->diffuseUL, 10); // broken
@@ -268,11 +268,11 @@ void RenderPipeline_renderAll(RenderPipeline* bp, PassDrawParams* rp) {
 			glProgramUniform1i(prog->id, pass->depthUL, 13);
 		}
 		
-		
+//		 glEnable (GL_BLEND);
+		// glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		//glDepthFunc(GL_LEQUAL);
 // 		glDepthMask(GL_TRUE);
 		RenderPass_renderAll(pass, rp);
-		
 		
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
@@ -294,9 +294,11 @@ void RenderPass_renderAll(RenderPass* pass, PassDrawParams* pdp) {
 }
 
 
-void RenderPipeline_init(RenderPipeline* bp) {
+void RenderPipeline_init(RenderPipeline* rp) {
 	
-	VEC_INIT(&bp->passes);
+	VEC_INIT(&rp->passes);
+	
+	rp->clearColor = (Vector4){0, 0, 0, 0};
 }
 
 
