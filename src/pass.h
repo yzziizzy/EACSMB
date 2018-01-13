@@ -28,6 +28,8 @@ typedef struct PassDrawParams {
 	float timeSeconds;
 	float timeFractional;
 	float spinner;
+	
+	Vector2i targetSize;
 } PassDrawParams;
 
 typedef struct PassFrameParams {

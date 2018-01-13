@@ -310,7 +310,10 @@ void initGame(XStuff* xs, GameState* gs) {
 	grtTest = guiRenderTargetNew((Vector2){.1,.2}, (Vector2){.8,.8}, rpipe);
 	guiRegisterObject(grtTest, NULL);
 	
+	
+	
 	guiResize(&grtTest->header, (Vector2){.79, .79});
+	guiRenderTarget_SetScreenRes(grtTest,  (Vector2i){gs->screen.wh.x, gs->screen.wh.y});
 }
 
 
@@ -817,6 +820,7 @@ void checkResize(XStuff* xs, GameState* gs) {
 		
 		setupFBOs(gs, 1);
 		
+		guiRenderTarget_SetScreenRes(grtTest,  (Vector2i){gs->screen.wh.x, gs->screen.wh.y});
 		//printf("diffuse2: %d\n",gs->diffuseTexBuffer);
 	}
 }

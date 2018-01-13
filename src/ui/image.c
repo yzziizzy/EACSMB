@@ -299,7 +299,10 @@ void guiRenderTargetResize(GUIRenderTarget* rt, Vector2 newSz) {
 	
 	printf("hack. need to get real pizel size here\n");
 	
-	RenderPipeline_rebuildFBOs(rt->rpl, (Vector2i){newSz.x * 600, newSz.y * 600});
+	RenderPipeline_rebuildFBOs(rt->rpl, (Vector2i){
+		rt->header.size.x * rt->screenRes.x, 
+		rt->header.size.y * rt->screenRes.y
+	});
 }
 
 
@@ -340,9 +343,21 @@ GUIRenderTarget* guiRenderTargetNew(Vector2 pos, Vector2 size, RenderPipeline* r
 	im->texID = 0;
 	im->rpl = rpl;
 	
+	// HACK. meh. just put in something so it renders at all in the beginning
+	im->screenRes.x = 600;
+	im->screenRes.y = 600;
+	
 	return im;
 }
 
 
-
+void guiRenderTarget_SetScreenRes(GUIRenderTarget* rt, Vector2i newRes) {
+	rt->screenRes = newRes;
+	printf("screen resized: %d, %d\n", newRes.x, newRes.y);
+	RenderPipeline_rebuildFBOs(rt->rpl, (Vector2i){
+		rt->header.size.x * rt->screenRes.x, 
+		rt->header.size.y * rt->screenRes.y
+	});
+	
+}
 

@@ -55,7 +55,7 @@ void initRenderPipeline() {
 
 
 
-static void shading_pass_render(void* data, PassDrawable* pd, PassDrawParams* pdp) {
+static void shading_pass_render(RenderPipeline* rpipe, PassDrawable* pd, PassDrawParams* pdp) {
 	ShaderProgram* prog = pd->prog;
 	
 //	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "world"), 1, GL_FALSE, world.m);
@@ -73,7 +73,7 @@ static void shading_pass_render(void* data, PassDrawable* pd, PassDrawParams* pd
 // 	glUniform3fv(glGetUniformLocation(shadingProg->id, "sunNormal"), 1, (float*)&gs->sunNormal);
 	
 // 	glUniform2iv(glGetUniformLocation(prog->id, "resolution"), 1, (int*)&rp->fboSize);
-	glUniform2f(glGetUniformLocation(prog->id, "resolution"), 300, 300);
+	glUniform2f(glGetUniformLocation(prog->id, "resolution"), rpipe->viewSz.x, rpipe->viewSz.x);
 	glexit("");
 	
 	glBindVertexArray(quadVAO);
@@ -100,6 +100,7 @@ void RenderPipeline_addShadingPass(RenderPipeline* rpipe, char* shaderName) {
 	PassDrawable* d = calloc(1, sizeof(*d));
 	d->draw = shading_pass_render;
 	d->prog = pass->prog;
+	d->data = rpipe;
 	
 	VEC_PUSH(&pass->drawables, d);
 	
@@ -122,6 +123,7 @@ void RenderPipeline_rebuildFBOs(RenderPipeline* rp, Vector2i sz) {
 	
 	if(rp->viewSz.x == sz.x && rp->viewSz.x == sz.x && rp->backingTextures) {
 		// same size, already initialized.
+		printf("ignoring pipeline resize, 1\n");
 		return;
 	}
 	
