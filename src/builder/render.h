@@ -2,99 +2,45 @@
 #define __EACSMB_builder_render_h__
 
 
-
-
-
 #include "../ds.h"
 
 
-#include "../meshBuilder.h" 
-#include "../dynamicMesh.h" 
+#include "builder.h" 
+#include "../staticMesh.h" 
 #include "../shader.h" 
-#include "../fbo.h" 
+#include "../pass.h" 
+#include "../gui.h" 
 
 
 
-typedef struct RenderParams {
-	
-	Vector w_eyePos;
-	Vector w_eyeDir;
-	
-	Vector2i fboSize;
-	
-	
-	Matrix* mWorldView;
-	Matrix* mViewProj;
-	
-	// inverse
-	Matrix* mViewWorld;
-	Matrix* mProjView;
-	
-	
-	//time
-	
-} RenderParams;
 
-
-typedef void (*BuilderPassRenderFn)(void* data, ShaderProgram* prog, RenderParams* rp);
-
-
-typedef struct BuilderRenderable {
-	BuilderPassRenderFn render;
-	void* data;
+typedef struct GUIBuilderControl {
+	GUIHeader header;
 	
-	//shader here?
-} BuilderRenderable;
-
-
-typedef struct BuilderPass {
+	GUISimpleWindow* bg;
+	GUIRenderTarget* rt;
 	
-	char clearColor;
-	char clearDepth;
 	
-	char fboIndex;
-	// fbo config, texture bindings, etc
+	MeshBuilder* mb;
 	
-	ShaderProgram* prog;
 	
-	GLuint diffuseUL;
-	GLuint normalsUL;
-	GLuint lightingUL;
-	GLuint depthUL;
-	
-	//FBOConfig* gbufConfig;
-	
-	VEC(BuilderRenderable) renderables;
-	
-} BuilderPass;
+} GUIBuilderControl;
 
 
 
 
 
 
-typedef struct BuilderPipeline {
-// 	DynamicMeshManager* dmm;
-	
-	Vector2i viewSz;
-	
-	// fbo's
-	GLuint* backingTextures;
-	
-	Framebuffer fbos[2];
-	
-	VEC(BuilderPass*) passes;
-	
-} BuilderPipeline;
 
 
-void BuilderPass_init(BuilderPass* bp, ShaderProgram* prog); 
 
-void BuilderPipeline_renderAll(BuilderPipeline* bp, RenderParams* rp);
-void BuilderPass_renderAll(BuilderPass* bp, RenderParams* rp);
 
-void BuilderPipeline_init(BuilderPipeline* bp);
 
-void shading_pass_render(void* data, ShaderProgram* prog, RenderParams* rp);
+
+
+
+
+
+
 
 #endif // __EACSMB_builder_render_h__
