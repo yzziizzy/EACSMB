@@ -75,11 +75,23 @@ do { \
 } while(0)
 
 
-// ruins order but it O(1). meh.
+// ruins order but is O(1). meh.
 #define VEC_RM(x, i) \
 do { \
-	if(VEC_LEN(x) < i) break; \
+	if(VEC_LEN(x) < (i)) break; \
 	VEC_ITEM(x, i) = VEC_PEEK(x); \
+	VEC_LEN(x)--; \
+} while(0)
+
+// preserves order. O(n)
+#define VEC_RM_SAFE(x, i) \
+do { \
+	if(VEC_LEN(x) < (i)) break; \
+	memmove( \
+		VEC_DATA(x) + ((i) * sizeof(*VEC_DATA(x))), \
+		VEC_DATA(x) + (((i) + 1) * sizeof(*VEC_DATA(x))), \
+		VEC_LEN(x) - (((i) - 1) * sizeof(*VEC_DATA(x))), \
+	); \
 	VEC_LEN(x)--; \
 } while(0)
 

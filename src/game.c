@@ -62,7 +62,6 @@ Texture* cnoise;
 Emitter* dust;
 
 
-BuilderPipeline* bpipe;
 RenderPipeline* rpipe;
 
 
