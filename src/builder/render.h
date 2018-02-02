@@ -19,22 +19,17 @@ typedef struct GUIBuilderControl {
 	
 	GUISimpleWindow* bg;
 	GUIRenderTarget* rt;
-	
+	RenderPipeline* rpipe;
 	
 	MeshBuilder* mb;
-	
+	MeshManager* mm;
 	
 } GUIBuilderControl;
 
 
 
 
-
-
-
-
-
-
+GUIBuilderControl* guiBuilderControlNew(Vector2 pos, Vector2 size, int zIndex);
 
 
 

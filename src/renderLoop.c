@@ -18,6 +18,7 @@ GLuint fsQuadVAO, fsQuadVBO;
 ShaderProgram* shadingProg;
 
 extern GUIWindow* gwTest;
+extern GUIBuilderControl* gbcTest;
 extern RenderPipeline* rpipe;
 
 
@@ -350,7 +351,7 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	World_drawTerrain(gs->world);
 	
-	renderMarker(gs, 0,0);
+	//renderMarker(gs, 0,0);
 
 	World_drawSolids(gs->world, msGetTop(&gs->view), msGetTop(&gs->proj));
 
@@ -381,8 +382,6 @@ void renderDecals(XStuff* xs, GameState* gs, InputState* is) {
 
 
 void renderParticles(XStuff* xs, GameState* gs, InputState* is) {
-	
-	
 	//Draw_Emitter(dust, msGetTop(&gs->view), msGetTop(&gs->proj), gs->frameTime);
 	
 	glexit("render particles");
@@ -409,7 +408,20 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	// draw the builder stuff first
 	
-	if(rpipe) {
+// 	if(rpipe) {
+// 		PassDrawParams rp;
+// 		
+// 		//rp.fboSize = (Vector2i){300,300};
+// 		rp.mWorldView = msGetTop(&gs->view);
+// 		rp.mViewProj = msGetTop(&gs->proj);
+// 		
+// 		// TODO actual inverse matrices
+// 		rp.mViewWorld = msGetTop(&gs->view);
+// 		rp.mProjView = msGetTop(&gs->proj);
+// 		
+// 		RenderPipeline_renderAll(rpipe, &rp);
+//	}
+	if(gbcTest) {
 		PassDrawParams rp;
 		
 		//rp.fboSize = (Vector2i){300,300};
@@ -420,7 +432,7 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 		rp.mViewWorld = msGetTop(&gs->view);
 		rp.mProjView = msGetTop(&gs->proj);
 		
-		RenderPipeline_renderAll(rpipe, &rp);
+		RenderPipeline_renderAll(gbcTest->rpipe, &rp);
 	}
 	
 	

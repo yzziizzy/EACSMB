@@ -5,7 +5,6 @@
 #include "ds.h"
 #include "common_math.h"
 
-
 typedef struct MeshStats {
 	
 	

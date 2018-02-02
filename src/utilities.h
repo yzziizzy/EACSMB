@@ -21,6 +21,20 @@ char* _glerr(char* msg, const char* file, int line, const char* func);
 #define glerr(msg) _glerr(msg, __FILE__, __LINE__, __func__)
 
 
+
+#define getPrintGLEnum(e, m) _getPrintGLEnumMin(e, #e, m)
+static int _getPrintGLEnumMin(GLenum e, char* name, char* message) {
+	GLint i;
+	
+	glGetIntegerv(e, &i);
+	printf("%s: %d\n", name, i);
+	
+	return i;
+}
+
+
+
+
 #define MAX(a,b) ({ \
 	__typeof__ (a) _a = (a); \
 	__typeof__ (b) _b = (b); \

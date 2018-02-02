@@ -57,6 +57,7 @@ GUIText* gtSelectionDisabled;
 GUISimpleWindow* gswTest;
 GUIImage* giTest;
 GUIRenderTarget* grtTest;
+GUIBuilderControl* gbcTest;
 
 Texture* cnoise;
 Emitter* dust;
@@ -73,32 +74,6 @@ void setupFBOs(GameState* gs, int resized);
 
 // MapBlock* map;
 // TerrainBlock* terrain;
-
-
-
-#define getPrintGLEnum(e, m) _getPrintGLEnumMin(e, #e, m)
-
-int _getPrintGLEnumMin(GLenum e, char* name, char* message) {
-	GLint i;
-	
-	glGetIntegerv(e, &i);
-	printf("%s: %d\n", name, i);
-	
-	return i;
-}
-
-
-
-
-MeshManager* builder_smm;
-
-
-void geom_pass_render(MeshManager* mm, PassDrawable* pd, PassDrawParams* dp) {
-	
-	meshManager_draw(mm, dp->mWorldView, dp->mViewProj);
-	
-}
-
 
 
 
@@ -243,16 +218,21 @@ void initGame(XStuff* xs, GameState* gs) {
 	giTest = guiImageNew((Vector2){.1,.2}, (Vector2){.8,.8}, 0, 0);
 	
 	
-	guiRegisterObject(gswTest, NULL);
+	//guiRegisterObject(gswTest, NULL);
 	guiRegisterObject(gt, NULL);
 	guiRegisterObject(gt_sel, NULL);
 	guiRegisterObject(gt_emit, NULL);
 	guiRegisterObject(gtRenderMode, NULL);
 	guiRegisterObject(gtSelectionDisabled, NULL);
 	
+	// builder control
+	gbcTest = guiBuilderControlNew((Vector2){.1,.2}, (Vector2){.8,.8}, 0);
+	guiRegisterObject(gbcTest, NULL);
+	guiResize(&gbcTest->header, (Vector2){.79, .79});
+	guiRenderTarget_SetScreenRes(gbcTest->rt,  (Vector2i){gs->screen.wh.x, gs->screen.wh.y});
 	
 	//initUI(gs);
-	initMarker();
+	//initMarker();
 	 
 
 	
@@ -263,7 +243,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	
 	
 // 	init_Builder();
-	
+	/*
 	rpipe = calloc(1, sizeof(*rpipe));
 	RenderPipeline_init(rpipe);
 	
@@ -313,6 +293,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	
 	guiResize(&grtTest->header, (Vector2){.79, .79});
 	guiRenderTarget_SetScreenRes(grtTest,  (Vector2i){gs->screen.wh.x, gs->screen.wh.y});
+	*/
 }
 
 
@@ -328,8 +309,8 @@ void preFrame(GameState* gs) {
 // 	}
 // 	
 // 	
-	if(rpipe)
-		grtTest->texID = RenderPipeline_getOutputTexture(rpipe);
+//	if(rpipe)
+//		grtTest->texID = RenderPipeline_getOutputTexture(rpipe);
 	
 	// update timers
 	char frameCounterBuf[128];
@@ -819,7 +800,7 @@ void checkResize(XStuff* xs, GameState* gs) {
 		
 		setupFBOs(gs, 1);
 		
-		guiRenderTarget_SetScreenRes(grtTest,  (Vector2i){gs->screen.wh.x, gs->screen.wh.y});
+		guiRenderTarget_SetScreenRes(gbcTest->rt, (Vector2i){gs->screen.wh.x, gs->screen.wh.y});
 		//printf("diffuse2: %d\n",gs->diffuseTexBuffer);
 	}
 }

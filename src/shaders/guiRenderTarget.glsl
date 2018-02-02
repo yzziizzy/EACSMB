@@ -52,9 +52,9 @@ void main(void) {
 	
 	vec4 tex = texture(sTexture, tc.xy).rgba;
 	
-	if(tex.a < 0.5) discard;
+	//if(tex.a < 0.5) discard;
 	
 	
-	FragColor = vec4(tex.aaaa);
+	FragColor = vec4(tex.rgba);
 }
 

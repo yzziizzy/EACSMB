@@ -844,6 +844,7 @@ static MB_operation* read_json(char* path) {
 
 void MB_free(MB_operation* op) {
 	if(!op) return;
+	MB_operation* (*fn)(json_value_t*);
 	fn = op_lookup[op->type].free;
 	if(fn) fn(op);
 }
@@ -877,6 +878,10 @@ void free_box(MB_box_params* params) {
 }
 
 void free_sphere(MB_sphere_params* params) {
+	free(params);
+}
+
+void free_pyramid(MB_pyramid_params* params) {
 	free(params);
 }
 

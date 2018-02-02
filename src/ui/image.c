@@ -245,7 +245,7 @@ GUIImage* guiImageNew(Vector2 pos, Vector2 size, float zIndex, int texIndex) {
 
 
 void guiRenderTargetRender(GUIRenderTarget* im, GameState* gs) {
-	
+
 	Matrix proj = IDENT_MATRIX;
 	
 	static GLuint proj_ul;
