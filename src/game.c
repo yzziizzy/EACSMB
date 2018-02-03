@@ -243,57 +243,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	
 	
 // 	init_Builder();
-	/*
-	rpipe = calloc(1, sizeof(*rpipe));
-	RenderPipeline_init(rpipe);
-	
-	//rpipe->viewSz = (Vector2i){300,300};
-	
-	RenderPass* pass;
-	
-	// geometry pass
-	pass = calloc(1, sizeof(*pass));
-	pass->clearColor = 1;
-	pass->clearDepth = 1;
-	
-	pass->fboIndex = 0;
-	
-	RenderPass_init(pass, loadCombinedProgram("dynamicMeshInstanced"));
-	
-	builder_smm = meshManager_alloc();
-	meshManager_readConfigFile(builder_smm, "assets/config/models.json");
-	meshManager_updateGeometry(builder_smm);
-	StaticMeshInstance smi[] = {
-		{
-			{1,1,4}, 2.5,
-			{1, 0, 0}, 0.0,
-			.9, 0,0,0
-		}
-	};
-	meshManager_addInstance(builder_smm, 0, &smi[0]);
-	meshManager_updateInstances(builder_smm);
-	
-	PassDrawable* br1 = calloc(1, sizeof(*br1));
-	br1->draw = geom_pass_render;
-	br1->data = builder_smm;
-	
-	VEC_PUSH(&pass->drawables, br1);
-	
-	VEC_PUSH(&rpipe->passes, pass);
-	
-	
-	RenderPipeline_addShadingPass(rpipe, "builderShading"); 
-	
-	//giTest->texIndex = -1;
-	//Builder_initFBOs(rpipe);
-	grtTest = guiRenderTargetNew((Vector2){.1,.2}, (Vector2){.8,.8}, rpipe);
-	guiRegisterObject(grtTest, NULL);
-	
-	
-	
-	guiResize(&grtTest->header, (Vector2){.79, .79});
-	guiRenderTarget_SetScreenRes(grtTest,  (Vector2i){gs->screen.wh.x, gs->screen.wh.y});
-	*/
+
 }
 
 

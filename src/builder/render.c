@@ -167,10 +167,6 @@ GUIBuilderControl* guiBuilderControlNew(Vector2 pos, Vector2 size, int zIndex) {
 	guiRegisterObject(bc->rt, bc->bg);
 	
 	
-	
-	
-	
-	
 	return bc;
 }
 

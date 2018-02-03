@@ -3,49 +3,50 @@
 bin_PROGRAMS = eacsmb
 
 eacsmb_SOURCES = main.c \
-	hash.c \
-	MurmurHash3.c \
-	utilities.c \
-	config.c \
-	dumpImage.c \
-	objloader.c \
-	meshBuilder.c \
-	staticMesh.c \
-	dynamicMesh.c \
-	uniformBuffer.c \
-	pcBuffer.c \
-	fbo.c \
-	pass.c \
-	road.c \
-	waterPlane.c \
-	window.c \
-	shader.c \
-	pipe.c \
-	game.c \
-	renderLoop.c \
-	gui.c \
-	ui/simpleWindow.c \
-	ui/image.c \
 	builder/render.c \
-	ds.c \
-	log.c \
-	cursor.c \
-	scene.c \
-	world.c \
-	itemLoader.c \
-	emitter.c \
-	terrain.c \
-	map.c \
-	sim.c \
-	texture.c \
-	perlin.c \
-	opensimplex.c \
-	json_gl.c \
-	c_json/json.c \
 	c3dlas/c3dlas.c \
 	c3dlas/meshgen.c \
+	c_json/json.c \
+	config.c \
+	cursor.c \
+	ds.c \
+	dumpImage.c \
+	dynamicMesh.c \
+	emitter.c \
+	fbo.c \
+	game.c \
+	gui.c \
+	hash.c \
+	input.c \
+	itemLoader.c \
+	json_gl.c \
+	log.c \
+	map.c \
+	meshBuilder.c \
+	MurmurHash3.c \
+	objloader.c \
+	opensimplex.c \
+	pass.c \
+	pcBuffer.c \
+	perlin.c \
+	pipe.c \
+	renderLoop.c \
+	road.c \
+	scene.c \
+	shader.c \
+	sim.c \
+	staticMesh.c \
+	terrain.c \
+	text/fcfg.c \
 	text/text.c \
-	text/fcfg.c
+	texture.c \
+	ui/image.c \
+	ui/simpleWindow.c \
+	uniformBuffer.c \
+	utilities.c \
+	waterPlane.c \
+	window.c \
+	world.c 
 
 eacsmb_LDADD =  \
 	-lm \
