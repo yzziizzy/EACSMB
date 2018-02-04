@@ -3,6 +3,8 @@
 #include <string.h>
 #include <limits.h>
 
+#include <time.h>
+
 #include <X11/X.h>
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
@@ -16,7 +18,12 @@
 #include "window.h"
 
 
+
+// lag between the X server and the game's internal timekeeping, for adjusting events 
+static double game_server_diff = 0;
+
 void initGLEW();
+
  
  
 typedef GLXContext (*glXCreateContextAttribsARBProc)(Display*, GLXFBConfig, GLXContext, Bool, const int*);
@@ -66,6 +73,22 @@ int xErrorHandler(Display *dpy, XErrorEvent *ev) {
 }
 
 
+
+double GameTimeFromXTime(Time t) {
+	return ((double)t / 1000.0) - game_server_diff;
+}
+
+// for motion events, extracts the state of meta keys
+unsigned char TranslateModState(unsigned int state) {
+	unsigned short out = 0;
+	
+	if(state & ShiftMask) out |= IS_SHIFT; 
+	if(state & ControlMask) out |= IS_CONTROL; 
+	if(state & Mod1Mask) out |= IS_ALT; 
+	if(state & Mod4Mask) out |= IS_TUX; 
+	
+	return out;
+}
 
  
 // this function will exit() on fatal errors. what good is error handling then?
@@ -128,13 +151,25 @@ int initXWindow(XStuff* xs) {
 	
 	xs->colorMap = XCreateColormap(xs->display, xs->rootWin, xs->vi->visual, AllocNone);
 	setWinAttr.colormap = xs->colorMap;
-	setWinAttr.event_mask = ExposureMask | KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask;
+	setWinAttr.event_mask = ExposureMask | KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | PropertyChangeMask;
 
 	xs->clientWin = XCreateWindow(xs->display, xs->rootWin, 0, 0, 600, 600, 0, xs->vi->depth, InputOutput, xs->vi->visual, CWColormap | CWEventMask, &setWinAttr);
 
 	XMapWindow(xs->display, xs->clientWin);
 	
 	XStoreName(xs->display, xs->clientWin, xs->windowTitle);
+	
+	// figure out the X server's time
+	XEvent xev;
+	while(XNextEvent(xs->display, &xev)) {
+		double gametime;
+		double servertime;
+		if(xev.type == PropertyNotify) {
+			gametime = getCurrentTime();
+			servertime = (double)xev.xproperty.time / 1000.0;
+			game_server_diff = gametime - servertime;
+		}
+	}
 	
 	// don't check for supported extensions, just fail hard and fast if the computer is a piece of shit.
 	
@@ -173,7 +208,7 @@ int initXWindow(XStuff* xs) {
 
 
 
-void processEvents(XStuff* xs, InputState* st, int max_events) {
+void processEvents(XStuff* xs, InputState* st, InputFocusStack* ifs, int max_events) {
 	
 	
 	XEvent xev;
@@ -184,22 +219,35 @@ void processEvents(XStuff* xs, InputState* st, int max_events) {
 	int rootX, rootY, clientX, clientY;
 	Window rootReturn, clientReturn;
 	unsigned int mouseMask;
+	
+	Vector2i pixelPos;
+	Vector2 normPos;
+	Vector2 invNormPos;
 
+	InputEvent iev;
+	
+	iev.is = st;
 	
 	if(max_events <= 0) max_events = INT_MAX;
 	
-	// bottleneck :)
-	clearInputState(st);
+	// BUG: preserve the held states of things?
+	//clearInputState(st);
 	
 	if(XQueryPointer(xs->display, xs->clientWin, &rootReturn, &clientReturn, &rootX, &rootY, &clientX, &clientY, &mouseMask)) {
-		if(xs->winAttr.height > 0 && xs->winAttr.width > 0) {
-			st->cursorPosPixels.x = CLAMP(0, clientX, xs->winAttr.width);
-			st->cursorPosPixels.y = CLAMP(0, xs->winAttr.height - clientY, xs->winAttr.height);
-		
-			st->cursorPos.x = (float)clientX / (float)xs->winAttr.width;
-			st->cursorPos.y = 1.0 - ((float)clientY / (float)xs->winAttr.height); // opengl is inverted to X
-			st->cursorPosInv.x = (float)clientX / (float)xs->winAttr.width;
-			st->cursorPosInv.y = (float)clientY / (float)xs->winAttr.height;
+		if(xs->winAttr.height > 0 && xs->winAttr.width > 0) { // make sure the window is initialized
+			
+			pixelPos.x = CLAMP(0, clientX, xs->winAttr.width);
+			pixelPos.y = CLAMP(0, xs->winAttr.height - clientY, xs->winAttr.height);
+			
+			// it seems the inverse is more correct
+			normPos.x = (float)clientX / (float)xs->winAttr.width;
+			normPos.y = 1.0 - ((float)clientY / (float)xs->winAttr.height); // opengl is inverted to X
+			invNormPos.x = (float)clientX / (float)xs->winAttr.width;
+			invNormPos.y = (float)clientY / (float)xs->winAttr.height;
+			
+			
+			
+			// cycle last position
 		}
 	}
 	
@@ -220,23 +268,31 @@ void processEvents(XStuff* xs, InputState* st, int max_events) {
 				(*xs->onExpose)(xs, xs->onExposeData);
 			
 			xs->ready = 1;
-			
 		}
 		
 		if(xev.type == KeyPress) {
-			KeySym s;
+			double gt = GameTimeFromXTime(xev.xkey.time);
 			
-			int keycode = ((XKeyEvent*)&xev)->keycode;
-			//s = XLookupKeysym((XKeyEvent*)&xev, 0);
+			st->keyState[xev.xkey.keycode] |= IS_KEYPRESSED | IS_KEYDOWN;
 			
-			//printf("key: %d %c\n", keycode, keycode);
+			iev.type = EVENT_KEYDOWN;
+			iev.time = gt;
+			iev.keycode = xev.xkey.keycode;
+			iev.kbmods = TranslateModState(xev.xkey.state);
 			
-			st->keyState[keycode] |= IS_KEYPRESSED | IS_KEYDOWN;
+			InputFocusStack_Dispatch(ifs, &iev);
 		}
 		if(xev.type == KeyRelease) {
+			double gt = GameTimeFromXTime(xev.xkey.time);
 			
-			int keycode = ((XKeyEvent*)&xev)->keycode;
-			st->keyState[keycode] &= !IS_KEYDOWN;
+			st->keyState[xev.xkey.keycode] &= !IS_KEYDOWN;
+			
+			iev.type = EVENT_KEYUP;
+			iev.time = gt;
+			iev.keycode = xev.xkey.keycode;
+			iev.kbmods = TranslateModState(xev.xkey.state);
+			
+			InputFocusStack_Dispatch(ifs, &iev);
 		}
 		
 		// mouse events
@@ -245,13 +301,76 @@ void processEvents(XStuff* xs, InputState* st, int max_events) {
 // 			st->clickPos.y = (xs->winAttr.height - xev.xbutton.y) / (float)xs->winAttr.height;
 // 			st->clickButton = xev.xbutton.button;
 			st->buttonDown = xev.xbutton.button;
+			
+			
+			
+			
 		}
 		if(xev.type == ButtonRelease) {
-			st->clickPos.x = xev.xbutton.x / (float)xs->winAttr.width;
-			st->clickPos.y = (xs->winAttr.height - xev.xbutton.y) / (float)xs->winAttr.height;
-			st->clickButton = xev.xbutton.button;
-			st->buttonUp = xev.xbutton.button;
 			
+			pixelPos.x = CLAMP(0, xev.xbutton.x, xs->winAttr.width);
+			pixelPos.y = CLAMP(0, xs->winAttr.height - xev.xbutton.y, xs->winAttr.height);
+			
+			normPos.x = (float)xev.xbutton.x / (float)xs->winAttr.width;
+			normPos.y = 1.0 - ((float)xev.xbutton.y / (float)xs->winAttr.height); // opengl is inverted to X
+			
+			double gt = GameTimeFromXTime(xev.xbutton.time);
+			
+			if(gt - st->doubleClickTime < st->lastClickTime) {
+				iev.type = EVENT_CLICK;
+			}
+			else {
+				iev.type = EVENT_DOUBLECLICK;
+			}
+			
+			iev.intPos = pixelPos;
+			iev.normPos = normPos;
+			
+			iev.time = gt;
+			iev.button = xev.xbutton.button;
+			iev.kbmods = TranslateModState(xev.xbutton.state);
+			
+			InputFocusStack_Dispatch(ifs, &iev);
+			
+			
+			st->lastClickTime = gt;
+		}
+		
+		if(xev.type == MotionNotify) {
+			
+			pixelPos.x = CLAMP(0, xev.xmotion.x, xs->winAttr.width);
+			pixelPos.y = CLAMP(0, xs->winAttr.height - xev.xmotion.y, xs->winAttr.height);
+			
+			normPos.x = (float)xev.xmotion.x / (float)xs->winAttr.width;
+			normPos.y = 1.0 - ((float)xev.xmotion.y / (float)xs->winAttr.height); // opengl is inverted to X
+			invNormPos.x = (float)xev.xmotion.x / (float)xs->winAttr.width;
+			invNormPos.y = (float)xev.xmotion.y / (float)xs->winAttr.height;
+			
+			double gt = GameTimeFromXTime(xev.xmotion.time);
+			
+			
+			// mouse move event
+			if(st->lastCursorPosPixels.x != pixelPos.x || st->lastCursorPosPixels.y != pixelPos.y) {
+				iev.type = EVENT_MOUSEMOVE;
+				iev.intPos = pixelPos;
+				iev.normPos = normPos;
+				
+				iev.time = gt;
+				iev.button = -1;
+				iev.kbmods = TranslateModState(xev.xmotion.state);
+				
+				InputFocusStack_Dispatch(ifs, &iev);
+			}
+			else {
+				// not sure if X sends events without actual movment.
+				// let's find out
+				printf("mouse didn't move in XMotionNotify event.\n");
+			}
+			
+			
+			st->lastCursorPos = normPos;
+			st->lastCursorPosPixels = pixelPos;
+			st->lastMoveTime = gt;
 		}
 		
 		

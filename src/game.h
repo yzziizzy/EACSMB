@@ -108,6 +108,7 @@ typedef struct GameState {
 	Vector2 mapCenter;
 	
 
+	InputFocusStack ifs;
 	
 	double frameTime; // ever incrementing time of the this frame
 	double frameSpan; // the length of this frame, since last frame

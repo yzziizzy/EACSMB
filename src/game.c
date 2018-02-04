@@ -389,7 +389,8 @@ void handleInput(GameState* gs, InputState* is) {
 	if(is->clickButton == 1) {
 		
 		
-		GUIObject* hit = guiHitTest(gswTest, is->cursorPosInv);
+		// BUG: used inverse cursor pos. changed to compile temporarily
+		GUIObject* hit = guiHitTest(gswTest, is->lastCursorPos);
 		//printf("\n\n----> %f, %f \n", is->cursorPos.x, is->cursorPos.y);
 		if(hit) {
 			printf("@@clicked in window \n");
@@ -397,7 +398,7 @@ void handleInput(GameState* gs, InputState* is) {
 			GUIEvent e;
 			e.originalTarget = hit;
 			e.currentTarget = hit;
-			e.eventPos = is->cursorPosInv;
+			e.eventPos = is->lastCursorPos; // BUG: smae here
 			
 			guiTriggerClick(&e);
 		}
@@ -692,8 +693,8 @@ void checkCursor(GameState* gs, InputState* is) {
 	int w = (int)gs->screen.wh.x;
 	int h = (int)gs->screen.wh.y;
 	
-	int x = (int)is->cursorPosPixels.x;
-	int y = (int)is->cursorPosPixels.y;
+	int x = (int)is->lastCursorPosPixels.x;
+	int y = (int)is->lastCursorPosPixels.y;
 
 	//printf("cursor %f, %f\n",is->cursorPosPixels.x, is->cursorPosPixels.y);
 	int i = x + (y * w);

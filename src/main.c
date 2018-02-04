@@ -32,7 +32,6 @@
 #include "game.h"
 
 
-
 static XStuff xs;
 static GameState game;
 static InputState input;
@@ -68,6 +67,7 @@ int main(int argc, char* argv[]) {
 	setGameSettings(&game.settings,&game.uSettings);
 	
 	memset(&xs, 0, sizeof(XStuff));
+	clearInputState(&input);
 	
 	xs.targetMSAA = 4;
 	xs.windowTitle = "EACSMB";
@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
 	initXWindow(&xs);
 	
 	while(1) {
-		processEvents(&xs, &input, -1);
+		processEvents(&xs, &input, &game.ifs, -1);
 		
 		if (first && xs.ready) {
 			initGame(&xs, &game);

@@ -74,6 +74,12 @@ do { \
 	VEC_LEN(x)--; \
 } while(0)
 
+#define VEC_POP(x) \
+do { \
+	VEC_CHECK(x); \
+	VEC_LEN(x)--; \
+} while(0)
+
 
 // ruins order but is O(1). meh.
 #define VEC_RM(x, i) \

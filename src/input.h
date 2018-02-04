@@ -5,6 +5,7 @@
 #include "common_math.h"
 
 
+// raw input states
 #define IS_KEYDOWN    0x01 // is it down now
 #define IS_KEYPRESSED 0x02 // was the key pressed ever
 #define IS_CONTROL    0x04
@@ -22,28 +23,33 @@ enum InputMode {
 enum InputEventType {
 	EVENT_KEYDOWN,
 	EVENT_KEYUP,
-	EVENT_KEYPRESSED
-	
+	EVENT_CLICK,
+	EVENT_DOUBLECLICK,
+	EVENT_DRAGSTART,
+	EVENT_DRAGSTOP,
+	EVENT_DRAGMOVE,
+	EVENT_MOUSEMOVE,
+	EVENT_MOUSEENTER, // enter and leave *the application window*, not some arbitrary region.
+	EVENT_MOUSELEAVE // may happen during a drag
 };
 
-typedef struct {
-	char type; // 0 = kb, 1 = mouse
-	
-	unsigned int keycode;
-	unsigned int click_x, click_y;
-	
-	double time;
-	
-} InputEvent;
 
+struct InputEvent;
 
-typedef struct {
+typedef struct InputState {
+
+	// settings
+	float doubleClickTime;
+	float dragMinDist;
 	
-	// shitty for now
-	Vector2 clickPos;
-	Vector2 cursorPos;
-	Vector2 cursorPosPixels;
-	Vector2 cursorPosInv;
+	// state
+	double lastClickTime;
+	double lastMoveTime;
+	
+	Vector2 lastclickPos;
+	Vector2 lastCursorPos;
+	Vector2i lastCursorPosPixels;
+
 	char clickButton;
 	char buttonUp;
 	char buttonDown;
@@ -51,12 +57,84 @@ typedef struct {
 	unsigned char keyState[256];
 	double keyStateChanged[256];
 	
-	VEC(InputEvent*) events;
+	VEC(struct InputEvent*) events;
 	
 	enum InputMode mode;
 	
 } InputState;
 
+
+// for any event, fields not related are undefined
+typedef struct {
+	char type; 
+	
+	char button;
+	unsigned short kbmods; // control, alt, etc. uses "raw input states" macros
+	
+	unsigned int keycode;
+	
+	double time;
+	
+	Vector2i intPos; 
+	Vector2 normPos; 
+	
+	Vector2i intDragStart;
+	Vector2 normDragStart;
+	
+	InputState* is;
+} InputEvent;
+
+
+typedef void (*input_event_fn)(InputEvent*, void*);
+
+typedef struct InputEventHandler {
+	input_event_fn all;
+	
+	input_event_fn keyDown;
+	input_event_fn keyUp;
+	input_event_fn keyPress;
+	
+	input_event_fn buttonDown;
+	input_event_fn buttonUp;
+	input_event_fn buttonClick;
+	input_event_fn buttonDblClick;
+	input_event_fn mouseMove;
+	input_event_fn mouseDrag;
+	
+	// enter and leave the application window as a whole. 
+	// may happen during a drag
+	input_event_fn mouseEnter;
+	input_event_fn mouseLeave;
+	
+	// misc: lost focus. gained focus.
+	input_event_fn loseFocus;
+	input_event_fn gainFocus;
+} InputEventHandler;
+
+
+
+typedef struct InputFocusTarget {
+	void* data;
+	InputEventHandler* vt;
+} InputFocusTarget;
+
+typedef struct InputFocusStack {
+	
+	VEC(InputFocusTarget) stack;
+	
+	
+} InputFocusStack;
+
+
+// effective usage with macro:
+// InputFocusStack_PushTarget(InputFocusStack* stack, YourType* data, vtable_field_name_in_data);
+#define InputFocusStack_PushTarget(stack, data, field) \
+	_InputFocusStack_PushTarget((stack), (void*)(data), (void*)(&(data)->field) - (void*)(data))
+
+void _InputFocusStack_PushTarget(InputFocusStack* stack, void* data, ptrdiff_t vtoffset);
+
+void InputFocusStack_RevertTarget(InputFocusStack* stack);
+void InputFocusStack_Dispatch(InputFocusStack* stack, InputEvent* ev);
 
 void clearInputState(InputState* st);
 

@@ -21,7 +21,7 @@
 
 // time code
 
-double getCurrentTime() {
+double getCurrentTime() { // in seconds
 	double now;
 	struct timespec ts;
 	static double offset = 0;
