@@ -266,7 +266,7 @@ int HT_next(HashTable* obj, void** iter, char** key, void** value) {
 	
 	do {
 		b++;
-		if(b > obj->buckets + obj->alloc_size) {
+		if(b >= obj->buckets + obj->alloc_size) {
 			// end of the list
 			*value = NULL;
 			*key = NULL;
