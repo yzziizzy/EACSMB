@@ -24,6 +24,13 @@ typedef struct GUIBuilderControl {
 	MeshBuilder* mb;
 	MeshManager* mm;
 	
+	InputEventHandler* inputHandlers;
+	
+	float yaw;
+	float pitch;
+	float roll;
+	
+	
 } GUIBuilderControl;
 
 

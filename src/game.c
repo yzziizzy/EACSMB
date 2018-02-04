@@ -77,6 +77,9 @@ void setupFBOs(GameState* gs, int resized);
 
 
 
+static void main_key_handler(InputEvent* ev, GameState* gs);
+
+
 
 
 
@@ -111,6 +114,9 @@ void initGame(XStuff* xs, GameState* gs) {
 	gs->screen.aspect = gs->screen.wh.x / gs->screen.wh.y;
 	gs->screen.resized = 0;
 	
+	gs->defaultInputHandlers = calloc(1, sizeof(*gs->defaultInputHandlers));
+	gs->defaultInputHandlers->keyUp = main_key_handler;
+	InputFocusStack_PushTarget(&gs->ifs, gs, defaultInputHandlers);
 	
 	//printf("w: %d, h: %d\n", ww, wh);
 	
@@ -225,12 +231,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	guiRegisterObject(gtRenderMode, NULL);
 	guiRegisterObject(gtSelectionDisabled, NULL);
 	
-	// builder control
-	gbcTest = guiBuilderControlNew((Vector2){.1,.2}, (Vector2){.8,.8}, 0);
-	guiRegisterObject(gbcTest, NULL);
-	guiResize(&gbcTest->header, (Vector2){.79, .79});
-	guiRenderTarget_SetScreenRes(gbcTest->rt,  (Vector2i){gs->screen.wh.x, gs->screen.wh.y});
-	
+
 	//initUI(gs);
 	//initMarker();
 	 
@@ -370,6 +371,47 @@ void postFrame(GameState* gs) {
 }
 
 
+
+static void main_key_handler(InputEvent* ev, GameState* gs) {
+	
+	if(ev->character == 'c') {
+		exit(0);
+	}
+	
+	if(ev->keysym == XK_Delete) {
+		static int lastChange = 0;
+		static char* modeStrings[] = {
+			"",
+			"diffuse",
+			"normal",
+			"depth",
+			"lighting"
+		};
+		
+		gs->debugMode = (gs->debugMode + 1) % 5;
+		lastChange = gs->frameTime;
+		
+		guiTextSetValue(gtRenderMode, modeStrings[gs->debugMode]);
+	}
+	
+	if(ev->keysym == XK_Insert) {
+		gs->selectionPassDisabled = !gs->selectionPassDisabled;
+		guiTextSetValue(gtSelectionDisabled, gs->selectionPassDisabled ? "Selection Disabled" : "");
+	}
+	
+	if(ev->character == 'b') {
+		// builder control
+		gbcTest = guiBuilderControlNew((Vector2){.1,.2}, (Vector2){.8,.8}, 0);
+		guiRegisterObject(gbcTest, NULL);
+		guiResize(&gbcTest->header, (Vector2){.79, .79});
+		guiRenderTarget_SetScreenRes(gbcTest->rt,  (Vector2i){gs->screen.wh.x, gs->screen.wh.y});
+		
+		InputFocusStack_PushTarget(&gs->ifs, gbcTest, inputHandlers);
+	}
+}  
+
+
+
 void handleInput(GameState* gs, InputState* is) {
 	
 	double te = gs->frameSpan;
@@ -379,9 +421,9 @@ void handleInput(GameState* gs, InputState* is) {
 	float keyZoom = gs->settings.keyZoom * te;
 	float mouseZoom = gs->settings.mouseZoom * te;
 
-	if(is->keyState[54] & IS_KEYDOWN) {
-		exit(0);
-	}
+// 	if(is->keyState[54] & IS_KEYDOWN) {
+// 		exit(0);
+// 	}
 	
 	
 	
@@ -539,34 +581,7 @@ void handleInput(GameState* gs, InputState* is) {
 		printf("near: %f, far: %f\n", gs->nearClipPlane, gs->farClipPlane);
 	}
 	
-	static int lastChange = 0;
-	static char* modeStrings[] = {
-		"",
-		"diffuse",
-		"normal",
-		"depth",
-		"lighting"
-	};
-	if(is->keyState[119] & IS_KEYDOWN) {
-		if(gs->frameTime > lastChange + 1) {
-			gs->debugMode = (gs->debugMode + 1) % 5;
-			lastChange = gs->frameTime;
 
-			guiTextSetValue(gtRenderMode, modeStrings[gs->debugMode]);
-
-		}
-	}
-	
-	if(is->keyState[33] & IS_KEYDOWN) {
-		gs->selectionPassDisabled = !gs->selectionPassDisabled;
-
-		if(gs->selectionPassDisabled) {
-			guiTextSetValue(gtSelectionDisabled, "Selection Disabled");
-		}
-		else {
-			guiTextSetValue(gtSelectionDisabled, "");
-		}
-	}
 }
 
 
@@ -751,7 +766,8 @@ void checkResize(XStuff* xs, GameState* gs) {
 		
 		setupFBOs(gs, 1);
 		
-		guiRenderTarget_SetScreenRes(gbcTest->rt, (Vector2i){gs->screen.wh.x, gs->screen.wh.y});
+		if(gbcTest)
+			guiRenderTarget_SetScreenRes(gbcTest->rt, (Vector2i){gs->screen.wh.x, gs->screen.wh.y});
 		//printf("diffuse2: %d\n",gs->diffuseTexBuffer);
 	}
 }

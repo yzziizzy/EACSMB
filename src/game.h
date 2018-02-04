@@ -109,6 +109,7 @@ typedef struct GameState {
 	
 
 	InputFocusStack ifs;
+	InputEventHandler* defaultInputHandlers;
 	
 	double frameTime; // ever incrementing time of the this frame
 	double frameSpan; // the length of this frame, since last frame

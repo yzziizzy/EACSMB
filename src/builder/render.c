@@ -79,6 +79,50 @@ void geom_pass_render(MeshManager* mm, PassDrawable* pd, PassDrawParams* dp) {
 }
 
 
+static void builderKeyUp(InputEvent* ev, GUIBuilderControl* bc) {
+	if(ev->keysym == XK_Escape) {
+		RemovePrePass("mesh_builder_control");
+		guiDelete(bc);
+		//gbcTest = NULL;
+	}
+	
+	if(ev->keysym == XK_Left) {
+		bc->yaw = fmod(bc->yaw + .01, F_2PI);
+	} 
+	if(ev->keysym == XK_Right) {
+		bc->yaw = fmod(bc->yaw - .01, F_2PI);
+	} 
+	if(ev->keysym == XK_Up) {
+		bc->pitch = fmod(bc->pitch + .01, F_2PI);
+	} 
+	if(ev->keysym == XK_Down) {
+		bc->pitch = fmod(bc->pitch - .01, F_2PI);
+	} 
+}
+
+
+static void pipeline_render(GUIBuilderControl* bc, PassFrameParams* pfp) {
+	PassDrawParams rp;
+	
+	Matrix view = IDENT_MATRIX;
+	Matrix proj = IDENT_MATRIX;
+	
+	mPerspective(60, 1, .01, 1000, &proj);
+
+	mTrans3f(0, 0, -10, &view);
+	
+	// y-up to z-up rotation
+	mRot3f(1, 0, 0, F_PI_2, &view);
+	mScale3f(1, 1, -1, &view);
+	
+	//rp.fboSize = (Vector2i){300,300};
+	rp.mWorldView = &view; //msGetTop(&gs->view);
+	rp.mViewProj = &proj; //msGetTop(&gs->proj);
+	
+	
+	RenderPipeline_renderAll(bc->rpipe, &rp);
+}
+
 
 GUIBuilderControl* guiBuilderControlNew(Vector2 pos, Vector2 size, int zIndex) {
 	
@@ -90,12 +134,17 @@ GUIBuilderControl* guiBuilderControlNew(Vector2 pos, Vector2 size, int zIndex) {
 		.Resize = guiBuilderControlResize
 	};
 	
+	static InputEventHandler input_vt = {
+		.keyUp = builderKeyUp,
+	};
+	
 	
 	bc = calloc(1, sizeof(*bc));
 	CHECK_OOM(bc);
 	
 	guiHeaderInit(&bc->header);
 	bc->header.vt = &static_vt;
+	bc->inputHandlers = &input_vt;
 	
 	bc->header.hitbox.min.x = pos.x;
 	bc->header.hitbox.min.y = pos.y;
@@ -162,9 +211,15 @@ GUIBuilderControl* guiBuilderControlNew(Vector2 pos, Vector2 size, int zIndex) {
 	//giTest->texIndex = -1;
 	//Builder_initFBOs(rpipe);
 	
+	RegisterPrePass((pass_callback)pipeline_render, bc, "mesh_builder_control");
+	
 	
 	bc->rt = guiRenderTargetNew(pos, size, rpipe);
 	guiRegisterObject(bc->rt, bc->bg);
+	
+	bc->yaw = 0.0;
+	bc->pitch = 0.0;
+	bc->roll = 0.0;
 	
 	
 	return bc;

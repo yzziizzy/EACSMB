@@ -421,19 +421,26 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 // 		
 // 		RenderPipeline_renderAll(rpipe, &rp);
 //	}
-	if(gbcTest) {
-		PassDrawParams rp;
-		
-		//rp.fboSize = (Vector2i){300,300};
-		rp.mWorldView = msGetTop(&gs->view);
-		rp.mViewProj = msGetTop(&gs->proj);
-		
-		// TODO actual inverse matrices
-		rp.mViewWorld = msGetTop(&gs->view);
-		rp.mProjView = msGetTop(&gs->proj);
-		
-		RenderPipeline_renderAll(gbcTest->rpipe, &rp);
-	}
+// 	if(gbcTest) {
+// 		PassDrawParams rp;
+// 		
+// 		//rp.fboSize = (Vector2i){300,300};
+// 		rp.mWorldView = msGetTop(&gs->view);
+// 		rp.mViewProj = msGetTop(&gs->proj);
+// 		
+// 		// TODO actual inverse matrices
+// 		rp.mViewWorld = msGetTop(&gs->view);
+// 		rp.mProjView = msGetTop(&gs->proj);
+// 		
+// 		RenderPipeline_renderAll(gbcTest->rpipe, &rp);
+// 	}
+	
+	PassFrameParams pfp;
+	pfp.timeElapsed = gs->frameSpan;
+	pfp.gameTime = gs->frameTime;
+	pfp.wallTime = 0;
+	
+	RenderAllPrePasses(&pfp);
 	
 	
 	

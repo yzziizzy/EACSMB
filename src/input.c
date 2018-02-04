@@ -27,18 +27,25 @@ void clearInputState(InputState* st) {
 void _InputFocusStack_PushTarget(InputFocusStack* stack, void* data, ptrdiff_t vtoffset) {
 	
 	InputFocusTarget t;
+	InputFocusTarget* t2;
 	
-	InputFocusTarget* t2 = &VEC_TAIL(&stack->stack);
-	if(t2->vt->loseFocus) {
-		t2->vt->loseFocus(NULL, t2->data);
+	if(VEC_LEN(&stack->stack)) {
+		t2 = &VEC_TAIL(&stack->stack);
+		if((*t2->vt)->loseFocus) {
+			(*t2->vt)->loseFocus(NULL, t2->data);
+		}
 	}
 	
 	t.data = data;
-	t.vt = (InputEventHandler*)(data + vtoffset);
-	
+	t.vt = (InputEventHandler**)(data + vtoffset);
 	VEC_PUSH(&stack->stack, t);
-	if(t.vt->gainFocus) {
-		t.vt->gainFocus(NULL, t.data);
+	
+	if(*t.vt) {
+		(*t.vt)->stack = stack;
+	
+		if((*t.vt)->gainFocus) {
+			(*t.vt)->gainFocus(NULL, t.data);
+		}
 	}
 }
 
@@ -48,16 +55,16 @@ void InputFocusStack_RevertTarget(InputFocusStack* stack) {
 	
 	// notify of losing focus
 	InputFocusTarget* t = &VEC_TAIL(&stack->stack);
-	if(t->vt->loseFocus) {
-		t->vt->loseFocus(NULL, t->data);
+	if((*t->vt)->loseFocus) {
+		(*t->vt)->loseFocus(NULL, t->data);
 	}
 	
 	VEC_POP(&stack->stack);
 	
 	// notify of gaining focus
 	t = &VEC_TAIL(&stack->stack);
-	if(t->vt->gainFocus) {
-		t->vt->gainFocus(NULL, t->data);
+	if((*t->vt)->gainFocus) {
+		(*t->vt)->gainFocus(NULL, t->data);
 	}
 }
 
@@ -67,14 +74,14 @@ void InputFocusStack_Dispatch(InputFocusStack* stack, InputEvent* ev) {
 	
 	InputFocusTarget* h = &VEC_TAIL(&stack->stack);
 	
-#define CALLIF(x) if(h->vt->x) (h->vt->x)(ev, h->data) 
+#define CALLIF(x) if(*h->vt && (*h->vt)->x) ((*h->vt)->x)(ev, h->data) 
 	
 	CALLIF(all);
 	
 	switch(ev->type) {
 		case EVENT_KEYDOWN: CALLIF(keyDown); break;
 		case EVENT_KEYUP: CALLIF(keyUp); break;
-		case EVENT_TEXT: CALLIF(keyPress); break;
+		case EVENT_TEXT: CALLIF(keyText); break;
 		case EVENT_MOUSEDOWN: CALLIF(mouseDown); break;
 		case EVENT_MOUSEUP: CALLIF(mouseUp); break;
 		case EVENT_CLICK: CALLIF(click); break;

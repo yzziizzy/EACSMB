@@ -234,23 +234,23 @@ void processEvents(XStuff* xs, InputState* st, InputFocusStack* ifs, int max_eve
 	// BUG: preserve the held states of things?
 	//clearInputState(st);
 	
-	if(XQueryPointer(xs->display, xs->clientWin, &rootReturn, &clientReturn, &rootX, &rootY, &clientX, &clientY, &mouseMask)) {
-		if(xs->winAttr.height > 0 && xs->winAttr.width > 0) { // make sure the window is initialized
-			
-			pixelPos.x = CLAMP(0, clientX, xs->winAttr.width);
-			pixelPos.y = CLAMP(0, xs->winAttr.height - clientY, xs->winAttr.height);
-			
-			// it seems the inverse is more correct
-			normPos.x = (float)clientX / (float)xs->winAttr.width;
-			normPos.y = 1.0 - ((float)clientY / (float)xs->winAttr.height); // opengl is inverted to X
-			invNormPos.x = (float)clientX / (float)xs->winAttr.width;
-			invNormPos.y = (float)clientY / (float)xs->winAttr.height;
-			
-			
-			
-			// cycle last position
-		}
-	}
+// 	if(XQueryPointer(xs->display, xs->clientWin, &rootReturn, &clientReturn, &rootX, &rootY, &clientX, &clientY, &mouseMask)) {
+// 		if(xs->winAttr.height > 0 && xs->winAttr.width > 0) { // make sure the window is initialized
+// 			
+// 			pixelPos.x = CLAMP(0, clientX, xs->winAttr.width);
+// 			pixelPos.y = CLAMP(0, xs->winAttr.height - clientY, xs->winAttr.height);
+// 			
+// 			// it seems the inverse is more correct
+// 			normPos.x = (float)clientX / (float)xs->winAttr.width;
+// 			normPos.y = 1.0 - ((float)clientY / (float)xs->winAttr.height); // opengl is inverted to X
+// 			invNormPos.x = (float)clientX / (float)xs->winAttr.width;
+// 			invNormPos.y = (float)clientY / (float)xs->winAttr.height;
+// 			
+// 			
+// 			
+// 			// cycle last position
+// 		}
+// 	}
 	
 	for(evcnt = 0; XPending(xs->display) && evcnt < max_events; evcnt++) {
 		XNextEvent(xs->display, &xev);

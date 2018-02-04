@@ -6,6 +6,7 @@
 #include "common_math.h"
 
 #include "text/text.h"
+#include "input.h"
 #include "game.h"
 
 

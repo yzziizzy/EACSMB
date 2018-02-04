@@ -12,6 +12,14 @@
 GLuint quadVAO, quadVBO;
 
 
+struct pass_info {
+	pass_callback cb;
+	void* data;
+	char* name;
+};
+
+static HashTable(struct pass_info) prepasses;
+
 
 
 enum {
@@ -50,6 +58,7 @@ void initRenderPipeline() {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 	
+	HT_init(&prepasses, 2);
 }
 
 
@@ -301,6 +310,10 @@ void RenderPipeline_init(RenderPipeline* rp) {
 	rp->clearColor = (Vector4){0, 0, 0, 0};
 }
 
+void RenderPipeline_Destroy(RenderPipeline* rp) {
+	printf("RenderPipeline_Destroy not implemented\n");
+}
+
 
 
 PassDrawable* Pass_allocDrawable(char* name) {
@@ -323,6 +336,48 @@ GLuint RenderPipeline_getOutputTexture(RenderPipeline* rp) {
 	if(!rp->backingTextures) return 0;
 	return rp->backingTextures[OUTPUT];
 }
+
+
+
+
+
+
+
+
+
+
+void RegisterPrePass(pass_callback cb, void* data, char* name) {
+	
+	struct pass_info* pi;
+	
+	pi = calloc(1, sizeof(*pi));
+	pi->data = data;
+	pi->name = name;
+	pi->cb = cb;
+	
+	HT_set(&prepasses, name, pi);
+}
+
+
+void RenderAllPrePasses(PassFrameParams* pfp) {
+	
+	void* iter = NULL;
+	char* key;
+	struct pass_info* pi;
+	
+	while(HT_next(&prepasses, &iter, &key, (void**)&pi)) {
+		pi->cb(pi->data, pfp);
+	}
+}
+
+void RemovePrePass(char* name) {
+	HT_delete(&prepasses, name);
+}
+
+
+
+
+
 
 
 

@@ -96,7 +96,7 @@ typedef struct {
 	InputState* is;
 } InputEvent;
 
-
+struct InputFocusStack;
 typedef void (*input_event_fn)(InputEvent*, void*);
 
 typedef struct InputEventHandler {
@@ -104,7 +104,7 @@ typedef struct InputEventHandler {
 	
 	input_event_fn keyDown;
 	input_event_fn keyUp;
-	input_event_fn keyPress;
+	input_event_fn keyText;
 	
 	input_event_fn mouseDown;
 	input_event_fn mouseUp;
@@ -123,13 +123,17 @@ typedef struct InputEventHandler {
 	// misc: lost focus. gained focus.
 	input_event_fn loseFocus; // TODO: not implemented
 	input_event_fn gainFocus;
+	
+	// TODO: per-frame callback with state, including frame time
+	
+	struct InputFocusStack* stack;
 } InputEventHandler;
 
 
 
 typedef struct InputFocusTarget {
 	void* data;
-	InputEventHandler* vt;
+	InputEventHandler** vt;
 } InputFocusTarget;
 
 typedef struct InputFocusStack {

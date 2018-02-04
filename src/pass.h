@@ -123,8 +123,12 @@ void RenderPipeline_destroy(RenderPipeline* rp);
 
 GLuint RenderPipeline_getOutputTexture(RenderPipeline* rp);
 
-// TODO: fn to auto-add shading pass
 
+// temporary hacky code
+typedef void (*pass_callback)(void* data, PassFrameParams* pfp);
+void RegisterPrePass(pass_callback cb, void* data, char* name);
+void RemovePrePass(char* name);
+void RenderAllPrePasses(PassFrameParams* pfp);
 
 
 
