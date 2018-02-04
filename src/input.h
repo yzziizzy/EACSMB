@@ -23,6 +23,9 @@ enum InputMode {
 enum InputEventType {
 	EVENT_KEYDOWN,
 	EVENT_KEYUP,
+	EVENT_TEXT,
+	EVENT_MOUSEDOWN,
+	EVENT_MOUSEUP,
 	EVENT_CLICK,
 	EVENT_DOUBLECLICK,
 	EVENT_DRAGSTART,
@@ -30,7 +33,9 @@ enum InputEventType {
 	EVENT_DRAGMOVE,
 	EVENT_MOUSEMOVE,
 	EVENT_MOUSEENTER, // enter and leave *the application window*, not some arbitrary region.
-	EVENT_MOUSELEAVE // may happen during a drag
+	EVENT_MOUSELEAVE, // may happen during a drag
+	EVENT_GAINFOCUS,
+	EVENT_LOSEFOCUS
 };
 
 
@@ -46,16 +51,20 @@ typedef struct InputState {
 	double lastClickTime;
 	double lastMoveTime;
 	
-	Vector2 lastclickPos;
+	Vector2i lastPressPosPixels;
+	double lastPressTime;
+	
+	Vector2 lastClickPos;
 	Vector2 lastCursorPos;
 	Vector2i lastCursorPosPixels;
 
 	char clickButton;
 	char buttonUp;
 	char buttonDown;
+	char inDrag;
 	
 	unsigned char keyState[256];
-	double keyStateChanged[256];
+//	double keyStateChanged[256];
 	
 	VEC(struct InputEvent*) events;
 	
@@ -68,10 +77,13 @@ typedef struct InputState {
 typedef struct {
 	char type; 
 	
-	char button;
+	union {
+		char button; 
+		char character; // translated after mod keys
+	};
 	unsigned short kbmods; // control, alt, etc. uses "raw input states" macros
 	
-	unsigned int keycode;
+	unsigned int keysym;
 	
 	double time;
 	
@@ -94,12 +106,14 @@ typedef struct InputEventHandler {
 	input_event_fn keyUp;
 	input_event_fn keyPress;
 	
-	input_event_fn buttonDown;
-	input_event_fn buttonUp;
-	input_event_fn buttonClick;
-	input_event_fn buttonDblClick;
+	input_event_fn mouseDown;
+	input_event_fn mouseUp;
+	input_event_fn click;
+	input_event_fn doubleClick;
 	input_event_fn mouseMove;
-	input_event_fn mouseDrag;
+	input_event_fn dragMove;
+	input_event_fn dragStart;
+	input_event_fn dragStop;
 	
 	// enter and leave the application window as a whole. 
 	// may happen during a drag
@@ -107,7 +121,7 @@ typedef struct InputEventHandler {
 	input_event_fn mouseLeave;
 	
 	// misc: lost focus. gained focus.
-	input_event_fn loseFocus;
+	input_event_fn loseFocus; // TODO: not implemented
 	input_event_fn gainFocus;
 } InputEventHandler;
 
@@ -138,6 +152,6 @@ void InputFocusStack_Dispatch(InputFocusStack* stack, InputEvent* ev);
 
 void clearInputState(InputState* st);
 
-
+char* InputEvent_GetKeyDescription(InputEvent* iev);
 
 #endif // __EACSMB__input_h__

@@ -1,9 +1,10 @@
 
+#include <X11/X.h>
 
 #include "input.h"
 
 
-
+// very outdated
 void clearInputState(InputState* st) {
 	int i;
 	
@@ -62,9 +63,47 @@ void InputFocusStack_RevertTarget(InputFocusStack* stack) {
 
 
 void InputFocusStack_Dispatch(InputFocusStack* stack, InputEvent* ev) {
+	if(VEC_LEN(&stack->stack) == 0) return;
 	
-	fprintf(stderr, "\n!!! InputFocusStack_Dispatch not implemented\n\n");
+	InputFocusTarget* h = &VEC_TAIL(&stack->stack);
+	
+#define CALLIF(x) if(h->vt->x) (h->vt->x)(ev, h->data) 
+	
+	CALLIF(all);
+	
+	switch(ev->type) {
+		case EVENT_KEYDOWN: CALLIF(keyDown); break;
+		case EVENT_KEYUP: CALLIF(keyUp); break;
+		case EVENT_TEXT: CALLIF(keyPress); break;
+		case EVENT_MOUSEDOWN: CALLIF(mouseDown); break;
+		case EVENT_MOUSEUP: CALLIF(mouseUp); break;
+		case EVENT_CLICK: CALLIF(click); break;
+		case EVENT_DOUBLECLICK: CALLIF(doubleClick); break;
+		case EVENT_DRAGSTART: CALLIF(dragStart); break;
+		case EVENT_DRAGSTOP: CALLIF(dragStop); break;
+		case EVENT_DRAGMOVE: CALLIF(dragMove); break;
+		case EVENT_MOUSEMOVE: CALLIF(mouseMove); break;
+		case EVENT_MOUSEENTER: CALLIF(mouseEnter); break;
+		case EVENT_MOUSELEAVE: CALLIF(mouseLeave); break;
+		case EVENT_GAINFOCUS: CALLIF(gainFocus); break;
+		case EVENT_LOSEFOCUS: CALLIF(loseFocus); break;
+		default:
+			fprintf(stderr, "!!! Unknown event in InputFocusStack_Dispatch: %d\n", ev->type);
+			break;
+	}
+
+#undef CALLIF
 	
 }
+
+// gets a human-readable string for any specific key, such as "Control_R" for the right control key
+char* InputEvent_GetKeyDescription(InputEvent* iev) {
+	char* xs = XKeysymToString((KeySym)iev->keysym);
+	char* s = strdup(xs);
+	XFree(xs);
+	
+	return s;
+}
+
 
 

@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
+#include <ctype.h>
 
 #include <time.h>
 
@@ -253,8 +254,8 @@ void processEvents(XStuff* xs, InputState* st, InputFocusStack* ifs, int max_eve
 	
 	for(evcnt = 0; XPending(xs->display) && evcnt < max_events; evcnt++) {
 		XNextEvent(xs->display, &xev);
-		
-		
+		KeySym sym;
+		char c;
 		
 		// capture expose events cause they're useful. fullscreen games are for wimps who can't ultratask.
 		if(xev.type == Expose) {
@@ -277,7 +278,7 @@ void processEvents(XStuff* xs, InputState* st, InputFocusStack* ifs, int max_eve
 			
 			iev.type = EVENT_KEYDOWN;
 			iev.time = gt;
-			iev.keycode = xev.xkey.keycode;
+			//.iev.keycode = xev.xkey.keycode;
 			iev.kbmods = TranslateModState(xev.xkey.state);
 			
 			InputFocusStack_Dispatch(ifs, &iev);
@@ -287,23 +288,47 @@ void processEvents(XStuff* xs, InputState* st, InputFocusStack* ifs, int max_eve
 			
 			st->keyState[xev.xkey.keycode] &= !IS_KEYDOWN;
 			
+			int slen = XLookupString(&xev, &c, 1, &sym, NULL);
+			
 			iev.type = EVENT_KEYUP;
 			iev.time = gt;
-			iev.keycode = xev.xkey.keycode;
+			iev.keysym = sym;
+			iev.character = c;
 			iev.kbmods = TranslateModState(xev.xkey.state);
 			
 			InputFocusStack_Dispatch(ifs, &iev);
+			
+			if(isprint(c)) {
+				iev.type = EVENT_TEXT;
+				InputFocusStack_Dispatch(ifs, &iev);
+			}
 		}
 		
 		// mouse events
 		if(xev.type == ButtonPress) {
-// 			st->clickPos.x = xev.xbutton.x / (float)xs->winAttr.width;
-// 			st->clickPos.y = (xs->winAttr.height - xev.xbutton.y) / (float)xs->winAttr.height;
-// 			st->clickButton = xev.xbutton.button;
-			st->buttonDown = xev.xbutton.button;
+			pixelPos.x = CLAMP(0, xev.xbutton.x, xs->winAttr.width);
+			pixelPos.y = CLAMP(0, xs->winAttr.height - xev.xbutton.y, xs->winAttr.height);
 			
+			normPos.x = (float)xev.xbutton.x / (float)xs->winAttr.width;
+			normPos.y = 1.0 - ((float)xev.xbutton.y / (float)xs->winAttr.height); // opengl is inverted to X
 			
+			double gt = GameTimeFromXTime(xev.xbutton.time);
 			
+			iev.type = EVENT_MOUSEDOWN;
+			iev.time = gt;
+			iev.button = xev.xbutton.button;
+			iev.kbmods = TranslateModState(xev.xbutton.state);
+			
+			InputFocusStack_Dispatch(ifs, &iev);
+			
+			if(st->inDrag) {
+				// what? shouldn't get here.
+				fprintf(stderr, "got ButtonPress during a drag.\n");
+			}
+			else { // for determining when to start a drag
+				st->lastPressTime = gt;
+				st->lastPressPosPixels = pixelPos;
+			}
 			
 		}
 		if(xev.type == ButtonRelease) {
@@ -316,13 +341,6 @@ void processEvents(XStuff* xs, InputState* st, InputFocusStack* ifs, int max_eve
 			
 			double gt = GameTimeFromXTime(xev.xbutton.time);
 			
-			if(gt - st->doubleClickTime < st->lastClickTime) {
-				iev.type = EVENT_CLICK;
-			}
-			else {
-				iev.type = EVENT_DOUBLECLICK;
-			}
-			
 			iev.intPos = pixelPos;
 			iev.normPos = normPos;
 			
@@ -330,10 +348,27 @@ void processEvents(XStuff* xs, InputState* st, InputFocusStack* ifs, int max_eve
 			iev.button = xev.xbutton.button;
 			iev.kbmods = TranslateModState(xev.xbutton.state);
 			
-			InputFocusStack_Dispatch(ifs, &iev);
-			
+			if(st->inDrag) {
+				iev.type = EVENT_DRAGSTOP;
+				InputFocusStack_Dispatch(ifs, &iev);
+				
+				st->inDrag = 0;
+			}
+			else {
+				if(gt - st->doubleClickTime < st->lastClickTime) {
+					iev.type = EVENT_CLICK; // BUG: pause and wait for doubleclick?
+				}
+				else {
+					iev.type = EVENT_DOUBLECLICK;
+				}
+				InputFocusStack_Dispatch(ifs, &iev);
+				
+				iev.type = EVENT_MOUSEUP;
+				InputFocusStack_Dispatch(ifs, &iev);
+			}
 			
 			st->lastClickTime = gt;
+			st->lastPressTime = -1;
 		}
 		
 		if(xev.type == MotionNotify) {
@@ -349,23 +384,37 @@ void processEvents(XStuff* xs, InputState* st, InputFocusStack* ifs, int max_eve
 			double gt = GameTimeFromXTime(xev.xmotion.time);
 			
 			
-			// mouse move event
-			if(st->lastCursorPosPixels.x != pixelPos.x || st->lastCursorPosPixels.y != pixelPos.y) {
-				iev.type = EVENT_MOUSEMOVE;
-				iev.intPos = pixelPos;
-				iev.normPos = normPos;
-				
-				iev.time = gt;
-				iev.button = -1;
-				iev.kbmods = TranslateModState(xev.xmotion.state);
-				
-				InputFocusStack_Dispatch(ifs, &iev);
-			}
-			else {
+			// check if the mouse actually moved
+			if(st->lastCursorPosPixels.x == pixelPos.x && st->lastCursorPosPixels.y == pixelPos.y) {
 				// not sure if X sends events without actual movment.
 				// let's find out
 				printf("mouse didn't move in XMotionNotify event.\n");
 			}
+			
+			// check for drag start
+			if(!st->inDrag && st->lastPressTime > 0) {
+				float dist = vDist2i(&st->lastPressPosPixels, &pixelPos);
+				if(dist > st->dragMinDist) {
+					st->inDrag = 1;
+				}
+			}
+			
+			// mouse move event
+			if(st->inDrag) {
+				iev.type = EVENT_DRAGMOVE;
+			}
+			else {
+				iev.type = EVENT_MOUSEMOVE;
+			}
+			iev.intPos = pixelPos;
+			iev.normPos = normPos;
+			
+			iev.time = gt;
+			iev.button = -1;
+			iev.kbmods = TranslateModState(xev.xmotion.state);
+			
+			InputFocusStack_Dispatch(ifs, &iev);
+			
 			
 			
 			st->lastCursorPos = normPos;
