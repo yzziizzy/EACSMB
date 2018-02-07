@@ -879,6 +879,40 @@ static void makeVertices(TextRenderInfo* tri, unsigned int* colors) {
 }
 
 
+// this algorithm must be kept in sync with the above function
+float CalcTextWidth(TextRenderInfo* tri, int charLen) {
+	float offset, vscale, scale;
+	int v, i;
+	char* str;
+	TextRes* font;
+	unsigned int color;
+	
+	str = tri->text;
+	font = tri->font;
+	
+	vscale = 1.0 / font->texHeight;
+	scale = 1.0 / font->maxHeight;
+	
+	offset = 0.0;
+	v = 0;
+	for(i = 0; i < tri->textLen && i < charLen; i++) {
+		//printf("loop\n");
+		float width, valign;
+		int index;
+		
+		index = font->codeIndex[str[i]];
+		width = font->charWidths[index] * scale;
+		
+		offset -= ((font->padding * 2) * vscale);
+		offset -= .15;
+		
+		offset += width; 
+	}
+	
+	return offset;
+}
+
+
 void FreeFont(TextRes* res) {
 	free(res->texture);
 	free(res->codeIndex);

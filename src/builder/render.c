@@ -98,6 +98,17 @@ static void builderKeyUp(InputEvent* ev, GUIBuilderControl* bc) {
 	if(ev->keysym == XK_Down) {
 		bc->pitch = fmod(bc->pitch - .01, F_2PI);
 	} 
+	
+	if(ev->character == 's') { // sphere
+		MeshData* md;
+		MB_operation* root;
+		
+		md = process_op(root);
+		
+	}
+	if(ev->character == 'c') { // reroot with a compose
+		
+	}
 }
 
 
@@ -109,6 +120,9 @@ static void pipeline_render(GUIBuilderControl* bc, PassFrameParams* pfp) {
 	
 	mPerspective(60, 1, .01, 1000, &proj);
 
+	mRot3f(0,1,0, bc->yaw, &view);
+	mRot3f(1,0,0, bc->pitch, &view);
+	mRot3f(0,0,1, bc->roll, &view);
 	mTrans3f(0, 0, -10, &view);
 	
 	// y-up to z-up rotation

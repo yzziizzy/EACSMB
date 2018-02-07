@@ -8,15 +8,20 @@ typedef struct GUIEdit {
 	InputEventHandler* inputHandlers;
 	
 	
-	VEC(char) text;
+	char* buf;
+	int buflen;
+	int textlen;
+	int cursorpos; // in characters
 	
+// 	float fontSize;
 	float blinkRate;
+	float cursorOffset; // in screen units
 	
 	// offsets, text align
 	
-	GUIText bg;
-	GUIText textControl;
-	GUIWindow cursor; // just a thin window
+	GUIWindow* bg;
+	GUIText* textControl;
+	GUIWindow* cursor; // just a thin window
 	
 } GUIEdit;
 

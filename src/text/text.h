@@ -86,6 +86,7 @@ TextRes* LoadFont(char* path, int size, char* chars);
 
 
 TextRenderInfo* prepareText(TextRes* font, const char* str, int len, unsigned int* colors);
+float CalcTextWidth(TextRenderInfo* tri, int charLen);
 
 void FreeFont(TextRes* res);
 
