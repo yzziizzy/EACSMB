@@ -96,6 +96,7 @@ typedef struct GUIWindow {
 
 #include "ui/simpleWindow.h"
 #include "ui/image.h"
+#include "ui/edit.h"
 
 
 union GUIObject {
@@ -124,6 +125,7 @@ void guiResize(GUIHeader* gh, Vector2 newSz);
 int guiRemoveChild(GUIObject* parent, GUIObject* child);
 
 void guiTextSetValue(GUIText* gt, char* newval);
+float guiTextGetTextWidth(GUIText* gt, int numChars);
 
 GUIWindow* guiWindowNew(Vector2 pos, Vector2 size, float zIndex);
 

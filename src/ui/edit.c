@@ -1,5 +1,6 @@
 
-#include "edit.h"
+
+#include "../gui.h"
 
 
 
@@ -107,7 +108,8 @@ static void updateTextControl(GUIEdit* ed) {
 	guiTextSetValue(ed->textControl, ed->buf);
 	
 	// get new cursor pos
-	//CalcTextWidth(TextRenderInfo* tri, int charLen)
+	ed->cursorOffset = guiTextGetTextWidth(ed->textControl, ed->cursorpos);
+	
 }
 
 

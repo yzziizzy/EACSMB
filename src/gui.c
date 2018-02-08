@@ -365,7 +365,9 @@ void guiTextDelete(GUIText* gt) {
 }
 
 
-
+float guiTextGetTextWidth(GUIText* gt, int numChars) {
+	return CalcTextWidth(gt->strRI, numChars);
+}
 
 
 GUIWindow* guiWindowNew(Vector2 pos, Vector2 size, float zIndex) {

@@ -27,10 +27,8 @@ void MeshBuilder_Init(MeshBuilder* mb) {
 // rebuild the mesh from the root operation
 void MeshBuilder_Rebuild(MeshBuilder* mb) {
 	
-	
-	
 	mb->md = process_op(mb->rootOp);
-	if(!md) {
+	if(!mb->md) {
 		printf("failed to process mesh operations \n");
 		exit(1);
 	}

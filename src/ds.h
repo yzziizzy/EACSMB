@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <malloc.h>
+#include <string.h>
 
 
 
@@ -96,7 +97,7 @@ do { \
 	memmove( \
 		VEC_DATA(x) + ((i) * sizeof(*VEC_DATA(x))), \
 		VEC_DATA(x) + (((i) + 1) * sizeof(*VEC_DATA(x))), \
-		VEC_LEN(x) - (((i) - 1) * sizeof(*VEC_DATA(x))), \
+		VEC_LEN(x) - (((i) - 1) * sizeof(*VEC_DATA(x))) \
 	); \
 	VEC_LEN(x)--; \
 } while(0)
