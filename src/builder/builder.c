@@ -98,7 +98,7 @@ MB_link* MB_link_alloc() {
 void MB_link_free(MB_link* l, int freeOp, int cascade) {
 	if(!l) return;
 	
-	if(freeOp) MB_operation_free(l->op);
+	if(freeOp) MB_free(l->op);
 	
 	if(cascade) {
 		int i;

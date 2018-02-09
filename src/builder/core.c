@@ -20,7 +20,7 @@ typedef MeshData* (*buildfn)(MB_operation*);
 typedef void (*freefn)(MB_operation*);
 
 
-static MeshData* process_op(MB_operation* op);
+MeshData* process_op(MB_operation* op);
 static void append_mesh(MeshData* in, MeshData* out);
 // static MeshData* createCylinder(MB_cylinder_params* params);
 
@@ -552,7 +552,7 @@ static MeshData* build_cylinder(MB_cylinder_params* params) {
 
 
 
-static MeshData* process_op(MB_operation* op) {
+MeshData* process_op(MB_operation* op) {
 	MeshData* md;
 	int i;
 	buildfn fn;

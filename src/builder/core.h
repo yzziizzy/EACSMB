@@ -126,4 +126,14 @@ union MB_operation {
 
 MeshData* meshBuilder_test();
 
+
+
+
+
+// temporary
+MeshData* process_op(MB_operation* op);
+
+
+
+
 #endif // __EACSMB_builder_core_h__

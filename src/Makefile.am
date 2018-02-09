@@ -24,7 +24,6 @@ eacsmb_SOURCES = main.c \
 	json_gl.c \
 	log.c \
 	map.c \
-	meshBuilder.c \
 	MurmurHash3.c \
 	objloader.c \
 	opensimplex.c \
