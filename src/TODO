@@ -1,3 +1,16 @@
+GUI:
+-------------------
+sliders
+scrolling windows with clipping
+window borders
+buttons
+
+animations
+proper resource cleanup
+semi-global options struct to specify default sizes for elements by type
+convert to megashader
+
+
  
 SOONER:
 -------------------
@@ -26,7 +39,6 @@ switch to getopt lib
 json saving
 
 clean up text rendering function
-gui toolkit
 
 standard base set of uniforms for all shaders (depends on #include partially)
 rebuild eye/view code
@@ -46,8 +58,6 @@ extrusion of a 2d shape along a spline
 adjust shader log text for real line numbers
 add #include support to shaders
 
-build real input handling code
-
 
 LATER:
 --------------------
@@ -66,9 +76,7 @@ make all functions static that need to be
 
 volumetric clouds and ground fog with projected translucent shadows
 
-try to reuse color buffers for object picking to eliminate a dedicated selection buffer -- DONE!
-
-particle system -- DONE!
+stateful particle system
 
 fix lines
 terrain texture blending
