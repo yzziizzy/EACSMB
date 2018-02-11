@@ -28,5 +28,7 @@ typedef struct GUIEdit {
 } GUIEdit;
 
 
+GUIEdit* GUIEditNew(char* initialValue, Vector2 pos, Vector2 size);
+
 
 #endif // __EACSMB_ui_edit_h__

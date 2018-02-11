@@ -4,12 +4,14 @@ sliders
 scrolling windows with clipping
 window borders
 buttons
+select boxes
+check/radio boxes
 
 animations
 proper resource cleanup
 semi-global options struct to specify default sizes for elements by type
 convert to megashader
-
+text wrapping
 
  
 SOONER:

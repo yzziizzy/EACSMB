@@ -58,6 +58,9 @@ void guiBuilderControlRender(GUIBuilderControl* bc, GameState* gs) {
 	
 	guiRender(bc->rt, gs);
 	
+	if(bc->ed)
+		guiRender(bc->ed, gs);
+	
 	//printf("sdf\n");
 }
 
@@ -108,7 +111,10 @@ static void builderKeyUp(InputEvent* ev, GUIBuilderControl* bc) {
 		
 	}
 	if(ev->character == 'c') { // reroot with a compose
+		bc->ed = GUIEditNew("i", (Vector2){.5,.5}, (Vector2){.2,.2});
 		
+		guiRegisterObject(bc->ed, &bc->bg->header);
+		InputFocusStack_PushTarget(bc->inputHandlers->stack, bc->ed, inputHandlers);
 	}
 }
 
@@ -171,13 +177,13 @@ GUIBuilderControl* guiBuilderControlNew(Vector2 pos, Vector2 size, int zIndex) {
 	bc->header.z = 0;
 	
 	
-	bc->bg = guiWindowNew(
+	bc->bg = guiSimpleWindowNew(
 		(Vector2){pos.x, pos.y}, 
 		(Vector2){size.x, size.y}, 
 		zIndex + .0001
 	);
 	//bc->bg = (Vector){0.9, 0.1, .9};
-	guiRegisterObject(bc->bg, bc);
+	guiRegisterObject(bc->bg, &bc->header);
 	
 	
 	
@@ -230,7 +236,7 @@ GUIBuilderControl* guiBuilderControlNew(Vector2 pos, Vector2 size, int zIndex) {
 	
 	
 	bc->rt = guiRenderTargetNew(pos, size, rpipe);
-	guiRegisterObject(bc->rt, bc->bg);
+	guiRegisterObject(bc->rt, &bc->bg->header);
 	
 	bc->yaw = 0.0;
 	bc->pitch = 0.0;

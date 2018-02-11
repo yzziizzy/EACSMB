@@ -5,6 +5,9 @@
 
 
 
+static void insertChar(GUIEdit* ed, char c);
+static void updateTextControl(GUIEdit* ed);
+
 
 void guiEditRender(GUIEdit* ed, GameState* gs) {
 	
@@ -24,14 +27,25 @@ void guiEditDelete(GUIEdit* sw) {
 
 
 
+static void recieveText(InputEvent* ev, GUIEdit* ed) {
+	insertChar(ed, ev->character);
+	updateTextControl(ed);
+}
+
+
+
 GUIEdit* GUIEditNew(char* initialValue, Vector2 pos, Vector2 size) {
 	
 	GUIEdit* ed;
 	
 	
 	static struct gui_vtbl static_vt = {
-		.Render = guiEditRender,
-		.Delete = guiEditDelete
+		.Render = (void*)guiEditRender,
+		.Delete = (void*)guiEditDelete
+	};
+		
+	static InputEventHandler input_vt = {
+		.keyText = recieveText,
 	};
 	
 	ed = calloc(1, sizeof(*ed));
@@ -39,6 +53,7 @@ GUIEdit* GUIEditNew(char* initialValue, Vector2 pos, Vector2 size) {
 	
 	guiHeaderInit(&ed->header);
 	ed->header.vt = &static_vt;
+	ed->inputHandlers = &input_vt;
 	
 	ed->header.hitbox.min.x = pos.x;
 	ed->header.hitbox.min.y = pos.y;
@@ -71,7 +86,8 @@ GUIEdit* GUIEditNew(char* initialValue, Vector2 pos, Vector2 size) {
 	ed->cursor->color = (Vector){0.0, 0.0, 0.0};
 	guiRegisterObject(ed->cursor, &ed->bg->header);
 	
-	ed->textControl = guiTextNew(initialValue, &(Vector){8.0,2.0,0.0}, 6.0f, "Arial");
+	ed->textControl = guiTextNew(initialValue, pos, 6.0f, "Arial");
+	ed->textControl->header.size.x = .5;
 	guiRegisterObject(ed->textControl, &ed->bg->header);
 
 	
@@ -96,11 +112,12 @@ static void insertChar(GUIEdit* ed, char c) {
 	checkBuffer(ed, ed->textlen + 1);
 	
 	char* e = ed->buf + ed->textlen + 1; // copy the null terminator too
-	while(e > ed->buf + ed->cursorpos) {
+	while(e >= ed->buf + ed->cursorpos) {
 		*e = *(e - 1);
 		e--;
 	}
 	
+	ed->textlen++;
 	*e = c;
 }
 

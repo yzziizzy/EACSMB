@@ -226,7 +226,7 @@ void guiHeaderInit(GUIHeader* gh) {
 }
 
 
-GUIText* guiTextNew(char* str, Vector* pos, float size, char* fontname) {
+GUIText* guiTextNew(char* str, Vector2 pos, float size, char* fontname) {
 	
 	static struct gui_vtbl static_vt = {
 		.Render = guiTextRender,
@@ -248,7 +248,7 @@ GUIText* guiTextNew(char* str, Vector* pos, float size, char* fontname) {
 	guiHeaderInit(&gt->header);
 	gt->header.vt = &static_vt; 
 	
-	if(pos) vCopy(pos, &gt->pos);
+	gt->header.topleft = pos;
 	gt->size = size;
 	
 	gt->font = getFont(fontname);
@@ -314,7 +314,7 @@ void gui_RenderAll(GameState* gs) {
 void guiTextRender(GUIText* gt, GameState* gs) {
 	
 	Matrix textProj;
-	
+	Vector v;
 	MatrixStack textModel;
 	
 	msAlloc(3, &textModel);
@@ -325,11 +325,15 @@ void guiTextRender(GUIText* gt, GameState* gs) {
 	textProj = IDENT_MATRIX;
 	
 	mOrtho(0, gs->screen.aspect, 0, 1, -1, 100, &textProj);
-	//mScale3f(.5,.5,.5, &textProj);
+	//mOrtho(0, 1, 0, 1, 0, 1, &textProj);
+		//mScale3f(.5,.5,.5, &textProj);
 	
 	msIdent(&textModel);
 	msScale3f(gt->size * .01, gt->size* .01, gt->size * .01, &textModel);
-	msTransv(&gt->pos, &textModel);
+	v.x = gt->header.topleft.x * 10;
+	v.y = gt->header.topleft.y * 10;
+	v.z = 0;
+	msTransv(&v, &textModel);
 
 	GLuint tp_ul = glGetUniformLocation(textProg->id, "mProj");
 	GLuint tm_ul = glGetUniformLocation(textProg->id, "mModel");

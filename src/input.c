@@ -31,6 +31,7 @@ void _InputFocusStack_PushTarget(InputFocusStack* stack, void* data, ptrdiff_t v
 	
 	if(VEC_LEN(&stack->stack)) {
 		t2 = &VEC_TAIL(&stack->stack);
+		(*t2->vt)->stack = stack;
 		if((*t2->vt)->loseFocus) {
 			(*t2->vt)->loseFocus(NULL, t2->data);
 		}
@@ -39,10 +40,9 @@ void _InputFocusStack_PushTarget(InputFocusStack* stack, void* data, ptrdiff_t v
 	t.data = data;
 	t.vt = (InputEventHandler**)(data + vtoffset);
 	VEC_PUSH(&stack->stack, t);
-	
+
 	if(*t.vt) {
 		(*t.vt)->stack = stack;
-	
 		if((*t.vt)->gainFocus) {
 			(*t.vt)->gainFocus(NULL, t.data);
 		}
@@ -59,7 +59,7 @@ void InputFocusStack_RevertTarget(InputFocusStack* stack) {
 		(*t->vt)->loseFocus(NULL, t->data);
 	}
 	
-	VEC_POP(&stack->stack);
+	VEC_POP1(&stack->stack);
 	
 	// notify of gaining focus
 	t = &VEC_TAIL(&stack->stack);

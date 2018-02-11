@@ -21,6 +21,8 @@ typedef struct GUIBuilderControl {
 	GUIRenderTarget* rt;
 	RenderPipeline* rpipe;
 	
+	GUIEdit* ed;
+	
 	MeshBuilder* mb;
 	MeshManager* mm;
 	

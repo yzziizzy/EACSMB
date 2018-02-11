@@ -111,7 +111,7 @@ union GUIObject {
 
 
 
-GUIText* guiTextNew(char* str, Vector* pos, float size, char* fontname);
+GUIText* guiTextNew(char* str, Vector2 pos, float size, char* fontname);
 void gui_Init();
 void gui_Image_Init(char* file);
 
@@ -134,7 +134,7 @@ void guiTriggerClick(GUIEvent* e);
 #define guiRegisterObject(o, p) guiRegisterObject_(&(o)->header, p)
 void guiRegisterObject_(GUIHeader* o, GUIHeader* parent);
 
-
+void guiHeaderInit(GUIHeader* gh); 
 
 
 

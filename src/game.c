@@ -207,11 +207,11 @@ void initGame(XStuff* xs, GameState* gs) {
 	
 	gui_Init();
 	
-	gt = guiTextNew("gui!", &(Vector){1.0,1.0,0.0}, 6.0f, "Arial");
-	gt_sel = guiTextNew("gui!", &(Vector){1.0,1.6,0.0}, 6.0f, "Arial");
-	gt_emit = guiTextNew("gui!", &(Vector){1.0,2.2,0.0}, 6.0f, "Arial");
-	gtRenderMode = guiTextNew("", &(Vector){8.0,1.0,0.0}, 6.0f, "Arial");
-	gtSelectionDisabled = guiTextNew("", &(Vector){8.0,2.0,0.0}, 6.0f, "Arial");
+	gt = guiTextNew("gui!", (Vector2){0.10,0.1}, 6.0f, "Arial");
+	gt_sel = guiTextNew("gui!", (Vector2){0.10,0.2}, 6.0f, "Arial");
+	gt_emit = guiTextNew("gui!", (Vector2){0.1,0.3}, 6.0f, "Arial");
+	gtRenderMode = guiTextNew("", (Vector2){0.1,0.9}, 6.0f, "Arial");
+	gtSelectionDisabled = guiTextNew("", (Vector2){0.5,0.1}, 6.0f, "Arial");
 	
 	
 
