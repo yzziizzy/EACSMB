@@ -78,12 +78,13 @@ GUIEdit* GUIEditNew(char* initialValue, Vector2 pos, Vector2 size) {
 	ed->cursorpos = ed->textlen;
 	
 	ed->bg = guiWindowNew(pos, size, 1);
-	ed->bg->color = (Vector){0.1, 0.9, 0.1};
+	ed->bg->color = (Vector){0.1, 0.1, 0.1};
+	ed->bg->borderColor = (Vector4){1.0, .7, .3, 1.0};
 	guiRegisterObject(ed->bg, &ed->header);
 	
 	// TODO: fix size and pos of cursor
-	ed->cursor = guiWindowNew(pos, size, 1);
-	ed->cursor->color = (Vector){0.0, 0.0, 0.0};
+	ed->cursor = guiWindowNew(pos, (Vector2){.003, size.y}, 1);
+	ed->cursor->color = (Vector){1.0, 1.0, 1.0};
 	guiRegisterObject(ed->cursor, &ed->bg->header);
 	
 	ed->textControl = guiTextNew(initialValue, pos, 6.0f, "Arial");

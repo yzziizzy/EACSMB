@@ -417,11 +417,13 @@ void guiWindowRender(GUIWindow* gw, GameState* gs) {
 	static GLuint tlx_tly_w_h_ul;
 	static GLuint z_alpha__ul;
 	static GLuint color_ul;
+	static GLuint border_ul;
 	
 	if(!proj_ul) proj_ul = glGetUniformLocation(windowProg->id, "mProj");
 	if(!tlx_tly_w_h_ul) tlx_tly_w_h_ul = glGetUniformLocation(windowProg->id, "tlx_tly_w_h");
 	if(!z_alpha__ul) z_alpha__ul = glGetUniformLocation(windowProg->id, "z_alpha_");
 	if(!color_ul) color_ul = glGetUniformLocation(windowProg->id, "color");
+	if(!border_ul) border_ul = glGetUniformLocation(windowProg->id, "border");
 	
 	
 	
@@ -441,6 +443,7 @@ void guiWindowRender(GUIWindow* gw, GameState* gs) {
 	);
 	glUniform4f(z_alpha__ul, -.1, .5, 0, 0); // BUG z is a big messed up; -.1 works but .1 doesn't.
 	glUniform3f(color_ul, gw->color.x, gw->color.y, gw->color.z); // BUG z is a big messed up; -.1 works but .1 doesn't.
+	glUniform4fv(border_ul, 1, &gw->borderColor);
 
 	glBindVertexArray(vaoWindow);
 	glBindBuffer(GL_ARRAY_BUFFER, vboWindow);

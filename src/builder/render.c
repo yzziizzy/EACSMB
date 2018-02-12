@@ -111,7 +111,7 @@ static void builderKeyUp(InputEvent* ev, GUIBuilderControl* bc) {
 		
 	}
 	if(ev->character == 'c') { // reroot with a compose
-		bc->ed = GUIEditNew("i", (Vector2){.5,.5}, (Vector2){.2,.2});
+		bc->ed = GUIEditNew("i", (Vector2){.5,.5}, (Vector2){.2,.045});
 		
 		guiRegisterObject(bc->ed, &bc->bg->header);
 		InputFocusStack_PushTarget(bc->inputHandlers->stack, bc->ed, inputHandlers);
@@ -184,7 +184,6 @@ GUIBuilderControl* guiBuilderControlNew(Vector2 pos, Vector2 size, int zIndex) {
 	);
 	//bc->bg = (Vector){0.9, 0.1, .9};
 	guiRegisterObject(bc->bg, &bc->header);
-	
 	
 	
 	// set up the pipeline

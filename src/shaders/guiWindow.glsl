@@ -10,10 +10,12 @@ uniform mat4 mProj;
 
 uniform vec4 tlx_tly_w_h;
 uniform vec4 z_alpha_;
+uniform vec4 border;
 
 
 out float alpha;
 out vec2 tc;
+out vec4 borderColor;
 
 void main() {
 
@@ -26,6 +28,7 @@ void main() {
 	
 	alpha = z_alpha_.y;
 	tc = pos_in.xy;
+	borderColor = border;
 	gl_Position = mProj * vec4(pos, z, 1.0); //(mProj) * vec4(pos, .5, 1.0);
 }
 
@@ -42,8 +45,10 @@ void main() {
 uniform vec3 color;
 
 
+
 in vec2 tc;
 in float alpha;
+in vec4 borderColor;
 
 out vec4 FragColor;
 
@@ -56,8 +61,16 @@ void main(void) {
 	float ei4 = 1.0 - smoothstep(0.98, 1.0, tc.y);
 	
 	vec4 edgeFactor = vec4(min(min(ei1, ei2), min(ei3, ei4)), 0,0,1).rrra;
-
 	
-	FragColor = vec4(color, alpha * edgeFactor);
+	float bi1 = smoothstep(0.0, 0.05, tc.x);
+	float bi2 = 1.0 - smoothstep(0.95, 1.0, tc.x);
+	float bi3 = smoothstep(0.0, 0.05, tc.y);
+	float bi4 = 1.0 - smoothstep(0.95, 1.0, tc.y);
+	
+	vec4 borderFactor = vec4(min(min(bi1, bi2), min(bi3, bi4)), 0,0,1).rrra;
+	vec3 bc = borderColor.rgb; 
+	float ba = borderColor.a;
+	
+	FragColor = vec4(mix(bc * ba, color, borderFactor.r), alpha * edgeFactor);
 }
 

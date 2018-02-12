@@ -87,6 +87,7 @@ typedef struct GUIWindow {
 	
 // 	uint32_t color;
 	Vector color;
+	Vector4 borderColor;
 	
 	float zindex;
 	
