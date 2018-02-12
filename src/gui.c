@@ -322,23 +322,19 @@ void guiTextRender(GUIText* gt, GameState* gs) {
 	glUseProgram(textProg->id);
 	
 	// text stuff
-	textProj = IDENT_MATRIX;
-	
-	mOrtho(0, gs->screen.aspect, 0, 1, -1, 100, &textProj);
-	//mOrtho(0, 1, 0, 1, 0, 1, &textProj);
-		//mScale3f(.5,.5,.5, &textProj);
+	textProj = IDENT_MATRIX;	
+	mOrtho(0, 1, 0, 1, 0, 1, &textProj);
 	
 	msIdent(&textModel);
-	msScale3f(gt->size * .01, gt->size* .01, gt->size * .01, &textModel);
-	v.x = gt->header.topleft.x * 10;
-	v.y = gt->header.topleft.y * 10;
-	v.z = 0;
-	msTransv(&v, &textModel);
+	// the text is really big
+	msScale3f(gt->size * .01, gt->size * .01, gt->size * .01, &textModel);
 
+	GLuint world_ul = glGetUniformLocation(textProg->id, "world");
 	GLuint tp_ul = glGetUniformLocation(textProg->id, "mProj");
 	GLuint tm_ul = glGetUniformLocation(textProg->id, "mModel");
 	GLuint ts_ul = glGetUniformLocation(textProg->id, "fontTex");
 	
+	glUniform2fv(world_ul, 1, &gt->header.topleft);
 	glUniformMatrix4fv(tp_ul, 1, GL_FALSE, textProj.m);
 	glUniformMatrix4fv(tm_ul, 1, GL_FALSE, msGetTop(&textModel)->m);
 	glexit("text matrix uniforms");

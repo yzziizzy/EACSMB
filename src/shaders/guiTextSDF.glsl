@@ -2,12 +2,13 @@
 #shader VERTEX
 
 
-#version 330 core
+#version 400 core
 
 layout (location = 0) in vec3 pos_in;
 layout (location = 1) in vec2 tex_in;
 layout (location = 2) in vec4 color_in;
 
+uniform vec2 world; // terrible name. this is the position of the text as a whole.
 uniform mat4 mProj;
 uniform mat4 mModel;
 
@@ -17,10 +18,12 @@ out vec4 color;
 
 void main() {
 // 	gl_Position = (mProj * mView * mModel) * vec4(pos_in.xyz, 1.0);
-
+	
+	
+	
 	texCoord = tex_in;
 	color = color_in;
-	gl_Position = (mProj * mModel) * vec4(pos_in.xyz, 1.0);
+	gl_Position = mProj * ((vec4(pos_in.xyz, 1.0) * mModel) + vec4(world, 0.0, 0.0));
 }
 
 
@@ -28,7 +31,7 @@ void main() {
 
 #shader FRAGMENT
 
-#version 330
+#version 400
 
 
 // fragment shader
