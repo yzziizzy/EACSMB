@@ -27,11 +27,40 @@ void MeshBuilder_Init(MeshBuilder* mb) {
 // rebuild the mesh from the root operation
 void MeshBuilder_Rebuild(MeshBuilder* mb) {
 	
+	StaticMesh* sm;
+	int i;
+	
+	
 	mb->md = process_op(mb->rootOp);
 	if(!mb->md) {
 		printf("failed to process mesh operations \n");
 		exit(1);
 	}
+	
+	
+	sm = calloc(1, sizeof(*sm));
+	CHECK_OOM(sm);
+
+	sm->vertexCnt = VEC_LEN(&mb->md->verts);
+	sm->indexCnt = VEC_LEN(&mb->md->indices);
+	sm->indexWidth = 2;
+	
+	printf("verts: %d, indices: %d \n", sm->vertexCnt, sm->indexCnt);
+	
+	// alloc space in static mesh
+	sm->vertices = malloc(sizeof(*sm->vertices) * sm->vertexCnt);
+	CHECK_OOM(sm->vertices);
+	sm->indices.w16 = malloc(sizeof(*sm->indices.w16) * sm->indexCnt);
+	CHECK_OOM(sm->indices.w16);
+	
+	// copy data
+	for(i = 0; i < sm->vertexCnt; i++) sm->vertices[i] = *((StaticMeshVertex*)&VEC_ITEM(&mb->md->verts, i));
+	for(i = 0; i < sm->indexCnt; i++) sm->indices.w16[i] = VEC_ITEM(&mb->md->indices, i);
+	
+	
+	StaticMesh_updateBuffers(sm);
+	
+	
 }
 
 

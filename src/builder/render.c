@@ -104,10 +104,34 @@ static void builderKeyUp(InputEvent* ev, GUIBuilderControl* bc) {
 	} 
 	
 	if(ev->character == 's') { // sphere
+		
+		
+		
 		MeshData* md;
 		MB_operation* root;
 		
+		
+		root = read_json("assets/models/test.json");
+		if(!root) {
+			printf("failed to read test json file\n");
+			exit(1);
+		}
+		
 		md = process_op(root);
+		if(!md) {
+			printf("failed to process mesh operations \n");
+			exit(1);
+		}
+			
+		
+		
+		
+		//MeshData* md;
+		//MB_operation* root;
+		
+		//md = process_op(root);
+		//meshBuilder_test();
+		MeshBuilder_Rebuild(bc->mb);
 		
 	}
 	if(ev->character == 'c') { // reroot with a compose
@@ -115,6 +139,9 @@ static void builderKeyUp(InputEvent* ev, GUIBuilderControl* bc) {
 		
 		guiRegisterObject(bc->ed, &bc->bg->header);
 		InputFocusStack_PushTarget(bc->inputHandlers->stack, bc->ed, inputHandlers);
+		
+		
+		
 	}
 }
 
