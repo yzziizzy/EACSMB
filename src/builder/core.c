@@ -824,7 +824,7 @@ static MB_operation* json_parse_obj(json_value_t* obj) {
 	return fn(obj);
 }
 
-static MB_operation* read_json(char* path) {
+MB_operation* mb_op_read_json(char* path) {
 	
 	json_file_t* jsf;
 	
@@ -893,7 +893,7 @@ MeshData* meshBuilder_test() {
 	MB_operation* root;
 	
 	
-	root = read_json("assets/models/test.json");
+	root = mb_op_read_json("assets/models/test.json");
 	if(!root) {
 		printf("failed to read test json file\n");
 		exit(1);

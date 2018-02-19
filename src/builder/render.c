@@ -107,31 +107,7 @@ static void builderKeyUp(InputEvent* ev, GUIBuilderControl* bc) {
 		
 		
 		
-		MeshData* md;
-		MB_operation* root;
-		
-		
-		root = read_json("assets/models/test.json");
-		if(!root) {
-			printf("failed to read test json file\n");
-			exit(1);
-		}
-		
-		md = process_op(root);
-		if(!md) {
-			printf("failed to process mesh operations \n");
-			exit(1);
-		}
-			
-		
-		
-		
-		//MeshData* md;
-		//MB_operation* root;
-		
-		//md = process_op(root);
-		//meshBuilder_test();
-		MeshBuilder_Rebuild(bc->mb);
+		MeshBuilder_LoadJSON(bc->mb, "assets/models/test.json");
 		
 	}
 	if(ev->character == 'c') { // reroot with a compose
@@ -230,8 +206,8 @@ GUIBuilderControl* guiBuilderControlNew(Vector2 pos, Vector2 size, int zIndex) {
 	RenderPass_init(pass, loadCombinedProgram("dynamicMeshInstanced"));
 	
 	bc->mm = meshManager_alloc();
-	meshManager_readConfigFile(bc->mm, "assets/config/models.json");
-	meshManager_updateGeometry(bc->mm);
+	//meshManager_readConfigFile(bc->mm, "assets/config/models.json");
+	//meshManager_updateGeometry(bc->mm);
 	StaticMeshInstance smi[] = {
 		{
 			{1,1,4}, 2.5,
@@ -239,8 +215,8 @@ GUIBuilderControl* guiBuilderControlNew(Vector2 pos, Vector2 size, int zIndex) {
 			.9, 0,0,0
 		}
 	};
-	meshManager_addInstance(bc->mm, 0, &smi[0]);
-	meshManager_updateInstances(bc->mm);
+	//meshManager_addInstance(bc->mm, 0, &smi[0]);
+	//meshManager_updateInstances(bc->mm);
 	
 	PassDrawable* br1 = calloc(1, sizeof(*br1));
 	br1->draw = geom_pass_render;
@@ -268,6 +244,9 @@ GUIBuilderControl* guiBuilderControlNew(Vector2 pos, Vector2 size, int zIndex) {
 	bc->pitch = 0.0;
 	bc->roll = 0.0;
 	
+	
+	bc->mb = MeshBuilder_alloc();
+	bc->mb->mm = bc->mm;
 	
 	return bc;
 }

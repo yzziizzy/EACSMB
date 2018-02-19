@@ -133,7 +133,7 @@ MeshData* meshBuilder_test();
 // temporary
 MeshData* process_op(MB_operation* op);
 
-
+MB_operation* mb_op_read_json(char* path);
 
 
 #endif // __EACSMB_builder_core_h__

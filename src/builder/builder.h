@@ -28,7 +28,7 @@ typedef struct MB_link {
 typedef struct MeshBuilder {
 	
 	MeshData* md;
-//	StaticMeshManager* mm; // should live in rendering component
+	MeshManager* mm;
 	
 	MB_operation* rootOp;
 	MB_link* rootLink;
@@ -48,5 +48,8 @@ enum {
 
 
 MeshData* meshBuilder_test();
+void MeshBuilder_LoadJSON(MeshBuilder* mb, char* path);
+MeshBuilder* MeshBuilder_alloc();
+void MeshBuilder_init(MeshBuilder* mb);
 
 #endif // __EACSMB_builder_builder_h__

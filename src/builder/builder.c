@@ -15,7 +15,17 @@
 
 
 
-void MeshBuilder_Init(MeshBuilder* mb) {
+MeshBuilder* MeshBuilder_alloc() {
+	MeshBuilder* mb;
+	mb = calloc(1, sizeof(*mb));
+	
+	MeshBuilder_init(mb);
+
+	return mb;
+}
+
+
+void MeshBuilder_init(MeshBuilder* mb) {
 	
 	
 	
@@ -58,13 +68,35 @@ void MeshBuilder_Rebuild(MeshBuilder* mb) {
 	for(i = 0; i < sm->indexCnt; i++) sm->indices.w16[i] = VEC_ITEM(&mb->md->indices, i);
 	
 	
-	StaticMesh_updateBuffers(sm);
+	//StaticMesh_updateBuffers(sm); 
 	
+	// TODO: purge mesh manager of all existing instances and meshes
 	
+	int m_index = meshManager_addMesh(mb->mm, "object", sm);
+	
+	StaticMeshInstance smi = {
+		.pos = {0,0,0},
+		.scale = 1.0,
+		.dir = {0,1,0},
+		.rot = 0,
+		.alpha = .5
+	};
+	meshManager_addInstance(mb->mm, m_index, &smi);
+	meshManager_updateGeometry(mb->mm);
+	meshManager_updateInstances(mb->mm);
 }
 
 
-
+void MeshBuilder_LoadJSON(MeshBuilder* mb, char* path) {
+	
+	mb->rootOp = mb_op_read_json(path);
+	if(!mb->rootOp) {
+		printf("failed to read test json file '%s'\n", path);
+		exit(1);
+	}
+	
+	MeshBuilder_Rebuild(mb);
+}
 
 
 void MeshBuilder_MoveSelection(MeshBuilder* mb, int direction) {
