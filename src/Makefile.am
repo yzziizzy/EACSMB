@@ -40,6 +40,7 @@ eacsmb_SOURCES = main.c \
 	terrain.c \
 	text/fcfg.c \
 	text/text.c \
+	texgen.c \
 	texture.c \
 	ui/image.c \
 	ui/edit.c \

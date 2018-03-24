@@ -18,6 +18,7 @@ typedef struct {
 } BitmapRGBA8;
 
 
+
 typedef struct TexArray {
 	unsigned short width, height;
 	int depth;

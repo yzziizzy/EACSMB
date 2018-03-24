@@ -98,6 +98,7 @@ typedef struct {
 
 struct InputFocusStack;
 typedef void (*input_event_fn)(InputEvent*, void*);
+typedef void (*input_per_frame_fn)(InputState*, float*, void*);
 
 typedef struct InputEventHandler {
 	input_event_fn all;
@@ -125,6 +126,7 @@ typedef struct InputEventHandler {
 	input_event_fn gainFocus;
 	
 	// TODO: per-frame callback with state, including frame time
+	input_per_frame_fn perFrame;
 	
 	struct InputFocusStack* stack;
 } InputEventHandler;

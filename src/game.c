@@ -40,6 +40,7 @@
 #include "ui/simpleWindow.h"
 #include "ui/image.h"
 #include "builder/render.h"
+#include "texgen.h"
 
 
 
@@ -58,7 +59,7 @@ GUISimpleWindow* gswTest;
 GUIImage* giTest;
 GUIRenderTarget* grtTest;
 GUIBuilderControl* gbcTest;
-
+GUITexBuilderControl* texbuilder;
 Texture* cnoise;
 Emitter* dust;
 
@@ -407,6 +408,16 @@ static void main_key_handler(InputEvent* ev, GameState* gs) {
 		guiRenderTarget_SetScreenRes(gbcTest->rt,  (Vector2i){gs->screen.wh.x, gs->screen.wh.y});
 		
 		InputFocusStack_PushTarget(&gs->ifs, gbcTest, inputHandlers);
+	}
+	
+	// texture builder
+	if(ev->character == 't') {
+		printf("t\n");
+		texbuilder = guiTexBuilderControlNew((Vector2){.1,.2}, (Vector2){.8,.8}, 0);
+		guiRegisterObject(texbuilder, NULL);
+		guiResize(&texbuilder->header, (Vector2){.79, .79});
+		
+		InputFocusStack_PushTarget(&gs->ifs, texbuilder, inputHandlers);
 	}
 }  
 
