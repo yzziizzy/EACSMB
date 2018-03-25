@@ -18,6 +18,31 @@ typedef struct {
 } BitmapRGBA8;
 
 
+enum TextureDepth {
+	TEXDEPTH_8,
+	TEXDEPTH_16,
+	TEXDEPTH_32,
+	TEXDEPTH_FLOAT,
+	TEXDEPTH_DOUBLE
+	
+};
+
+
+typedef struct TexBitmap {
+	short channels;
+	enum TextureDepth depth;
+	unsigned int width, height;
+	
+	union {
+		uint8_t* data8;
+		uint16_t* data16;
+		uint32_t* data32;
+		float* fdata;
+		double* ddata;
+	}
+	
+} TexBitmap;
+
 
 typedef struct TexArray {
 	unsigned short width, height;

@@ -11,17 +11,18 @@
 
 
 
-static void gen_sinewave(BitmapRGBA8* bmp, int channel, float period) {
-	
+static void gen_sinewave(TexBitmap* bmp, int channel, struct TG_sinewave* opts) {
+
 	int x,y;
 	int bytedepth = 4;
-	float scaler = (period * 2 * F_PI) / (float)bmp->width;
-	unsigned char* d = bmp->data;
+	float scaler = (opts->period * 2 * F_PI) / (float)bmp->width;
+	float ph = opts->phase * F_2PI / scaler;
+	unsigned char* d = bmp->data8;
 	
 	for(y = 0; y < bmp->height; y++) {
 		for(x = 0; x < bmp->width; x++) {
-			float th = fmod((float)x * scaler, F_2PI);
-			d[(y * bmp->width + x) * bytedepth + channel] = sin(th) * 256;
+			float th = fmod(((float)x + ph) * scaler, F_2PI);
+			d[(y * bmp->width + x) * bytedepth + channel] = ((sin(th) * .5) + .5) * 256;
 		}
 	}
 	
@@ -68,12 +69,15 @@ static void temptest(GUITexBuilderControl* bc) {
 	tg->output->height = 512;
 	
 	data = malloc(512 * 512 * 4);
-	BitmapRGBA8 bmp;
-	bmp.data = data;
+	TexBitmap bmp;
+	bmp.data8 = data;
 	bmp.width = 512;
 	bmp.height = 512;
 	
-	gen_sinewave(&bmp, 2, 3.0);
+	struct TG_sinewave opts;
+	opts.period = 2.0;
+	opts.phase = .25;
+	gen_sinewave(&bmp, 0, &opts);
 	
 	GLuint id;
 	
@@ -209,5 +213,97 @@ GUITexBuilderControl* guiTexBuilderControlNew(Vector2 pos, Vector2 size, int zIn
 
 
 
+struct texopt_param {
+	char* name;
+	ptrdiff_t struct_offset;
+	int type;
+	union {
+		double f;
+		int64_t i;
+	} range_min, range_max, def_value;
+	
+	
+};
+
+// for sine wave
+struct texopt_param opt_params[] = {
+	{
+		.name = "Period",
+		.struct_offset = offsetof(struct TG_sinewave, period),
+		.type = 1,
+		.range_min = { .f = 0.00001 },
+		.range_max = { .f = 1000000.0 },
+		.def_value = { .f = 2.0 },
+	},
+	{
+		.name = "Phase",
+		.struct_offset = offsetof(struct TG_sinewave, phase),
+		.type = 1,
+		.range_min = { .f = 0.0 },
+		.range_max = { .f = 1.0 },
+		.def_value = { .f = 0.5 },
+	},
+	
+};
+
+
+typedef struct GUITBCOptsControl {
+	VEC(GUIText*) texts;
+	VEC(GUIEdit*) edits;
+	
+	
+	
+} GUITBCOptsControl;
+
+
+struct tbc_opt_param {
+	struct texopt_param* param;
+	TexGenOp* op;
+};
+
+static void tbcOnChange(GUIEdit* ed, struct tbc_opt_param* p) {
+	struct texopt_param* param = p->param;
+	TexGenOp* op = p->op;
+	double d_val;
+	
+	switch(op->type) {
+		case 0:// TODO: real enums
+			//d_val = GUIEditGetDoubleVal(ed);
+			// TODO: clamp val to limits
+			*((float*)(op + param->struct_offset)) = d_val;
+			break;
+	}
+}
+
+
+
+GUITBCOptsControl* guiTBCOptsNew(TexGenOp* op, struct texopt_param* params, int paramLen, Vector2 pos, Vector2 size, int zIndex) {
+	
+	int i;
+	GUITBCOptsControl* c;
+	GUIEdit* ed;
+	struct tbc_opt_param* p;
+	float ypos;
+	
+	
+	c = calloc(1, sizeof(*c));
+	
+	
+	for(i = 0; i < paramLen; i++) {
+		struct texopt_param* param = params + i;
+		
+		ed = GUIEditNew("0", pos, size); // TODO: positioning
+		ed->onChange = tbcOnChange;
+		
+		p = calloc(1, sizeof(*p));
+		p->param = param;
+		p->op = op;
+		ed->onChangeData = p;
+		
+		VEC_PUSH(&c->edits, ed);
+	}
+	
+	
+}
 
 

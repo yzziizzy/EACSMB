@@ -7,6 +7,9 @@
 
 static void insertChar(GUIEdit* ed, char c);
 static void updateTextControl(GUIEdit* ed);
+static void fireOnchange(GUIEdit* ed);
+
+
 
 
 void guiEditRender(GUIEdit* ed, GameState* gs) {
@@ -128,6 +131,7 @@ static void updateTextControl(GUIEdit* ed) {
 	// get new cursor pos
 	ed->cursorOffset = guiTextGetTextWidth(ed->textControl, ed->cursorpos);
 	
+	fireOnchange(ed);
 }
 
 
@@ -136,15 +140,50 @@ static void setText(GUIEdit* ed, char* s) {
 	printf("gui edit set text not implemented\n");
 }
 
+static void fireOnchange(GUIEdit* ed) {
+	if(ed->onChange) {
+		(*ed->onChange)(ed, ed->onChangeData);
+	}
+}
 
 
 
 
 
+// --------- Number Control -------------------------
+
+
+static void recieveTextNum(InputEvent* ev, GUINumberControl* nc) {
+	
+	// TODO: filter stuff, verify it's a number
+	
+	insertChar(&nc->ed, ev->character);
+	updateTextControl(&nc->ed);
+}
 
 
 
-
+GUINumberControl* GUINumberControlNew(double initialValue, Vector2 pos, Vector2 size) {
+	
+	GUINumberControl* nc;
+	char txtVal[64]; 
+	
+	gcvt(initialValue, 6, txtVal);
+	
+	nc = (GUINumberControl*)GUIEditNew(txtVal, pos, size);
+	
+	
+	static InputEventHandler input_vt = {
+		.keyText = recieveTextNum,
+	};
+	nc->ed.inputHandlers = &input_vt;
+	
+	nc->val = initialValue;
+	
+	
+	
+	return nc;
+}
 
 
 

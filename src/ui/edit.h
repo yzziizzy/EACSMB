@@ -3,6 +3,9 @@
 
 
 
+// onchange
+struct GUIEdit;
+typedef void (*GUIEditOnChangeFn)(struct GUIEdit*, void*);
 
 
 typedef struct GUIEdit {
@@ -25,10 +28,31 @@ typedef struct GUIEdit {
 	GUIText* textControl;
 	GUIWindow* cursor; // just a thin window
 	
+	GUIEditOnChangeFn onChange;
+	void* onChangeData;
+	
 } GUIEdit;
 
 
 GUIEdit* GUIEditNew(char* initialValue, Vector2 pos, Vector2 size);
+
+
+
+
+typedef struct GUINumberControl {
+	union{
+		GUIHeader header;
+		GUIEdit ed;
+	};
+	
+	double val;
+	
+} GUINumberControl;
+
+
+GUINumberControl* GUINumberControlNew(double initialValue, Vector2 pos, Vector2 size);
+
+
 
 
 #endif // __EACSMB_ui_edit_h__

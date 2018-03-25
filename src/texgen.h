@@ -27,7 +27,9 @@ struct TG_solid {
 };
 struct TG_sinewave {
 	float period;
+	float phase; // normalized; 1/2pi
 };
+
 struct TG_lerp {
 	char* name_A;
 	char* name_B;
@@ -38,13 +40,19 @@ struct TG_lerp {
 	float t;
 };
 
+struct TG_rotate {
+	int flip;
+};
+
 
 typedef struct TexGenOp {
 	TexGenType type;
 	int channel_out;
 	union {
-		
-		
+		struct TG_solid solid;
+		struct TG_lerp lerp;
+		struct TG_sinewave sinewave;
+		struct TG_rotate rotate;
 	};
 } TexGenOp;
 
