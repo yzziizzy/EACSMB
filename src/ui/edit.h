@@ -18,6 +18,9 @@ typedef struct GUIEdit {
 	int textlen;
 	int cursorpos; // in characters
 	
+	char numType; // 0 = text, 1 = int, 2 = float
+	double numVal;
+	
 // 	float fontSize;
 	float blinkRate;
 	float cursorOffset; // in screen units
@@ -36,23 +39,10 @@ typedef struct GUIEdit {
 
 GUIEdit* GUIEditNew(char* initialValue, Vector2 pos, Vector2 size);
 
-
-
-
-typedef struct GUINumberControl {
-	union{
-		GUIHeader header;
-		GUIEdit ed;
-	};
-	
-	double val;
-	
-} GUINumberControl;
-
-
-GUINumberControl* GUINumberControlNew(double initialValue, Vector2 pos, Vector2 size);
-
-
+void guiEditSetText(GUIEdit* ed, char* text);
+void guiEditSetInt(GUIEdit* ed, int64_t ival); 
+void guiEditSetDouble(GUIEdit* ed, double dval); 
+double guiEditGetDouble(GUIEdit* ed);
 
 
 #endif // __EACSMB_ui_edit_h__

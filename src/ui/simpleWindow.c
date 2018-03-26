@@ -70,6 +70,8 @@ GUISimpleWindow* guiSimpleWindowNew(Vector2 pos, Vector2 size, float zIndex) {
 	
 	sw->bg = guiWindowNew(pos, size, zIndex);
 	sw->bg->color = (Vector){0.1, 0.9, 0.1};
+	sw->bg->fadeWidth = 0.0;
+	sw->bg->borderWidth = 0.0;
 	guiRegisterObject(sw->bg, &sw->header);
 	
 	sw->titlebar = guiWindowNew(
@@ -78,6 +80,8 @@ GUISimpleWindow* guiSimpleWindowNew(Vector2 pos, Vector2 size, float zIndex) {
 		zIndex + .0001
 	);
 	sw->titlebar->color = (Vector){0.9, 0.1, .9};
+	sw->titlebar->fadeWidth = 0.0;
+	sw->titlebar->borderWidth = 0.0;
 	guiRegisterObject(sw->titlebar, &sw->bg->header);
 	
 	sw->closebutton = guiWindowNew(
@@ -86,6 +90,8 @@ GUISimpleWindow* guiSimpleWindowNew(Vector2 pos, Vector2 size, float zIndex) {
 		zIndex + .0002
 	);
 	sw->closebutton->color = (Vector){0.9, 0.1, 0.1};
+	sw->closebutton->fadeWidth = 0.0;
+	sw->closebutton->borderWidth = 0.0;
 	guiRegisterObject(sw->closebutton, &sw->titlebar->header);
 	
 	

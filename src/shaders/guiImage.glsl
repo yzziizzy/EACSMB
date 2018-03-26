@@ -69,7 +69,7 @@ void main(void) {
 	
 	
 	
-	FragColor = vec4(tex.rgb, alpha * edgeFactor);
+	FragColor = vec4(tex.rgb, alpha /** edgeFactor*/);
 //	FragColor = vec4(vec3(.1,.2,.8), alpha * edgeFactor);
 }
 

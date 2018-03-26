@@ -7,7 +7,22 @@
 
 
 
+/*
 
+blending:
+	sigmoid
+	exp/log
+	trig
+	common polynomials
+	by defined input
+perlin noise
+fractals
+	menger sponge
+conway's game of life
+penrose tiling
+voronoi/worley noise
+
+*/
 
 
 
@@ -194,6 +209,8 @@ GUITexBuilderControl* guiTexBuilderControlNew(Vector2 pos, Vector2 size, int zIn
 		(Vector2){size.x, size.y}, 
 		zIndex + .0001
 	);
+// 	bc->bg->bg->borderWidth = 0;
+// 	bc->bg->bg->fadeWidth = 0;
 	guiRegisterObject(bc->bg, &bc->header);
 	
 	
@@ -268,7 +285,7 @@ static void tbcOnChange(GUIEdit* ed, struct tbc_opt_param* p) {
 	
 	switch(op->type) {
 		case 0:// TODO: real enums
-			//d_val = GUIEditGetDoubleVal(ed);
+			d_val = guiEditGetDouble(ed);
 			// TODO: clamp val to limits
 			*((float*)(op + param->struct_offset)) = d_val;
 			break;
@@ -292,8 +309,12 @@ GUITBCOptsControl* guiTBCOptsNew(TexGenOp* op, struct texopt_param* params, int 
 	for(i = 0; i < paramLen; i++) {
 		struct texopt_param* param = params + i;
 		
+		// TODO: text label
+		
 		ed = GUIEditNew("0", pos, size); // TODO: positioning
+		ed->numType = 2;
 		ed->onChange = tbcOnChange;
+		guiEditSetDouble(ed, param->def_value.f);
 		
 		p = calloc(1, sizeof(*p));
 		p->param = param;

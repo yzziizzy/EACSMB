@@ -134,10 +134,14 @@ static void updateTextControl(GUIEdit* ed) {
 	fireOnchange(ed);
 }
 
-
+// just changes the text value. triggers nothing.
 static void setText(GUIEdit* ed, char* s) {
+	int len = strlen(s);
+	checkBuffer(ed, len);
 	
-	printf("gui edit set text not implemented\n");
+	strcpy(ed->buf, s);
+	
+	// TODO: check and adjust cursor pos if text shrank
 }
 
 static void fireOnchange(GUIEdit* ed) {
@@ -148,43 +152,47 @@ static void fireOnchange(GUIEdit* ed) {
 
 
 
-
-
-// --------- Number Control -------------------------
-
-
-static void recieveTextNum(InputEvent* ev, GUINumberControl* nc) {
-	
-	// TODO: filter stuff, verify it's a number
-	
-	insertChar(&nc->ed, ev->character);
-	updateTextControl(&nc->ed);
+void guiEditSetText(GUIEdit* ed, char* text) {
+	setText(ed, text);
 }
 
 
 
-GUINumberControl* GUINumberControlNew(double initialValue, Vector2 pos, Vector2 size) {
-	
-	GUINumberControl* nc;
+
+void guiEditSetInt(GUIEdit* ed, int64_t ival) {
+	fprintf(stderr, "FIXME: GUIEditSetInt\n");
+	guiEditSetDouble(ed, ival);
+}
+
+void guiEditSetDouble(GUIEdit* ed, double dval) {
 	char txtVal[64]; 
 	
-	gcvt(initialValue, 6, txtVal);
+	ed->numVal = dval;
 	
-	nc = (GUINumberControl*)GUIEditNew(txtVal, pos, size);
-	
-	
-	static InputEventHandler input_vt = {
-		.keyText = recieveTextNum,
-	};
-	nc->ed.inputHandlers = &input_vt;
-	
-	nc->val = initialValue;
-	
-	
-	
-	return nc;
+	gcvt(dval, 6, txtVal);
+	guiEditSetText(ed, txtVal);
 }
 
+
+static int updateDval(GUIEdit* ed) {
+	char* end = NULL;
+	
+	double d = strtod(ed->buf, &end);
+	if(ed->buf == end) { // conversion failed
+		ed->numVal = 0.0;
+		return 1;
+	}
+	
+	ed->numVal = d;
+	return 0;
+}
+
+
+double guiEditGetDouble(GUIEdit* ed) {
+	// TODO: cache this value
+	updateDval(ed);
+	return ed->numVal;
+}
 
 
 
