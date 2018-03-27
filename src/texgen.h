@@ -22,6 +22,7 @@ typedef enum {
 
 
 
+
 struct TG_solid {
 	Vector4 color;
 };
@@ -59,7 +60,7 @@ typedef struct TexGenOp {
 
 typedef struct TexGen {
 	
-	
+	HashTable* stages;  
 	
 	
 	Texture* output;

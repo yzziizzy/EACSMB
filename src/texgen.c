@@ -26,6 +26,25 @@ voronoi/worley noise
 
 
 
+static void gen_solid(TexBitmap* bmp, struct TG_solid* opts) {
+	int x, y;
+	int bytedepth = 4;
+	unsigned char* d = bmp->data8;
+	int r = opts->color.x * 256;
+	int g = opts->color.y * 256;
+	int b = opts->color.z * 256;
+	int a = opts->color.w * 256;
+	
+	for(y = 0; y < bmp->height; y++) {
+		for(x = 0; x < bmp->width; x++) {
+			d[(y * bmp->width + x) * bytedepth + 0] = r;
+			d[(y * bmp->width + x) * bytedepth + 1] = g;
+			d[(y * bmp->width + x) * bytedepth + 2] = b;
+			d[(y * bmp->width + x) * bytedepth + 3] = a;
+		}
+	}
+}
+
 static void gen_sinewave(TexBitmap* bmp, int channel, struct TG_sinewave* opts) {
 
 	int x,y;
