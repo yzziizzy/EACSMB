@@ -167,6 +167,11 @@ int HT_get(HashTable* obj, char* key, void** val) {
 	return 0;
 }
 
+int HT_getInt(HashTable* obj, char* key, int64_t* val) {
+	return HT_getInt(obj, key, (void**)val);
+} 
+
+
 // zero for success
 int HT_set(HashTable* obj, char* key, void* val) {
 	uint64_t hash;
@@ -194,6 +199,10 @@ int HT_set(HashTable* obj, char* key, void* val) {
 	obj->buckets[bi].hash = hash;
 	
 	return 0;
+}
+// zero for success
+int HT_setInt(HashTable* obj, char* key, int64_t val) {
+	return HT_set(obj, key, (void*)val);
 }
 
 // zero for success

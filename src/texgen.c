@@ -297,7 +297,7 @@ struct tbc_opt_param {
 	TexGenOp* op;
 };
 
-static void tbcOnChange(GUIEdit* ed, struct tbc_opt_param* p) {
+void tbcOnChange(GUIEdit* ed, struct tbc_opt_param* p) {
 	struct texopt_param* param = p->param;
 	TexGenOp* op = p->op;
 	double d_val;
