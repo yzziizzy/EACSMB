@@ -154,7 +154,7 @@ int initXWindow(XStuff* xs) {
 	setWinAttr.colormap = xs->colorMap;
 	setWinAttr.event_mask = ExposureMask | KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | PropertyChangeMask;
 
-	xs->clientWin = XCreateWindow(xs->display, xs->rootWin, 0, 0, 600, 600, 0, xs->vi->depth, InputOutput, xs->vi->visual, CWColormap | CWEventMask, &setWinAttr);
+	xs->clientWin = XCreateWindow(xs->display, xs->rootWin, 0, 0, 800, 800, 0, xs->vi->depth, InputOutput, xs->vi->visual, CWColormap | CWEventMask, &setWinAttr);
 
 	XMapWindow(xs->display, xs->clientWin);
 	

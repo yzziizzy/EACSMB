@@ -279,7 +279,6 @@ struct texopt_param opt_params[] = {
 		.range_max = { .f = 1.0 },
 		.def_value = { .f = 0.5 },
 	},
-	
 };
 
 

@@ -39,7 +39,7 @@ typedef struct TexBitmap {
 		uint32_t* data32;
 		float* fdata;
 		double* ddata;
-	}
+	};
 	
 } TexBitmap;
 

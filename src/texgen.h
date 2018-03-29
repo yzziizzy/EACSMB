@@ -13,23 +13,63 @@
 #include "opensimplex.h"
 
 
+#define TEXGEN_TYPE_LIST \
+	TEXGEN_TYPE_MEMBER(solid), \
+	TEXGEN_TYPE_MEMBER(lerp), \
+	TEXGEN_TYPE_MEMBER(sinewave), \
+	TEXGEN_TYPE_MEMBER(rotate), \
+
+
+
+
 typedef enum {
-	TEXGEN_SOLID,
-	TEXGEN_LERP,
-	TEXGEN_SINEWAVE,
-	TEXGEN_ROTATE,
+#define TEXGEN_TYPE_MEMBER(x) TEXGEN_##x
+	TEXGEN_TYPE_LIST
+#undef TEXGEN_TYPE_MEMBER
 } TexGenType;
 
 
 
+struct tg_reflect {
+	char* name;
+	ptrdiff_t member_offset;
+	int type;
+	union {
+		double f;
+		int64_t i;
+		uint64_t u;
+		char* s;
+	} range_min, range_max, def_value;
+};
 
-struct TG_solid {
-	Vector4 color;
-};
-struct TG_sinewave {
-	float period;
-	float phase; // normalized; 1/2pi
-};
+
+#define TG_REFL_STRUCT_NAME solid
+#define XLIST \
+	X(Vector4, color, -1, -1, -1) 
+#include "tg_reflect.h"
+#undef XLIST
+
+
+#define TG_REFL_STRUCT_NAME sinewave
+#define XLIST \
+	X(float, period, 0.00001, 9999999.0, 2.0) \
+	X(float, phase, 0.0, 1.0, .25) 
+#include "tg_reflect.h"
+#undef XLIST
+
+#define TG_REFL_STRUCT_NAME flip
+#define XLIST \
+	X(int, flip, 0, 4, 0) 
+#include "tg_reflect.h"
+#undef XLIST
+
+// struct TG_solid {
+// 	Vector4 color;
+// };
+// struct TG_sinewave {
+// 	float period;
+// 	float phase; // normalized; 1/2pi
+// };
 
 struct TG_lerp {
 	char* name_A;
