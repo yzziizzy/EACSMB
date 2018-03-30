@@ -103,6 +103,12 @@ do { \
 } while(0)
 
 
+// TODO: vec_set_ins // sorted insert
+// TODO: vec_set_rem
+// TODO: vec_set_has
+
+// TODO: vec_purge // search and delete of all entries
+
 #define VEC_FREE(x) \
 do { \
 	if(VEC_DATA(x)) free(VEC_DATA(x)); \

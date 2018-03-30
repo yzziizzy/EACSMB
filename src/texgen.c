@@ -228,6 +228,7 @@ GUITexBuilderControl* guiTexBuilderControlNew(Vector2 pos, Vector2 size, int zIn
 		(Vector2){size.x, size.y}, 
 		zIndex + .0001
 	);
+	
 // 	bc->bg->bg->borderWidth = 0;
 // 	bc->bg->bg->fadeWidth = 0;
 	guiRegisterObject(bc->bg, &bc->header);
@@ -243,6 +244,10 @@ GUITexBuilderControl* guiTexBuilderControlNew(Vector2 pos, Vector2 size, int zIn
 	guiRegisterObject(bc->im, &bc->header);
 	bc->im->customTexID = 17;
 	
+	guiAddClient(bc->bg, bc->im);
+	Vector2 bgsz = guiRecalcClientSize(bc->bg);
+	printf("simplewindosz: %f, %f \n", bgsz.x, bgsz.y);
+	guiResize(bc->bg, bgsz);
 	
 	return bc;
 }
@@ -292,7 +297,7 @@ typedef struct GUITBCOptsControl {
 
 
 struct tbc_opt_param {
-	struct texopt_param* param;
+	struct tg_reflect* param;
 	TexGenOp* op;
 };
 

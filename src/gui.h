@@ -1,5 +1,5 @@
-#ifndef __MV_GUI_H__
-#define __MV_GUI_H__
+#ifndef __EACSMB_GUI_H__
+#define __EACSMB_GUI_H__
 
 
 #include "common_gl.h"
@@ -19,8 +19,14 @@ struct gui_vtbl {
 	void (*Render)(GUIObject* go, GameState* gs);
 	void (*Delete)(GUIObject* go);
 	void (*Reap)(GUIObject* go);
-	void (*Resize)(GUIObject* go, Vector2 newSz);
+	void (*Resize)(GUIObject* go, Vector2 newSz); // exterior size
+	Vector2 (*GetClientSize)(GUIObject* go);
+	void    (*SetClientSize)(GUIObject* go, Vector2 cSize); // and force exterior size to match
+	Vector2 (*RecalcClientSize)(GUIObject* go); // recalc client size from the client children and call SetClientSize
 	GUIObject* (*HitTest)(GUIObject* go, Vector2 testPos);
+	
+	void (*AddClient)(GUIObject* parent, GUIObject* child);
+	void (*RemoveClient)(GUIObject* parent, GUIObject* child);
 };
 
 
@@ -63,40 +69,12 @@ typedef struct GUIHeader {
 } GUIHeader;
 
 
-typedef struct GUIText {
-	GUIHeader header;
-	
-	
-	char* current;
-	
-	Vector pos;
-	float size;
-	
-	// align, height, width wrapping
-	
-	TextRes* font;
-	TextRenderInfo* strRI;
-	
-	
-} GUIText;
-
-typedef struct GUIWindow {
-	GUIHeader header;
-	
-	Vector2 size;
-	
-// 	uint32_t color;
-	Vector color;
-	Vector4 borderColor;
-	float borderWidth;
-	float fadeWidth;
-	
-	float zindex;
-	
-} GUIWindow;
 
 
 
+
+#include "ui/window.h"
+#include "ui/text.h"
 #include "ui/simpleWindow.h"
 #include "ui/image.h"
 #include "ui/edit.h"
@@ -114,7 +92,6 @@ union GUIObject {
 
 
 
-GUIText* guiTextNew(char* str, Vector2 pos, float size, char* fontname);
 void gui_Init();
 void gui_Image_Init(char* file);
 
@@ -127,10 +104,6 @@ void guiReap(GUIObject* go);
 void guiResize(GUIHeader* gh, Vector2 newSz);
 int guiRemoveChild(GUIObject* parent, GUIObject* child);
 
-void guiTextSetValue(GUIText* gt, char* newval);
-float guiTextGetTextWidth(GUIText* gt, int numChars);
-
-GUIWindow* guiWindowNew(Vector2 pos, Vector2 size, float zIndex);
 
 void guiTriggerClick(GUIEvent* e); 
 
@@ -139,6 +112,11 @@ void guiRegisterObject_(GUIHeader* o, GUIHeader* parent);
 
 void guiHeaderInit(GUIHeader* gh); 
 
+void guiSetClientSize(GUIObject* go, Vector2 cSize);
+Vector2 guiGetClientSize(GUIObject* go);
+Vector2 guiRecalcClientSize(GUIObject* go);
+void guiAddClient(GUIObject* parent, GUIObject* child);
+void guiRemoveClient(GUIObject* parent, GUIObject* child);
 
 
-#endif // __MV_GUI_H__
+#endif // __EACSMB_GUI_H__

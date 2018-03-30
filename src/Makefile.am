@@ -45,6 +45,8 @@ eacsmb_SOURCES = main.c \
 	ui/image.c \
 	ui/edit.c \
 	ui/simpleWindow.c \
+	ui/text.c \
+	ui/window.c \
 	uniformBuffer.c \
 	utilities.c \
 	waterPlane.c \

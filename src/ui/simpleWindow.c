@@ -44,6 +44,38 @@ void guiSimpleWindowDelete(GUISimpleWindow* sw) {
 }
 
 
+Vector2 guiSimpleWindowGetClientSize(GUIObject* go) {
+	return guiGetClientSize(&go->simpleWindow.bg);
+}
+
+void guiSimpleWindowSetClientSize(GUIObject* go, Vector2 cSize) {
+	
+	// TODO: fix
+	GUIHeader* h = &go->header;
+	GUIWindow* w = go->simpleWindow.bg;
+	w->clientSize = cSize;
+	h->size.x = cSize.x + w->padding.left + w->padding.right;
+	h->size.y = cSize.y + w->padding.bottom + w->padding.top;
+	
+	// TODO: trigger resize event
+}
+
+// recalculate client size based on client children sizes and positions
+Vector2 guiSimpleWindowRecalcClientSize(GUIObject* go) {
+	Vector2 csz = guiRecalcClientSize(go->simpleWindow.bg);
+	// TODO: probably something
+	return csz;
+}
+
+void guiSimpleWindowAddClient(GUIObject* parent, GUIObject* child) {
+	guiAddClient(parent->simpleWindow.bg, child);
+};
+
+void guiSimpleWindowRemoveClient(GUIObject* parent, GUIObject* child) {
+	guiRemoveClient(parent->simpleWindow.bg, child);
+};
+
+
 
 GUISimpleWindow* guiSimpleWindowNew(Vector2 pos, Vector2 size, float zIndex) {
 	
@@ -53,7 +85,12 @@ GUISimpleWindow* guiSimpleWindowNew(Vector2 pos, Vector2 size, float zIndex) {
 	
 	static struct gui_vtbl static_vt = {
 		.Render = guiSimpleWindowRender,
-		.Delete = guiSimpleWindowDelete
+		.Delete = guiSimpleWindowDelete,
+		.GetClientSize = guiSimpleWindowGetClientSize,
+		.SetClientSize = guiSimpleWindowSetClientSize,
+		.RecalcClientSize = guiSimpleWindowRecalcClientSize,
+		.AddClient = guiSimpleWindowAddClient,
+		.RemoveClient = guiSimpleWindowRemoveClient,
 	};
 	
 	
@@ -72,6 +109,11 @@ GUISimpleWindow* guiSimpleWindowNew(Vector2 pos, Vector2 size, float zIndex) {
 	sw->bg->color = (Vector){0.1, 0.9, 0.1};
 	sw->bg->fadeWidth = 0.0;
 	sw->bg->borderWidth = 0.0;
+	sw->bg->padding.top = .21;
+	sw->bg->padding.left = .05;
+	sw->bg->padding.bottom = .05;
+	sw->bg->padding.right = .05;
+
 	guiRegisterObject(sw->bg, &sw->header);
 	
 	sw->titlebar = guiWindowNew(

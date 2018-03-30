@@ -57,19 +57,12 @@ struct tg_reflect {
 #include "tg_reflect.h"
 #undef XLIST
 
-#define TG_REFL_STRUCT_NAME flip
+#define TG_REFL_STRUCT_NAME rotate
 #define XLIST \
 	X(int, flip, 0, 4, 0) 
 #include "tg_reflect.h"
 #undef XLIST
 
-// struct TG_solid {
-// 	Vector4 color;
-// };
-// struct TG_sinewave {
-// 	float period;
-// 	float phase; // normalized; 1/2pi
-// };
 
 struct TG_lerp {
 	char* name_A;
@@ -79,10 +72,6 @@ struct TG_lerp {
 	int channel_B;
 	int channel_Out;
 	float t;
-};
-
-struct TG_rotate {
-	int flip;
 };
 
 
