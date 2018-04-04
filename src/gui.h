@@ -46,7 +46,7 @@ typedef void (*GUI_OnMouseLeaveFn)(GUIEvent* e);
 
 
 typedef struct GUIHeader {
-	Vector2 topleft;
+	Vector2 topleft; // relative to parent (and window padding)
 	Vector2 size; // absolute
 	float scale; // meaning scale, apparently
 	float alpha;

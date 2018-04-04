@@ -98,7 +98,7 @@ typedef struct {
 
 struct InputFocusStack;
 typedef void (*input_event_fn)(InputEvent*, void*);
-typedef void (*input_per_frame_fn)(InputState*, float*, void*);
+typedef void (*input_per_frame_fn)(InputState*, float, void*);
 
 typedef struct InputEventHandler {
 	input_event_fn all;
@@ -155,6 +155,7 @@ void _InputFocusStack_PushTarget(InputFocusStack* stack, void* data, ptrdiff_t v
 
 void InputFocusStack_RevertTarget(InputFocusStack* stack);
 void InputFocusStack_Dispatch(InputFocusStack* stack, InputEvent* ev);
+void InputFocusStack_DispatchPerFrame(InputFocusStack* stack, InputState* is, float frameSpan);
 
 void clearInputState(InputState* st);
 

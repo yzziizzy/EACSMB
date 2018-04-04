@@ -79,7 +79,7 @@ void setupFBOs(GameState* gs, int resized);
 
 
 static void main_key_handler(InputEvent* ev, GameState* gs);
-
+static void main_perframe_handler(InputState* is, float frameSpan, GameState* gs);
 
 
 
@@ -117,6 +117,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	
 	gs->defaultInputHandlers = calloc(1, sizeof(*gs->defaultInputHandlers));
 	gs->defaultInputHandlers->keyUp = main_key_handler;
+	gs->defaultInputHandlers->perFrame = main_perframe_handler;
 	InputFocusStack_PushTarget(&gs->ifs, gs, defaultInputHandlers);
 	
 	//printf("w: %d, h: %d\n", ww, wh);
@@ -373,58 +374,7 @@ void postFrame(GameState* gs) {
 
 
 
-static void main_key_handler(InputEvent* ev, GameState* gs) {
-	
-	if(ev->character == 'c') {
-		exit(0);
-	}
-	
-	if(ev->keysym == XK_Delete) {
-		static int lastChange = 0;
-		static char* modeStrings[] = {
-			"",
-			"diffuse",
-			"normal",
-			"depth",
-			"lighting"
-		};
-		
-		gs->debugMode = (gs->debugMode + 1) % 5;
-		lastChange = gs->frameTime;
-		
-		guiTextSetValue(gtRenderMode, modeStrings[gs->debugMode]);
-	}
-	
-	if(ev->keysym == XK_Insert) {
-		gs->selectionPassDisabled = !gs->selectionPassDisabled;
-		guiTextSetValue(gtSelectionDisabled, gs->selectionPassDisabled ? "Selection Disabled" : "");
-	}
-	
-	if(ev->character == 'b') {
-		// builder control
-		gbcTest = guiBuilderControlNew((Vector2){.1,.2}, (Vector2){.8,.8}, 0);
-		guiRegisterObject(gbcTest, NULL);
-		guiResize(&gbcTest->header, (Vector2){.79, .79});
-		guiRenderTarget_SetScreenRes(gbcTest->rt,  (Vector2i){gs->screen.wh.x, gs->screen.wh.y});
-		
-		InputFocusStack_PushTarget(&gs->ifs, gbcTest, inputHandlers);
-	}
-	
-	// texture builder
-	if(ev->character == 't') {
-		printf("t\n");
-		texbuilder = guiTexBuilderControlNew((Vector2){.1,.2}, (Vector2){.8,.8}, 0);
-		guiRegisterObject(texbuilder, NULL);
-		guiResize(&texbuilder->header, (Vector2){.79, .79});
-		
-		InputFocusStack_PushTarget(&gs->ifs, texbuilder, inputHandlers);
-	}
-}  
-
-
-
-void handleInput(GameState* gs, InputState* is) {
-	
+static void main_perframe_handler(InputState* is, float frameSpan, GameState* gs) {
 	double te = gs->frameSpan;
 	
 	float moveSpeed = gs->settings.keyScroll * te; // should load from config
@@ -432,83 +382,6 @@ void handleInput(GameState* gs, InputState* is) {
 	float keyZoom = gs->settings.keyZoom * te;
 	float mouseZoom = gs->settings.mouseZoom * te;
 
-// 	if(is->keyState[54] & IS_KEYDOWN) {
-// 		exit(0);
-// 	}
-	
-	
-	
-	
-	if(is->clickButton == 1) {
-		
-		
-		// BUG: used inverse cursor pos. changed to compile temporarily
-		GUIObject* hit = guiHitTest(gswTest, is->lastCursorPos);
-		//printf("\n\n----> %f, %f \n", is->cursorPos.x, is->cursorPos.y);
-		if(hit) {
-			printf("@@clicked in window \n");
-			
-			GUIEvent e;
-			e.originalTarget = hit;
-			e.currentTarget = hit;
-			e.eventPos = is->lastCursorPos; // BUG: smae here
-			
-			guiTriggerClick(&e);
-		}
-		else {
-			World_spawnAt_Item(gs->world, "gazebbq", &gs->cursorPos);
-		}
-		
-		//World_spawnAt_StaticMesh(gs->world, 0, &gs->cursorPos);
-		
-		
-		/*
-		flattenArea(gs->map.tb,
-			gs->cursorPos.x - 5,
-			gs->cursorPos.y - 5,
-			gs->cursorPos.x + 5,
-			gs->cursorPos.y + 5
-		);
-		
-		setZone(&gs->map,
-			gs->cursorPos.x - 5,
-			gs->cursorPos.y - 5,
-			gs->cursorPos.x + 5,
-			gs->cursorPos.y + 5,
-			gs->activeTool + 1
-		);
-		
-		
-		checkMapDirty(&gs->map);
-		*/
-	}
-	
-	static int dragstart = -1;
-	if(is->buttonDown == 1) {
-		gs->mouseDownPos.x = gs->cursorPos.x;
-		gs->mouseDownPos.y = gs->cursorPos.y;
-		dragstart = getCurrentTime();
-		//printf("start dragging at (%d,%d)\n", (int)gs->cursorPos.x, (int)gs->cursorPos.y);
-	}
-	if(is->buttonUp == 1) {
-		double dragtime = timeSince(dragstart);
-		if(dragtime < 0.7) {
-			//printf("ignoring drag, too short: %.8f\n", dragtime);
-		}
-		else {
-		//vCopy(&gs->cursorPos, &gs->mouseDownPos);
-			//printf("stopped dragging at (%d,%d)\n", (int)gs->cursorPos.x, (int)gs->cursorPos.y);
-			
-			World_spawnAt_Road(gs->world, &gs->mouseDownPos, &gs->cursorPos);
-		}
-		
-		
-		
-	}
-	
-	if(is->clickButton == 2) {
-		gs->activeTool = (gs->activeTool + 1) % 3;
-	}
 	
 	// look direction
 	if(is->keyState[38] & IS_KEYDOWN) {
@@ -592,6 +465,135 @@ void handleInput(GameState* gs, InputState* is) {
 		printf("near: %f, far: %f\n", gs->nearClipPlane, gs->farClipPlane);
 	}
 	
+}
+
+
+
+static void main_key_handler(InputEvent* ev, GameState* gs) {
+	
+	if(ev->character == 'c') {
+		exit(0);
+	}
+	
+	if(ev->keysym == XK_Delete) {
+		static int lastChange = 0;
+		static char* modeStrings[] = {
+			"",
+			"diffuse",
+			"normal",
+			"depth",
+			"lighting"
+		};
+		
+		gs->debugMode = (gs->debugMode + 1) % 5;
+		lastChange = gs->frameTime;
+		
+		guiTextSetValue(gtRenderMode, modeStrings[gs->debugMode]);
+	}
+	
+	if(ev->keysym == XK_Insert) {
+		gs->selectionPassDisabled = !gs->selectionPassDisabled;
+		guiTextSetValue(gtSelectionDisabled, gs->selectionPassDisabled ? "Selection Disabled" : "");
+	}
+	
+	if(ev->character == 'b') {
+		// builder control
+		gbcTest = guiBuilderControlNew((Vector2){.1,.2}, (Vector2){.8,.8}, 0);
+		guiRegisterObject(gbcTest, NULL);
+		guiResize(&gbcTest->header, (Vector2){.79, .79});
+		guiRenderTarget_SetScreenRes(gbcTest->rt,  (Vector2i){gs->screen.wh.x, gs->screen.wh.y});
+		
+		InputFocusStack_PushTarget(&gs->ifs, gbcTest, inputHandlers);
+	}
+	
+	// texture builder
+	if(ev->character == 't') {
+		printf("t\n");
+		texbuilder = guiTexBuilderControlNew((Vector2){.1,.2}, (Vector2){.8,.8}, 0);
+		guiRegisterObject(texbuilder, NULL);
+		guiResize(&texbuilder->header, (Vector2){.79, .79});
+		
+		InputFocusStack_PushTarget(&gs->ifs, texbuilder, inputHandlers);
+	}
+}  
+
+
+
+void handleInput(GameState* gs, InputState* is) {
+	
+	printf("\n------ handInput is deprecated ------\n\n");
+	
+	if(is->clickButton == 1) {
+		
+		
+		// BUG: used inverse cursor pos. changed to compile temporarily
+		GUIObject* hit = guiHitTest(gswTest, is->lastCursorPos);
+		//printf("\n\n----> %f, %f \n", is->cursorPos.x, is->cursorPos.y);
+		if(hit) {
+			printf("@@clicked in window \n");
+			
+			GUIEvent e;
+			e.originalTarget = hit;
+			e.currentTarget = hit;
+			e.eventPos = is->lastCursorPos; // BUG: smae here
+			
+			guiTriggerClick(&e);
+		}
+		else {
+			World_spawnAt_Item(gs->world, "gazebbq", &gs->cursorPos);
+		}
+		
+		//World_spawnAt_StaticMesh(gs->world, 0, &gs->cursorPos);
+		
+		
+		/*
+		flattenArea(gs->map.tb,
+			gs->cursorPos.x - 5,
+			gs->cursorPos.y - 5,
+			gs->cursorPos.x + 5,
+			gs->cursorPos.y + 5
+		);
+		
+		setZone(&gs->map,
+			gs->cursorPos.x - 5,
+			gs->cursorPos.y - 5,
+			gs->cursorPos.x + 5,
+			gs->cursorPos.y + 5,
+			gs->activeTool + 1
+		);
+		
+		
+		checkMapDirty(&gs->map);
+		*/
+	}
+	
+	static int dragstart = -1;
+	if(is->buttonDown == 1) {
+		gs->mouseDownPos.x = gs->cursorPos.x;
+		gs->mouseDownPos.y = gs->cursorPos.y;
+		dragstart = getCurrentTime();
+		//printf("start dragging at (%d,%d)\n", (int)gs->cursorPos.x, (int)gs->cursorPos.y);
+	}
+	if(is->buttonUp == 1) {
+		double dragtime = timeSince(dragstart);
+		if(dragtime < 0.7) {
+			//printf("ignoring drag, too short: %.8f\n", dragtime);
+		}
+		else {
+		//vCopy(&gs->cursorPos, &gs->mouseDownPos);
+			//printf("stopped dragging at (%d,%d)\n", (int)gs->cursorPos.x, (int)gs->cursorPos.y);
+			
+			World_spawnAt_Road(gs->world, &gs->mouseDownPos, &gs->cursorPos);
+		}
+		
+		
+		
+	}
+	
+	if(is->clickButton == 2) {
+		gs->activeTool = (gs->activeTool + 1) % 3;
+	}
+
 
 }
 
@@ -798,7 +800,8 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	preFrame(gs);
 		PF_STOP(preframe);
 	
-	handleInput(gs, is);
+	//handleInput(gs, is);
+	InputFocusStack_DispatchPerFrame(&gs->ifs, is, gs->frameSpan);
 	
 	//setUpView(gs);
 	updateView(xs, gs, is);

@@ -103,6 +103,17 @@ void InputFocusStack_Dispatch(InputFocusStack* stack, InputEvent* ev) {
 	
 }
 
+void InputFocusStack_DispatchPerFrame(InputFocusStack* stack, InputState* is, float frameSpan) {
+	
+	if(VEC_LEN(&stack->stack) == 0) return;
+	
+	InputFocusTarget* h = &VEC_TAIL(&stack->stack);
+	if(*h->vt && (*h->vt)->perFrame) {
+		((*h->vt)->perFrame)(is, frameSpan, h->data); 
+	}
+}
+
+
 // gets a human-readable string for any specific key, such as "Control_R" for the right control key
 char* InputEvent_GetKeyDescription(InputEvent* iev) {
 	char* xs = XKeysymToString((KeySym)iev->keysym);
