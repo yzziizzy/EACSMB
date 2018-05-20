@@ -80,7 +80,7 @@ void setupFBOs(GameState* gs, int resized);
 
 static void main_key_handler(InputEvent* ev, GameState* gs);
 static void main_perframe_handler(InputState* is, float frameSpan, GameState* gs);
-
+static void main_click_handler(InputEvent* ev, GameState* gs);
 
 
 
@@ -118,6 +118,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	gs->defaultInputHandlers = calloc(1, sizeof(*gs->defaultInputHandlers));
 	gs->defaultInputHandlers->keyUp = main_key_handler;
 	gs->defaultInputHandlers->perFrame = main_perframe_handler;
+	gs->defaultInputHandlers->click = main_click_handler;
 	InputFocusStack_PushTarget(&gs->ifs, gs, defaultInputHandlers);
 	
 	//printf("w: %d, h: %d\n", ww, wh);
@@ -197,6 +198,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	
 	initStaticMeshes();
 	initDynamicMeshes();
+	initLighting();
 	initRoads();
 	initWaterPlane();
 	initEmitters();
@@ -209,9 +211,9 @@ void initGame(XStuff* xs, GameState* gs) {
 	
 	gui_Init();
 	
-	gt = guiTextNew("gui!", (Vector2){0.10,0.1}, 6.0f, "Arial");
-	gt_sel = guiTextNew("gui!", (Vector2){0.10,0.2}, 6.0f, "Arial");
-	gt_emit = guiTextNew("gui!", (Vector2){0.1,0.3}, 6.0f, "Arial");
+	gt = guiTextNew("gui!", (Vector2){0.010,0.01}, 4.0f, "Arial");
+	gt_sel = guiTextNew("gui!", (Vector2){0.010,0.04}, 4.0f, "Arial");
+	gt_emit = guiTextNew("gui!", (Vector2){0.01,0.07}, 4.0f, "Arial");
 	gtRenderMode = guiTextNew("", (Vector2){0.1,0.9}, 6.0f, "Arial");
 	gtSelectionDisabled = guiTextNew("", (Vector2){0.5,0.1}, 6.0f, "Arial");
 	
@@ -482,10 +484,11 @@ static void main_key_handler(InputEvent* ev, GameState* gs) {
 			"diffuse",
 			"normal",
 			"depth",
+			"selection",
 			"lighting"
 		};
 		
-		gs->debugMode = (gs->debugMode + 1) % 5;
+		gs->debugMode = (gs->debugMode + 1) % 6;
 		lastChange = gs->frameTime;
 		
 		guiTextSetValue(gtRenderMode, modeStrings[gs->debugMode]);
@@ -518,34 +521,27 @@ static void main_key_handler(InputEvent* ev, GameState* gs) {
 }  
 
 
+static void main_click_handler(InputEvent* ev, GameState* gs) {
 
-void handleInput(GameState* gs, InputState* is) {
-	
-	printf("\n------ handInput is deprecated ------\n\n");
-	
-	if(is->clickButton == 1) {
-		
+	if(ev->button == 1) {
 		
 		// BUG: used inverse cursor pos. changed to compile temporarily
-		GUIObject* hit = guiHitTest(gswTest, is->lastCursorPos);
-		//printf("\n\n----> %f, %f \n", is->cursorPos.x, is->cursorPos.y);
+		GUIObject* hit = guiHitTest(gswTest, ev->normPos);
+		printf("\n\n----> %f, %f \n", ev->normPos.x, ev->normPos.y);
 		if(hit) {
 			printf("@@clicked in window \n");
 			
 			GUIEvent e;
 			e.originalTarget = hit;
 			e.currentTarget = hit;
-			e.eventPos = is->lastCursorPos; // BUG: smae here
+			e.eventPos = ev->normPos; // BUG: smae here
 			
 			guiTriggerClick(&e);
 		}
 		else {
-			World_spawnAt_Item(gs->world, "gazebbq", &gs->cursorPos);
+			//BUG: convert this to tile coords
+			//World_spawnAt_Item(gs->world, "gazebbq", &ev->normPos);
 		}
-		
-		//World_spawnAt_StaticMesh(gs->world, 0, &gs->cursorPos);
-		
-		
 		/*
 		flattenArea(gs->map.tb,
 			gs->cursorPos.x - 5,
@@ -562,10 +558,15 @@ void handleInput(GameState* gs, InputState* is) {
 			gs->activeTool + 1
 		);
 		
-		
 		checkMapDirty(&gs->map);
 		*/
 	}
+}
+
+void handleInput(GameState* gs, InputState* is) {
+	
+	printf("\n------ handInput is deprecated ------\n\n");
+	
 	
 	static int dragstart = -1;
 	if(is->buttonDown == 1) {

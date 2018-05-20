@@ -7,9 +7,11 @@
 #include "road.h"
 #include "pipe.h"
 #include "emitter.h"
+#include "lighting.h"
 #include "staticMesh.h"
 #include "dynamicMesh.h"
 #include "waterPlane.h"
+#include "pass.h"
 
 
 struct GameState;
@@ -103,6 +105,8 @@ typedef struct World {
 	MeshManager* smm;
 	DynamicMeshManager* dmm;
 	Emitter* emitters;
+	LightManager* lm;
+	RenderPass* lightingPass; // temp hack
 	
 	RoadBlock* roads;
 	

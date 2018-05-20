@@ -288,18 +288,39 @@ void RenderPipeline_renderAll(RenderPipeline* bp, PassDrawParams* rp) {
 }
 
 
+int RenderPass_addDrawable(RenderPass* rp, PassDrawable* d) {
+	VEC_PUSH(&rp->drawables, d);
+}
+
 
 void RenderPass_renderAll(RenderPass* pass, PassDrawParams* pdp) {
 	
 	int i;
-	
 	
 	for(i = 0; i < VEC_LEN(&pass->drawables); i++) {
 		PassDrawable* d = VEC_ITEM(&pass->drawables, i);
 		glUseProgram(pass->prog->id);
 		d->draw(d->data, d, pdp);
 	}
+}
+
+void RenderPass_postFrameAll(RenderPass* pass) {
 	
+	int i;
+	
+	for(i = 0; i < VEC_LEN(&pass->drawables); i++) {
+		PassDrawable* d = VEC_ITEM(&pass->drawables, i);
+		if(d->postFrame) d->postFrame(d->data);
+	}
+}
+void RenderPass_preFrameAll(RenderPass* pass, PassFrameParams* pfp) {
+	
+	int i;
+	
+	for(i = 0; i < VEC_LEN(&pass->drawables); i++) {
+		PassDrawable* d = VEC_ITEM(&pass->drawables, i);
+		if(d->preFrame) d->preFrame(pfp, d->data);
+	}
 }
 
 

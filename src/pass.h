@@ -79,6 +79,7 @@ typedef struct RenderPass {
 	
 	ShaderProgram* prog;
 	
+	// texture ul's to read from
 	GLuint diffuseUL;
 	GLuint normalsUL;
 	GLuint lightingUL;
@@ -109,13 +110,17 @@ typedef struct RenderPipeline {
 void initRenderPipeline();
 
 
-int RenderPass_addDrawable(PassDrawable* d);
+int RenderPass_addDrawable(RenderPass* rp, PassDrawable* d);
+PassDrawable* Pass_allocDrawable(char* name);
 
 void RenderPass_init(RenderPass* pass, ShaderProgram* prog); 
 void RenderPipeline_addShadingPass(RenderPipeline* rpipe, char* shaderName); 
 
 void RenderPipeline_renderAll(RenderPipeline* rp, PassDrawParams* pdp);
 void RenderPass_renderAll(RenderPass* pass, PassDrawParams* pdp);
+void RenderPass_preFrameAll(RenderPass* pass, PassFrameParams* pfp);
+void RenderPass_postFrameAll(RenderPass* pass);
+
 
 void RenderPipeline_init(RenderPipeline* rp);
 void RenderPipeline_rebuildFBOs(RenderPipeline* rp, Vector2i sz);

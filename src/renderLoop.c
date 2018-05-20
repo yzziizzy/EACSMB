@@ -481,9 +481,22 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	glDepthMask(GL_TRUE);
 	
+	// lighting
+	// hacky code to adapt an isolated render pass outside a pipeline
+	//glBindFramebuffer(GL_FRAMEBUFFER, gs->lightingbuf.fb);
+	glBindFramebuffer(GL_FRAMEBUFFER, gs->gbuf.fb);
+	PassDrawParams pdp;
+	pdp.mWorldView = msGetTop(&gs->view); 
+	pdp.mViewProj = msGetTop(&gs->proj);
+	
+	
+	RenderPass_preFrameAll(gs->world->lightingPass, &pfp);
+	RenderPass_renderAll(gs->world->lightingPass, &pdp);
+	RenderPass_postFrameAll(gs->world->lightingPass);
 	
 	
 	cleanUpView(xs, gs, is);
+	
 	
 	// draw to the screen
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);

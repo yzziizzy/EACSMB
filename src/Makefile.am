@@ -22,6 +22,7 @@ eacsmb_SOURCES = main.c \
 	input.c \
 	itemLoader.c \
 	json_gl.c \
+	lighting.c \
 	log.c \
 	map.c \
 	MurmurHash3.c \

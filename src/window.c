@@ -347,7 +347,7 @@ void processEvents(XStuff* xs, InputState* st, InputFocusStack* ifs, int max_eve
 			iev.time = gt;
 			iev.button = xev.xbutton.button;
 			iev.kbmods = TranslateModState(xev.xbutton.state);
-			
+
 			if(st->inDrag) {
 				iev.type = EVENT_DRAGSTOP;
 				InputFocusStack_Dispatch(ifs, &iev);
@@ -355,11 +355,12 @@ void processEvents(XStuff* xs, InputState* st, InputFocusStack* ifs, int max_eve
 				st->inDrag = 0;
 			}
 			else {
-				if(gt - st->doubleClickTime < st->lastClickTime) {
+				//printf("non-drag: %f , %f, %f\n", gt, st->lastClickTime, st->doubleClickTime);
+				if(gt - st->lastClickTime > st->doubleClickTime ) {
 					iev.type = EVENT_CLICK; // BUG: pause and wait for doubleclick?
 				}
 				else {
-					iev.type = EVENT_DOUBLECLICK;
+					iev.type = EVENT_DOUBLECLICK; // BUG: only issued after initial click
 				}
 				InputFocusStack_Dispatch(ifs, &iev);
 				

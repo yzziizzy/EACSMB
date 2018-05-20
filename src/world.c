@@ -24,6 +24,10 @@ void World_init(World* w) {
 	VEC_INIT(&w->orients[1]);
 	w->curOrient = 0;
 	
+	w->lm = calloc(1, sizeof(*w->lm));
+	LightManager_Init(w->lm);
+	w->lightingPass = LightManager_CreateRenderPass(w->lm);
+	
 	HT_init(&w->itemLookup, 4);
 	
 	initMap(&w->map);
@@ -57,6 +61,7 @@ void World_init(World* w) {
 	
 	
 	
+	
 	// HACK: emitters 
 
 
@@ -81,6 +86,9 @@ void World_init(World* w) {
 	WaterPlane_create(w->wp, 200, &(Vector){0,0,0});
 	
 	Pipe_init(&w->testmesh);
+	
+	// hack to test lightmanager
+	LightManager_AddPointLight((Vector){10,10, 10}, 500, 20);
 	
 }
 

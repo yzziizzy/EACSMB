@@ -23,7 +23,13 @@ typedef  struct {
 	GLuint  baseInstance;
 } DrawArraysIndirectCommand;
 
-
+typedef  struct {
+	uint  count;
+	uint  instanceCount;
+	uint  firstIndex;
+	uint  baseVertex;
+	uint  baseInstance;
+} DrawElementsIndirectCommand;
 
 
 #endif // __common_gl_h__

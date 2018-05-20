@@ -151,6 +151,55 @@ static void temptest(GUITexBuilderControl* bc) {
 }
 
 
+static void str_multi_split(char* input, char* break_chars, char*** output, size_t* out_len) {
+	size_t alloc_sz = 8;
+	size_t ol = 0;
+	char** out;
+	char* s, *e;
+	char beginning = 1;
+	
+	if(!input || !break_chars) {
+		*output = NULL;
+		*out_len = 0;
+		return;
+	}
+	
+	out = malloc(sizeof(*out) * alloc_sz);
+	s = input;
+	
+	while(*s) {
+		e = strpbrk(s, break_chars);
+		
+		if(beginning) {
+			 s = e;
+			 continue;
+		}
+		
+		s = e;
+		ol++;
+	}
+	
+	*output = out;
+	*out_len = ol;
+} 
+
+
+
+
+static void parseConfig(char* path) {
+	
+	size_t len;
+	char* source = readFile(path, &len);
+	
+	
+	
+	
+	
+} 
+
+
+
+
 
 
 
