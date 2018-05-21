@@ -256,6 +256,9 @@ void shadingPass(GameState* gs) {
 	glActiveTexture(GL_TEXTURE0 + 3);
 	glBindTexture(GL_TEXTURE_2D, gs->selectionTexBuffer);
 
+	glActiveTexture(GL_TEXTURE0 + 4);
+	glBindTexture(GL_TEXTURE_2D, gs->lightingTexBuffer);
+
 	
 	glUniform1i(glGetUniformLocation(shadingProg->id, "debugMode"), gs->debugMode);
 	glUniform2f(glGetUniformLocation(shadingProg->id, "clipPlanes"), gs->nearClipPlane, gs->farClipPlane);
@@ -483,8 +486,14 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	// lighting
 	// hacky code to adapt an isolated render pass outside a pipeline
-	//glBindFramebuffer(GL_FRAMEBUFFER, gs->lightingbuf.fb);
-	glBindFramebuffer(GL_FRAMEBUFFER, gs->gbuf.fb);
+	//glFrontFace(GL_CCW);
+	//glEnable(GL_CULL_FACE);
+	//glCullFace(GL_FRONT);
+	//glDisable(GL_DEPTH_TEST);
+	//glDepthFunc(GL_GREATER);
+	
+	glBindFramebuffer(GL_FRAMEBUFFER, gs->lightingbuf.fb);
+	//glBindFramebuffer(GL_FRAMEBUFFER, gs->gbuf.fb);
 	PassDrawParams pdp;
 	pdp.mWorldView = msGetTop(&gs->view); 
 	pdp.mViewProj = msGetTop(&gs->proj);
@@ -494,7 +503,11 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	RenderPass_renderAll(gs->world->lightingPass, &pdp);
 	RenderPass_postFrameAll(gs->world->lightingPass);
 	
+	//glDisable(GL_CULL_FACE);
+	//glCullFace(GL_BACK);
 	glDepthMask(GL_TRUE);
+	//glEnable(GL_DEPTH_TEST);
+	//glDepthFunc(GL_LEQUAL);
 	
 	cleanUpView(xs, gs, is);
 	

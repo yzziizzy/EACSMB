@@ -97,9 +97,9 @@ void main(void) {
 	vec3 pos = tmppos.xyz / tmppos.w;
 	//------------------
 	
+	float linear = max(0.0, 1.0 - (distance(pos, vs_center) / vs_radius));
 	
-	
-	out_Light = vec4(.2, 1.0, vs_radius/distance(pos, vs_center), 1.0);
+	out_Light = vec4(linear, linear, linear, 1.0);
 // 	out_Light = vec4(.2, 1.0, .8, 1.0);
 }
 

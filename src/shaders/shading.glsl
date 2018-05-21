@@ -85,8 +85,11 @@ void main() {
 		vec3 specColor = vec3(0,0,0);//normalize(vec3(1,1,1));
 
 		vec3 ambient = vec3(0.1,0.1,0.1);
+		
+		vec3 light = texture(sLighting, tex).rgb;
+		
 		if(length(normal) < 1.01) { // things with normals get directional lighting
-			FragColor = vec4(ambient + lambertian * diffuseColor+ specular * specColor, 1.0);
+			FragColor = vec4((ambient + (lambertian * .7) + light) * diffuseColor+ specular * specColor, 1.0);
 		}
 		else { // no directional lighting for things without normals
 			FragColor = vec4(ambient + diffuseColor, 1.0);

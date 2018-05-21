@@ -89,7 +89,7 @@ void World_init(World* w) {
 	Pipe_init(&w->testmesh);
 	
 	// hack to test lightmanager
-	LightManager_AddPointLight(w->lm, (Vector){10,10, 10}, 50, 20);
+	LightManager_AddPointLight(w->lm, (Vector){10,10, 10}, 200, 20);
 	
 }
 
