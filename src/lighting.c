@@ -220,11 +220,37 @@ glexit("");
 }
 
 
+void LightManager_updateLights(LightManager* lm) {
+	int i;
+	
+	LightInstance* vmem = PCBuffer_beginWrite(&lm->instVB);
+	
+	if(!vmem) {
+		printf("attempted to update invalid light manager\n");
+		return;
+	}
 
-void LightManager_AddPointLight(Vector pos, float radius, float intensity) {
+	// TODO make instances switch per frame
+	for(i = 0; i < VEC_LEN(&lm->lights); i++) {
+		LightInstance* li = &VEC_ITEM(&lm->lights, i);
+				
+		// only write sequentially. random access is very bad.
+		*vmem = *li;
+		vmem++;
+	}
+
+}
+
+
+
+void LightManager_AddPointLight(LightManager* lm, Vector pos, float radius, float intensity) {
+	LightInstance* l;
 	
+	VEC_INC(&lm->lights);
+	l = &VEC_TAIL(&lm->lights);
 	
-	
+	l->pos = pos;
+	l->radius = radius;
 	
 }
 
@@ -267,6 +293,7 @@ RenderPass* LightManager_CreateRenderPass(LightManager* lm) {
 static void preFrame(PassFrameParams* pfp, LightManager* lm) {
 	
 	//dynamicMeshManager_updateMatrices(mm);
+	LightManager_updateLights(lm);
 	
 	// set up the indirect draw commands
 	DrawElementsIndirectCommand* cmds = PCBuffer_beginWrite(&lm->indirectCmds);
@@ -305,6 +332,13 @@ static void draw(LightManager* lm, PassDrawable* pd, PassDrawParams* pdp) {
 
 	glUniformMatrix4fv(proj_ul, 1, GL_FALSE, pdp->mViewProj->m);
 	glUniformMatrix4fv(view_ul, 1, GL_FALSE, pdp->mWorldView->m);
+	
+	
+	glActiveTexture(GL_TEXTURE0 + 23);
+	glexit("shading tex 5");
+	glBindTexture(GL_TEXTURE_2D, lm->dtex);
+	glProgramUniform1i(prog->id, glGetUniformLocation(prog->id, "sDepth"), 23);
+	
 	
 	// ---------------------------------
 	

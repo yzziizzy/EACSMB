@@ -27,6 +27,7 @@ void World_init(World* w) {
 	w->lm = calloc(1, sizeof(*w->lm));
 	LightManager_Init(w->lm);
 	w->lightingPass = LightManager_CreateRenderPass(w->lm);
+	// not static //w->lm->dtex = w->gs->depthTexBuffer;
 	
 	HT_init(&w->itemLookup, 4);
 	
@@ -88,7 +89,7 @@ void World_init(World* w) {
 	Pipe_init(&w->testmesh);
 	
 	// hack to test lightmanager
-	LightManager_AddPointLight((Vector){10,10, 10}, 500, 20);
+	LightManager_AddPointLight(w->lm, (Vector){10,10, 10}, 50, 20);
 	
 }
 

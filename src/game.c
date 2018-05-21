@@ -242,8 +242,8 @@ void initGame(XStuff* xs, GameState* gs) {
 
 	
 	gs->world = calloc(1, sizeof(*gs->world));
-	World_init(gs->world);
 	gs->world->gs = gs;
+	World_init(gs->world);
 	
 	
 	

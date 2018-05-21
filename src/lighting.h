@@ -22,7 +22,7 @@ enum LightType {
 
 
 // grouped by attribute
-typedef struct  __attribute__ ((__packed__)) LightInstance_Spot {
+typedef struct  __attribute__ ((__packed__)) LightInstance {
 	Vector pos; 
 	float constant;
 	
@@ -33,7 +33,7 @@ typedef struct  __attribute__ ((__packed__)) LightInstance_Spot {
 	float quadratic;
 	
 	float cutoff_angle, exponent;
-	float unused1, unused2;
+	float radius, unused2;
 	
 } LightInstance;
 
@@ -79,6 +79,9 @@ typedef struct LightManager {
 	VEC(LightInstance) lights;
 	
 	
+	// temp
+	GLuint dtex;
+	
 } LightManager;
 
 
@@ -87,7 +90,7 @@ void initLighting();
 
 
 void LightManager_Init(LightManager* lm);
-void LightManager_AddPointLight(Vector pos, float radius, float intensity);
+void LightManager_AddPointLight(LightManager* lm, Vector pos, float radius, float intensity);
 RenderPass* LightManager_CreateRenderPass(LightManager* lm);
 
 

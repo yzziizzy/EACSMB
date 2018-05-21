@@ -479,7 +479,7 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	renderParticles(xs, gs, is); // particles are alpha blended and need to be on top of decals
 	query_queue_stop(&gs->queries.emitters);
 	
-	glDepthMask(GL_TRUE);
+	// keep depth writes off for lighting
 	
 	// lighting
 	// hacky code to adapt an isolated render pass outside a pipeline
@@ -489,11 +489,12 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	pdp.mWorldView = msGetTop(&gs->view); 
 	pdp.mViewProj = msGetTop(&gs->proj);
 	
-	
+	gs->world->lm->dtex = gs->depthTexBuffer;
 	RenderPass_preFrameAll(gs->world->lightingPass, &pfp);
 	RenderPass_renderAll(gs->world->lightingPass, &pdp);
 	RenderPass_postFrameAll(gs->world->lightingPass);
 	
+	glDepthMask(GL_TRUE);
 	
 	cleanUpView(xs, gs, is);
 	
