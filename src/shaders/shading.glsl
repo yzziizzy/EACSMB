@@ -68,6 +68,7 @@ void main() {
 // 		
 		vec4 tmppos = invVP * vec4(screenCoord * 2.0 - 1.0, ndc_depth, 1.0);
 		vec3 pos = tmppos.xyz / tmppos.w;
+		// --------------------------------
 		// pos is in world coordinates now
 		
 		vec3 viewpos = (inverse(mViewProj * mWorldView) * vec4(0,0,0,1)).xyz;

@@ -45,6 +45,10 @@ void main() {
 	vs_cutoff = v_cut_exp_radius_in.x;
 	vs_exponent = v_cut_exp_radius_in.y;
 	vs_radius = v_cut_exp_radius_in.z;
+	
+	vs_constant = .6;
+	vs_linear = .12;
+	vs_quadratic = .008;
 }
 
 
@@ -76,7 +80,7 @@ layout(location = 0) out vec4 out_Light;
 in vec3 vs_center;
 in float vs_constant;
 in float vs_linear;
-in float vs_quatratic;
+in float vs_quadratic;
 in float vs_radius;
 in float vs_cutoff;
 in float vs_exponent;
@@ -97,9 +101,19 @@ void main(void) {
 	vec3 pos = tmppos.xyz / tmppos.w;
 	//------------------
 	
-	float linear = max(0.0, 1.0 - (distance(pos, vs_center) / vs_radius));
+	float d = distance(pos, vs_center);
+	if(d > vs_radius) {
+		discard;
+	}
 	
-	out_Light = vec4(linear, linear, linear, 1.0);
+
+	
+	float att = 1.0 / (vs_constant + vs_linear * d + vs_quadratic * d * d);
+	
+	att = att * 30;
+	//float linear = max(0.0, 1.0 - (distance(pos, vs_center) / vs_radius));
+	
+	out_Light = vec4(att, att, att, 1.0);
 // 	out_Light = vec4(.2, 1.0, .8, 1.0);
 }
 
