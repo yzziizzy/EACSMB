@@ -106,7 +106,7 @@ static sexp* parse(char** s) {
 
 
 sexp* sexp_parse(char* source) {
-	char* s = source;
+	char* s = strchr(source, '(') + 1;
 	
 	return parse(&s);
 }
@@ -119,6 +119,63 @@ sexp* sexp_parse_file(char* path) {
 	return parse(&s);
 }
 
+
+
+// returns 0 on all failed conversions
+int64_t sexp_asInt(sexp* x) {
+	int64_t n;
+	int base = 10;
+	
+	if(!x->str) return 0;
+	if(x->type == 0) return 0;
+	
+	// HACK. does not allow negative hex/octal/binary
+	if(x->str[0] == '0') {
+		if(x->str[1] == 'x') { // safe, implied by [0] being not null above
+			base = 16;
+		}
+		else if(x->str[1] == 'b') {
+			base = 2;
+		}
+		else {
+			base = 8;
+		}
+	}
+	
+	n = strtol(x->str, NULL, base);
+	
+	return n;
+} 
+
+
+double sexp_asDouble(sexp* x) {
+	
+	if(!x->str) return 0.0;
+	if(x->type == 0) return 0.0;
+
+	return strtod(x->str, NULL);
+}
+
+int64_t sexp_argAsInt(sexp* x, int argn) {
+	if(x->type != 0) return 0;
+	if(VEC_LEN(&x->args) < argn) return 0;
+	 
+	return sexp_asInt(VEC_ITEM(&x->args, argn));
+}
+
+double sexp_argAsDouble(sexp* x, int argn) {
+	if(x->type != 0) return 0.0;
+	if(VEC_LEN(&x->args) < argn) return 0.0;
+	 
+	return sexp_asDouble(VEC_ITEM(&x->args, argn));
+}
+
+char* sexp_argAsStr(sexp* x, int argn) {
+	if(x->type != 0) return "";
+	if(VEC_LEN(&x->args) < argn) return "";
+	 
+	return VEC_ITEM(&x->args, argn)->str;
+}
 
 
 void sexp_free(sexp* x) {

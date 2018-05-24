@@ -14,16 +14,18 @@
 
 
 #define TEXGEN_TYPE_LIST \
-	TEXGEN_TYPE_MEMBER(solid), \
-	TEXGEN_TYPE_MEMBER(lerp), \
-	TEXGEN_TYPE_MEMBER(sinewave), \
-	TEXGEN_TYPE_MEMBER(rotate), \
+	TEXGEN_TYPE_MEMBER(solid) \
+	TEXGEN_TYPE_MEMBER(lerp) \
+	TEXGEN_TYPE_MEMBER(sinewave) \
+	TEXGEN_TYPE_MEMBER(perlin) \
+	TEXGEN_TYPE_MEMBER(rotate) \
+	TEXGEN_TYPE_MEMBER(chanmux)
 
 
 
 
 typedef enum {
-#define TEXGEN_TYPE_MEMBER(x) TEXGEN_##x
+#define TEXGEN_TYPE_MEMBER(x) TEXGEN_TYPE_##x,
 	TEXGEN_TYPE_LIST
 #undef TEXGEN_TYPE_MEMBER
 } TexGenType;
@@ -57,11 +59,30 @@ struct tg_reflect {
 #include "tg_reflect.h"
 #undef XLIST
 
+#define TG_REFL_STRUCT_NAME perlin
+#define XLIST \
+	X(float, persistence, 0.00001, 9999999.0, 2.0) \
+	X(int, octaves, 0.0, 1.0, .25) 
+#include "tg_reflect.h"
+#undef XLIST
+
 #define TG_REFL_STRUCT_NAME rotate
 #define XLIST \
 	X(int, flip, 0, 4, 0) 
 #include "tg_reflect.h"
 #undef XLIST
+
+#define TG_REFL_STRUCT_NAME chanmux
+#define XLIST \
+	X(int, flip, 0, 4, 0) 
+#include "tg_reflect.h"
+#undef XLIST
+
+//#define TG_REFL_STRUCT_NAME lerp
+//#define XLIST \
+	//X(int, flip, 0, 4, 0) 
+//#include "tg_reflect.h"
+//#undef XLIST
 
 
 struct TG_lerp {
@@ -82,6 +103,7 @@ typedef struct TexGenOp {
 		struct TG_solid solid;
 		struct TG_lerp lerp;
 		struct TG_sinewave sinewave;
+		struct TG_perlin perlin;
 		struct TG_rotate rotate;
 	};
 } TexGenOp;

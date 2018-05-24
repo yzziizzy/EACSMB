@@ -4,6 +4,7 @@
 
 #include <stdio.h> // fprintf
 #include <stdlib.h> // exit
+#include <strings.h> // strcasecmp. yes, it's "strings" with an s at the end.
 
 #include "common_gl.h"
 
@@ -157,6 +158,10 @@ GLuint makeVAO(VAOConfig* details);
 
 void initKHRDebug();
 
+
+
+#define streq(a, b) (0 == strcmp(a, b))
+#define strcaseeq(a, b) (0 == strcasecmp(a, b))
 
 size_t strlnlen(const char* s);
 char* strlndup(const char* s);

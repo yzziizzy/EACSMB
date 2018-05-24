@@ -1,9 +1,13 @@
 
 
+#define TG_DEFINE_REFLECTION
+
+
 #include "texgen.h"
+#include "sexp.h"
 
-#include "math.h"
-
+#include "perlin.h"
+#include "opensimplex.h"
 
 
 
@@ -25,8 +29,28 @@ voronoi/worley noise
 */
 
 
+// forward declarations
+#define TEXGEN_TYPE_MEMBER(x) static void gen_##x(TexBitmap* bmp, int channel, struct TG_##x* opts);
+	TEXGEN_TYPE_LIST
+#undef TEXGEN_TYPE_MEMBER
 
-static void gen_solid(TexBitmap* bmp, struct TG_solid* opts) {
+// dispatch table
+typedef void (*genfn)(TexBitmap*, int, void*);
+
+genfn generators[] = {
+#define TEXGEN_TYPE_MEMBER(x) [TEXGEN_TYPE_##x] = (genfn)gen_##x,
+	TEXGEN_TYPE_LIST
+#undef TEXGEN_TYPE_MEMBER
+};
+
+
+static void gen_lerp(TexBitmap* bmp, int channel, struct TG_lerp* opts) {
+}
+static void gen_rotate(TexBitmap* bmp, int channel, struct TG_rotate* opts) {
+}
+static void gen_chanmux(TexBitmap* bmp, int channel, struct TG_chanmux* opts) {
+}
+static void gen_solid(TexBitmap* bmp, int channel, struct TG_solid* opts) {
 	int x, y;
 	int bytedepth = 4;
 	unsigned char* d = bmp->data8;
@@ -63,8 +87,23 @@ static void gen_sinewave(TexBitmap* bmp, int channel, struct TG_sinewave* opts) 
 }
 
 
+static void gen_perlin(TexBitmap* bmp, int channel, struct TG_perlin* opts) {
+	
+	int bytedepth = 4;
+	unsigned char* d = bmp->data8;
+	//printf("Generating new terrain [%d, %d]... \n", cx, cy);
+	int x, y;
+	for(y = 0; y < bmp->height ; y++) {
+		for(x = 0; x < bmp->width ; x++) {
+			//tb->zs[x + (y * TERR_TEX_SZ)] = sin(x * .1) * .1;
+			float f = PerlinNoise_2D(x / 128.0, y / 128.0, opts->persistence, opts->octaves); // slow-ass function, disable except for noise testing
+// 			printf("[%d,%d] %f\n", x,y,f);
+			d[(y * bmp->width + x) * bytedepth + channel] = fabs(1-f) * 100;
+		}
+	}
+}
 
-
+/*
 static void gen_lerp(BitmapRGBA8* a, BitmapRGBA8* b, int channel_a, int channel_b, float t) {
 	
 	int x,y;
@@ -84,14 +123,64 @@ static void gen_lerp(BitmapRGBA8* a, BitmapRGBA8* b, int channel_a, int channel_
 	
 }
 
+*/
 
+
+static TexGenOp* op_from_sexp(sexp* sex) {
+	TexGenOp* op;
+	char* name;
+	
+	op = calloc(1, sizeof(*op));
+	
+	name = sexp_argAsStr(sex, 0);
+	if(strcaseeq(name, "sinewave")) {
+		op->type = TEXGEN_TYPE_sinewave;
+		op->sinewave.period = sexp_argAsDouble(sex, 1);
+		op->sinewave.phase = sexp_argAsDouble(sex, 2);
+	}
+	if(strcaseeq(name, "perlin")) {
+		op->type = TEXGEN_TYPE_perlin;
+		op->perlin.persistence = sexp_argAsDouble(sex, 1);
+		op->perlin.octaves = sexp_argAsInt(sex, 2);
+	}
+	else {
+		printf("texgen: no such op '%s'\n", sex->str);
+	}
+	
+	
+	return op;
+}
+
+
+
+
+static void run_op(TexBitmap* out, TexGenOp* op) {
+	
+	genfn fn;
+	
+	fn = generators[op->type];
+	if(!fn) {
+		fprintf(stderr, "texgen: no generator function for type %d\n", op->type);
+		return;
+	}
+	
+	fn(out, 0, &op->solid); // the exact union member does not matter
+}
 
 
 
 
 static void temptest(GUITexBuilderControl* bc) {
 	TexGen* tg;
+	TexGenOp* op;
 	void* data;
+	
+	sexp* sex;
+	
+	//sex = sexp_parse("(sinewave 3.0 .25)");
+	sex = sexp_parse("(perlin .1 5)");
+	op = op_from_sexp(sex);
+	sexp_free(sex);
 	
 	
 	tg = calloc(1, sizeof(*tg));
@@ -108,10 +197,13 @@ static void temptest(GUITexBuilderControl* bc) {
 	bmp.width = 512;
 	bmp.height = 512;
 	
-	struct TG_sinewave opts;
-	opts.period = 2.0;
-	opts.phase = .25;
-	gen_sinewave(&bmp, 0, &opts);
+	//struct TG_sinewave opts;
+	//opts.period = 2.0;
+	//opts.phase = .25;
+	//gen_sinewave(&bmp, 0, &opts);
+	//gen_perlin(&bmp, 0, &op->perlin);
+	run_op(&bmp, op);
+	//gen_sinewave(&bmp, 0, &op->sinewave);
 	
 	GLuint id;
 	
@@ -150,7 +242,7 @@ static void temptest(GUITexBuilderControl* bc) {
 	
 }
 
-
+/*
 static void str_multi_split(char* input, char* break_chars, char*** output, size_t* out_len) {
 	size_t alloc_sz = 8;
 	size_t ol = 0;
@@ -201,7 +293,7 @@ static void parseConfig(char* path) {
 
 
 
-
+*/
 
 
 void guiTexBuilderControlRender(GUITexBuilderControl* bc, GameState* gs) {

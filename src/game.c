@@ -124,8 +124,6 @@ void initGame(XStuff* xs, GameState* gs) {
 	
 	//printf("w: %d, h: %d\n", ww, wh);
 	
-	sexp_parse("(a (b c))");
-	
 	
 	initUniformBuffers();
 	

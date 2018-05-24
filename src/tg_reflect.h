@@ -16,13 +16,13 @@
 #define decl_unsigned_int unsigned int
 #define decl_char_ptr char*
 
-#define decl_typ(_type) CAT_INNER(decl_, _type) 
+#define decl_typ(_type) CAT_(decl_, _type) 
 
 typedef struct CAT_(TG_, TG_REFL_STRUCT_NAME) {
 #define X(_type, _name, _min, _max, _def) decl_typ(_type) _name; 
 	XLIST
 #undef X
-}; CAT(TG_, TG_REFL_STRUCT_NAME);
+} CAT_(TG_, TG_REFL_STRUCT_NAME);
 
 
 
@@ -37,9 +37,7 @@ typedef struct CAT_(TG_, TG_REFL_STRUCT_NAME) {
 
 
 // only one of these needs to exist somewhere
-#ifndef  CAT_(CAT_(TG_, TG_REFL_STRUCT_NAME), _ref_DEFINED)
-	#define CAT_(CAT_(TG_, TG_REFL_STRUCT_NAME), _ref_DEFINED)
-
+#ifdef TG_DEFINE_REFLECTION
 
 	struct tg_reflect CAT_(CAT_(TG_, TG_REFL_STRUCT_NAME), _ref)[] = {
 	#define X(_type, _name, _min, _max, _def) { \
