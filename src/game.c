@@ -42,6 +42,7 @@
 #include "builder/render.h"
 #include "texgen.h"
 
+#include "sexp.h"
 
 
 GLuint proj_ul, view_ul, model_ul;
@@ -122,6 +123,8 @@ void initGame(XStuff* xs, GameState* gs) {
 	InputFocusStack_PushTarget(&gs->ifs, gs, defaultInputHandlers);
 	
 	//printf("w: %d, h: %d\n", ww, wh);
+	
+	sexp_parse("(a (b c))");
 	
 	
 	initUniformBuffers();

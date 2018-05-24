@@ -35,6 +35,7 @@ eacsmb_SOURCES = main.c \
 	renderLoop.c \
 	road.c \
 	scene.c \
+	sexp.c \
 	shader.c \
 	sim.c \
 	staticMesh.c \
