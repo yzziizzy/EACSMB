@@ -55,7 +55,7 @@ void emitter_update_vbo(Emitter* e);
 void emitterAddInstance(Emitter* e, EmitterInstance* ei); 
 Emitter* makeEmitter(); 
 void initEmitters();
-
+void Draw_Emitter(Emitter* e, Matrix* view, Matrix* proj, double time);
 
 
 

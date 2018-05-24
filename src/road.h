@@ -35,7 +35,8 @@ typedef struct RoadBlock {
 void drawRoad(RoadBlock* rb, GLuint dtex, Matrix* view, Matrix* proj);
 void roadblock_update_vbo(RoadBlock* rb);
 RoadBlock* allocRoadBlock();
-
+void initRoadBlock(RoadBlock* rb);
+int rbAddRoad(RoadBlock* rb, RoadControlPoint* rcp, int* out_id);
 void initRoads(); 
 
 

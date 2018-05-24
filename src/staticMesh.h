@@ -87,6 +87,7 @@ typedef struct MeshManager {
 
 void initStaticMeshes();
 StaticMesh* StaticMeshFromOBJ(OBJContents* obj);
+void meshManager_readConfigFile(MeshManager* mm, char* configPath);
 
 void drawStaticMesh(StaticMesh* m, Matrix* view, Matrix* proj);
 void StaticMesh_updateBuffers(StaticMesh* sm);
@@ -97,5 +98,7 @@ int meshManager_addMesh(MeshManager* mm, char* name, StaticMesh* sm);
 int meshManager_addInstance(MeshManager* mm, int meshIndex, const StaticMeshInstance* smi);
 void meshManager_updateGeometry(MeshManager* mm);
 void meshManager_updateInstances(MeshManager* mm);
+int meshManager_lookupName(MeshManager* mm, char* name);
+int meshManager_addTexture(MeshManager* mm, char* path);
 
 #endif // __EACSMB_STATICMESH_H__

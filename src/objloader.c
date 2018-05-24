@@ -5,6 +5,7 @@
 #include <errno.h>
 #include <string.h>
 #include <math.h>
+#include <ctype.h>
 
 #include <GL/glew.h>
 #include <GL/glx.h>

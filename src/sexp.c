@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "utilities.h"
+
 #include "sexp.h"
 
 
@@ -112,7 +114,7 @@ sexp* sexp_parse(char* source) {
 sexp* sexp_parse_file(char* path) {
 	char* s;
 	
-	s = readFile(path);
+	s = readFile(path, NULL);
 	
 	return parse(&s);
 }

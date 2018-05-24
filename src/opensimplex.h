@@ -29,6 +29,7 @@ typedef struct {
 } OpenSimplexParams;
 
 
+void OpenSimplex_init(OpenSimplexNoise* osn, int64_t seed, int width, int height);
 
 float* OpenSimplex_GenNoise2D(OpenSimplexNoise* osn, OpenSimplexParams* params);
 

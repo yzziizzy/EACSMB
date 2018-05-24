@@ -152,7 +152,7 @@ typedef struct GameState {
 
 
 
-
+void initGame(XStuff* xs, GameState* gs);
 
 
 
@@ -167,6 +167,11 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is);
 void setGameSettings(GameSettings* g, UserConfig* u);
 
 void initRenderLoop(GameState* gs);
+
+
+void depthPrepass(XStuff* xs, GameState* gs, InputState* is);
+
+
 
 
 #endif // __EACSMB_GAME_H__

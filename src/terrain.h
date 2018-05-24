@@ -65,8 +65,8 @@ void terrain_init();
 
 void terrain_readConfigJSON(TerrainTexInfo* tti, char* path);
 
-
-
+void terrain_initTexInfo(TerrainTexInfo* tti);
+void terrain_loadTextures(TerrainTexInfo* tti);
 
 
 #endif // __EACSMB_TERRAIN_H__

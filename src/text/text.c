@@ -18,7 +18,8 @@
 FT_Library ftLib = NULL;
 
 static void makeVertices(TextRenderInfo* tri, unsigned int* colors);
-
+int DrawGlyph(TextRes* res, GlyphBitmap* gb); 
+void CalcSDF_Software(TextRes* res, GlyphBitmap* gb);
 
 /*
 A Note About Charsets:
@@ -925,21 +926,6 @@ void FreeFont(TextRes* res) {
 };
 	
 	
-// super nifty site:
-// http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
-int nextPOT(int in) {
-	
-	in--;
-	in |= in >> 1;
-	in |= in >> 2;
-	in |= in >> 4;
-	in |= in >> 8;
-	in |= in >> 16;
-	in++;
-	
-	return in;
-}
-
 
 void updateText(TextRenderInfo* tri, const char* str, int len, unsigned int* colors) {
 	

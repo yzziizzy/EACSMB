@@ -154,10 +154,14 @@ int World_spawnAt_Item(World* w, char* itemName, Vector* location);
 int World_spawnAt_DynamicMesh(World* w, int dmIndex, Vector* location);
 int World_spawnAt_StaticMesh(World* w, int smIndex, Vector* location);
 void World_spawnAt_Road(World* w, Vector2* start,  Vector2* stop);
+int World_spawnAt_Emitter(World* w, int emitterIndex, Vector* location);
 
 
 void loadItemConfig(World* w, char* path);
 
+
+
+void World_init(World* w);
 
 
 #endif // __EACSMB_world_h__

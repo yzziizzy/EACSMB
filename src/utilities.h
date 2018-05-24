@@ -94,6 +94,23 @@ if(!(p)) { \
 #endif
 
 
+	
+// super nifty site:
+// http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
+static inline int nextPOT(int in) {
+	
+	in--;
+	in |= in >> 1;
+	in |= in >> 2;
+	in |= in >> 4;
+	in |= in >> 8;
+	in |= in >> 16;
+	in++;
+	
+	return in;
+}
+
+
 #include "ds.h"
 
 

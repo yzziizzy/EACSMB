@@ -168,8 +168,7 @@ do { \
 
 void vec_resize(void** data, size_t* size, size_t elem_size);
 ptrdiff_t vec_find(void* data, size_t len, size_t stride, void* search);
-
-
+void vec_resize_to(void** data, size_t* size, size_t elem_size, size_t new_size);
 
 
 

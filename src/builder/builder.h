@@ -52,4 +52,8 @@ void MeshBuilder_LoadJSON(MeshBuilder* mb, char* path);
 MeshBuilder* MeshBuilder_alloc();
 void MeshBuilder_init(MeshBuilder* mb);
 
+
+void MB_link_purgeChild(MB_link* p, MB_link* c); 
+void MB_link_free(MB_link* l, int freeOp, int cascade);
+
 #endif // __EACSMB_builder_builder_h__

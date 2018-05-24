@@ -210,7 +210,7 @@ typedef struct AreaStats {
 	
 } AreaStats;
 
-
+void initMap(MapInfo* mi);
 void initTerrain(MapInfo* mi);
 void initTerrainBlock(MapBlock* mb, int cx, int cy);
 MapBlock* allocMapBlock(int llx, int lly);
@@ -231,6 +231,8 @@ void updateMapTextures(MapInfo* mi);
 void setZone(MapInfo *mi, int x1, int y1, int x2, int y2, int zone);
 
 void getTerrainHeight(MapInfo* map, Vector2i* coords, int coordLen, float* heightsOut);
+
+void tileCenterWorld(MapInfo* map, int tx, int ty, Vector* out);
 
 
 void saveMapBlock(FILE* f, MapBlock* mb);

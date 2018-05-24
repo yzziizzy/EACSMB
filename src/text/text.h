@@ -95,9 +95,8 @@ void updateText(TextRenderInfo* tri, const char* str, int len, unsigned int* col
 
 
 TextRes* LoadSDFFont(char* path);
-
 TextRes* GenerateSDFFont(char* fontName, int size, char* chars);
-
+void SaveSDFFont(char* path, TextRes* res);
 
 
 #endif // __C_OPENGL_TEXT_H__
