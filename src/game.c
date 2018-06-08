@@ -529,7 +529,7 @@ static void main_click_handler(InputEvent* ev, GameState* gs) {
 		// BUG: used inverse cursor pos. changed to compile temporarily
 		GUIObject* hit = guiHitTest(gswTest, ev->normPos);
 		printf("\n\n----> %f, %f \n", ev->normPos.x, ev->normPos.y);
-		if(hit) {
+		if(0 && hit) {
 			printf("@@clicked in window \n");
 			
 			GUIEvent e;
@@ -540,6 +540,10 @@ static void main_click_handler(InputEvent* ev, GameState* gs) {
 			guiTriggerClick(&e);
 		}
 		else {
+			Vector2i tile;
+			Vector2 invPos = {ev->normPos.x, 1 - ev->normPos.y};
+			getTileFromScreenCoords(gs, ev->normPos, &tile);
+			printf("x: %d, y: %d\n", tile.x, tile.y);
 			//BUG: convert this to tile coords
 			//World_spawnAt_Item(gs->world, "gazebbq", &ev->normPos);
 		}
@@ -708,8 +712,39 @@ void updateView(XStuff* xs, GameState* gs, InputState* is) {
 
 
 
+void getTileFromScreenCoords(GameState* gs, Vector2 scoord, Vector2i* tile) {
+	
+	union {
+		unsigned char rgb[4];
+		uint32_t in;
+	} u;
+	
+	if(!gs->selectionData) return;
+	
+	int w = (int)gs->screen.wh.x;
+	int h = (int)gs->screen.wh.y;
+	
+	int i = (scoord.x * w) + ((scoord.y * h) * w);
+	
+	uint32_t j = gs->selectionData[i];
+	u.in = j;
+	
+	gs->cursorTilePos.x = u.rgb[0];
+	gs->cursorTilePos.y = u.rgb[1];
+	gs->cursorTilePos.z = u.rgb[2];
+	
+	struct sGL_RG8* off = &gs->world->map.offsetData[(int)gs->cursorTilePos.z]; 
+	//printf("*tile offset: %u - %d - %d,%d,%d - %f,%f\n", j, u.rgb[2], (int)gs->cursorTilePos.z, off->x, off->y,
+	//	scoord.x, scoord.y
+	//);
+	
+	tile->x = (off->x * 256.0) + gs->cursorTilePos.x;
+	tile->y = (off->y * 256.0) + gs->cursorTilePos.y;
+
+}
 
 
+// deprecated, use above
 void checkCursor(GameState* gs, InputState* is) {
 	
 	union {
@@ -739,11 +774,14 @@ void checkCursor(GameState* gs, InputState* is) {
 	
 	struct sGL_RG8* off = &gs->world->map.offsetData[(int)gs->cursorTilePos.z]; 
 	
+	
 	gs->cursorPos.x = (off->x * 256.0) + gs->cursorTilePos.x;
 	gs->cursorPos.y = (off->y * 256.0) + gs->cursorTilePos.y;
 	
 	
-	//printf("pos: x: %d, y:%d \n", (int)gs->cursorPos.x, (int)gs->cursorPos.y);
+	//printf("tile offset: %u - %d - %d,%d,%d - %d,%d\n", j, u.rgb[2], (int)gs->cursorPos.x, (int)gs->cursorPos.y,
+		//(int)is->lastCursorPosPixels.x, (int)is->lastCursorPosPixels.y
+	//);
 	/*
  	printf("mx: %d, my: %d, x: %d, y: %d, z: %d\n", 
 		   (int)is->cursorPosPixels.x, 
