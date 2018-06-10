@@ -103,7 +103,7 @@ static Item* findItem(World* w, char* itemName) {
 		return -1;
 	}
 	
-	//printf("index :%d\n", index);
+	printf("index of %s:%d\n", itemName, index);
 	return VEC_DATA(&w->items)[index];
 }
 
@@ -146,7 +146,6 @@ int World_spawnAt_Item(World* w, char* itemName, Vector* location) {
 	Item* item;
 	ItemInstance* inst;
 	
-	
 	item = findItem(w, itemName);
 	if(item < 0) {
 		printf("returning \n");
@@ -157,7 +156,7 @@ int World_spawnAt_Item(World* w, char* itemName, Vector* location) {
 	inst = allocItemInstance(item);
 	
 	for(i = 0; i < item->numParts; i++) {
-		
+		//printf("trying to spawn %d : %d\n", item->parts[i].index, i);
 		spawnPart(w, &item->parts[i], location);
 		
 	}
@@ -170,7 +169,7 @@ int World_spawnAt_DynamicMesh(World* w, int dmIndex, Vector* location) {
 	float h;
 	
 	Vector2i loci;
-	
+	//printf("dynamic mesh spawn");
 	loci.x = location->x;
 	loci.y = location->y;
 	
@@ -201,6 +200,7 @@ int World_spawnAt_StaticMesh(World* w, int smIndex, Vector* location) {
 	
 	Vector2i loci;
 	
+	//printf("static mesh spawn");
 	loci.x = location->x;
 	loci.y = location->y;
 	
@@ -277,7 +277,7 @@ void World_drawTerrain(World* w) {
 
 
 void World_drawSolids(World* w, Matrix* view, Matrix* proj) {
-	meshManager_draw(w->smm, view, proj);
+	//meshManager_draw(w->smm, view, proj);
 	dynamicMeshManager_draw(w->dmm, view, proj);
 	
 	Draw_Emitter(w->emitters, view, proj, w->gs->frameTime);

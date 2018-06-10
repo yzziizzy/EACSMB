@@ -12,13 +12,13 @@
 				position: [-3,3,0]
 			},
 			{
-				type: "staticMesh",
+				type: "dynamicMesh",
 				name: "gazebo",
 				position: [3,-3,0]
 			},
 			{
-				type: "staticMesh",
-				name: "gazebo",
+				type: "dynamicMesh",
+				name: "house",
 				position: [-3,-3,0]
 			},
 			{

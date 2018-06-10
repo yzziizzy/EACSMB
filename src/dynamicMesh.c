@@ -274,6 +274,8 @@ int dynamicMeshManager_addInstance(DynamicMeshManager* mm, int meshIndex, const 
 	VEC_PUSH(&msh->instances[1], *smi);
 	VEC_INC(&msh->instMatrices);
 	
+	//printf("add instance: %d", mm->totalInstances, VEC_LEN(&msh->instances[0]));
+	
 	return VEC_LEN(&msh->instances[0]);
 }
 
@@ -436,6 +438,7 @@ void dynamicMeshManager_draw(DynamicMeshManager* mm, Matrix* view, Matrix* proj)
 	Matrix model;
 	
 
+	dynamicMeshManager_updateMatrices(mm);
 	
 	//mFastMul(view, proj, &mvp);
 	mIdent(&model);
@@ -484,6 +487,7 @@ void dynamicMeshManager_draw(DynamicMeshManager* mm, Matrix* view, Matrix* proj)
 		cmds[mesh_index].baseInstance = (mm->maxInstances * ((mm->instVB.nextRegion) % PC_BUFFER_DEPTH)) + instance_offset; 
 		// number of instances
 		cmds[mesh_index].instanceCount = VEC_LEN(&dm->instances[0]); 
+	//printf("instances %d %d %d %d  \n", mesh_index, dm->indexCnt, VEC_LEN(&dm->instances[0]), instance_offset );
 		
 		index_offset += dm->indexCnt;// * sizeof(DynamicMeshVertex);//dm->indexCnt;
 		instance_offset += VEC_LEN(&dm->instances[0]);

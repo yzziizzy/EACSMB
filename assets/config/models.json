@@ -1,11 +1,15 @@
 {
 
+	fence: {
+		mesh: "assets/models/picketfence.obj",
+		texture: "assets/textures/colornoise.png",
+	},
 	gazebo: {
 		mesh: "assets/models/gazebo.obj",
 		texture: "assets/textures/colornoise.png",
 	},
-	fence: {
-		mesh: "assets/models/picketfence.obj",
+	house: {
+		mesh: "assets/models/house1.obj",
 		texture: "assets/textures/colornoise.png",
 	}
 } 

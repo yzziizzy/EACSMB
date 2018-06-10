@@ -29,7 +29,7 @@ int partTypeLookup(char* name) {
 ItemPart* findPart(World* w, char* typeName, char* name, ItemPart* part) {
 	
 	part->type = partTypeLookup(typeName);
-	
+	printf("type: %s %d\n", typeName, part->type);
 	switch(part->type) {
 		case ITEM_TYPE_DYNAMICMESH:
 			part->index = dynamicMeshManager_lookupName(w->dmm, name);
@@ -80,6 +80,8 @@ void loadItemConfig(World* w, char* path) {
 		item = calloc(1, sizeof(*item));
 		item->name = strdup(itemName);
 		
+		printf("-item '%s'\n", itemName);
+		
 		json_obj_get_key(j_item, "parts", &j_parts);
 		
 		len = json_array_length(j_parts);
@@ -100,8 +102,11 @@ void loadItemConfig(World* w, char* path) {
 			json_obj_get_key(j_part, "name", &v);
 			json_as_string(v, &name);
 			
-			findPart(w, type, name, &item->parts[i]); 
+			printf("  `-found part '%s'\n", name);
 			
+			findPart(w, type, name, &item->parts[i]); 
+			printf("    `-type: %d\n", item->parts[i].type);
+			printf("    `-model num: %d\n", item->parts[i].index);
 			
 			json_obj_get_key(j_part, "position", &v);
 			json_as_vector(v, 3, &item->parts[i].offset);
