@@ -23,8 +23,8 @@ enum TextureDepth {
 	TEXDEPTH_16,
 	TEXDEPTH_32,
 	TEXDEPTH_FLOAT,
-	TEXDEPTH_DOUBLE
-	
+	TEXDEPTH_DOUBLE,
+	TEXDEPTH_MAXVALUE
 };
 
 
@@ -70,6 +70,7 @@ void Texture_release(Texture* tex);
 
 void initTextures();
 
+TexBitmap* TexBitmap_create(int w, int h, enum TextureDepth d, int channels); 
 
 
 #endif // __EACSMB_texture_h__

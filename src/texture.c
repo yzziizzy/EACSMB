@@ -384,3 +384,30 @@ TexArray* loadTexArray(char** files) {
 	return ta;
 }
 
+
+
+static int depth_bytes[] = {
+	[TEXDEPTH_8] = 1,
+	[TEXDEPTH_16] = 2,
+	[TEXDEPTH_32] = 4,
+	[TEXDEPTH_FLOAT] = 4,
+	[TEXDEPTH_DOUBLE] = 8,
+};
+
+TexBitmap* TexBitmap_create(int w, int h, enum TextureDepth d, int channels) {
+	int dbytes;
+	TexBitmap* bmp;
+	
+	if(d >= TEXDEPTH_MAXVALUE) return NULL; 
+	dbytes = depth_bytes[d];
+	
+	bmp = calloc(1, sizeof(*bmp));	
+	
+	bmp->data8 = malloc(w * h * channels * dbytes);
+	bmp->width = w;
+	bmp->height = h;
+	bmp->channels = channels;
+	
+	return bmp;
+}
+

@@ -14,6 +14,9 @@
 
 
 #define TEXGEN_TYPE_LIST \
+	TEXGEN_TYPE_MEMBER(set) \
+	TEXGEN_TYPE_MEMBER(get) \
+	TEXGEN_TYPE_MEMBER(seq) \
 	TEXGEN_TYPE_MEMBER(solid) \
 	TEXGEN_TYPE_MEMBER(lerp) \
 	TEXGEN_TYPE_MEMBER(sinewave) \
@@ -61,8 +64,10 @@ struct tg_reflect {
 
 #define TG_REFL_STRUCT_NAME perlin
 #define XLIST \
-	X(float, persistence, 0.00001, 9999999.0, 2.0) \
-	X(int, octaves, 0.0, 1.0, .25) 
+	X(float, spread_x, 0.00001, 9999999.0, 64.0) \
+	X(float, spread_y, 0.00001, 9999999.0, 64.0) \
+	X(float, persistence, 0.00001, 9999999.0, 0.1) \
+	X(int, octaves, 0, 99, 5) 
 #include "tg_reflect.h"
 #undef XLIST
 
@@ -95,28 +100,43 @@ struct TG_lerp {
 	float t;
 };
 
+struct TexGenOp;
+
+
+struct TG_set {
+	char* name;
+	struct TexGenOp* op;
+};
+
+struct TG_get {
+	char* name;
+};
+
+
+struct TG_seq {
+	VEC(struct TexGenOp*) ops;
+};
+
 
 typedef struct TexGenOp {
 	TexGenType type;
 	int channel_out;
-	union {
-		struct TG_solid solid;
-		struct TG_lerp lerp;
-		struct TG_sinewave sinewave;
-		struct TG_perlin perlin;
-		struct TG_rotate rotate;
+	union {		
+		#define TEXGEN_TYPE_MEMBER(x) struct TG_##x x;
+			TEXGEN_TYPE_LIST
+		#undef TEXGEN_TYPE_MEMBER
 	};
 } TexGenOp;
 
 
-typedef struct TexGen {
+typedef struct TexGenContext {
 	
 	HashTable* stages;  
 	
 	
 	Texture* output;
 	
-} TexGen;
+} TexGenContext;
 
 
 
@@ -130,7 +150,7 @@ typedef struct GUITexBuilderControl {
 	GUISimpleWindow* bg;
 	GUIImage* im;
 	
-	TexGen* tg;
+	TexGenContext* tg;
 	
 	InputEventHandler* inputHandlers;
 	

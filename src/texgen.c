@@ -43,11 +43,27 @@ genfn generators[] = {
 #undef TEXGEN_TYPE_MEMBER
 };
 
+static void run_op(TexBitmap* out, TexGenOp* op);
 
 static void gen_lerp(TexBitmap* bmp, int channel, struct TG_lerp* opts) {
 }
 static void gen_rotate(TexBitmap* bmp, int channel, struct TG_rotate* opts) {
 }
+static void gen_get(TexBitmap* bmp, int channel, struct TG_get* opts) {
+}
+static void gen_set(TexBitmap* bmp, int channel, struct TG_set* opts) {
+}
+
+static void gen_seq(TexBitmap* bmp, int channel, struct TG_seq* opts) {
+	int i;
+	
+	
+	for(i = 0; VEC_LEN(&opts->ops); i++) {
+		run_op(bmp, VEC_ITEM(&opts->ops, i));
+	}
+	
+}
+
 static void gen_chanmux(TexBitmap* bmp, int channel, struct TG_chanmux* opts) {
 }
 static void gen_solid(TexBitmap* bmp, int channel, struct TG_solid* opts) {
@@ -138,10 +154,20 @@ static TexGenOp* op_from_sexp(sexp* sex) {
 		op->sinewave.period = sexp_argAsDouble(sex, 1);
 		op->sinewave.phase = sexp_argAsDouble(sex, 2);
 	}
-	if(strcaseeq(name, "perlin")) {
+	else if(strcaseeq(name, "set")) {
+		op->type = TEXGEN_TYPE_set;
+		op->set.name = strdup(sexp_argAsStr(sex, 1));
+	}
+	else if(strcaseeq(name, "get")) {
+		op->type = TEXGEN_TYPE_get;
+		op->get.name = strdup(sexp_argAsStr(sex, 1));
+	}
+	else if(strcaseeq(name, "perlin")) {
 		op->type = TEXGEN_TYPE_perlin;
 		op->perlin.persistence = sexp_argAsDouble(sex, 1);
 		op->perlin.octaves = sexp_argAsInt(sex, 2);
+		op->perlin.spread_x = sexp_argAsDouble(sex, 3);
+		op->perlin.spread_y = sexp_argAsDouble(sex, 4);
 	}
 	else {
 		printf("texgen: no such op '%s'\n", sex->str);
@@ -155,7 +181,7 @@ static TexGenOp* op_from_sexp(sexp* sex) {
 
 
 static void run_op(TexBitmap* out, TexGenOp* op) {
-	
+	//TexBitmap* out;
 	genfn fn;
 	
 	fn = generators[op->type];
@@ -164,14 +190,16 @@ static void run_op(TexBitmap* out, TexGenOp* op) {
 		return;
 	}
 	
-	fn(out, 0, &op->solid); // the exact union member does not matter
+	fn(out, 0, &op->solid); // the exact union member does not matter	
 }
 
 
 
 
+
+
 static void temptest(GUITexBuilderControl* bc) {
-	TexGen* tg;
+	TexGenContext* tgc;
 	TexGenOp* op;
 	void* data;
 	
@@ -183,23 +211,16 @@ static void temptest(GUITexBuilderControl* bc) {
 	sexp_free(sex);
 	
 	
-	tg = calloc(1, sizeof(*tg));
-	bc->tg = tg;
+	tgc = calloc(1, sizeof(*tgc));
+	bc->tg = tgc;
 	
-	tg->output = calloc(1, sizeof(*tg->output));  
+	tgc->output = calloc(1, sizeof(*tgc->output));  
 	
-	tg->output->width = 512;
-	tg->output->height = 512;
+	tgc->output->width = 512;
+	tgc->output->height = 512;
 	
-	data = malloc(512 * 512 * 4);
-	TexBitmap bmp;
-	bmp.data8 = data;
-	bmp.width = 512;
-	bmp.height = 512;
+	TexBitmap* bmp = TexBitmap_create(512, 512, TEXDEPTH_8, 4);
 	
-	//struct TG_sinewave opts;
-	//opts.period = 2.0;
-	//opts.phase = .25;
 	//gen_sinewave(&bmp, 0, &opts);
 	//gen_perlin(&bmp, 0, &op->perlin);
 	run_op(&bmp, op);
@@ -211,7 +232,7 @@ static void temptest(GUITexBuilderControl* bc) {
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, id);
 	
-	tg->output->tex_id = id;
+	tgc->output->tex_id = id;
 	
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
