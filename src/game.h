@@ -153,7 +153,7 @@ typedef struct GameState {
 
 
 void initGame(XStuff* xs, GameState* gs);
-
+void getTileFromScreenCoords(GameState* gs, Vector2 scoord, Vector2i* tile);
 
 
 // use a normal map to not have the overlap problem

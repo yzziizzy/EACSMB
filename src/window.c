@@ -326,6 +326,7 @@ void processEvents(XStuff* xs, InputState* st, InputFocusStack* ifs, int max_eve
 				fprintf(stderr, "got ButtonPress during a drag.\n");
 			}
 			else { // for determining when to start a drag
+				//printf("lastpress\n");
 				st->lastPressTime = gt;
 				st->lastPressPosPixels = pixelPos;
 			}
@@ -348,18 +349,18 @@ void processEvents(XStuff* xs, InputState* st, InputFocusStack* ifs, int max_eve
 			iev.button = xev.xbutton.button;
 			iev.kbmods = TranslateModState(xev.xbutton.state);
 
-			if(st->inDrag) {
+			if(st->inDrag) { //printf("release in drag\n");
 				iev.type = EVENT_DRAGSTOP;
 				InputFocusStack_Dispatch(ifs, &iev);
 				
 				st->inDrag = 0;
 			}
-			else {
+			else { //printf("released not in drag\n");
 				//printf("non-drag: %f , %f, %f\n", gt, st->lastClickTime, st->doubleClickTime);
-				if(gt - st->lastClickTime > st->doubleClickTime ) {
+				if(gt - st->lastClickTime > st->doubleClickTime ) { //printf("  click\n");
 					iev.type = EVENT_CLICK; // BUG: pause and wait for doubleclick?
 				}
-				else {
+				else { //printf("  doubleclick\n");
 					iev.type = EVENT_DOUBLECLICK; // BUG: only issued after initial click
 				}
 				InputFocusStack_Dispatch(ifs, &iev);
@@ -396,6 +397,7 @@ void processEvents(XStuff* xs, InputState* st, InputFocusStack* ifs, int max_eve
 			if(!st->inDrag && st->lastPressTime > 0) {
 				float dist = vDist2i(&st->lastPressPosPixels, &pixelPos);
 				if(dist > st->dragMinDist) {
+					//printf("-motion drag start\n");
 					st->inDrag = 1;
 				}
 			}

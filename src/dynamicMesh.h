@@ -66,6 +66,11 @@ typedef struct DynamicMesh {
 	VEC(DynamicMeshInstance) instances[2];
 	VEC(Matrix) instMatrices;
 	
+	float defaultScale;
+	float defaultRotX;
+	float defaultRotY;
+	float defaultRotZ;
+	
 } DynamicMesh;
 
 

@@ -224,12 +224,30 @@ void dynamicMeshManager_readConfigFile(DynamicMeshManager* mm, char* configPath)
 		
 		
 		ret = json_obj_get_key(tc, "texture", &val);
-		if(ret) {
+		if(!ret) {
 			json_as_string(val, &path);
 			
 			dm->texIndex = dynamicMeshManager_addTexture(mm, path);
 		}
+
+#define grab_json_val(str, field, def) \
+		dm->field = def; \
+		if(!json_obj_get_key(tc, str, &val)) { \
+			json_as_float(val, &dm->field); \
+		}
+
+		grab_json_val("scale", defaultScale, 1.0)
+		grab_json_val("rotDegX", defaultRotX, 0.0)
+		grab_json_val("rotDegY", defaultRotY, 0.0)
+		grab_json_val("rotDegZ", defaultRotZ, 0.0)
 		
+		// radians are not easy to edit in a config file, so it's in degrees
+		dm->defaultRotX *= F_PI / 180.0;  
+		dm->defaultRotY *= F_PI / 180.0;  
+		dm->defaultRotZ *= F_PI / 180.0;  
+		
+#undef grab_json_val
+
 		int ind = dynamicMeshManager_addMesh(mm, dm->name, dm);
 		printf("DM added mesh %d: %s \n", ind, dm->name);
 		
@@ -416,6 +434,11 @@ void dynamicMeshManager_updateMatrices(DynamicMeshManager* dmm) {
 			
 			// z-up hack for now
 			mRot3f(1, 0, 0, F_PI / 2, &m);
+			mRot3f(1, 0, 0, dm->defaultRotX, &m);
+			mRot3f(0, 1, 0, dm->defaultRotY, &m);
+			mRot3f(0, 0, 1, dm->defaultRotZ, &m);
+			mScale3f(dm->defaultScale, dm->defaultScale, dm->defaultScale, &m);
+			
 			//mScalev(&dmi->scale, &m);
 			
 			// only write sequentially. random access is very bad.

@@ -544,8 +544,9 @@ static void main_click_handler(InputEvent* ev, GameState* gs) {
 			Vector2 invPos = {ev->normPos.x, 1 - ev->normPos.y};
 			getTileFromScreenCoords(gs, ev->normPos, &tile);
 			printf("x: %d, y: %d\n", tile.x, tile.y);
+			Vector2 tilef = {tile.x, tile.y};
 			//BUG: convert this to tile coords
-			//World_spawnAt_Item(gs->world, "gazebbq", &ev->normPos);
+			World_spawnAt_Item(gs->world, "gazebbq", &tilef);
 		}
 		/*
 		flattenArea(gs->map.tb,

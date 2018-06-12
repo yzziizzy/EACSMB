@@ -67,6 +67,7 @@ int main(int argc, char* argv[]) {
 	setGameSettings(&game.settings,&game.uSettings);
 	
 	input.doubleClickTime = 0.200;
+	input.dragMinDist = 4;
 	
 	memset(&xs, 0, sizeof(XStuff));
 	clearInputState(&input);

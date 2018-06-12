@@ -326,7 +326,7 @@ int meshManager_addInstance(MeshManager* mm, int meshIndex, const StaticMeshInst
 	
 	mm->totalInstances++;
 	
-	msh = VEC_DATA(&mm->meshes)[meshIndex-1]; //  this is correct here but may be off-by-one somewhere else
+	msh = VEC_DATA(&mm->meshes)[meshIndex]; //  this is correct here but may be off-by-one somewhere else
 	VEC_PUSH(&msh->instances, *smi);
 	
 	return VEC_LEN(&msh->instances);

@@ -1,8 +1,21 @@
 {
-
+/*
+	name: {
+		mesh: "file path from assets dir",
+		texture: "file path from assets dir",
+		
+		// adjust some defaults at the global level. 
+		// consider these to be baked into the mesh vertex data on loading.
+		scale: 1.0,
+		rotDegX: 0.0,
+		rotDegY: 0.0,
+		rotDegZ: 0.0,
+	},
+*/
 	fence: {
 		mesh: "assets/models/picketfence.obj",
 		texture: "assets/textures/colornoise.png",
+		scale: 0.5,
 	},
 	gazebo: {
 		mesh: "assets/models/gazebo.obj",
@@ -11,5 +24,7 @@
 	house: {
 		mesh: "assets/models/house1.obj",
 		texture: "assets/textures/colornoise.png",
+		scale: 3.5,
+		rotDegZ: 90,
 	}
 } 
