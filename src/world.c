@@ -133,6 +133,9 @@ static int spawnPart(World* w, ItemPart* part, Vector* center) {
 		
 		case ITEM_TYPE_EMITTER:
 			return World_spawnAt_Emitter(w, part->index, &loc);
+
+		case ITEM_TYPE_LIGHT:
+			return World_spawnAt_Light(w, part->index, &loc);
 	
 		default:
 			printf("unknown part item type: %d\n", part->type);
@@ -249,6 +252,26 @@ int World_spawnAt_Emitter(World* w, int emitterIndex, Vector* location) {
 	emitterAddInstance(w->emitters, &inst);
 	emitter_update_vbo(w->emitters);
 	
+	
+}
+
+int World_spawnAt_Light(World* w, int lightIndex, Vector* location) {
+	float h;
+	
+	Vector2i loci;
+	Vector groundloc;
+	
+	loci.x = location->x;
+	loci.y = location->y;
+	// look up the height there.
+	getTerrainHeight(&w->map, &loci, 1, &h);
+	
+	groundloc = (Vector){location->x, location->y, h};
+
+	printf("spawning light %f,%f,%f\n", groundloc.x, groundloc.y, groundloc.z);
+
+	
+	LightManager_AddPointLight(w->lm, groundloc, 40.0, 0.02);
 	
 }
 

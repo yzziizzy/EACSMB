@@ -18,6 +18,9 @@ int partTypeLookup(char* name) {
 	else if(0 == strcmp("emitter", name)) {
 		return ITEM_TYPE_EMITTER;
 	}
+	else if(0 == strcmp("light", name)) {
+		return ITEM_TYPE_LIGHT;
+	}
 	else {
 		printf("Unknown part type: %s\n", name);
 		return ITEM_TYPE_UNKNOWN;
@@ -99,18 +102,32 @@ void loadItemConfig(World* w, char* path) {
 			json_obj_get_key(j_part, "type", &v);
 			json_as_string(v, &type);
 			
-			json_obj_get_key(j_part, "name", &v);
-			json_as_string(v, &name);
-			
-			printf("  `-found part '%s'\n", name);
-			
-			findPart(w, type, name, &item->parts[i]); 
-			printf("    `-type: %d\n", item->parts[i].type);
-			printf("    `-model num: %d\n", item->parts[i].index);
-			
-			json_obj_get_key(j_part, "position", &v);
-			json_as_vector(v, 3, &item->parts[i].offset);
-			
+			if(0 == strcmp("light", type)) {
+				item->parts[i].type = ITEM_TYPE_LIGHT;
+				
+				json_obj_get_key(j_part, "position", &v);
+				json_as_vector(v, 3, &item->parts[i].offset);
+				
+				//json_obj_get_key(j_part, "lightType", &v);
+				//json_as_string(v, &lightType);
+				float intensity;
+				json_obj_get_key(j_part, "intensity", &v);
+				json_as_float(v, &intensity);
+				
+			}
+			else {			
+				json_obj_get_key(j_part, "name", &v);
+				json_as_string(v, &name);
+				
+				printf("  `-found part '%s'\n", name);
+				
+				findPart(w, type, name, &item->parts[i]); 
+				printf("    `-type: %d\n", item->parts[i].type);
+				printf("    `-model num: %d\n", item->parts[i].index);
+				
+				json_obj_get_key(j_part, "position", &v);
+				json_as_vector(v, 3, &item->parts[i].offset);
+			}
 			
 			j_part_node = j_part_node->next;
 		}

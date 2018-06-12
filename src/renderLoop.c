@@ -492,6 +492,10 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	//glDisable(GL_DEPTH_TEST);
 	//glDepthFunc(GL_GREATER);
 	
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_ONE, GL_ONE);
+	glBlendEquationSeparate(GL_FUNC_ADD, GL_MAX);
+	
 	glBindFramebuffer(GL_FRAMEBUFFER, gs->lightingbuf.fb);
 	//glBindFramebuffer(GL_FRAMEBUFFER, gs->gbuf.fb);
 	PassDrawParams pdp;
@@ -502,6 +506,8 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	RenderPass_preFrameAll(gs->world->lightingPass, &pfp);
 	RenderPass_renderAll(gs->world->lightingPass, &pdp);
 	RenderPass_postFrameAll(gs->world->lightingPass);
+	
+	glDisable(GL_BLEND);
 	
 	//glDisable(GL_CULL_FACE);
 	//glCullFace(GL_BACK);

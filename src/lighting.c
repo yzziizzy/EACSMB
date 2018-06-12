@@ -229,7 +229,7 @@ void LightManager_updateLights(LightManager* lm) {
 		printf("attempted to update invalid light manager\n");
 		return;
 	}
-
+//printf("num lights %d\n", VEC_LEN(&lm->lights));
 	// TODO make instances switch per frame
 	for(i = 0; i < VEC_LEN(&lm->lights); i++) {
 		LightInstance* li = &VEC_ITEM(&lm->lights, i);
@@ -310,7 +310,7 @@ static void preFrame(PassFrameParams* pfp, LightManager* lm) {
 		// offset into instanced vertex attributes 
 		cmds[mesh_index].baseInstance = (lm->maxInstances * ((lm->instVB.nextRegion) % PC_BUFFER_DEPTH)) + instance_offset; 
 		// number of instances
-		cmds[mesh_index].instanceCount = 1;//VEC_LEN(&dm->instances[0]); 
+		cmds[mesh_index].instanceCount = VEC_LEN(&lm->lights); 
 		
 		
 		cmds[mesh_index].baseVertex = 0;

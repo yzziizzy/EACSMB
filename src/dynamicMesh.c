@@ -246,7 +246,6 @@ void dynamicMeshManager_readConfigFile(DynamicMeshManager* mm, char* configPath)
 		dm->defaultRotY *= F_PI / 180.0;  
 		dm->defaultRotZ *= F_PI / 180.0;  
 		
-#undef grab_json_val
 
 		int ind = dynamicMeshManager_addMesh(mm, dm->name, dm);
 		printf("DM added mesh %d: %s \n", ind, dm->name);

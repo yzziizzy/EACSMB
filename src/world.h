@@ -20,7 +20,8 @@ enum ItemTypes {
 	ITEM_TYPE_UNKNOWN = 0,
 	ITEM_TYPE_STATICMESH,
 	ITEM_TYPE_DYNAMICMESH,
-	ITEM_TYPE_EMITTER
+	ITEM_TYPE_EMITTER,
+	ITEM_TYPE_LIGHT,
 };
 
 
@@ -28,6 +29,7 @@ typedef struct {
 	int type;
 	int index;
 	Vector offset;
+	//void* data;
 } ItemPart;
 
 typedef struct {
@@ -87,6 +89,8 @@ static const uint32_t ITEM_BASE_IDS[] = {
 	[ITEM_TYPE_UNKNOWN] =     4000000000,
 	[ITEM_TYPE_STATICMESH] =  0000000000,
 	[ITEM_TYPE_DYNAMICMESH] = 1000000000,
+	[ITEM_TYPE_EMITTER] =     1100000000,
+	[ITEM_TYPE_LIGHT] =       1200000000,
 };
 
 static inline uint32_t itemBaseID(enum ItemTypes e) {
@@ -153,6 +157,7 @@ void World_drawDecals(World* w, Matrix* view, Matrix* proj);
 int World_spawnAt_Item(World* w, char* itemName, Vector* location);
 int World_spawnAt_DynamicMesh(World* w, int dmIndex, Vector* location);
 int World_spawnAt_StaticMesh(World* w, int smIndex, Vector* location);
+int World_spawnAt_Light(World* w, int lightIndex, Vector* location); 
 void World_spawnAt_Road(World* w, Vector2* start,  Vector2* stop);
 int World_spawnAt_Emitter(World* w, int emitterIndex, Vector* location);
 

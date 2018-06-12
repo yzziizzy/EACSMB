@@ -12,6 +12,12 @@
 				position: [-3,3,0]
 			},
 			{
+				type: "light",
+				lightType: "point",
+				position: [3, 0, 1],
+				intensity: 10.0,
+			},
+			{
 				type: "dynamicMesh",
 				name: "gazebo",
 				position: [3,-3,0]

@@ -77,6 +77,7 @@ typedef struct LightManager {
 	GLuint geomIBO;
 	
 	VEC(LightInstance) lights;
+	VEC(LightInstance) prototypes;
 	
 	
 	// temp

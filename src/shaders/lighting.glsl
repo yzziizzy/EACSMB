@@ -35,9 +35,10 @@ void main() {
 	vec4 center = vec4(v_center_const_in.xyz, 0.0);
 //	pos *= rotationMatrix(i_dir_rot_in.xyz, i_dir_rot_in.w);
 //	pos *= vec4(i_pos_scale_in.www, 1);
-//	pos += vec4(i_pos_scale_in.xyz, 0);
+	pos *= vec4(v_cut_exp_radius_in.zzz, 1.0); 
+	pos += vec4(v_center_const_in.xyz, 0);
 	
-	gl_Position = (mViewProj * mWorldView) * (pos * vec4(v_cut_exp_radius_in.zzz, 1.0));
+	gl_Position = (mViewProj * mWorldView) * (pos);
 	vs_center = center.xyz;
 	vs_constant = v_center_const_in.w;
 	vs_linear = v_dir_lin_in.w;
@@ -110,7 +111,7 @@ void main(void) {
 	
 	float att = 1.0 / (vs_constant + vs_linear * d + vs_quadratic * d * d);
 	
-	att = att * 30;
+	//att = att * 30;
 	//float linear = max(0.0, 1.0 - (distance(pos, vs_center) / vs_radius));
 	
 	out_Light = vec4(att, att, att, 1.0);
