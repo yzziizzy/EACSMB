@@ -168,7 +168,7 @@ int HT_get(HashTable* obj, char* key, void** val) {
 }
 
 int HT_getInt(HashTable* obj, char* key, int64_t* val) {
-	return HT_getInt(obj, key, (void**)val);
+	return HT_get(obj, key, (void**)val);
 } 
 
 

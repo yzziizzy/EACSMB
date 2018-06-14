@@ -34,6 +34,7 @@ int HT_get(HashTable* obj, char* key, void** val);
 int HT_getInt(HashTable* obj, char* key, int64_t* val);
 
 // zero for success
+// key's memory is not managed internally. strdup it yourself
 int HT_set(HashTable* obj, char* key, void* val);
 int HT_setInt(HashTable* obj, char* key, int64_t val);
 

@@ -18,6 +18,7 @@ layout (location = 2) in vec2 v_tex_in;
 // layout (location = 5) in vec4 i_alpha_in;
 
 layout (location = 3) in mat4 i_mat_in;
+layout (location = 7) in ivec2 i_tex_in;
 
 uniform mat4 mModel;
 uniform mat4 mView;
@@ -27,7 +28,7 @@ uniform mat4 mProj;
 out vec3 vs_norm;
 out vec2 vs_tex;
 out float vs_alpha;
-
+flat out ivec2 vs_tex_indices;
 
 void main() {
 	vec4 pos = vec4(v_pos_in, 1.0);
@@ -39,6 +40,7 @@ void main() {
 	vs_norm = v_norm_in; // normalize(vec4(1,1,1,0));
 	vs_tex = v_tex_in;
 	vs_alpha = 1.0;//i_alpha_in.x;
+	vs_tex_indices = i_tex_in;
 }
 
 
@@ -52,10 +54,11 @@ void main() {
 in vec3 vs_norm;
 in vec2 vs_tex;
 in float vs_alpha;
+flat in ivec2 vs_tex_indices;
 
 // fragment shader
 uniform vec4 color;
-uniform sampler2D sTexture;
+uniform sampler2DArray sTexture;
 
 layout(location = 0) out vec4 out_Color;
 layout(location = 1) out vec4 out_Normal;
@@ -63,7 +66,7 @@ layout(location = 1) out vec4 out_Normal;
 
 void main(void) {
 	
-	out_Color = texture(sTexture, vec2(vs_tex.x, 1-vs_tex.y)) * vec4(1,1,1, vs_alpha);//vs_norm;
+	out_Color = texture(sTexture, vec3(vs_tex.x, 1-vs_tex.y, vs_tex_indices.x)) * vec4(1,1,1, vs_alpha);//vs_norm;
 	out_Normal = vec4((normalize(vs_norm.xzy) * .5) + .5, 1);
 }
 

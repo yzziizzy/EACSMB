@@ -23,16 +23,11 @@
 
 // something more sophisticated will be needed for tex arrays and view sharing
 // a start is a start
-struct TexEntry {
-	Texture* tex;
-	
-	int refs;
-};
 
 
 static HashTable(TexEntry*) texLookup;
 
-
+static TextureManager* texman;
 
 
 
@@ -56,12 +51,14 @@ Texture* Texture_acquirePath(char* path) {
 	
 	e = malloc(sizeof(*e));
 	e->refs = 1;
+	e->path = path; // todo: figure out memory management
 	e->tex = t;
 	
 	HT_set(&texLookup, path, e);
 	
 	return t;
 }
+
 
 void Texture_release(Texture* tex) {
 	struct TexEntry* e;
@@ -286,6 +283,83 @@ Texture* loadBitmapTexture(char* path) {
 }
 
 
+
+
+static uint32_t average(BitmapRGBA8* bmp, Vector2 min, Vector2 max) {
+	int w = bmp->width;
+	int xmin, xmax, ymin, ymax;
+	int x, y;
+	
+	union {
+		uint32_t u;
+		uint8_t b[4];
+	} u;
+	
+	xmin = MAX(0, floor(min.x));
+	xmax = MIN(bmp->width, ceil(max.x));
+	ymin = MAX(0, floor(min.y));
+	ymax = MIN(bmp->height, ceil(max.y));
+		
+	float r = 0.0;
+	float g = 0.0;
+	float b = 0.0;
+	float a = 0.0; 
+	
+	for(y = ymin; y < ymax; y++) {  
+		for(x = xmin; x < xmax; x++) {  
+			u.u = bmp->data[(int)(ceil(x) + (w * ceil(y)))];	
+			
+			r += (float)u.b[0]; // these may not correspond properly to the component
+			g += (float)u.b[1]; //   but it doesn't matter as long as everything is
+			b += (float)u.b[2]; //   consistent across the function
+			a += (float)u.b[3];
+		}
+	}
+	
+	float totalWeight = (xmax - xmin) * (ymax - ymin);
+
+	r /= totalWeight;
+	g /= totalWeight;
+	b /= totalWeight;
+	a /= totalWeight;
+	
+	u.b[0] = iclamp(r, 0, 255);
+	u.b[1] = iclamp(g, 0, 255);
+	u.b[2] = iclamp(b, 0, 255);
+	u.b[3] = iclamp(a, 0, 255);
+	
+	return u.u;
+}
+
+
+
+static BitmapRGBA8* resample(BitmapRGBA8* in, Vector2i outSz) {
+	int ox, oy;
+	float scaleFactor = in->width / outSz.x;
+	BitmapRGBA8* out;
+	
+	out = calloc(1, sizeof(out));
+	out->width = outSz.x;
+	out->height = outSz.y;
+	out->data = malloc(out->width * out->height * sizeof(*out->data));
+	
+	// really shitty algorithm
+	for(oy = 0; oy < outSz.y; oy++) {
+		for(ox = 0; ox < outSz.x; ox++) {
+			
+			out->data[ox + (oy * outSz.x)] = average(
+				in, 
+				(Vector2){ox * scaleFactor, oy * scaleFactor},
+				(Vector2){ox * (scaleFactor + 1), oy * (scaleFactor + 1)}
+			 );
+		}
+	}
+	
+	return out;
+}
+
+
+
 // actually, the argument is a void**, but the compiler complains. stupid standards...
 size_t ptrlen(const void* a) {
 	size_t i = 0;
@@ -410,4 +484,147 @@ TexBitmap* TexBitmap_create(int w, int h, enum TextureDepth d, int channels) {
 	
 	return bmp;
 }
+
+
+
+
+TextureManager* TextureManager_alloc() {
+	TextureManager* tm;
+	
+	tm = calloc(1, sizeof(*tm));
+	CHECK_OOM(tm);
+	
+	TextureManager_init(tm);
+	
+	return tm;
+}
+
+
+void TextureManager_init(TextureManager* tm) {
+	HT_init(&tm->texLookup, 4);
+	VEC_INIT(&tm->texEntries);
+	tm->mipLevels = 1; // no mipmap by default
+}
+
+
+	
+int TextureManager_reservePath(TextureManager* tm, char* path) {
+	
+	int ret;
+	int64_t index;
+	char* pathc;
+	
+	if(!HT_getInt(&tm->texLookup, path, &index)) {
+		// path already reserved, increase refs
+		TexEntry* tep = &VEC_ITEM(&tm->texEntries, index);
+		
+		tep->refs++;
+		return index;
+	}
+	
+	// new texture
+	
+	pathc = strdup(path);
+	
+	TexEntry te = {
+		.tex = NULL,
+		.refs = 1,
+		.path = pathc,
+	};
+	
+	index = VEC_LEN(&tm->texEntries);
+	VEC_PUSH(&tm->texEntries, te);
+	
+	HT_setInt(&tm->texLookup, pathc, index);
+	
+	return index;
+}
+
+
+
+// read texture files and push into gpu
+int TextureManager_loadAll(TextureManager* tm, Vector2i targetRes) {
+	int i, depth;
+	
+	if(targetRes.x * targetRes.y <= 0) {
+		fprintf(stderr, "TextureManager: Target res has zero area\n");
+		return 1;
+	}
+	
+	tm->targetRes = targetRes;
+	depth = VEC_LEN(&tm->texEntries);
+	
+	if(depth <= 0) {
+		fprintf(stderr, "TextureManager: depth is zero (no textures reserved)\n");
+		return 2;
+	}
+	
+	
+	glGenTextures(1, &tm->tex_id);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, tm->tex_id);
+	glexit("failed to create texture array 1");
+	
+// 		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_GENERATE_MIPMAP, GL_FALSE);
+	glexit("failed to create texture array 2");
+
+	glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	
+	glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	glexit("failed to create texture array 3");
+	
+	// squash the data in
+	glPixelStorei(GL_PACK_ALIGNMENT, 1);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	
+	glTexStorage3D(GL_TEXTURE_2D_ARRAY,
+		tm->mipLevels,  // mips, flat
+		GL_RGBA8,
+		targetRes.x, targetRes.y,
+		depth); // layers
+	
+	glexit("failed to create texture array 4");
+	
+	
+	for(i = 0; i < VEC_LEN(&tm->texEntries); i++) {
+		TexEntry* te = &VEC_ITEM(&tm->texEntries, i);
+		
+		BitmapRGBA8* bmp = readPNG(te->path);
+		
+		if(!bmp) {
+			printf("TextureManager: Failed to load %s\n", te->path);
+			continue;
+		}
+		
+		if(bmp->width != targetRes.x || bmp->height != targetRes.y) {
+			BitmapRGBA8* tmp = resample(bmp, targetRes);
+			free(bmp->data);
+			free(bmp);
+			
+			bmp = tmp;
+		}
+		
+		glTexSubImage3D(GL_TEXTURE_2D_ARRAY, // target
+			0,  // mip level, 0 = base, no mipmap,
+			0, 0, i,// offset
+			targetRes.x, targetRes.y,
+			1,
+			GL_RGBA,  // format
+			GL_UNSIGNED_BYTE, // input type
+			bmp->data);
+		glexit("could not load tex array slice");
+		
+		free(bmp->data);
+		free(bmp);
+		
+	}
+	
+	return 0;
+}
+
+
+
 

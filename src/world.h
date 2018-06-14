@@ -112,6 +112,8 @@ typedef struct World {
 	LightManager* lm;
 	RenderPass* lightingPass; // temp hack
 	
+	TextureManager* meshTexMan;
+	
 	RoadBlock* roads;
 	
 	WaterPlane* wp;

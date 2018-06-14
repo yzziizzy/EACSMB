@@ -32,9 +32,13 @@ void World_init(World* w) {
 	HT_init(&w->itemLookup, 4);
 	
 	initMap(&w->map);
+	
+	w->meshTexMan = TextureManager_alloc();
+	
 	w->dmm = dynamicMeshManager_alloc(512);
 	w->smm = meshManager_alloc();
 	
+	w->dmm->tm = w->meshTexMan;
 	
 	meshManager_readConfigFile(w->smm, "assets/config/models.json");
 	dynamicMeshManager_readConfigFile(w->dmm, "assets/config/models.json");
@@ -91,6 +95,9 @@ void World_init(World* w) {
 	// hack to test lightmanager
 	LightManager_AddPointLight(w->lm, (Vector){10,10, 10}, 200, 20);
 	
+	
+	// very last thing: load textures
+	TextureManager_loadAll(w->meshTexMan, (Vector2i){128, 128}); 
 }
 
 

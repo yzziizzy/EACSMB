@@ -32,11 +32,19 @@ typedef struct DynamicMeshInstance {
 	Vector dir;
 	float rot;
 	
-	float alpha, x1, x2, x3;
-	// alpha, glow, blink
+	// TODO: fix types
+	float alpha, texIndex, x2, x3;
+	
 } DynamicMeshInstance;
 
 
+// this is what actually goes into the shader now
+typedef struct DynamicMeshInstShader {
+	Matrix m;
+	
+	// texture indices
+	unsigned short diffuseIndex, normalIndex;
+} DynamicMeshInstShader;
 
 
 typedef struct DynamicMesh {
@@ -60,7 +68,7 @@ typedef struct DynamicMesh {
 	GLuint ibo;
 	GLuint texID;
 	
-	int texIndex; // index to meshman texture table
+	int texIndex; // index to texture array
 	
 	int curFrameIndex;
 	VEC(DynamicMeshInstance) instances[2];
@@ -95,8 +103,10 @@ typedef struct DynamicMeshManager {
 	GLuint geomVBO;
 	GLuint geomIBO;
 	
-	VEC(Texture*) textures;
-	HashTable(int) textureLookup;
+	TextureManager* tm;
+	
+	//VEC(Texture*) textures;
+	//HashTable(int) textureLookup;
 	
 } DynamicMeshManager;
 

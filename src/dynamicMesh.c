@@ -69,10 +69,10 @@ void initDynamicMeshes() {
 	
 	glexit("dynamic mesh shader");
 	
-	tex = loadBitmapTexture("./assets/textures/gazebo-small.png");
+	//tex = loadBitmapTexture("./assets/textures/gazebo-small.png");
 	
-	glActiveTexture(GL_TEXTURE0 + 8);
-	glBindTexture(GL_TEXTURE_2D, tex->tex_id);
+	//glActiveTexture(GL_TEXTURE0 + 8);
+	//glBindTexture(GL_TEXTURE_2D, tex->tex_id);
 	
 	glexit("");
 	
@@ -153,7 +153,7 @@ DynamicMeshManager* dynamicMeshManager_alloc(int maxInstances) {
 
 	VEC_INIT(&mm->meshes);
 	HT_init(&mm->lookup, 6);
-	HT_init(&mm->textureLookup, 6);
+	//HT_init(&mm->textureLookup, 6);
 	
 	mm->maxInstances = maxInstances;
 	
@@ -161,20 +161,27 @@ DynamicMeshManager* dynamicMeshManager_alloc(int maxInstances) {
 	
 	
 	PCBuffer_startInit(&mm->instVB, mm->maxInstances * sizeof(Matrix), GL_ARRAY_BUFFER);
-	
+
+	// position matrix 	
 	glEnableVertexAttribArray(3);
 	glEnableVertexAttribArray(4);
 	glEnableVertexAttribArray(5);
 	glEnableVertexAttribArray(6);
-	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 4*4*4, 0);
-	glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 4*4*4, 1*4*4);
-	glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 4*4*4, 2*4*4);
-	glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, 4*4*4, 3*4*4);
+	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 4*4*4 + 2*2, 0);
+	glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 4*4*4 + 2*2, 1*4*4);
+	glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 4*4*4 + 2*2, 2*4*4);
+	glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, 4*4*4 + 2*2, 3*4*4);
 	
 	glVertexAttribDivisor(3, 1);
 	glVertexAttribDivisor(4, 1);
 	glVertexAttribDivisor(5, 1);
 	glVertexAttribDivisor(6, 1);
+	
+	// texture indices
+	glEnableVertexAttribArray(7);
+	glVertexAttribPointer(7, 2, GL_UNSIGNED_SHORT, GL_FALSE, 4*4*4 + 2*2, 4*4*4);
+	glVertexAttribDivisor(7, 1);
+	
 	
 	PCBuffer_finishInit(&mm->instVB);
 	
@@ -227,7 +234,7 @@ void dynamicMeshManager_readConfigFile(DynamicMeshManager* mm, char* configPath)
 		if(!ret) {
 			json_as_string(val, &path);
 			
-			dm->texIndex = dynamicMeshManager_addTexture(mm, path);
+			dm->texIndex = TextureManager_reservePath(mm->tm, path);
 		}
 
 #define grab_json_val(str, field, def) \
@@ -255,7 +262,7 @@ void dynamicMeshManager_readConfigFile(DynamicMeshManager* mm, char* configPath)
 	
 }
 
-
+/*
 int dynamicMeshManager_addTexture(DynamicMeshManager* mm, char* path) {
 	Texture* tex;
 	int64_t index;
@@ -270,7 +277,7 @@ int dynamicMeshManager_addTexture(DynamicMeshManager* mm, char* path) {
 	
 	return index;
 }
-
+*/
 
 // returns the index of the instance
 int dynamicMeshManager_addInstance(DynamicMeshManager* mm, int meshIndex, const DynamicMeshInstance* smi) {
@@ -408,7 +415,7 @@ void dynamicMeshManager_updateMatrices(DynamicMeshManager* dmm) {
 	
 	
 	
-	Matrix* vmem = PCBuffer_beginWrite(&dmm->instVB);
+	DynamicMeshInstShader* vmem = PCBuffer_beginWrite(&dmm->instVB);
 	
 	if(!vmem) {
 		printf("attempted to update invalid dynamic mesh manager\n");
@@ -441,7 +448,10 @@ void dynamicMeshManager_updateMatrices(DynamicMeshManager* dmm) {
 			//mScalev(&dmi->scale, &m);
 			
 			// only write sequentially. random access is very bad.
-			*vmem = m;
+			vmem->m = m;
+			vmem->diffuseIndex = dm->texIndex;
+			vmem->normalIndex = 0;
+			
 			vmem++;
 		}
 		
@@ -467,6 +477,10 @@ void dynamicMeshManager_draw(DynamicMeshManager* mm, Matrix* view, Matrix* proj)
 	// HACK fix later
 	mScale3f(150, 150, 150, &model);
 	//mTrans3f(0,0,0, &model);
+	
+	// TODO: move to intermediate initialization stage
+	glActiveTexture(GL_TEXTURE0 + 8);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, mm->tm->tex_id);
 	
 	tex_ul = glGetUniformLocation(prog->id, "sTexture");
 	glProgramUniform1i(prog->id, tex_ul, 8);
