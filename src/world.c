@@ -278,7 +278,7 @@ int World_spawnAt_Light(World* w, int lightIndex, Vector* location) {
 	printf("spawning light %f,%f,%f\n", groundloc.x, groundloc.y, groundloc.z);
 
 	
-	LightManager_AddPointLight(w->lm, groundloc, 40.0, 0.02);
+	LightManager_AddPointLight(w->lm, groundloc, 10.0, 0.02);
 	
 }
 

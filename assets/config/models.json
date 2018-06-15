@@ -14,7 +14,7 @@
 */
 	fence: {
 		mesh: "assets/models/picketfence.obj",
-		texture: "assets/textures/colornoise.png",
+		texture: "assets/textures/snowfractal-256.png",
 		scale: 0.5,
 	},
 	gazebo: {
@@ -23,8 +23,14 @@
 	},
 	house: {
 		mesh: "assets/models/house1.obj",
-		texture: "assets/textures/colornoise.png",
+		texture: "assets/textures/zap-256.png",
 		scale: 3.5,
 		rotDegZ: 90,
+	},
+	conifer: {
+		mesh: "assets/models/conifer.obj",
+		texture: "assets/textures/conifer.png",
+		scale: 0.5,
+		rotDegX: -90,
 	}
 } 

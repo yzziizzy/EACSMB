@@ -65,8 +65,12 @@ layout(location = 1) out vec4 out_Normal;
 
 
 void main(void) {
+
+	vec4 tex = texture(sTexture, vec3(vs_tex.x, 1-vs_tex.y, vs_tex_indices.x));
 	
-	out_Color = texture(sTexture, vec3(vs_tex.x, 1-vs_tex.y, vs_tex_indices.x)) * vec4(1,1,1, vs_alpha);//vs_norm;
+	if(tex.a < 0.1) discard;
+	
+	out_Color = tex * vec4(1,1,1, vs_alpha);//vs_norm;
 	out_Normal = vec4((normalize(vs_norm.xzy) * .5) + .5, 1);
 }
 

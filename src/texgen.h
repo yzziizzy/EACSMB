@@ -47,6 +47,19 @@ struct tg_reflect {
 	} range_min, range_max, def_value;
 };
 
+typedef struct tg_sampler {
+	char type; 
+	char source; // 0 - value, 1 = bmp
+	char channel; // for bmp source
+	
+	double dval;
+	uint32_t colorval;
+	
+	TexBitmap* bmp;
+	
+	
+} tg_sampler;
+
 
 #define TG_REFL_STRUCT_NAME solid
 #define XLIST \

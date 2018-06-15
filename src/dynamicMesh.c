@@ -179,7 +179,7 @@ DynamicMeshManager* dynamicMeshManager_alloc(int maxInstances) {
 	
 	// texture indices
 	glEnableVertexAttribArray(7);
-	glVertexAttribPointer(7, 2, GL_UNSIGNED_SHORT, GL_FALSE, 4*4*4 + 2*2, 4*4*4);
+	glVertexAttribIPointer(7, 2, GL_UNSIGNED_SHORT, 4*4*4 + 2*2, 4*4*4);
 	glVertexAttribDivisor(7, 1);
 	
 	
@@ -235,6 +235,7 @@ void dynamicMeshManager_readConfigFile(DynamicMeshManager* mm, char* configPath)
 			json_as_string(val, &path);
 			
 			dm->texIndex = TextureManager_reservePath(mm->tm, path);
+			printf("dmm: %d %s\n", dm->texIndex, path);
 		}
 
 #define grab_json_val(str, field, def) \
@@ -450,11 +451,12 @@ void dynamicMeshManager_updateMatrices(DynamicMeshManager* dmm) {
 			// only write sequentially. random access is very bad.
 			vmem->m = m;
 			vmem->diffuseIndex = dm->texIndex;
+			//printf("t: %s %d - %d\n", dm->name, mesh_index, dm->texIndex);
 			vmem->normalIndex = 0;
 			
 			vmem++;
 		}
-		
+	//	printf("\n");
 		//vmem += VEC_LEN(&dm->instances);
 	}
 	

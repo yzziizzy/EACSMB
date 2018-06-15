@@ -167,7 +167,6 @@ void initGame(XStuff* xs, GameState* gs) {
 	getPrintGLEnum(GL_MAX_UNIFORM_BLOCK_SIZE, "meh");
 	
 	*/
-	
 	// set up matrix stacks
 	MatrixStack* view, *proj;
 	

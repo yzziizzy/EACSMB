@@ -3,7 +3,7 @@
 		parts: [
 			{
 				type: "dynamicMesh",
-				name: "gazebo",
+				name: "conifer",
 				position: [3,3,0]
 			},
 			{
@@ -15,7 +15,7 @@
 				type: "light",
 				lightType: "point",
 				position: [3, 0, 1],
-				intensity: 10.0,
+				intensity: 3.0,
 			},
 			{
 				type: "dynamicMesh",
