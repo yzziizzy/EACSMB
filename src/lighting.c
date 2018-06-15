@@ -142,7 +142,7 @@ void LightManager_Init(LightManager* lm) {
 		11, 10, 9
 	};
 	
-	lm->maxInstances = 1024;
+	lm->maxInstances = 1024 * 50;
 	
 	//geometry vbo
 	glBindVertexArray(vao);

@@ -1,4 +1,19 @@
 {
+	tree: {
+		parts: [
+			{
+				type: "dynamicMesh",
+				name: "conifer",
+				position: [0,0,0]
+			},
+	/*		{
+				type: "light",
+				lightType: "point",
+				position: [0, 0, 1],
+				intensity: 3.0,
+			},*/
+		],
+	},
 	gazebbq: {
 		parts: [
 			{

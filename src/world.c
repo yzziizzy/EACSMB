@@ -35,7 +35,7 @@ void World_init(World* w) {
 	
 	w->meshTexMan = TextureManager_alloc();
 	
-	w->dmm = dynamicMeshManager_alloc(512);
+	w->dmm = dynamicMeshManager_alloc(1024*50);
 	w->smm = meshManager_alloc();
 	
 	w->dmm->tm = w->meshTexMan;
@@ -98,6 +98,17 @@ void World_init(World* w) {
 	
 	// very last thing: load textures
 	TextureManager_loadAll(w->meshTexMan, (Vector2i){128, 128}); 
+	
+	for(int i = 0; i < 5000; i++) {
+		Vector v = {
+			.x = frand(0, 1000),
+			.y = frand(0, 1000),
+			.z = 20,
+		};
+		
+		World_spawnAt_Item(w, "tree", &v);
+	}
+	
 }
 
 

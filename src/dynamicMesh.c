@@ -451,12 +451,10 @@ void dynamicMeshManager_updateMatrices(DynamicMeshManager* dmm) {
 			// only write sequentially. random access is very bad.
 			vmem->m = m;
 			vmem->diffuseIndex = dm->texIndex;
-			//printf("t: %s %d - %d\n", dm->name, mesh_index, dm->texIndex);
 			vmem->normalIndex = 0;
 			
 			vmem++;
 		}
-	//	printf("\n");
 		//vmem += VEC_LEN(&dm->instances);
 	}
 	
