@@ -39,6 +39,9 @@ layout(std140) uniform;
 
 layout (vertices = 4) out;
 
+uniform sampler2DArray sHeightMap;
+
+
 uniform perViewData {
 	mat4 mView;
 	mat4 mProj;
@@ -73,10 +76,19 @@ void main() {
 
 	if(gl_InvocationID == 0) {
 		mat4 mvp = mProj * mView;
-		vec4 w0 = mvp * gl_in[0].gl_Position;
-		vec4 w1 = mvp * gl_in[1].gl_Position;
-		vec4 w2 = mvp * gl_in[2].gl_Position;
-		vec4 w3 = mvp * gl_in[3].gl_Position;
+
+		vec4 w0, w1, w2, w3;
+		
+		// this makes culling better, but still not completely correct
+		w0.z = texture(sHeightMap, vec3(vs_tile[0].xy, vs_InstanceID[0]),0).r;
+		w1.z = texture(sHeightMap, vec3(vs_tile[1].xy, vs_InstanceID[1]),0).r;
+		w2.z = texture(sHeightMap, vec3(vs_tile[2].xy, vs_InstanceID[2]),0).r;
+		w3.z = texture(sHeightMap, vec3(vs_tile[3].xy, vs_InstanceID[3]),0).r;
+
+		w0 = mvp * gl_in[0].gl_Position;
+		w1 = mvp * gl_in[1].gl_Position;
+		w2 = mvp * gl_in[2].gl_Position;
+		w3 = mvp * gl_in[3].gl_Position;
 		
 		w0 /= w0.w;
 		w1 /= w1.w;
@@ -84,7 +96,6 @@ void main() {
 		w3 /= w3.w;
 		
 		// cull patches outside the view frustum
-		// TODO: sample height map and adjust corners
 		if((!inBox(w0) && !inBox(w1) && !inBox(w2) && !inBox(w3))) {
 			
 			// discard the patch entirely
