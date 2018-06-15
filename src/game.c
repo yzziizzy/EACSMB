@@ -673,11 +673,10 @@ void updateView(XStuff* xs, GameState* gs, InputState* is) {
 	msRot3f(0,1,0, gs->direction, &gs->view);
 	msTrans3f(-gs->lookCenter.x, 0, -gs->lookCenter.y, &gs->view);
 	
+	
 	// y-up to z-up rotation
 	msRot3f(1, 0, 0, F_PI_2, &gs->view);
 	msScale3f(1, 1, -1, &gs->view);
-	
-	
 	
 	// calculate cursor position
 	Vector cursorp;
@@ -701,11 +700,14 @@ void updateView(XStuff* xs, GameState* gs, InputState* is) {
 	vMatrixMul(&eyeCoord, &invv, &worldCoord);
 	vNorm(&worldCoord, &worldCoord);
 	
+	Vector zero = {0,0,0};
+	vMatrixMul(&zero, &invv, &gs->eyePos);
+	
 	// TODO: only update if somethign changes
 	PerViewUniforms* pvu = uniformBuffer_begin(&gs->perViewUB);
 	
 	memcpy(&pvu->view , msGetTop(&gs->view), sizeof(Matrix));
-	memcpy(&pvu->proj , msGetTop(&gs->proj), sizeof(Matrix));
+	memcpy(&pvu->proj , msGetTop(&gs->proj), sizeof(Matrix));	
 	
 	uniformBuffer_bindRange(&gs->perViewUB);
 }

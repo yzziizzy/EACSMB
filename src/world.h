@@ -153,7 +153,7 @@ typedef struct World {
 
 
 void World_drawTerrain(World* w);
-void World_drawSolids(World* w, Matrix* view, Matrix* proj);
+void World_drawSolids(World* w, PassFrameParams* pfp);
 void World_drawDecals(World* w, Matrix* view, Matrix* proj);
 
 int World_spawnAt_Item(World* w, char* itemName, Vector* location);

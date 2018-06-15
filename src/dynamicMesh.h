@@ -12,6 +12,7 @@
 
 #include "texture.h"
 #include "pcBuffer.h"
+#include "pass.h"
 
 
 // must be at least 3. higher values may waste large amounts of vram
@@ -73,6 +74,7 @@ typedef struct DynamicMesh {
 	int curFrameIndex;
 	VEC(DynamicMeshInstance) instances[2];
 	VEC(Matrix) instMatrices;
+	int numToDraw; // TODO: cycle per frame or move elsewhere
 	
 	float defaultScale;
 	float defaultRotX;
@@ -112,7 +114,7 @@ typedef struct DynamicMeshManager {
 
 
 
-void dynamicMeshManager_draw(DynamicMeshManager* mm, Matrix* view, Matrix* proj);
+void dynamicMeshManager_draw(DynamicMeshManager* mm, PassFrameParams* pfp);
 void dynamicMeshManager_updateGeometry(DynamicMeshManager* mm);
 int dynamicMeshManager_addMesh(DynamicMeshManager* mm, char* name, DynamicMesh* sm);
 int dynamicMeshManager_lookupName(DynamicMeshManager* mm, char* name);
@@ -127,7 +129,7 @@ void initDynamicMeshes();
 
 DynamicMeshManager* dynamicMeshManager_alloc(int maxInstances);
 
-void dynamicMeshManager_updateMatrices(DynamicMeshManager* dmm);
+void dynamicMeshManager_updateMatrices(DynamicMeshManager* dmm, PassFrameParams* pfp);
 
 
 

@@ -344,7 +344,7 @@ void selectionPass(XStuff* xs, GameState* gs, InputState* is) {
 
 
 
-void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
+void renderFrame(XStuff* xs, GameState* gs, InputState* is, PassFrameParams* pfp) {
 	
 
 	
@@ -356,7 +356,7 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	//renderMarker(gs, 0,0);
 
-	World_drawSolids(gs->world, msGetTop(&gs->view), msGetTop(&gs->proj));
+	World_drawSolids(gs->world, pfp);
 
 	
 	//drawStaticMesh(gs->world->testmesh.sm, msGetTop(&gs->view), msGetTop(&gs->proj));
@@ -437,8 +437,16 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 // 		
 // 		RenderPipeline_renderAll(gbcTest->rpipe, &rp);
 // 	}
+
+	PassDrawParams pdp;
+	pdp.mWorldView = msGetTop(&gs->view);
+	pdp.mViewProj = msGetTop(&gs->proj);
+	pdp.eyeVec = gs->eyeDir;
+	pdp.eyePos = gs->eyePos;
+	
 	
 	PassFrameParams pfp;
+	pfp.dp = &pdp;
 	pfp.timeElapsed = gs->frameSpan;
 	pfp.gameTime = gs->frameTime;
 	pfp.wallTime = 0;
@@ -466,7 +474,7 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	//glClear(GL_COLOR_BUFFER_BIT);
 	glDepthFunc(GL_LEQUAL);
 	
-	renderFrame(xs, gs, is);
+	renderFrame(xs, gs, is, &pfp);
 	query_queue_stop(&gs->queries.draw);
 	
 	// decals
@@ -498,9 +506,6 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	glBindFramebuffer(GL_FRAMEBUFFER, gs->lightingbuf.fb);
 	//glBindFramebuffer(GL_FRAMEBUFFER, gs->gbuf.fb);
-	PassDrawParams pdp;
-	pdp.mWorldView = msGetTop(&gs->view); 
-	pdp.mViewProj = msGetTop(&gs->proj);
 	
 	gs->world->lm->dtex = gs->depthTexBuffer;
 	RenderPass_preFrameAll(gs->world->lightingPass, &pfp);

@@ -121,7 +121,7 @@ static Item* findItem(World* w, char* itemName) {
 		return -1;
 	}
 	
-	printf("index of %s:%d\n", itemName, index);
+	//printf("index of %s:%d\n", itemName, index);
 	return VEC_DATA(&w->items)[index];
 }
 
@@ -317,13 +317,13 @@ void World_drawTerrain(World* w) {
 
 
 
-void World_drawSolids(World* w, Matrix* view, Matrix* proj) {
+void World_drawSolids(World* w, PassFrameParams* pfp) {
 	//meshManager_draw(w->smm, view, proj);
-	dynamicMeshManager_draw(w->dmm, view, proj);
+	dynamicMeshManager_draw(w->dmm, pfp);
 	
-	Draw_Emitter(w->emitters, view, proj, w->gs->frameTime);
+	Draw_Emitter(w->emitters, pfp->dp->mWorldView, pfp->dp->mViewProj, w->gs->frameTime);
 	
-	WaterPlane_draw(w->wp, view, proj);
+	WaterPlane_draw(w->wp, pfp->dp->mWorldView, pfp->dp->mViewProj);
 }
 
 

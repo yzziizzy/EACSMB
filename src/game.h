@@ -161,7 +161,7 @@ void getTileFromScreenCoords(GameState* gs, Vector2 scoord, Vector2i* tile);
 
 
 
-void renderFrame(XStuff* xs, GameState* gs, InputState* is);
+void renderFrame(XStuff* xs, GameState* gs, InputState* is, PassFrameParams* pfp);
 void gameLoop(XStuff* xs, GameState* gs, InputState* is);
 
 void setGameSettings(GameSettings* g, UserConfig* u);

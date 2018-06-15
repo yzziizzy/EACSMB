@@ -411,7 +411,7 @@ void dynamicMeshManager_updateGeometry(DynamicMeshManager* mm) {
 
 
 
-void dynamicMeshManager_updateMatrices(DynamicMeshManager* dmm) {
+void dynamicMeshManager_updateMatrices(DynamicMeshManager* dmm, PassFrameParams* pfp) {
 	int mesh_index, i;
 	
 	
@@ -426,11 +426,21 @@ void dynamicMeshManager_updateMatrices(DynamicMeshManager* dmm) {
 	
 	for(mesh_index = 0; mesh_index < VEC_LEN(&dmm->meshes); mesh_index++) {
 		DynamicMesh* dm = VEC_ITEM(&dmm->meshes, mesh_index);
+		dm->numToDraw = 0;
 		
 		// TODO make instances switch per frame
 		for(i = 0; i < VEC_LEN(&dm->instances[0]); i++) {
 			DynamicMeshInstance* dmi = &VEC_ITEM(&dm->instances[0], i);
 			Matrix m = IDENT_MATRIX, tmp = IDENT_MATRIX;
+			
+			float d = vDist(&dmi->pos, &pfp->dp->eyePos);
+				
+		//	printf("d %f -- ", d);
+		//	printf("%f, %f, %f -- ", dmi->pos.x, dmi->pos.y, dmi->pos.z);
+		//	printf("%f, %f, %f\n", pfp->dp->eyePos.x, pfp->dp->eyePos.y, pfp->dp->eyePos.z);
+			
+			if(d > 500) continue;
+			dm->numToDraw++;
 			
 			mTransv(&dmi->pos, &m);
 			
@@ -456,6 +466,7 @@ void dynamicMeshManager_updateMatrices(DynamicMeshManager* dmm) {
 			vmem++;
 		}
 		//vmem += VEC_LEN(&dm->instances);
+	//	printf("num to draw %d\n", dm->numToDraw);
 	}
 	
 }
@@ -464,13 +475,14 @@ void dynamicMeshManager_updateMatrices(DynamicMeshManager* dmm) {
 
 
 
-void dynamicMeshManager_draw(DynamicMeshManager* mm, Matrix* view, Matrix* proj) {
+void dynamicMeshManager_draw(DynamicMeshManager* mm, PassFrameParams* pfp) {
 	
 	GLuint tex_ul;
 	Matrix model;
 	
-
-	dynamicMeshManager_updateMatrices(mm);
+	
+	
+	dynamicMeshManager_updateMatrices(mm, pfp);
 	
 	//mFastMul(view, proj, &mvp);
 	mIdent(&model);
@@ -489,8 +501,8 @@ void dynamicMeshManager_draw(DynamicMeshManager* mm, Matrix* view, Matrix* proj)
 	glexit("");
 
 	glUniformMatrix4fv(model_ul, 1, GL_FALSE, &model.m);
-	glUniformMatrix4fv(view_ul, 1, GL_FALSE, &view->m);
-	glUniformMatrix4fv(proj_ul, 1, GL_FALSE, &proj->m);
+	glUniformMatrix4fv(view_ul, 1, GL_FALSE, &pfp->dp->mWorldView->m);
+	glUniformMatrix4fv(proj_ul, 1, GL_FALSE, &pfp->dp->mViewProj->m);
 	glUniform3f(color_ul, .5, .2, .9);
 	
 	
@@ -522,7 +534,7 @@ void dynamicMeshManager_draw(DynamicMeshManager* mm, Matrix* view, Matrix* proj)
 		// offset into instanced vertex attributes
 		cmds[mesh_index].baseInstance = (mm->maxInstances * ((mm->instVB.nextRegion) % PC_BUFFER_DEPTH)) + instance_offset; 
 		// number of instances
-		cmds[mesh_index].instanceCount = VEC_LEN(&dm->instances[0]); 
+		cmds[mesh_index].instanceCount = dm->numToDraw; //VEC_LEN(&dm->instances[0]); 
 	//printf("instances %d %d %d %d  \n", mesh_index, dm->indexCnt, VEC_LEN(&dm->instances[0]), instance_offset );
 		
 		index_offset += dm->indexCnt;// * sizeof(DynamicMeshVertex);//dm->indexCnt;
@@ -544,7 +556,7 @@ void dynamicMeshManager_draw(DynamicMeshManager* mm, Matrix* view, Matrix* proj)
 
 static void preFrame(PassFrameParams* pfp, DynamicMeshManager* mm) {
 	
-	dynamicMeshManager_updateMatrices(mm);
+	dynamicMeshManager_updateMatrices(mm, pfp);
 	
 	// set up the indirect draw commands
 	DrawArraysIndirectCommand* cmds = PCBuffer_beginWrite(&mm->indirectCmds);
