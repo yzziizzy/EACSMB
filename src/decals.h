@@ -67,6 +67,10 @@ typedef struct DecalManager {
 } DecalManager;
 
 
+PassDrawable* DecalManager_CreateDrawable(DecalManager* lm);
+RenderPass* DecalManager_CreateRenderPass(DecalManager* lm);
+
+
 
 
 #endif // __EACSMB_decals_h__

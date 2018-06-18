@@ -202,6 +202,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	initRoads();
 	initWaterPlane();
 	initEmitters();
+	initDecals();
 	
 	
 	// initialize all those magic globals

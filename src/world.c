@@ -42,6 +42,7 @@ void World_init(World* w) {
 	
 	meshManager_readConfigFile(w->smm, "assets/config/models.json");
 	dynamicMeshManager_readConfigFile(w->dmm, "assets/config/models.json");
+	DecalManager_readConfigFile(w->dmm, "assets/config/decals.json");
 	
 	w->emitters = makeEmitter();
 	
@@ -154,6 +155,9 @@ static int spawnPart(World* w, ItemPart* part, Vector* center) {
 
 		case ITEM_TYPE_LIGHT:
 			return World_spawnAt_Light(w, part->index, &loc);
+
+		case ITEM_TYPE_DECAL:
+			return World_spawnAt_Decal(w, part->index, &loc);
 	
 		default:
 			printf("unknown part item type: %d\n", part->type);
@@ -286,10 +290,30 @@ int World_spawnAt_Light(World* w, int lightIndex, Vector* location) {
 	
 	groundloc = (Vector){location->x, location->y, h};
 
-	printf("spawning light %f,%f,%f\n", groundloc.x, groundloc.y, groundloc.z);
+	//printf("spawning light %f,%f,%f\n", groundloc.x, groundloc.y, groundloc.z);
 
 	
 	LightManager_AddPointLight(w->lm, groundloc, 10.0, 0.02);
+	
+}
+
+int World_spawnAt_Decal(World* w, int lightIndex, Vector* location) {
+	float h;
+	
+	Vector2i loci;
+	Vector groundloc;
+	
+	loci.x = location->x;
+	loci.y = location->y;
+	// look up the height there.
+	getTerrainHeight(&w->map, &loci, 1, &h);
+	
+	groundloc = (Vector){location->x, location->y, h};
+
+	printf("spawning decal %f,%f,%f\n", groundloc.x, groundloc.y, groundloc.z);
+
+	
+	DecalManager_AddInstance(w->lm, groundloc, 10.0, 0.02);
 	
 }
 
@@ -328,8 +352,13 @@ void World_drawSolids(World* w, PassFrameParams* pfp) {
 
 
 
-void World_drawDecals(World* w, Matrix* view, Matrix* proj) {
-	drawRoad(w->roads, w->gs->depthTexBuffer, view, proj);
+void World_drawDecals(World* w, PassFrameParams* pfp) {
+	drawRoad(w->roads, w->gs->depthTexBuffer, pfp->dp->mWorldView, pfp->dp->mViewProj);
+	
+	RenderPass_preFrameAll(w->decalPass, pfp);
+	RenderPass_renderAll(w->decalPass, pfp);
+	RenderPass_postFrameAll(w->decalPass, pfp);
+	
 }
 
 

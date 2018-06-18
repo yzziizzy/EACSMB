@@ -11,6 +11,7 @@ eacsmb_SOURCES = main.c \
 	c_json/json.c \
 	config.c \
 	cursor.c \
+	decals.c \
 	ds.c \
 	dumpImage.c \
 	dynamicMesh.c \

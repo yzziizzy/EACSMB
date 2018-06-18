@@ -40,4 +40,10 @@ int rbAddRoad(RoadBlock* rb, RoadControlPoint* rcp, int* out_id);
 void initRoads(); 
 
 
+
+
+
+
+
+
 #endif // __EACSMB_ROAD_H__

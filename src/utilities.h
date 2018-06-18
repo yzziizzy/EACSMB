@@ -71,6 +71,8 @@ if(!(p)) { \
 }
 
 
+#define pcalloc(x) x = calloc(1, sizeof(*(x)))
+
 #ifndef NO_TERM_COLORS
 	#define TERM_COLOR_BLACK   "\x1b[30m"
 	#define TERM_COLOR_RED     "\x1b[31m"

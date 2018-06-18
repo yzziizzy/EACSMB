@@ -8,6 +8,7 @@
 #include "pipe.h"
 #include "emitter.h"
 #include "lighting.h"
+#include "decals.h"
 #include "staticMesh.h"
 #include "dynamicMesh.h"
 #include "waterPlane.h"
@@ -22,6 +23,7 @@ enum ItemTypes {
 	ITEM_TYPE_DYNAMICMESH,
 	ITEM_TYPE_EMITTER,
 	ITEM_TYPE_LIGHT,
+	ITEM_TYPE_DECAL,
 };
 
 
@@ -91,6 +93,7 @@ static const uint32_t ITEM_BASE_IDS[] = {
 	[ITEM_TYPE_DYNAMICMESH] = 1000000000,
 	[ITEM_TYPE_EMITTER] =     1100000000,
 	[ITEM_TYPE_LIGHT] =       1200000000,
+	[ITEM_TYPE_DECAL] =       1300000000,
 };
 
 static inline uint32_t itemBaseID(enum ItemTypes e) {
@@ -110,7 +113,9 @@ typedef struct World {
 	DynamicMeshManager* dmm;
 	Emitter* emitters;
 	LightManager* lm;
+	DecalManager* dm;
 	RenderPass* lightingPass; // temp hack
+	RenderPass* decalPass; // temp hack
 	
 	TextureManager* meshTexMan;
 	
@@ -154,7 +159,7 @@ typedef struct World {
 
 void World_drawTerrain(World* w);
 void World_drawSolids(World* w, PassFrameParams* pfp);
-void World_drawDecals(World* w, Matrix* view, Matrix* proj);
+void World_drawDecals(World* w, PassFrameParams* pfp);
 
 int World_spawnAt_Item(World* w, char* itemName, Vector* location);
 int World_spawnAt_DynamicMesh(World* w, int dmIndex, Vector* location);

@@ -368,7 +368,7 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is, PassFrameParams* pfp
 }
 
 
-void renderDecals(XStuff* xs, GameState* gs, InputState* is) {
+void renderDecals(XStuff* xs, GameState* gs, InputState* is, PassFrameParams* pfp) {
 	/*
 	glActiveTexture(GL_TEXTURE0 + 8);
 	glexit("shading tex 5");
@@ -377,7 +377,7 @@ void renderDecals(XStuff* xs, GameState* gs, InputState* is) {
 	
 	*/
 	
-	World_drawDecals(gs->world,  msGetTop(&gs->view), msGetTop(&gs->proj));
+	World_drawDecals(gs->world, pfp);
 	// drawTerrainRoads(gs->depthTexBuffer, &gs->scene.map, msGetTop(&gs->view), msGetTop(&gs->proj), &gs->cursorPos, &gs->screen.wh);
 	
 	glexit("render decals");
@@ -482,7 +482,7 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	glDepthMask(GL_FALSE); // disable depth writes for decals
 	
-	renderDecals(xs, gs, is);
+	renderDecals(xs, gs, is, &pfp);
 	
 	
 	query_queue_start(&gs->queries.emitters);

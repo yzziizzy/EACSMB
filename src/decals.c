@@ -146,6 +146,34 @@ void initDecals() {
 
 
 
+// rendering overhead
+RenderPass* DecalManager_CreateRenderPass(DecalManager* lm) {
+	
+	RenderPass* rp;
+	PassDrawable* pd;
+
+	pd = DecalManager_CreateDrawable(lm);
+
+	rp = calloc(1, sizeof(*rp));
+	RenderPass_init(rp, prog);
+	RenderPass_addDrawable(rp, pd);
+	//rp->fboIndex = LIGHTING;
+	
+	return rp;
+}
+
+
+PassDrawable* DecalManager_CreateDrawable(DecalManager* lm) {
+	PassDrawable* pd;
+
+	pd = Pass_allocDrawable("DecalManager");
+	pd->data = lm;
+	pd->preFrame = preFrame;
+	pd->draw = (PassDrawFn)draw;
+	pd->postFrame = postFrame;
+	
+	return pd;
+}
 
 
 
@@ -224,45 +252,38 @@ void DecalManager_readConfigFile(DecalManager* dm, char* configPath) {
 	while(json_obj_next(jsf->root, &iter, &key, &tc)) {
 		json_value_t* val;
 		char* path;
-		DynamicMesh* dm;
+		Decal* d;
 		
-		OBJContents obj;
+		//OBJContents obj;
 		
-		ret = json_obj_get_key(tc, "mesh", &val);
-		json_as_string(val, &path);
+		//ret = json_obj_get_key(tc, "mesh", &val);
+		//json_as_string(val, &path);
 		
-		loadOBJFile(path, 0, &obj);
-		dm = DynamicMeshFromOBJ(&obj);
-		dm->name = strdup(key);
+		//loadOBJFile(path, 0, &obj);
+		//d = DynamicMeshFromOBJ(&obj);
+		pcalloc(d);
+		d->name = strdup(key);
 		
 		
 		ret = json_obj_get_key(tc, "texture", &val);
 		if(!ret) {
 			json_as_string(val, &path);
 			
-			dm->texIndex = TextureManager_reservePath(mm->tm, path);
-			printf("dmm: %d %s\n", dm->texIndex, path);
+			d->texIndex = TextureManager_reservePath(dm->tm, path);
+			printf("dm: %d %s\n", d->texIndex, path);
 		}
 
 #define grab_json_val(str, field, def) \
-		dm->field = def; \
+		d->field = def; \
 		if(!json_obj_get_key(tc, str, &val)) { \
-			json_as_float(val, &dm->field); \
+			json_as_float(val, &d->field); \
 		}
 
-		grab_json_val("scale", defaultScale, 1.0)
-		grab_json_val("rotDegX", defaultRotX, 0.0)
-		grab_json_val("rotDegY", defaultRotY, 0.0)
-		grab_json_val("rotDegZ", defaultRotZ, 0.0)
-		
-		// radians are not easy to edit in a config file, so it's in degrees
-		dm->defaultRotX *= F_PI / 180.0;  
-		dm->defaultRotY *= F_PI / 180.0;  
-		dm->defaultRotZ *= F_PI / 180.0;  
+		grab_json_val("scale", size, 1.0)
 		
 
-		int ind = dynamicMeshManager_addMesh(mm, dm->name, dm);
-		printf("DM added mesh %d: %s \n", ind, dm->name);
+		int ind = DecalManager_AddDecal(mm, d->name, dm);
+		printf("DM added decal %d: %s \n", ind, d->name);
 		
 	}
 	
@@ -270,7 +291,7 @@ void DecalManager_readConfigFile(DecalManager* dm, char* configPath) {
 
 
 // returns the index of the instance
-int DecalManager_addInstance(DecalManager* dm, int index, const DecalInstance* di) {
+int DecalManager_AddInstance(DecalManager* dm, int index, const DecalInstance* di) {
 	
 	Decal* d; 
 	

@@ -48,23 +48,25 @@ layout(location = 1) out vec4 out_Normal;
 
 void main(void) {
 	
-	float speed = .1; // radians per second 
+	float speed = 2.1; // radians per second 
 	
 	// TODO: move to uniform
-	//float theta = mod(timeSeconds * speed, 6.28) + (timeFractional * speed);
+	float theta = mod(timeSeconds * speed, 6.28) + (timeFractional * speed);
 	
-	out_Color = vec4(
-		sin(vs_tex.x * 30),
-		cos(vs_tex.y * 30),
-		0, 1);
+	vec3 color1 = vec3(.3, .3, .8);
+	vec3 color2 = vec3(.6, .6, 1);
+	
+	out_Color = vec4(mix(color1, color2, (sin(vs_tex.x * 30 + theta) + 1) * .5), .5);
 	
 /*	out_Color = vec4(
 		vs_tex.x,
 		vs_tex.y,
 		0, 1);
 	*/
+	float f = ((sin(vs_tex.x * 30 + theta) + 1) * .5);
+	float fc = ((cos(vs_tex.x * 30 + theta) + 1) * .5);
 // 	out_Color = vec4(vs_tex.xy, 0, 1); //vs_norm;
 //	out_Color = vec4(1,0, 0, 1); //vs_norm;
-	out_Normal = normalize(vs_norm);
+	out_Normal = vec4(normalize(vec3(f, 0, fc)), 1);
 }
 

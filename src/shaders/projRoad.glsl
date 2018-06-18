@@ -125,7 +125,7 @@ float quad_bezier_dt(float a, float b, float c, float t, float omt) {
 
 void main(void) {
 
-	vec2 screenCoord = gl_FragCoord.xy / screenSize;
+	vec2 screenCoord = gl_FragCoord.xy / vec2(800,800);//screenSize;
 	
 	float depth = texture(sDepth, screenCoord).r;
 	if (depth > 0.99999) {
@@ -173,8 +173,8 @@ void main(void) {
 		//discard; // commented for debug
 	}
     else {
-		//out_Color = vec4(texture(sRoadTex, vec2((width + 1.0) / 2.0, t)).rgb + vec3(.5, 0,0) , 1); //vs_norm;
-		out_Color = vec4(vec2((width + 1.0) / 2.0, t) + vec2(.5, 0), 1 , 1); //vs_norm;
+		out_Color = vec4(texture(sRoadTex, vec2((width + 1.0) / 2.0, t)).rgb , 1); //vs_norm;
+		//out_Color = vec4(vec2((width + 1.0) / 2.0, t) + vec2(.5, 0), 1 , 1); //vs_norm;
 	out_Normal = vs_norm;
 	}
 	

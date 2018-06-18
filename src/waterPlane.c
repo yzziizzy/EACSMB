@@ -62,7 +62,7 @@ void WaterPlane_draw(WaterPlane* wp, Matrix* view, Matrix* proj) {
 	//mFastMul(view, proj, &mvp);
 	mIdent(&model);
 //	mScale3f(150, 150, 150, &model);
-	//mTrans3f(0,0,0, &model);
+	mTrans3f(500,500,20, &model);
 	
 	glUseProgram(prog->id);
 
@@ -108,17 +108,17 @@ void WaterPlane_create(WaterPlane* wp, float size, Vector* pos) {
 	d[1].pos = (Vector){size,0,0};
 	d[1].t = (UVPair){65535,0};
 	
-	d[2].pos = (Vector){size,0,size};
+	d[2].pos = (Vector){size,size,0};
 	d[2].t = (UVPair){65535, 65535};
 
 	
 	d[3].pos = (Vector){0,0,0};
 	d[3].t = (UVPair){0,0};
 	
-	d[4].pos = (Vector){size,0,size};
+	d[4].pos = (Vector){size,size,0};
 	d[4].t = (UVPair){65535, 65535};
 	
-	d[5].pos = (Vector){0,0,size};
+	d[5].pos = (Vector){0,size, 0};
 	d[5].t = (UVPair){0,65535};
 	
 	
