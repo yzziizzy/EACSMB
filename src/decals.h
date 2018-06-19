@@ -21,7 +21,7 @@ typedef struct DecalVertex {
 	struct {
 		unsigned short u, v;
 	} t;
-} DecalVertex;
+} __attribute__ ((packed))  DecalVertex;
 
 
 typedef struct DecalInstance {
@@ -38,6 +38,8 @@ typedef struct DecalInstance {
 }  __attribute__ ((packed)) DecalInstance;
 
 typedef struct Decal {
+	char* name;
+	
 	int texIndex;
 	
 	float size;
@@ -51,15 +53,18 @@ typedef struct DecalManager {
 	VEC(Decal*) decals;
 	HashTable(int) lookup;
 
+	int totalInstances;
 	int maxInstances;
 
 	PCBuffer indirectCmds;
 	PCBuffer instVB;
 	
+	
 	// data for persistently mapped instance vbo
+	GLuint dtex;
 	GLuint instVBO;
-	GLuint geomVBO;
-	GLuint geomIBO;
+	//GLuint geomVBO;
+	//GLuint geomIBO;
 	
 	TextureManager* tm;
 
@@ -70,6 +75,13 @@ typedef struct DecalManager {
 PassDrawable* DecalManager_CreateDrawable(DecalManager* lm);
 RenderPass* DecalManager_CreateRenderPass(DecalManager* lm);
 
+int DecalManager_AddDecal(DecalManager* dm, char* name, Decal* d);
+void DecalManager_updateMatrices(DecalManager* dm, PassFrameParams* pfp);
+int DecalManager_lookupName(DecalManager* dm, char* name);
+int DecalManager_AddInstance(DecalManager* dm, int index, const DecalInstance* di);
+void DecalManager_readConfigFile(DecalManager* dm, char* configPath);
+DecalManager* DecalManager_alloc(int maxInstances); 
+void initDecals(); 
 
 
 

@@ -1,0 +1,7 @@
+{
+	splotch: {
+		texture: "assets/textures/colornoise.png",
+		scale: 3.0,
+	},
+	
+}

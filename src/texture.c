@@ -564,7 +564,7 @@ int TextureManager_loadAll(TextureManager* tm, Vector2i targetRes) {
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, tm->tex_id);
 	glexit("failed to create texture array 1");
-	
+	printf("texman array %d\n", tm->tex_id); 
 // 		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_GENERATE_MIPMAP, GL_FALSE);
 	glexit("failed to create texture array 2");
 

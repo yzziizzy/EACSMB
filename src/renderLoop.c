@@ -482,6 +482,10 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	glDepthMask(GL_FALSE); // disable depth writes for decals
 	
+	// hack
+	gs->world->dm->dtex = gs->depthTexBuffer;
+
+	
 	renderDecals(xs, gs, is, &pfp);
 	
 	

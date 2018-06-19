@@ -34,15 +34,18 @@ void World_init(World* w) {
 	initMap(&w->map);
 	
 	w->meshTexMan = TextureManager_alloc();
+	w->decalTexMan = TextureManager_alloc();
 	
 	w->dmm = dynamicMeshManager_alloc(1024*50);
 	w->smm = meshManager_alloc();
+	w->dm = DecalManager_alloc(1024*50);
 	
 	w->dmm->tm = w->meshTexMan;
+	w->dm->tm = w->decalTexMan;
 	
 	meshManager_readConfigFile(w->smm, "assets/config/models.json");
 	dynamicMeshManager_readConfigFile(w->dmm, "assets/config/models.json");
-	DecalManager_readConfigFile(w->dmm, "assets/config/decals.json");
+	DecalManager_readConfigFile(w->dm, "assets/config/decals.json");
 	
 	w->emitters = makeEmitter();
 	
@@ -50,6 +53,7 @@ void World_init(World* w) {
 	
 	meshManager_updateGeometry(w->smm);
 	dynamicMeshManager_updateGeometry(w->dmm);
+	
 	
 	StaticMeshInstance smi[] = {
 		{
@@ -99,6 +103,11 @@ void World_init(World* w) {
 	
 	// very last thing: load textures
 	TextureManager_loadAll(w->meshTexMan, (Vector2i){128, 128}); 
+	TextureManager_loadAll(w->decalTexMan, (Vector2i){128, 128}); 
+
+	w->decalPass = DecalManager_CreateRenderPass(w->dm);
+	printf("world dm texman id: %d\n", w->dm->tm->tex_id);
+	
 	
 	for(int i = 0; i < 5000; i++) {
 		Vector v = {
@@ -297,7 +306,7 @@ int World_spawnAt_Light(World* w, int lightIndex, Vector* location) {
 	
 }
 
-int World_spawnAt_Decal(World* w, int lightIndex, Vector* location) {
+int World_spawnAt_Decal(World* w, int index, Vector* location) {
 	float h;
 	
 	Vector2i loci;
@@ -312,8 +321,11 @@ int World_spawnAt_Decal(World* w, int lightIndex, Vector* location) {
 
 	printf("spawning decal %f,%f,%f\n", groundloc.x, groundloc.y, groundloc.z);
 
+	DecalInstance di;
 	
-	DecalManager_AddInstance(w->lm, groundloc, 10.0, 0.02);
+	di.pos = groundloc;
+	
+	DecalManager_AddInstance(w->dm, index, &di);
 	
 }
 
@@ -356,8 +368,8 @@ void World_drawDecals(World* w, PassFrameParams* pfp) {
 	drawRoad(w->roads, w->gs->depthTexBuffer, pfp->dp->mWorldView, pfp->dp->mViewProj);
 	
 	RenderPass_preFrameAll(w->decalPass, pfp);
-	RenderPass_renderAll(w->decalPass, pfp);
-	RenderPass_postFrameAll(w->decalPass, pfp);
+	RenderPass_renderAll(w->decalPass, pfp->dp);
+	RenderPass_postFrameAll(w->decalPass);
 	
 }
 

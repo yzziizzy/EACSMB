@@ -442,8 +442,27 @@ void dynamicMeshManager_updateMatrices(DynamicMeshManager* dmm, PassFrameParams*
 			if(d > 500) continue;
 			dm->numToDraw++;
 			
+			mTransv(&dmi->pos, &m);
+			
+			// HACK
+			Vector noise;
+			vRandom(&(Vector){-1,-1,-1}, &(Vector){1,1,1}, &noise);
+			//mTransv(&noise, &m);
+			
+			// z-up hack for now
+			mRot3f(1, 0, 0, F_PI / 2, &m);
+			mRot3f(1, 0, 0, dm->defaultRotX, &m);
+			mRot3f(0, 1, 0, dm->defaultRotY, &m);
+			mRot3f(0, 0, 1, dm->defaultRotZ, &m);
+			mScale3f(dm->defaultScale, dm->defaultScale, dm->defaultScale, &m);
+			
+			//mScalev(&dmi->scale, &m);
+			
 			// only write sequentially. random access is very bad.
-			*vmem = di;
+			vmem->m = m;
+			vmem->diffuseIndex = dm->texIndex;
+			vmem->normalIndex = 0;
+			
 			vmem++;
 		}
 		//vmem += VEC_LEN(&dm->instances);

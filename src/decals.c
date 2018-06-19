@@ -19,7 +19,7 @@
 #include "c_json/json.h"
 
 
-static GLuint vao, geomVBO;
+static GLuint vao, geomVBO, geomIBO;
 static GLuint view_ul, proj_ul;
 static ShaderProgram* prog;
 
@@ -27,7 +27,7 @@ static ShaderProgram* prog;
 
 
 static void preFrame(PassFrameParams* pfp, DecalManager* dm);
-static void draw(PassDrawParams* pdp, GLuint progID, DecalManager* dm);
+static void draw(DecalManager* dm, GLuint progID, PassDrawParams* pdp);
 static void postFrame(DecalManager* dm);
 
 
@@ -60,34 +60,45 @@ void initDecals() {
 	prog = loadCombinedProgram("decals");
 	
 	//model_ul = glGetUniformLocation(prog->id, "mModel");
-	view_ul = glGetUniformLocation(prog->id, "mView");
-	proj_ul = glGetUniformLocation(prog->id, "mProj");
+	view_ul = glGetUniformLocation(prog->id, "mWorldView");
+	proj_ul = glGetUniformLocation(prog->id, "mViewProj");
 	//color_ul = glGetUniformLocation(prog->id, "color");
 	
 	glexit("decals shader");
 
 	
 	// global decal geometry box
-	Vector box_vertices[] = {
+	DecalVertex box_vertices[] = {
 		// front face
-		{-.5, -.5,  .5},
-		{-.5,  .5,  .5},
-		{ .5,  .5,  .5},
-		{ .5, -.5,  .5},
+		{{-.5, -.5,  .5}, {0,0}},
+		{{-.5,  .5,  .5}, {0,0}},
+		{{ .5,  .5,  .5}, {0,0}},
+		{{ .5, -.5,  .5}, {0,0}},
 		// back face
-		{-.5, -.5, -.5},
-		{-.5,  .5, -.5},
-		{ .5,  .5, -.5},
-		{ .5, -.5, -.5}
+		{{-.5, -.5, -.5}, {0,0}},
+		{{-.5,  .5, -.5}, {0,0}},
+		{{ .5,  .5, -.5}, {0,0}},
+		{{ .5, -.5, -.5}, {0,0}},
 	};
 	
+	/*
+	0 - iiiii
+	1 - iii
+	2 - iiiii
+	3 - iiiii
+	4 - iiiiii
+	5 - iiii
+	6 - iiiii
+	7 - iii
+	*/
+	
 	unsigned short box_indices[] = {
-		0,1,2, 2,3,0,
-		4,5,6, 6,7,4,
-		0,1,4, 1,4,5,
-		3,4,7, 3,0,4,
-		2,5,6, 0,2,5,
-		2,3,6, 3,6,7,
+		4,5,6, 4,6,7, // -z
+		0,1,2, 0,2,3, // +z
+		0,1,4, 1,4,5, // -x
+		2,3,6, 3,6,7, // +x
+		0,3,4, 3,4,7, // -y
+		1,2,5, 2,5,6, // +y
 	};
 	
 	glBindVertexArray(vao);
@@ -114,13 +125,13 @@ void initDecals() {
 	glUnmapBuffer(GL_ARRAY_BUFFER);
 	
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
+	//glBindVertexArray(0);
 	
-	
+
 	// global decal box gemotry index buffer	
-	if(glIsBuffer(mm->geomIBO)) glDeleteBuffers(1, &mm->geomIBO);
-	glGenBuffers(1, &mm->geomIBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mm->geomIBO);
+	if(glIsBuffer(geomIBO)) glDeleteBuffers(1, &geomIBO);
+	glGenBuffers(1, &geomIBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geomIBO);
 	
 	glBufferStorage(GL_ELEMENT_ARRAY_BUFFER, sizeof(box_indices), NULL, GL_MAP_WRITE_BIT);
 
@@ -134,13 +145,13 @@ void initDecals() {
 	
 	
 	
-	pd = Pass_allocDrawable("decal manager");
-	pd->preFrame = preFrame;
-	pd->draw = draw;
-	pd->postFrame = postFrame;
-	pd->prog = prog;
+	//pd = Pass_allocDrawable("decal manager");
+	//pd->preFrame = preFrame;
+	//pd->draw = draw;
+	//pd->postFrame = postFrame;
+	//pd->prog = prog;
 	
-	Pass_registerDrawable(pd);
+	//Pass_registerDrawable(pd);
 }
 
 
@@ -282,7 +293,7 @@ void DecalManager_readConfigFile(DecalManager* dm, char* configPath) {
 		grab_json_val("scale", size, 1.0)
 		
 
-		int ind = DecalManager_AddDecal(mm, d->name, dm);
+		int ind = DecalManager_AddDecal(dm, d->name, d);
 		printf("DM added decal %d: %s \n", ind, d->name);
 		
 	}
@@ -304,8 +315,10 @@ int DecalManager_AddInstance(DecalManager* dm, int index, const DecalInstance* d
 	
 	//printf("adding instance: %d ", meshIndex);
 	d = VEC_ITEM(&dm->decals, index);
+	
 	VEC_PUSH(&d->instances, *di);
-//	VEC_PUSH(&d->instances[1], *di);
+	VEC_TAIL(&d->instances).size = d->size;
+	//VEC_PUSH(&d->instances[1], *di);
 	//VEC_INC(&d->instMatrices);
 	
 	//printf("add instance: %d", mm->totalInstances, VEC_LEN(&msh->instances[0]));
@@ -329,7 +342,7 @@ int DecalManager_lookupName(DecalManager* dm, char* name) {
 
 
 // returns the index if the decal
-int DecalManager_addDecal(DecalManager* dm, char* name, Decal* d) {
+int DecalManager_AddDecal(DecalManager* dm, char* name, Decal* d) {
 	int index;
 	
 	VEC_PUSH(&dm->decals, d);
@@ -345,12 +358,12 @@ int DecalManager_addDecal(DecalManager* dm, char* name, Decal* d) {
 
 
 
-void DecalManager_updateMatrices(DecalManager* dmm, PassFrameParams* pfp) {
-	int mesh_index, i;
+void DecalManager_updateMatrices(DecalManager* dm, PassFrameParams* pfp) {
+	int decal_index, i;
 	
 	
 	
-	DecalInstance* vmem = PCBuffer_beginWrite(&dmm->instVB);
+	DecalInstance* vmem = PCBuffer_beginWrite(&dm->instVB);
 	
 	if(!vmem) {
 		printf("attempted to update invalid dynamic mesh manager\n");
@@ -358,48 +371,30 @@ void DecalManager_updateMatrices(DecalManager* dmm, PassFrameParams* pfp) {
 	}
 
 	
-	for(decal_index = 0; decal_index < VEC_LEN(&dm->meshes); decal_index++) {
-		Decal* d = VEC_ITEM(&dm->meshes, decal_index);
+	for(decal_index = 0; decal_index < VEC_LEN(&dm->decals); decal_index++) {
+		Decal* d = VEC_ITEM(&dm->decals, decal_index);
 		d->numToDraw = 0;
 		
 		// TODO make instances switch per frame
-		for(i = 0; i < VEC_LEN(&dm->instances[0]); i++) {
-			DecalInstance* di = &VEC_ITEM(&d->instances[0], i);
+		for(i = 0; i < VEC_LEN(&d->instances); i++) {
+			DecalInstance* di = &VEC_ITEM(&d->instances, i);
 			
-			float d = vDist(&di->pos, &pfp->dp->eyePos);
+			float dist = vDist(&di->pos, &pfp->dp->eyePos);
 				
 		//	printf("d %f -- ", d);
-		//	printf("%f, %f, %f -- ", dmi->pos.x, dmi->pos.y, dmi->pos.z);
+		//	printf("%f, %f, %f -- ", di->pos.x, di->pos.y, di->pos.z);
 		//	printf("%f, %f, %f\n", pfp->dp->eyePos.x, pfp->dp->eyePos.y, pfp->dp->eyePos.z);
 			
-			if(d > 500) continue;
-			dm->numToDraw++;
-			
-			mTransv(&di->pos, &m);
-			
-			// HACK
-			Vector noise;
-			vRandom(&(Vector){-1,-1,-1}, &(Vector){1,1,1}, &noise);
-			//mTransv(&noise, &m);
-			
-			// z-up hack for now
-			mRot3f(1, 0, 0, F_PI / 2, &m);
-			mRot3f(1, 0, 0, dm->defaultRotX, &m);
-			mRot3f(0, 1, 0, dm->defaultRotY, &m);
-			mRot3f(0, 0, 1, dm->defaultRotZ, &m);
-			mScale3f(dm->defaultScale, dm->defaultScale, dm->defaultScale, &m);
-			
-			//mScalev(&dmi->scale, &m);
+			if(dist > 500) continue;
+			d->numToDraw++;
 			
 			// only write sequentially. random access is very bad.
-			vmem->m = m;
-			vmem->diffuseIndex = dm->texIndex;
-			vmem->normalIndex = 0;
+			*vmem = *di;
 			
 			vmem++;
 		}
 		//vmem += VEC_LEN(&dm->instances);
-	//	printf("num to draw %d\n", dm->numToDraw);
+		//printf("num to draw %d\n", d->numToDraw);
 	}
 	
 }
@@ -416,84 +411,85 @@ void DecalManager_updateMatrices(DecalManager* dmm, PassFrameParams* pfp) {
 
 static void preFrame(PassFrameParams* pfp, DecalManager* dm) {
 	
-	dynamicMeshManager_updateMatrices(mm, pfp);
+	DecalManager_updateMatrices(dm, pfp);
 
 	
 	
-	DrawArraysIndirectCommand* cmds = PCBuffer_beginWrite(&mm->indirectCmds);
+	DrawElementsIndirectCommand* cmds = PCBuffer_beginWrite(&dm->indirectCmds);
 	
 	int index_offset = 0;
 	int instance_offset = 0;
 	int decal_index;
-	for(decal_index = 0; decal_index < VEC_LEN(&mm->meshes); decal_index++) {
-		DynamicMesh* dm = VEC_ITEM(&mm->meshes, decal_index);
+	for(decal_index = 0; decal_index < VEC_LEN(&dm->decals); decal_index++) {
+		Decal* d = VEC_ITEM(&dm->decals, decal_index);
 			
-		cmds[mesh_index].first = index_offset; // offset of this mesh into the instances
-		cmds[mesh_index].count = dm->indexCnt; // number of polys
+		cmds[decal_index].firstIndex = index_offset; // offset of this mesh into the instances
+		cmds[decal_index].count = 36;//dm->indexCnt; // number of polys
 		
 		// offset into instanced vertex attributes
-		cmds[mesh_index].baseInstance = (mm->maxInstances * ((mm->instVB.nextRegion) % PC_BUFFER_DEPTH)) + instance_offset; 
+		cmds[decal_index].baseInstance = (dm->maxInstances * ((dm->instVB.nextRegion) % PC_BUFFER_DEPTH)) + instance_offset; 
 		// number of instances
-		cmds[mesh_index].instanceCount = dm->numToDraw; //VEC_LEN(&dm->instances[0]); 
+		cmds[decal_index].instanceCount = d->numToDraw; //VEC_LEN(&dm->instances[0]); 
 	//printf("instances %d %d %d %d  \n", mesh_index, dm->indexCnt, VEC_LEN(&dm->instances[0]), instance_offset );
+		cmds[decal_index].baseVertex = 0;
 		
-		index_offset += dm->indexCnt;// * sizeof(DynamicMeshVertex);//dm->indexCnt;
-		instance_offset += VEC_LEN(&dm->instances[0]);
+		index_offset += 36;//dm->indexCnt;// * sizeof(DynamicMeshVertex);//dm->indexCnt;
+		instance_offset += VEC_LEN(&d->instances);
 	}
 }
 
 
-void dynamicMeshManager_draw(DynamicMeshManager* mm, PassFrameParams* pfp) {
+void draw(DecalManager* dm, GLuint progID, PassDrawParams* pdp) {
 	
 	GLuint tex_ul;
+
+glexit("");
+	glUseProgram(prog->id);
+	glexit("");
 
 	
 	// TODO: move to intermediate initialization stage
 	glActiveTexture(GL_TEXTURE0 + 9);
-	glBindTexture(GL_TEXTURE_2D_ARRAY, mm->tm->tex_id);
+glexit("");
+	glBindTexture(GL_TEXTURE_2D_ARRAY, dm->tm->tex_id);
+	//printf("tex id: %d\n", dm->tm->tex_id);
+glexit("");
 	
 	tex_ul = glGetUniformLocation(prog->id, "sTexture");
+glexit("");
 	glProgramUniform1i(prog->id, tex_ul, 9);
-	
-	glUseProgram(prog->id);
 	glexit("");
 
-	glUniformMatrix4fv(model_ul, 1, GL_FALSE, &model.m);
-	glUniformMatrix4fv(view_ul, 1, GL_FALSE, &pfp->dp->mWorldView->m);
-	glUniformMatrix4fv(proj_ul, 1, GL_FALSE, &pfp->dp->mViewProj->m);
-	glUniform3f(color_ul, .5, .2, .9);
+
+	glActiveTexture(GL_TEXTURE0 + 23);
+	glexit("shading tex 5");
+	glBindTexture(GL_TEXTURE_2D, dm->dtex);
+	glProgramUniform1i(prog->id, glGetUniformLocation(prog->id, "sDepth"), 23);
+	
+
+	glUniformMatrix4fv(view_ul, 1, GL_FALSE, &pdp->mWorldView->m);
+	glUniformMatrix4fv(proj_ul, 1, GL_FALSE, &pdp->mViewProj->m);
 	
 	
 
 	//printf("instance count %d, %d\n", cmds[0].instanceCount, cmds[0].count);
 	
 	glBindVertexArray(vao);
-	glBindBuffer(GL_ARRAY_BUFFER, mm->geomVBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mm->geomIBO);
+	glBindBuffer(GL_ARRAY_BUFFER, geomVBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geomIBO);
 	
-	
-	PCBuffer_bind(&mm->instVB);
-	
-	
-	glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
-
-	
-
-	
+	PCBuffer_bind(&dm->instVB);	
 	PCBuffer_bind(&dm->indirectCmds);
 	
 	// there's just one mesh for decals atm
- 	glMultiDrawArraysIndirect(GL_TRIANGLES, 0, 1/*VEC_LEN(&dm->decals)*/, 0);
-	glexit("multidrawarraysindirect");
-	
-	PCBuffer_afterDraw(&dm->instVB);
-	PCBuffer_afterDraw(&dm->indirectCmds);
+ 	glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_SHORT, 0, 1,/*VEC_LEN(&dm->decals),*/ 0);
+	glexit("multidrawelementsindirect");
 	
 }
 
 
 
-tatic void postFrame(DecalManager* mm) {
+static void postFrame(DecalManager* dm) {
 	PCBuffer_afterDraw(&dm->instVB);
 	PCBuffer_afterDraw(&dm->indirectCmds);
 }
