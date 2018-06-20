@@ -48,11 +48,21 @@ void main(void) {
 	
 	float a;
 	
-	d = 1 - d;
+	if(d > .75) {
+		d = 1;// (d - .75) * -4;
+	}
+	else {
+		d = (d / 3) * 4;
+	}
+ 	d = 1 - d;
 
-	a = smoothstep(0.6, .8, abs(d));
+ 	a = smoothstep(0.2, 1.0, abs(d));
+	
+//	a = mix(0.1, .9, abs(d));
 
-	if(a < 0.1) discard;
+	//a = d;
+	
+	if(a < 0.01) discard;
 	
 	gl_FragColor = vec4(color.abg, a); 
 

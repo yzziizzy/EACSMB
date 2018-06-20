@@ -47,7 +47,7 @@ static TextRes* getFont(char* name) {
 	// try to load a pre-generated sdf file
 	tr = LoadSDFFont(filename);
 	if(tr == NULL) {
-		tr = GenerateSDFFont(name, 16, NULL);
+		tr = GenerateSDFFont(name, 64, NULL);
 		SaveSDFFont(filename, tr);
 	}
 	

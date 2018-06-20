@@ -319,7 +319,7 @@ int World_spawnAt_Decal(World* w, int index, Vector* location) {
 	
 	groundloc = (Vector){location->x, location->y, h};
 
-	printf("spawning decal %f,%f,%f\n", groundloc.x, groundloc.y, groundloc.z);
+	//printf("spawning decal %f,%f,%f\n", groundloc.x, groundloc.y, groundloc.z);
 
 	DecalInstance di;
 	

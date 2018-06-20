@@ -404,7 +404,7 @@ TextRes* GenerateSDFFont(char* fontName, int size, char* chars) {
 	
 	//debug:
 	//size = 16;
-	oversample = 8; // 16 is better
+	oversample = 16; // 16 is better
 	
 	err = FT_Set_Pixel_Sizes(fontFace, 0, size * oversample);
 	if(err) {
@@ -425,8 +425,8 @@ TextRes* GenerateSDFFont(char* fontName, int size, char* chars) {
 	
 	h_above = 0;
 	h_below = 0;
-	width = 4*1024;
-	height = 32;
+	width = 8*1024;
+	height = 128; //32;
 	res->texWidth = width;
 	res->texHeight = height; // may not always just be one row
 	res->maxHeight = height;
@@ -480,10 +480,10 @@ TextRes* GenerateSDFFont(char* fontName, int size, char* chars) {
 	// render SDF's
 	for(i = 0; i < charlen; i++) {
 		gbs[i].oversample = oversample;
-		gbs[i].magnitude = 4;
+		gbs[i].magnitude = 16;
 		gbs[i].code = chars[i];
 		DrawGlyph(res, &gbs[i]);
-	//	printf("calculating sdf for %d (%c)... ", chars[i], chars[i]);
+		printf("(%.1f%%) calculating sdf for %d (%c)... \n", ((((float)i) * 100) / (float)charlen), chars[i], chars[i]);
 		
 		//writePNG("sdfpct.png", 1, gbs[i].data, gbs[i].dw, gbs[i].dh);
 		
@@ -804,7 +804,7 @@ static void makeVertices(TextRenderInfo* tri, unsigned int* colors) {
 		*/
 		offset -= ((font->padding * 2) * vscale);
 		offset -= kerning;
-		offset -= .15;
+		//offset += .15;
 		
 	
 		//printf("kerning: %f\n", kerning);
