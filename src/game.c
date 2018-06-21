@@ -53,7 +53,15 @@ float zoom;
 
 
 // temp shit
-GUIText* gt, *gt_sel, *gt_emit;
+GUIText* gt;
+GUIText* gt_terrain;
+GUIText* gt_solids;
+GUIText* gt_selection;
+GUIText* gt_decals;
+GUIText* gt_emitters;
+GUIText* gt_lighting;
+GUIText* gt_shading;
+GUIText* gt_gui;
 GUIText* gtRenderMode;
 GUIText* gtSelectionDisabled;
 GUISimpleWindow* gswTest;
@@ -213,8 +221,14 @@ void initGame(XStuff* xs, GameState* gs) {
 	gui_Init();
 	
 	gt = guiTextNew("gui!", (Vector2){0.010,0.01}, 4.0f, "Arial");
-	gt_sel = guiTextNew("gui!", (Vector2){0.010,0.04}, 4.0f, "Arial");
-	gt_emit = guiTextNew("gui!", (Vector2){0.01,0.07}, 4.0f, "Arial");
+	gt_terrain = guiTextNew("gui!", (Vector2){0.010,0.04}, 3.0f, "Arial");
+	gt_solids = guiTextNew("gui!", (Vector2){0.010,0.06}, 3.0f, "Arial");
+	gt_selection = guiTextNew("gui!", (Vector2){0.010,0.28}, 3.0f, "Arial");
+	gt_decals = guiTextNew("gui!", (Vector2){0.010,0.08}, 3.0f, "Arial");
+	gt_emitters = guiTextNew("gui!", (Vector2){0.010,0.10}, 3.0f, "Arial");
+	gt_lighting = guiTextNew("gui!", (Vector2){0.010,0.12}, 3.0f, "Arial");
+	gt_shading = guiTextNew("gui!", (Vector2){0.010,0.14}, 3.0f, "Arial");
+	gt_gui = guiTextNew("gui!", (Vector2){0.010,0.16}, 3.0f, "Arial");
 	gtRenderMode = guiTextNew("", (Vector2){0.1,0.9}, 6.0f, "Arial");
 	gtSelectionDisabled = guiTextNew("", (Vector2){0.5,0.1}, 6.0f, "Arial");
 	
@@ -230,9 +244,16 @@ void initGame(XStuff* xs, GameState* gs) {
 	
 	
 	//guiRegisterObject(gswTest, NULL);
-	guiRegisterObject(gt, NULL);
-	guiRegisterObject(gt_sel, NULL);
-	guiRegisterObject(gt_emit, NULL);
+	//guiRegisterObject(gt, NULL);
+	guiRegisterObject(gt_terrain, NULL);
+	guiRegisterObject(gt_solids, NULL);
+	//guiRegisterObject(gt_selection, NULL);
+	guiRegisterObject(gt_decals, NULL);
+	guiRegisterObject(gt_emitters, NULL);
+	guiRegisterObject(gt_lighting, NULL);
+	guiRegisterObject(gt_shading, NULL);
+	guiRegisterObject(gt_gui, NULL);
+	
 	guiRegisterObject(gtRenderMode, NULL);
 	guiRegisterObject(gtSelectionDisabled, NULL);
 	
@@ -306,27 +327,43 @@ void preFrame(GameState* gs) {
 		float fps = 60.0f / (gs->frameTime - lastPoint);
 		
 		uint64_t qtime;
-		
-		if(!query_queue_try_result(&gs->queries.draw, &qtime)) {
-			sdtime = ((double)qtime) / 1000000.0;
-		}
-		snprintf(frameCounterBuf, 128, "dtime:  %.2fms", sdtime);
-		guiTextSetValue(gt, frameCounterBuf);
+
+#define query_update_gui(qname)		\
+		if(!query_queue_try_result(&gs->queries.qname, &qtime)) {\
+			sdtime = ((double)qtime) / 1000000.0;\
+		}\
+		snprintf(frameCounterBuf, 128, #qname ":  %.2fms", sdtime);\
+		guiTextSetValue(gt_##qname, frameCounterBuf);
 
 
-		if(!query_queue_try_result(&gs->queries.selection, &qtime)) {
-			sseltime = ((double)qtime) / 1000000.0;
-		}
-		snprintf(frameCounterBuf, 128, "seltime:  %.2fms", sseltime);
-		guiTextSetValue(gt_sel, frameCounterBuf);
+		query_update_gui(terrain);
+		query_update_gui(solids);
+		query_update_gui(selection);
+		query_update_gui(decals);
+		query_update_gui(emitters);
+		query_update_gui(shading);
+		query_update_gui(lighting);
+		query_update_gui(gui);
+		
+		//if(!query_queue_try_result(&gs->queries.draw, &qtime)) {
+			//sdtime = ((double)qtime) / 1000000.0;
+		//}
+		//snprintf(frameCounterBuf, 128, "dtime:  %.2fms", sdtime);
+		//guiTextSetValue(gt, frameCounterBuf);
+
+
+		//if(!query_queue_try_result(&gs->queries.selection, &qtime)) {
+			//sseltime = ((double)qtime) / 1000000.0;
+		//}
+		//snprintf(frameCounterBuf, 128, "seltime:  %.2fms", sseltime);
+		//guiTextSetValue(gt_sel, frameCounterBuf);
 		
 		
-		if(!query_queue_try_result(&gs->queries.emitters, &qtime)) {
-			semittime = ((double)qtime) / 1000000.0;
-		}
-		snprintf(frameCounterBuf, 128, "emittime:  %.2fms", semittime);
-		guiTextSetValue(gt_emit, frameCounterBuf);
-		
+		//if(!query_queue_try_result(&gs->queries.emitters, &qtime)) {
+			//semittime = ((double)qtime) / 1000000.0;
+		//}
+		//snprintf(frameCounterBuf, 128, "emittime:  %.2fms", semittime);
+		//guiTextSetValue(gt_emit, frameCounterBuf);
 		
 		lastPoint = now;
 	}

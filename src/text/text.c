@@ -425,8 +425,8 @@ TextRes* GenerateSDFFont(char* fontName, int size, char* chars) {
 	
 	h_above = 0;
 	h_below = 0;
-	width = 8*1024;
-	height = 128; //32;
+	width = 4*1024;
+	height = 64; //32;
 	res->texWidth = width;
 	res->texHeight = height; // may not always just be one row
 	res->maxHeight = height;
@@ -480,7 +480,7 @@ TextRes* GenerateSDFFont(char* fontName, int size, char* chars) {
 	// render SDF's
 	for(i = 0; i < charlen; i++) {
 		gbs[i].oversample = oversample;
-		gbs[i].magnitude = 16;
+		gbs[i].magnitude = 8;
 		gbs[i].code = chars[i];
 		DrawGlyph(res, &gbs[i]);
 		printf("(%.1f%%) calculating sdf for %d (%c)... \n", ((((float)i) * 100) / (float)charlen), chars[i], chars[i]);

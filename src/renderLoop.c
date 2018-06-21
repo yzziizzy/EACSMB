@@ -204,9 +204,14 @@ void setupFBOs(GameState* gs, int resized) {
 void initRenderLoop(GameState* gs) {
 	
 	// timer queries
-	query_queue_init(&gs->queries.draw);
+	query_queue_init(&gs->queries.terrain);
+	query_queue_init(&gs->queries.solids);
 	query_queue_init(&gs->queries.selection);
+	query_queue_init(&gs->queries.decals);
 	query_queue_init(&gs->queries.emitters);
+	query_queue_init(&gs->queries.lighting);
+	query_queue_init(&gs->queries.shading);
+	query_queue_init(&gs->queries.gui);
 	
 	
 	glEnable(GL_DEPTH_TEST);
@@ -240,6 +245,9 @@ void shadingPass(GameState* gs) {
 	Matrix world, projView, viewWorld;
 	
 	world = IDENT_MATRIX;
+	
+	
+	query_queue_start(&gs->queries.shading);
 	
 	glUseProgram(shadingProg->id);
 	glexit("shading prog");
@@ -286,6 +294,10 @@ void shadingPass(GameState* gs) {
 	drawFSQuad();
 	glexit("post quad draw");
 	
+	query_queue_stop(&gs->queries.shading);
+	
+	
+	query_queue_start(&gs->queries.gui);
 	
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
@@ -294,6 +306,8 @@ void shadingPass(GameState* gs) {
 	gui_RenderAll(gs);
 	
 	glDisable(GL_BLEND);
+	
+	query_queue_stop(&gs->queries.gui);
 	
 }
 
@@ -357,13 +371,14 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is, PassFrameParams* pfp
 	// draw terrain
 // 	drawTerrainBlock(&gs->map, msGetTop(&gs->model), msGetTop(&gs->view), msGetTop(&gs->proj), &gs->cursorPos);
 	//drawTerrain(&gs->scene.map, &gs->perViewUB, &gs->cursorPos, &gs->screen.wh);
-	
+	query_queue_start(&gs->queries.terrain);
 	World_drawTerrain(gs->world);
-	
+	query_queue_stop(&gs->queries.terrain);
 	//renderMarker(gs, 0,0);
 
+	query_queue_start(&gs->queries.solids);
 	World_drawSolids(gs->world, pfp);
-
+	query_queue_stop(&gs->queries.solids);
 	
 	//drawStaticMesh(gs->world->testmesh.sm, msGetTop(&gs->view), msGetTop(&gs->proj));
 	
@@ -382,10 +397,10 @@ void renderDecals(XStuff* xs, GameState* gs, InputState* is, PassFrameParams* pf
 	glUniform1i(glGetUniformLocation(shadingProg->id, "sDepth"), 8);
 	
 	*/
-	
+	query_queue_start(&gs->queries.decals);
 	World_drawDecals(gs->world, pfp);
 	// drawTerrainRoads(gs->depthTexBuffer, &gs->scene.map, msGetTop(&gs->view), msGetTop(&gs->proj), &gs->cursorPos, &gs->screen.wh);
-	
+	query_queue_stop(&gs->queries.decals);
 	glexit("render decals");
 }
 
@@ -470,7 +485,7 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	// update world state
 // 	glBeginQuery(GL_TIME_ELAPSED, gs->queries.dtime[gs->queries.dtimenum]);
-	query_queue_start(&gs->queries.draw);
+	//query_queue_start(&gs->queries.draw);
 
 	
 	glBindFramebuffer(GL_FRAMEBUFFER, gs->gbuf.fb);
@@ -481,7 +496,7 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	glDepthFunc(GL_LEQUAL);
 	
 	renderFrame(xs, gs, is, &pfp);
-	query_queue_stop(&gs->queries.draw);
+	//query_queue_stop(&gs->queries.draw);
 	
 	// decals
 	glBindFramebuffer(GL_FRAMEBUFFER, gs->decalbuf.fb);
@@ -509,7 +524,7 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	//glCullFace(GL_FRONT);
 	//glDisable(GL_DEPTH_TEST);
 	//glDepthFunc(GL_GREATER);
-	
+	query_queue_start(&gs->queries.lighting);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_ONE, GL_ONE);
 	glBlendEquationSeparate(GL_FUNC_ADD, GL_MAX);
@@ -523,6 +538,7 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	RenderPass_postFrameAll(gs->world->lightingPass);
 	
 	glDisable(GL_BLEND);
+	query_queue_stop(&gs->queries.lighting);
 	
 	//glDisable(GL_CULL_FACE);
 	//glCullFace(GL_BACK);
