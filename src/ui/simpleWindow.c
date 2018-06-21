@@ -29,11 +29,11 @@ static int closeClick(GUIEvent* e) {
 
 
 
-void guiSimpleWindowRender(GUISimpleWindow* sw, GameState* gs) {
+void guiSimpleWindowRender(GUISimpleWindow* sw, GameState* gs, PassFrameParams* pfp) {
 	
-	guiRender(sw->bg, gs);
-	guiRender(sw->titlebar, gs);
-	guiRender(sw->closebutton, gs);
+	guiRender(sw->bg, gs, pfp);
+	guiRender(sw->titlebar, gs, pfp);
+	guiRender(sw->closebutton, gs, pfp);
 }
 
 void guiSimpleWindowDelete(GUISimpleWindow* sw) {

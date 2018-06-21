@@ -276,8 +276,12 @@ void processEvents(XStuff* xs, InputState* st, InputFocusStack* ifs, int max_eve
 			
 			st->keyState[xev.xkey.keycode] |= IS_KEYPRESSED | IS_KEYDOWN;
 			
+			int slen = XLookupString(&xev, &c, 1, &sym, NULL);
+			
 			iev.type = EVENT_KEYDOWN;
 			iev.time = gt;
+			iev.keysym = sym;
+			iev.character = c;
 			//.iev.keycode = xev.xkey.keycode;
 			iev.kbmods = TranslateModState(xev.xkey.state);
 			

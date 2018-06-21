@@ -76,11 +76,11 @@ void guiRegisterObject_(GUIHeader* o, GUIHeader* parent) {
 }
 
 
-void guiRender(GUIObject* go, GameState* gs) {
+void guiRender(GUIObject* go, GameState* gs, PassFrameParams* pfp) {
 	if(go->h.hidden || go->h.deleted) return;
 	
 	if(go->h.vt->Render)
-		go->h.vt->Render(go, gs);
+		go->h.vt->Render(go, gs, pfp);
 } 
 
 void guiDelete(GUIObject* go) {
@@ -170,14 +170,14 @@ GUIObject* guiBaseHitTest(GUIObject* go, Vector2 testPos) {
 }
 
 
-void gui_RenderAll(GameState* gs) {
+void gui_RenderAll(GameState* gs, PassFrameParams* pfp) {
 	int i;
 	
 	// TODO: replace with rendering tree once all data is unified
 	
 	for(i = 0; i < VEC_LEN(&gui_list); i++) {
 		//guiTextRender(VEC_DATA(&gui_list)[i], gs);
-		guiRender(VEC_DATA(&gui_list)[i], gs);
+		guiRender(VEC_DATA(&gui_list)[i], gs, pfp);
 	}
 }
 

@@ -49,7 +49,7 @@ void gui_Window_Init() {
 	glexit("");
 }
 
-void guiWindowRender(GUIWindow* gw, GameState* gs);
+void guiWindowRender(GUIWindow* gw, GameState* gs, PassFrameParams* pfp);
 void guiWindowDelete(GUIWindow* gw);
 Vector2 guiWindowGetClientSize(GUIObject* go);
 void guiWindowSetClientSize(GUIObject* go, Vector2 cSize);
@@ -109,7 +109,7 @@ GUIWindow* guiWindowNew(Vector2 pos, Vector2 size, float zIndex) {
 }
 
 
-void guiWindowRender(GUIWindow* gw, GameState* gs) {
+void guiWindowRender(GUIWindow* gw, GameState* gs, PassFrameParams* pfp) {
 	
 	Matrix proj = IDENT_MATRIX;
 	

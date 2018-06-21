@@ -53,13 +53,13 @@ void updateMeshManager() {
 	StaticMesh_updateBuffers(sm);
 	*/
 }
-void guiBuilderControlRender(GUIBuilderControl* bc, GameState* gs) {
+void guiBuilderControlRender(GUIBuilderControl* bc, GameState* gs, PassFrameParams* pfp) {
 	bc->rt->texID = RenderPipeline_getOutputTexture(bc->rpipe);
 	
-	guiRender(bc->rt, gs);
+	guiRender(bc->rt, gs, pfp);
 	
 	if(bc->ed)
-		guiRender(bc->ed, gs);
+		guiRender(bc->ed, gs, pfp);
 	
 	//printf("sdf\n");
 }

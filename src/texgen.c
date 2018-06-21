@@ -317,9 +317,9 @@ static void parseConfig(char* path) {
 */
 
 
-void guiTexBuilderControlRender(GUITexBuilderControl* bc, GameState* gs) {
-	guiRender(bc->bg, gs);
-	guiRender(bc->im, gs);
+void guiTexBuilderControlRender(GUITexBuilderControl* bc, GameState* gs, PassFrameParams* pfp) {
+	guiRender(bc->bg, gs, pfp);
+	guiRender(bc->im, gs, pfp);
 }
 
 void guiTexBuilderControlDelete(GUITexBuilderControl* bc) {

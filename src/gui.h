@@ -16,7 +16,7 @@ typedef union GUIObject GUIObject;
 
 
 struct gui_vtbl {
-	void (*Render)(GUIObject* go, GameState* gs);
+	void (*Render)(GUIObject* go, GameState* gs, PassFrameParams* pfp);
 	void (*Delete)(GUIObject* go);
 	void (*Reap)(GUIObject* go);
 	void (*Resize)(GUIObject* go, Vector2 newSz); // exterior size
@@ -95,11 +95,11 @@ union GUIObject {
 void gui_Init();
 void gui_Image_Init(char* file);
 
-void gui_RenderAll(GameState* gs);
+void gui_RenderAll(GameState* gs, PassFrameParams* pfp);
 
 GUIObject* guiHitTest(GUIObject* go, Vector2 testPos);
 void guiDelete(GUIObject* go);
-void guiRender(GUIObject* go, GameState* gs);
+void guiRender(GUIObject* go, GameState* gs, PassFrameParams* pfp);
 void guiReap(GUIObject* go);
 void guiResize(GUIHeader* gh, Vector2 newSz);
 int guiRemoveChild(GUIObject* parent, GUIObject* child);

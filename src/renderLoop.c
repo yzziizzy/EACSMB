@@ -240,7 +240,7 @@ void initRenderLoop(GameState* gs) {
 }
 
 
-void shadingPass(GameState* gs) {
+void shadingPass(GameState* gs, PassFrameParams* pfp) {
 	
 	Matrix world, projView, viewWorld;
 	
@@ -303,7 +303,7 @@ void shadingPass(GameState* gs) {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
-	gui_RenderAll(gs);
+	gui_RenderAll(gs, pfp);
 	
 	glDisable(GL_BLEND);
 	
@@ -469,8 +469,8 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	PassFrameParams pfp;
 	pfp.dp = &pdp;
 	pfp.timeElapsed = gs->frameSpan;
-	pfp.gameTime = gs->frameTime;
-	pfp.wallTime = 0;
+	pfp.gameTime = gs->frameTime; // this will get regenerated from save files later
+	pfp.wallTime = gs->frameTime;
 	
 	RenderAllPrePasses(&pfp);
 	
@@ -554,7 +554,7 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 	
-	shadingPass(gs);
+	shadingPass(gs, &pfp);
 	
 	glXSwapBuffers(xs->display, xs->clientWin);
 }

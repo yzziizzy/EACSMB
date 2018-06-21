@@ -114,7 +114,7 @@ void gui_Image_Init(char* file) {
 
 
 
-void guiImageRender(GUIImage* im, GameState* gs) {
+void guiImageRender(GUIImage* im, GameState* gs, PassFrameParams* pfp) {
 	
 	Matrix proj = IDENT_MATRIX;
 	

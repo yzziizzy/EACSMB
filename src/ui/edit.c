@@ -10,28 +10,64 @@ static void updateTextControl(GUIEdit* ed);
 static void fireOnchange(GUIEdit* ed);
 
 
+static void moveCursor(GUIEdit* ed, int delta) {
+	ed->cursorpos = MIN(ed->textlen, MAX(0, ed->cursorpos + delta));
+}
 
 
-void guiEditRender(GUIEdit* ed, GameState* gs) {
+void guiEditRender(GUIEdit* ed, GameState* gs, PassFrameParams* pfp) {
 	
-	guiRender(ed->bg, gs);
-	guiRender(ed->textControl, gs);
+	guiRender(ed->bg, gs, pfp);
+	guiRender(ed->textControl, gs, pfp);
 	
-	// TODO: cycle blink here
-	guiRender(ed->cursor, gs);
+	
+	if(fmod(pfp->wallTime, 1.0) > .5) {
+		ed->cursor->header.topleft.x = 
+			ed->bg->header.topleft.x +
+			(ed->cursorOffset * ed->textControl->size * .01);
+		guiRender(ed->cursor, gs, pfp);
+	}
 }
 
 void guiEditDelete(GUIEdit* sw) {
 	
+}
+
+void removeChar(GUIEdit* ed, int index) {
+	if(index >= ed->textlen || index < 0) return;
 	
+	char* e = ed->buf + index;
+	while(e <= ed->buf + ed->textlen + 1) {
+		*e = *(e + 1);
+		e++;
+	}
+	
+	ed->textlen--;
+}
+
+
+void backspace(GUIEdit* ed) {
+	if(ed->cursorpos <= 0) return;
 	
 	
 }
 
 
-
 static void recieveText(InputEvent* ev, GUIEdit* ed) {
 	insertChar(ed, ev->character);
+	ed->cursorpos++;
+	updateTextControl(ed);
+}
+
+static void keyDown(InputEvent* ev, GUIEdit* ed) {
+	if(ev->keysym == XK_Left) moveCursor(ed, -1);
+	else if(ev->keysym == XK_Right) moveCursor(ed, 1);
+	else if(ev->keysym == XK_BackSpace) {
+		removeChar(ed, ed->cursorpos - 1);
+		moveCursor(ed, -1);
+	}
+	else if(ev->keysym == XK_Delete) removeChar(ed, ed->cursorpos);
+	
 	updateTextControl(ed);
 }
 
@@ -49,6 +85,7 @@ GUIEdit* GUIEditNew(char* initialValue, Vector2 pos, Vector2 size) {
 		
 	static InputEventHandler input_vt = {
 		.keyText = recieveText,
+		.keyDown = keyDown,
 	};
 	
 	ed = calloc(1, sizeof(*ed));
@@ -94,7 +131,8 @@ GUIEdit* GUIEditNew(char* initialValue, Vector2 pos, Vector2 size) {
 	ed->textControl->header.size.x = .5;
 	guiRegisterObject(ed->textControl, &ed->bg->header);
 
-	
+	ed->cursorOffset = guiTextGetTextWidth(ed->textControl, ed->cursorpos);
+
 	
 	return ed;
 }
@@ -122,7 +160,7 @@ static void insertChar(GUIEdit* ed, char c) {
 	}
 	
 	ed->textlen++;
-	*e = c;
+	*(e+1) = c;
 }
 
 static void updateTextControl(GUIEdit* ed) {
@@ -130,6 +168,7 @@ static void updateTextControl(GUIEdit* ed) {
 	
 	// get new cursor pos
 	ed->cursorOffset = guiTextGetTextWidth(ed->textControl, ed->cursorpos);
+	//printf("cursorpos %f\n", ed->cursorOffset); 
 	
 	fireOnchange(ed);
 }

@@ -66,11 +66,15 @@ GUIText* gtRenderMode;
 GUIText* gtSelectionDisabled;
 GUISimpleWindow* gswTest;
 GUIImage* giTest;
+
+GUIEdit* geditTest;
+
 GUIRenderTarget* grtTest;
 GUIBuilderControl* gbcTest;
 GUITexBuilderControl* texbuilder;
 Texture* cnoise;
 Emitter* dust;
+
 
 
 RenderPipeline* rpipe;
@@ -258,9 +262,9 @@ void initGame(XStuff* xs, GameState* gs) {
 	guiRegisterObject(gtSelectionDisabled, NULL);
 	
 
-	//initUI(gs);
-	//initMarker();
-	 
+	//geditTest = GUIEditNew("edit", (Vector2){.5, .5}, (Vector2){.4, .05});
+	//guiRegisterObject(geditTest, NULL);
+	//InputFocusStack_PushTarget(&gs->ifs, geditTest, inputHandlers);
 
 	
 	gs->world = calloc(1, sizeof(*gs->world));

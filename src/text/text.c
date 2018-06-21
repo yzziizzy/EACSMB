@@ -804,7 +804,7 @@ static void makeVertices(TextRenderInfo* tri, unsigned int* colors) {
 		*/
 		offset -= ((font->padding * 2) * vscale);
 		offset -= kerning;
-		//offset += .15;
+		offset -= .15;
 		
 	
 		//printf("kerning: %f\n", kerning);
@@ -882,7 +882,7 @@ static void makeVertices(TextRenderInfo* tri, unsigned int* colors) {
 
 // this algorithm must be kept in sync with the above function
 float CalcTextWidth(TextRenderInfo* tri, int charLen) {
-	float offset, vscale, scale;
+	float offset, vscale, scale, uscale;
 	int v, i;
 	char* str;
 	TextRes* font;
@@ -893,18 +893,22 @@ float CalcTextWidth(TextRenderInfo* tri, int charLen) {
 	
 	vscale = 1.0 / font->texHeight;
 	scale = 1.0 / font->maxHeight;
+	uscale = 1.0 / font->texWidth;
 	
 	offset = 0.0;
 	v = 0;
 	for(i = 0; i < tri->textLen && i < charLen; i++) {
 		//printf("loop\n");
-		float width, valign;
+		float width, valign, kerning;
 		int index;
 		
 		index = font->codeIndex[str[i]];
 		width = font->charWidths[index] * scale;
 		
+		kerning = 0;
+		
 		offset -= ((font->padding * 2) * vscale);
+		offset -= kerning;
 		offset -= .15;
 		
 		offset += width; 

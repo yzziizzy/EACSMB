@@ -60,7 +60,7 @@ static TextRes* getFont(char* name) {
 
 
 
-void guiTextRender(GUIText* gt, GameState* gs);
+void guiTextRender(GUIText* gt, GameState* gs, PassFrameParams* pfp);
 void guiTextDelete(GUIText* gt);
 
 
@@ -107,7 +107,7 @@ GUIText* guiTextNew(char* str, Vector2 pos, float size, char* fontname) {
 
 
 
-void guiTextRender(GUIText* gt, GameState* gs) {
+void guiTextRender(GUIText* gt, GameState* gs, PassFrameParams* pfp) {
 	
 	Matrix textProj;
 	Vector v;
