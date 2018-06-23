@@ -12,6 +12,7 @@ eacsmb_SOURCES = main.c \
 	config.c \
 	cursor.c \
 	decals.c \
+	decalsCustom.c \
 	ds.c \
 	dumpImage.c \
 	dynamicMesh.c \

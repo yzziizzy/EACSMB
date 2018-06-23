@@ -208,13 +208,14 @@ void initGame(XStuff* xs, GameState* gs) {
 	
 	initTextures();
 	
-	initStaticMeshes();
+	initStaticMeshes(); // static meshes will probably be phased out due to the culling efficiency of dynamic meshes
 	initDynamicMeshes();
 	initLighting();
 	initRoads();
 	initWaterPlane();
 	initEmitters();
 	initDecals();
+	initCustomDecals();
 	
 	
 	// initialize all those magic globals
