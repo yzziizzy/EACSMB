@@ -78,8 +78,8 @@ void main() {
 	
 	xp_yd = distance(pos3.xy, pos4.xy); // y-axis length on the +x side
 	xm_yd = distance(pos1.xy, pos2.xy); // ...
-	yp_xd = distance(pos2.xy, pos3.xy); 
-	ym_xd = distance(pos1.xy, pos4.xy); 
+	yp_xd = distance(pos2.xy, pos4.xy); 
+	ym_xd = distance(pos1.xy, pos3.xy); 
 	
 }
 
@@ -123,6 +123,25 @@ layout(location = 0) out vec4 out_Color;
 layout(location = 1) out vec4 out_Normal;
 
 
+vec2 lineProject(vec2 a, vec2 b, vec2 p) {
+	vec2 ab = b - a;
+	vec2 ap = p - a;
+	
+	return a + dot(ap, ab) / dot(ab, ab) * ab;
+}
+
+vec2 lineInterp(vec2 a, vec2 b, vec2 p, out vec2 ip) {
+	
+	float d = distance(a, b);
+	ip = lineProject(a, b, p);
+	
+	return vec2(
+		(distance(ip, a) / d),
+		(distance(ip, b) / d)
+	);
+}
+
+
 
 void main(void) {
 	
@@ -143,34 +162,42 @@ void main(void) {
 	vec4 tmppos = inverse(mViewProj * mWorldView) * vec4(screenCoord * 2.0 - 1.0, ndc_depth, 1.0);
     vec3 pos = tmppos.xyz / tmppos.w;
 
+	// end of position reconstruction
+
+	// projected texture coordinates
+	vec2 tc;
 	
+	// interpolated points
+	vec2 ip_01, ip_23, ip_02, ip_13;
 	
-    //vec3 npos = pos / 256;
-// 	xp_yd = distance(pos3.xy, pos4.xy ); // y-axis length on the +x side
-// 	xm_yd = distance(pos1.xy, pos2.xy ); // ...
-// 	yp_xd = distance(pos2.xy, pos3.xy ); 
-// 	ym_xd = distance(pos1.xy, pos4.xy ); 
+	// TODO: move as much as possible to the vertex shader
 	
-	vec3 c;
-// 	c.r = abs(positions[0].x - pos.x) / yp_xd;
-	c.x = abs(positions[2].x - pos.x) / yp_xd;
+	// normalized positions
+	vec2 np_01 = lineInterp(positions[0], positions[1], pos.xy, ip_01);
+	vec2 np_23 = lineInterp(positions[2], positions[3], pos.xy, ip_23);
 	
-	// 	c.y = abs(positions[0].y - pos.y) / xm_yd;
+	vec2 np_02 = lineInterp(positions[0], positions[2], pos.xy, ip_02);
+	vec2 np_13 = lineInterp(positions[1], positions[3], pos.xy, ip_13);
 	
-	//c.x  = distance(positions[0].xy, pos.xy);
+	float d_xip = distance(ip_01, ip_23);
+	float r_x = distance(ip_01, pos.xy) / d_xip;
 	
-	float dist = 1;// distance(pos.xy, vs_pos.xy);
-	float hsize = 2 / 2;
-	vec2 tc = vec2(0,0);//((pos.xy - vs_pos.xy) + hsize) ;
+	float d_yip = distance(ip_02, ip_13);
+	float r_y = distance(ip_02, pos.xy) / d_yip;
 	
-	//out_Color = vec4(npos.xy, 1, 1.0);
+	// used to calculate bounds
+	float r_ox = distance(ip_23, pos.xy) / d_xip;
+	float r_oy = distance(ip_13, pos.xy) / d_yip;
 	
+	tc = vec2(r_y, r_x); // backwards for better intuitive orientation
 	
-    //out_Color = vec4(0,1,1 , 1); //vs_norm;
-	out_Color = vec4(c.x, 0, 0, 1);
-// 	out_Color = //vec4(texture(sTexture, vec3(tc,0)).rgb , 1); //vs_norm;
+	// discard the box
+	if(max(max(tc.x, tc.y), max(r_oy, r_ox)) > 1 || min(tc.x, tc.y) < 0) {
+		//out_Color = vec4(1,0,0, .5); return;
+		discard; 
+	}
+	
+	out_Color = vec4(texture(sTexture, vec3(tc, texIndex)).rgb , 1); //vs_norm;
 	out_Normal = vec4(1,0,0,0);
-	
-	
 }
 

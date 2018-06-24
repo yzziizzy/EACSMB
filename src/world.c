@@ -127,11 +127,27 @@ void World_init(World* w) {
 	
 	CustomDecalManager_AddDecal(w->cdm, "test", cd);
 	
+	Matrix rm;
+	
+	mIdent(&rm);
+	mTrans3f(100, 100, 0, &rm);
+	mRotZ(1, &rm);
+
+	Vector pos1 = {40, 55, 20};
+	Vector pos2 = {40, 95, 20};
+	Vector pos3 = {100, 30, 20};
+	Vector pos4 = {90, 110, 20};
+	
+	vMatrixMul(&pos1, &rm, &pos1);
+	vMatrixMul(&pos2, &rm, &pos2);
+	vMatrixMul(&pos3, &rm, &pos3);
+	vMatrixMul(&pos4, &rm, &pos4);
+	
 	CustomDecalManager_AddInstance(w->cdm, 0, &(CustomDecalInstance){
-		.pos1 = {20, 60, 20},
-		.pos2 = {20, 90, 20},
-		.pos3 = {100, 40, 20},
-		.pos4 = {100, 110, 20},
+		.pos1 = pos1,
+		.pos2 = pos2,
+		.pos3 = pos3,
+		.pos4 = pos4,
 		.thickness = 50,
 	});
 }
