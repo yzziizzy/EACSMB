@@ -39,9 +39,11 @@ void World_init(World* w) {
 	w->dmm = dynamicMeshManager_alloc(1024*50);
 	w->smm = meshManager_alloc();
 	w->dm = DecalManager_alloc(1024*50);
+	w->cdm = CustomDecalManager_alloc(1024*50);
 	
 	w->dmm->tm = w->meshTexMan;
 	w->dm->tm = w->decalTexMan;
+	w->cdm->tm = w->decalTexMan;
 	
 	meshManager_readConfigFile(w->smm, "assets/config/models.json");
 	dynamicMeshManager_readConfigFile(w->dmm, "assets/config/models.json");
@@ -108,6 +110,7 @@ void World_init(World* w) {
 	w->decalPass = DecalManager_CreateRenderPass(w->dm);
 	printf("world dm texman id: %d\n", w->dm->tm->tex_id);
 	
+	RenderPass_addDrawable(w->decalPass, CustomDecalManager_CreateDrawable(w->cdm));
 	
 	for(int i = 0; i < 5000; i++) {
 		Vector v = {
@@ -119,6 +122,18 @@ void World_init(World* w) {
 		World_spawnAt_Item(w, "tree", &v);
 	}
 	
+	CustomDecal* cd = pcalloc(cd); 
+	cd->thickness = 9.0f;
+	
+	CustomDecalManager_AddDecal(w->cdm, "test", cd);
+	
+	CustomDecalManager_AddInstance(w->cdm, 0, &(CustomDecalInstance){
+		.pos1 = {20, 60, 20},
+		.pos2 = {20, 90, 20},
+		.pos3 = {100, 40, 20},
+		.pos4 = {100, 110, 20},
+		.thickness = 50,
+	});
 }
 
 

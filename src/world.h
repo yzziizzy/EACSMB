@@ -117,6 +117,7 @@ typedef struct World {
 	Emitter* emitters;
 	LightManager* lm;
 	DecalManager* dm;
+	CustomDecalManager* cdm;
 	RenderPass* lightingPass; // temp hack
 	RenderPass* decalPass; // temp hack
 	

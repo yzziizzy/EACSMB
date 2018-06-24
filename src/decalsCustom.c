@@ -71,16 +71,26 @@ void initCustomDecals() {
 	
 	// global decal geometry box
 	CustomDecalVertex box_vertices[] = {
+		//// front face
+		//{{-.5, -.5,  .5}, {0,0}},
+		//{{-.5,  .5,  .5}, {0,0}},
+		//{{ .5,  .5,  .5}, {0,0}},
+		//{{ .5, -.5,  .5}, {0,0}},
+		//// back face
+		//{{-.5, -.5, -.5}, {0,0}},
+		//{{-.5,  .5, -.5}, {0,0}},
+		//{{ .5,  .5, -.5}, {0,0}},
+		//{{ .5, -.5, -.5}, {0,0}},
 		// front face
-		{{-.5, -.5,  .5}, {0,0}},
-		{{-.5,  .5,  .5}, {0,0}},
+		{{-.5, -.5,  .5}, {3,0}},
+		{{-.5,  .5,  .5}, {2,0}},
 		{{ .5,  .5,  .5}, {0,0}},
-		{{ .5, -.5,  .5}, {0,0}},
+		{{ .5, -.5,  .5}, {1,0}},
 		// back face
-		{{-.5, -.5, -.5}, {0,0}},
-		{{-.5,  .5, -.5}, {0,0}},
-		{{ .5,  .5, -.5}, {0,0}},
-		{{ .5, -.5, -.5}, {0,0}},
+		{{-.5, -.5, -.5}, {3+4,0}},
+		{{-.5,  .5, -.5}, {2+4,0}},
+		{{ .5,  .5, -.5}, {0+4,0}},
+		{{ .5, -.5, -.5}, {1+4,0}},
 	};
 	
 	/*
@@ -95,12 +105,25 @@ void initCustomDecals() {
 	*/
 	
 	unsigned short box_indices[] = {
+		
+		//0,1,2, 0,2,3,
+		//0,0,0,
+		
+		//0,0,0, 0,0,0,
+		//0,0,0, 0,0,0,
+		//0,0,0, 0,0,0,
+		//0,0,0, 0,0,0,
+		//0,0,0, 0,0,0,
+		//0,0,0, 0,0,0,
+		
+		
 		4,5,6, 4,6,7, // -z
 		0,1,2, 0,2,3, // +z
 		0,1,4, 1,4,5, // -x
 		2,3,6, 3,6,7, // +x
 		0,3,4, 3,4,7, // -y
 		1,2,5, 2,5,6, // +y
+		
 	};
 	
 	glBindVertexArray(vao);
@@ -114,7 +137,7 @@ void initCustomDecals() {
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 1*3*4 + 4, 0);
-	glVertexAttribPointer(1, 2, GL_UNSIGNED_SHORT, GL_TRUE, 1*3*4 + 4, 1*3*4);
+	glVertexAttribPointer(1, 2, GL_UNSIGNED_SHORT, GL_FALSE, 1*3*4 + 4, 1*3*4);
 
 	glBufferStorage(GL_ARRAY_BUFFER, sizeof(box_vertices), NULL, GL_MAP_WRITE_BIT | GL_DYNAMIC_STORAGE_BIT);
 	glexit("");
@@ -393,7 +416,7 @@ void CustomDecalManager_updateMatrices(CustomDecalManager* dm, PassFrameParams* 
 		//	printf("%f, %f, %f -- ", di->pos.x, di->pos.y, di->pos.z);
 		//	printf("%f, %f, %f\n", pfp->dp->eyePos.x, pfp->dp->eyePos.y, pfp->dp->eyePos.z);
 			
-			if(dist > 500) continue;
+			//if(dist > 500) continue;
 			d->numToDraw++;
 			
 			// only write sequentially. random access is very bad.

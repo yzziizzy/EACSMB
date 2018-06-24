@@ -505,6 +505,7 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	// hack
 	gs->world->dm->dtex = gs->depthTexBuffer;
+	gs->world->cdm->dtex = gs->depthTexBuffer;
 
 	
 	renderDecals(xs, gs, is, &pfp);
