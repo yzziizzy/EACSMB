@@ -3,5 +3,17 @@
 		texture: "assets/textures/colornoise.png",
 		scale: 3.0,
 	},
+	snofractal: {
+		texture: "assets/textures/snowfractal-256.png",
+		scale: 3.0,
+	},
+	zap: {
+		texture: "assets/textures/zap-256.png",
+		scale: 3.0,
+	},
+	test_checkers: {
+		texture: "assets/textures/test-checkers-128.png",
+		scale: 3.0,
+	},
 	
 }
