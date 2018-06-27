@@ -439,7 +439,7 @@ static void preFrame(PassFrameParams* pfp, DecalManager* dm) {
 }
 
 
-void draw(DecalManager* dm, GLuint progID, PassDrawParams* pdp) {
+static void draw(DecalManager* dm, GLuint progID, PassDrawParams* pdp) {
 	
 	GLuint tex_ul;
 

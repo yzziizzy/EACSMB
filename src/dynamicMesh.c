@@ -30,7 +30,7 @@ Texture* tex;
 
 
 static void preFrame(PassFrameParams* pfp, DynamicMeshManager* dmm);
-static void draw(PassDrawParams* pdp, GLuint progID, DynamicMeshManager* dmm);
+static void draw(DynamicMeshManager* dmm, GLuint progID, PassDrawParams* pdp);
 static void postFrame(DynamicMeshManager* dmm);
 
 
@@ -474,52 +474,11 @@ void dynamicMeshManager_updateMatrices(DynamicMeshManager* dmm, PassFrameParams*
 
 
 
-
-void dynamicMeshManager_draw(DynamicMeshManager* mm, PassFrameParams* pfp) {
-	
-	GLuint tex_ul;
-	Matrix model;
-	
-	
+static void preFrame(PassFrameParams* pfp, DynamicMeshManager* mm) {
 	
 	dynamicMeshManager_updateMatrices(mm, pfp);
 	
-	//mFastMul(view, proj, &mvp);
-	mIdent(&model);
-	// HACK fix later
-	mScale3f(150, 150, 150, &model);
-	//mTrans3f(0,0,0, &model);
-	
-	// TODO: move to intermediate initialization stage
-	glActiveTexture(GL_TEXTURE0 + 8);
-	glBindTexture(GL_TEXTURE_2D_ARRAY, mm->tm->tex_id);
-	
-	tex_ul = glGetUniformLocation(prog->id, "sTexture");
-	glProgramUniform1i(prog->id, tex_ul, 8);
-	
-	glUseProgram(prog->id);
-	glexit("");
-
-	glUniformMatrix4fv(model_ul, 1, GL_FALSE, &model.m);
-	glUniformMatrix4fv(view_ul, 1, GL_FALSE, &pfp->dp->mWorldView->m);
-	glUniformMatrix4fv(proj_ul, 1, GL_FALSE, &pfp->dp->mViewProj->m);
-	glUniform3f(color_ul, .5, .2, .9);
-	
-	
-
-	//printf("instance count %d, %d\n", cmds[0].instanceCount, cmds[0].count);
-	
-	glBindVertexArray(vao);
-	glBindBuffer(GL_ARRAY_BUFFER, mm->geomVBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mm->geomIBO);
-	
-	
-	PCBuffer_bind(&mm->instVB);
-	
-	
-	glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
-
-	
+	// set up the indirect draw commands
 	DrawArraysIndirectCommand* cmds = PCBuffer_beginWrite(&mm->indirectCmds);
 	
 	int index_offset = 0;
@@ -541,55 +500,11 @@ void dynamicMeshManager_draw(DynamicMeshManager* mm, PassFrameParams* pfp) {
 		instance_offset += VEC_LEN(&dm->instances[0]);
 	}
 	
-	PCBuffer_bind(&mm->indirectCmds);
-
- 	glMultiDrawArraysIndirect(GL_TRIANGLES, 0, VEC_LEN(&mm->meshes), 0);
-	glexit("multidrawarraysindirect");
-	
-	PCBuffer_afterDraw(&mm->instVB);
-	PCBuffer_afterDraw(&mm->indirectCmds);
-	
-}
-
-
-
-
-static void preFrame(PassFrameParams* pfp, DynamicMeshManager* mm) {
-	
-	dynamicMeshManager_updateMatrices(mm, pfp);
-	
-	// set up the indirect draw commands
-	DrawArraysIndirectCommand* cmds = PCBuffer_beginWrite(&mm->indirectCmds);
-	
-	int index_offset = 0;
-	int instance_offset = 0;
-	int mesh_index;
-	for(mesh_index = 0; mesh_index < VEC_LEN(&mm->meshes); mesh_index++) {
-		DynamicMesh* dm = VEC_ITEM(&mm->meshes, mesh_index);
-			
-		cmds[mesh_index].first = index_offset; // offset of this mesh into the instances
-		cmds[mesh_index].count = dm->indexCnt; // number of polys
-		
-		// offset into instanced vertex attributes
-		cmds[mesh_index].baseInstance = (mm->maxInstances * ((mm->instVB.nextRegion) % PC_BUFFER_DEPTH)) + instance_offset; 
-		// number of instances
-		cmds[mesh_index].instanceCount = VEC_LEN(&dm->instances[0]); 
-		
-		index_offset += dm->indexCnt;// * sizeof(DynamicMeshVertex);//dm->indexCnt;
-		instance_offset += VEC_LEN(&dm->instances[0]);
-		
-	}
-	
-	
-	
-
-	
-	
 }
 
 // this one has to handle different views, such as shadow mapping and reflections
 
-static void draw(PassDrawParams* pdp, GLuint progID, DynamicMeshManager* dmm) {
+static void draw(DynamicMeshManager* dmm, GLuint progID, PassDrawParams* pdp) {
 	
 	
 		// matrices and uniforms
@@ -635,3 +550,32 @@ static void postFrame(DynamicMeshManager* mm) {
 }
 
 
+
+
+RenderPass* DynamicMeshManager_CreateRenderPass(DynamicMeshManager* m) {
+	
+	RenderPass* rp;
+	PassDrawable* pd;
+
+	pd = DynamicMeshManager_CreateDrawable(m);
+
+	rp = calloc(1, sizeof(*rp));
+	RenderPass_init(rp, prog);
+	RenderPass_addDrawable(rp, pd);
+	//rp->fboIndex = LIGHTING;
+	
+	return rp;
+}
+
+
+PassDrawable* DynamicMeshManager_CreateDrawable(DynamicMeshManager* m) {
+	PassDrawable* pd;
+
+	pd = Pass_allocDrawable("DynamicMeshManager");
+	pd->data = m;
+	pd->preFrame = preFrame;
+	pd->draw = (PassDrawFn)draw;
+	pd->postFrame = postFrame;
+	
+	return pd;
+}

@@ -134,11 +134,8 @@ void dynamicMeshManager_updateMatrices(DynamicMeshManager* dmm, PassFrameParams*
 
 
 
-
-
-
-
-
+RenderPass* DynamicMeshManager_CreateRenderPass(DynamicMeshManager* m);
+PassDrawable* DynamicMeshManager_CreateDrawable(DynamicMeshManager* m);
 
 
 

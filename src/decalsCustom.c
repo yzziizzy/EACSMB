@@ -332,6 +332,21 @@ void CustomDecalManager_readConfigFile(CustomDecalManager* dm, char* configPath)
 }
 
 
+// makes a decal of a certain width from one spot to another
+// returns the index of the instance
+int CustomDecalManager_AddInstanceStrip(CustomDecalManager* dm, int index, Vector start, Vector end, float width) {
+	
+	CustomDecalInstance di;
+	
+	
+	
+	
+	
+	
+	return CustomDecalManager_AddInstance(dm, index, &di);
+}
+
+
 // returns the index of the instance
 int CustomDecalManager_AddInstance(CustomDecalManager* dm, int index, const CustomDecalInstance* di) {
 	

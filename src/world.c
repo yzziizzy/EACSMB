@@ -107,6 +107,13 @@ void World_init(World* w) {
 	TextureManager_loadAll(w->meshTexMan, (Vector2i){128, 128}); 
 	TextureManager_loadAll(w->decalTexMan, (Vector2i){128, 128}); 
 
+
+	// solids pass
+	w->solidsPass = DynamicMeshManager_CreateRenderPass(w->dmm);
+	
+
+
+	// decals pass
 	w->decalPass = DecalManager_CreateRenderPass(w->dm);
 	printf("world dm texman id: %d\n", w->dm->tm->tex_id);
 	
@@ -148,8 +155,13 @@ void World_init(World* w) {
 		.pos2 = pos2,
 		.pos3 = pos3,
 		.pos4 = pos4,
-		.thickness = 50,
+		.thickness = 5,
 	});
+	
+	
+	
+	
+	
 }
 
 
@@ -386,7 +398,12 @@ void World_drawTerrain(World* w) {
 
 void World_drawSolids(World* w, PassFrameParams* pfp) {
 	//meshManager_draw(w->smm, view, proj);
-	dynamicMeshManager_draw(w->dmm, pfp);
+	
+	RenderPass_preFrameAll(w->solidsPass, pfp);
+	RenderPass_renderAll(w->solidsPass, pfp->dp);
+	RenderPass_postFrameAll(w->solidsPass);
+	
+	//dynamicMeshManager_draw(w->dmm, pfp);
 	
 	Draw_Emitter(w->emitters, pfp->dp->mWorldView, pfp->dp->mViewProj, w->gs->frameTime);
 	
@@ -424,7 +441,27 @@ void World_addSimpleKinematics(World* w, int itemNum) {
 
 
 
+/*
 
+
+depth buf              w         -        w         r         -        -
+      tex              -         r        -         -         r        r
+
+light buf              w?        w?       w?        w?        w        -
+      tex              -         -        -         -         -        r
+       
+         separate     full     depth    depth     depth      depth    GBuf
+           FBOs       GBuf      tex     write     read       tex      tex
+       |-----------|---------|--------|--------,----------|--------|---------|
+         prepasses   terrain   decals   solids   emitters   lights   shading
+
+
+
+
+shadows and reflections
+
+
+*/
 
 
 

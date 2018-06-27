@@ -351,7 +351,7 @@ static BitmapRGBA8* resample(BitmapRGBA8* in, Vector2i outSz) {
 				in, 
 				(Vector2){ox * scaleFactor, oy * scaleFactor},
 				(Vector2){ox * (scaleFactor + 1), oy * (scaleFactor + 1)}
-			 );
+			);
 		}
 	}
 	

@@ -118,6 +118,8 @@ typedef struct World {
 	LightManager* lm;
 	DecalManager* dm;
 	CustomDecalManager* cdm;
+	
+	RenderPass* solidsPass; // temp hack
 	RenderPass* lightingPass; // temp hack
 	RenderPass* decalPass; // temp hack
 	
