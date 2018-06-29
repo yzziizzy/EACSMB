@@ -246,8 +246,37 @@ void emitter_update_vbo(Emitter* e) {
 }
 
 
-void Draw_Emitter(Emitter* e, Matrix* view, Matrix* proj, double time) {
-		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+static void preFrame(PassFrameParams* pfp, Emitter* e) {
+
+}
+
+
+static void draw(Emitter* e, GLuint progID, PassDrawParams* pdp) {
+	
 	Matrix model;
 	
 	
@@ -259,16 +288,14 @@ void Draw_Emitter(Emitter* e, Matrix* view, Matrix* proj, double time) {
 	glDepthMask(GL_FALSE); // disable depth writes for paritcles
 
 
-	glUniformMatrix4fv(view_ul, 1, GL_FALSE, &view->m);
-	glUniformMatrix4fv(proj_ul, 1, GL_FALSE, &proj->m);
+	glUniformMatrix4fv(view_ul, 1, GL_FALSE, &pdp->mWorldView->m);
+	glUniformMatrix4fv(proj_ul, 1, GL_FALSE, &pdp->mViewProj->m);
 	
-	double seconds = (float)(long)time;
-	double milliseconds = time - seconds;
 	
 	float* tb = getUBORegionPointer();
 
-	tb[0] = seconds;
-	tb[1] = milliseconds;
+	tb[0] = pdp->timeSeconds;
+	tb[1] = pdp->timeFractional;
 	//glUniform1f(timeS_ul, seconds); // TODO figure out how to fix rounding nicely
 	//glUniform1f(timeMS_ul, milliseconds); // TODO figure out how to fix rounding nicely
 
@@ -293,4 +320,39 @@ void Draw_Emitter(Emitter* e, Matrix* view, Matrix* proj, double time) {
 	setUBOFence();
 	
 	glDepthMask(GL_TRUE);
+}
+
+static void postFrame(Emitter* e) {
+
+}
+
+
+
+
+RenderPass* Emitter_CreateRenderPass(Emitter* e) {
+	
+	RenderPass* rp;
+	PassDrawable* pd;
+
+	pd = Emitter_CreateDrawable(e);
+
+	rp = calloc(1, sizeof(*rp));
+	RenderPass_init(rp, prog);
+	RenderPass_addDrawable(rp, pd);
+	//rp->fboIndex = LIGHTING;
+	
+	return rp;
+}
+
+
+PassDrawable* Emitter_CreateDrawable(Emitter* e) {
+	PassDrawable* pd;
+
+	pd = Pass_allocDrawable("Emitter");
+	pd->data = e;
+	pd->preFrame = preFrame;
+	pd->draw = (PassDrawFn)draw;
+	pd->postFrame = postFrame;
+	
+	return pd;
 }

@@ -96,7 +96,7 @@ void World_init(World* w) {
 	
 	// solids pass
 	w->solidsPass = DynamicMeshManager_CreateRenderPass(w->dmm);
-	
+	RenderPass_addDrawable(w->solidsPass, Emitter_CreateDrawable(w->emitters));
 
 
 	// decals pass
@@ -422,12 +422,10 @@ void World_spawnAt_Road(World* w, Vector2* start,  Vector2* stop) {
 
 
 void World_drawTerrain(World* w, PassFrameParams* pfp) {
-	//drawTerrain(&w->map, &w->gs->perViewUB, &w->gs->cursorPos, &w->gs->screen.wh);
 	
 	RenderPass_preFrameAll(w->terrainPass, pfp);
 	RenderPass_renderAll(w->terrainPass, pfp->dp);
 	RenderPass_postFrameAll(w->terrainPass);
-	
 }
 
 
@@ -439,9 +437,6 @@ void World_drawSolids(World* w, PassFrameParams* pfp) {
 	RenderPass_renderAll(w->solidsPass, pfp->dp);
 	RenderPass_postFrameAll(w->solidsPass);
 	
-	//dynamicMeshManager_draw(w->dmm, pfp);
-	
-	Draw_Emitter(w->emitters, pfp->dp->mWorldView, pfp->dp->mViewProj, w->gs->frameTime);
 	
 	WaterPlane_draw(w->wp, pfp->dp->mWorldView, pfp->dp->mViewProj);
 }

@@ -464,7 +464,9 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	pdp.mViewProj = msGetTop(&gs->proj);
 	pdp.eyeVec = gs->eyeDir;
 	pdp.eyePos = gs->eyePos;
-	pdp.targetSize = (Vector2i){800, 800};
+	pdp.targetSize = (Vector2i){800, 800};	
+	pdp.timeSeconds = (float)(long)gs->frameTime;
+	pdp.timeFractional = gs->frameTime - pdp.timeSeconds;
 	
 	
 	PassFrameParams pfp;

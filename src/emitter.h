@@ -6,6 +6,10 @@
 
 #include "ds.h"
 
+#include "pass.h"
+
+
+
 // grouped by attribute
 typedef struct  __attribute__ ((__packed__)) EmitterInstance {
 	Vector pos; 
@@ -55,10 +59,9 @@ void emitter_update_vbo(Emitter* e);
 void emitterAddInstance(Emitter* e, EmitterInstance* ei); 
 Emitter* makeEmitter(); 
 void initEmitters();
-void Draw_Emitter(Emitter* e, Matrix* view, Matrix* proj, double time);
 
 
-
-
+PassDrawable* Emitter_CreateDrawable(Emitter* e);
+RenderPass* Emitter_CreateRenderPass(Emitter* e);
 
 #endif // __EACSMB_EMITTER_H__
