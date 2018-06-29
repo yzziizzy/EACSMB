@@ -21,6 +21,9 @@
 #include "common_gl.h"
 #include "common_math.h"
 
+#include "pass.h"
+#include "texture.h"
+
 #include "road.h"
 #include "view.h"
 #include "uniformBuffer.h"
@@ -199,6 +202,11 @@ typedef struct MapInfo {
 	unsigned int zoneColors[256];
 	// probably needs to be somewhere else
 	char* zoneNames[256];
+	
+	
+	Vector cursorPos;
+	TextureManager* tm;
+	
 } MapInfo;
 
 
@@ -237,6 +245,22 @@ void tileCenterWorld(MapInfo* map, int tx, int ty, Vector* out);
 
 void saveMapBlock(FILE* f, MapBlock* mb);
 MapBlock* loadMapBlock(FILE* f);
+
+
+
+
+
+void Map_readConfigFile(MapInfo* map, char* path);
+
+RenderPass* Map_CreateRenderPass(MapInfo* m); 
+PassDrawable* Map_CreateDrawable(MapInfo* m);
+
+
+
+
+
+
+
 // stuff below is too complicated for now. more knowledge is needed about the game to proceed.
 
 

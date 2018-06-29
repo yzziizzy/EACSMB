@@ -12,6 +12,7 @@
 #include "c3dlas/c3dlas.h"
 
 #include "utilities.h"
+#include "c_json/json.h"
 #include "shader.h"
 #include "texture.h"
 #include "road.h"
@@ -378,36 +379,6 @@ void initTerrain(MapInfo* mi) {
 
 
 
-MapBlock* findMapBlock(MapInfo* mi, int bix, int biy) {
-	printf("!!! NYI: findMapBlock()\n");
-}
-
-/*
-MapBlockTreeLeaf* allocMapBlockTreeLeaf(int minx, int miny) {
-	MapBlockTreeLeaf* p;
-	p = malloc(sizeof(MapBlockTreeLeaf));
-	p->minx = minx;
-	p->miny = miny;
-	return p;
-}
-
-
-MapBlockTreeLeaf* spawnMapBlockTreeLeaf(MapInfo* mi, int llbix, int llbiy) {
-	int x, y;
-	MapBlockTreeLeaf* mbl;
-	
-	mbl = allocMapBlockTreeLeaf(llbix, llbiy);
-	
-	
-	for(y = 0; y < 8; y++) {
-		for(x = 0; x < 8; x++) {
-			mbl->c[x][y] = spawnMapBlock(mi, llbix + x, llbiy + y);
-		}
-	}
-	
-	return mbl;
-}*/
-
 MapBlock* spawnMapBlock(MapInfo* mi, int bix, int biy) {
 	
 	MapBlock* mb;
@@ -526,20 +497,6 @@ void initTerrainBlock(MapBlock* mb, int cx, int cy) {
 
 
 
-void checkMapDirty(MapInfo* mi) { /*
-	if(mi->mb->dirtyZone || mi->mb->dirtySurface) {
-		updateMapTextures(mi->mb);
-		mi->mb->dirtyZone = 0;
-		mi->mb->dirtySurface = 0;
-	}
-	
-	if(mi->tb->dirty) {
-		updateTerrainTexture(&mi->originMB.tb);
-		mi->tb->dirty = 0;
-	}
-	*/
-	printf("!!! NYI: checkMapDirty()\n");
-}
 
 
 void updateMapTextures(MapInfo* mi) {
@@ -690,69 +647,6 @@ static void bindTerrainTextures(MapInfo* mi) {
 }
 
 
-/*
-void updateTerrainTexture(MapInfo* mi) {
-	
-	if(!tb->tex) {
-		glGenTextures(1, &tb->tex);
-		printf("tex num: %d \n", tb->tex);
-		glBindTexture(GL_TEXTURE_2D, tb->tex);
-		
-		
-	}
-	else {
-		glBindTexture(GL_TEXTURE_2D, tb->tex);
-	}
-	
-	
-	if(tb->tex) {
-		glBindTexture(GL_TEXTURE_2D, tb->tex);
-		
-		glTexSubImage2D(GL_TEXTURE_2D, // target
-			0,  // level, 0 = base, no minimap,
-			0, 0, // offset
-			TERR_TEX_SZ,
-			TERR_TEX_SZ,
-			GL_RED,  // format
-			GL_FLOAT, // input type
-			tb->zs);
-		glerr("updating terrain texture");
-		
-		return;
-	}
-	
-
-	
-// 	glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
-	
-	// need to switch to nearest later on
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
-	// squash the data in
-	glPixelStorei(GL_PACK_ALIGNMENT, 1);
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-	
-	glTexImage2D(GL_TEXTURE_2D, // target
-		0,  // level, 0 = base, no minimap,
-		GL_R32F, // internalformat
-		TERR_TEX_SZ,
-		TERR_TEX_SZ,
-		0,  // border
-		GL_RED,  // format
-		GL_FLOAT, // input type
-		tb->zs);
-	
-	glerr("failed to load terrain heightmap");
-}
-
-
-*/
 
 
 
@@ -763,7 +657,7 @@ void drawTerrainDepth(MapInfo* mi, UniformBuffer* perViewUB, Vector2* viewWH) {
 	glUseProgram(terrDepthProg->id);
 	//glDisable(GL_DEPTH_TEST);
 
-	uniformBuffer_bindProg(perViewUB, terrProg->id, "perViewData");
+	uniformBuffer_bindProg(perViewUB, terrDepthProg->id, "perViewData");
 	
 // 	glUniformMatrix4fv(view_d_ul, 1, GL_FALSE, mView->m);
 // 	glexit("");
@@ -787,39 +681,11 @@ glexit("");
 
 
 
-void drawTerrain(MapInfo* mi, UniformBuffer* perViewUB, Vector* cursor, Vector2* viewWH) {
-	
-	int i;
-	
-	glUseProgram(terrProg->id);
-	glEnable(GL_DEPTH_TEST);
-	
-	
-	uniformBuffer_bindProg(perViewUB, terrProg->id, "perViewData");
-	//glUniformMatrix4fv(view_ul, 1, GL_FALSE, mView->m);
-	//glUniformMatrix4fv(proj_ul, 1, GL_FALSE, mProj->m);
-	
-	glUniform2f(winsize_ul, viewWH->x, viewWH->y);
-	
-	bindTerrainTextures(mi);
-	
-	glUniform3f(glGetUniformLocation(terrProg->id, "cursorPos"), cursor->x, cursor->y, cursor->z);
-	glBindVertexArray(patchVAO);
-	
-	glPatchParameteri(GL_PATCH_VERTICES, 4);
-	glBindBuffer(GL_ARRAY_BUFFER, patchVBO);
-	
-	glUniformMatrix4fv(model_ul, 1, GL_FALSE, msGetTop(&model)->m);
-	
-	glDrawArraysInstanced(GL_PATCHES, 0, totalPatches * totalPatches * 4, mi->numBlocksToRender);
-	
-//	drawRoad(mi->terrainTex, mView, mProj);
-}
-
-
 void drawTerrainRoads(GLuint dtex, MapInfo* mi, Matrix* mView, Matrix* mProj, Vector* cursor, Vector2* viewWH) {
 	
 	int i;
+	
+	printf("!!! drawTerrainRoads is deprecated\n");
 	
 	glUseProgram(terrProg->id);
 	glEnable(GL_DEPTH_TEST);
@@ -849,44 +715,8 @@ void drawTerrainRoads(GLuint dtex, MapInfo* mi, Matrix* mView, Matrix* mProj, Ve
 }
 
 
-void genMapRenderInfo(MapBlockRenderInfo* mbri, int buflen, ViewInfo* vi) {
-	
-	printf("!! NYI: genMapRenderInfo()\n");
-}
 
 
-
-
-// interpreted as a vertical projection of the quad
-void genDecalMesh(Quad* q, float zOffset) {
-	int x, y, mx, my;
-	Vector2 min, max;
-	
-	min.x = fmin(fmin(q->v[0].x, q->v[1].x), fmin(q->v[0].x, q->v[1].x));
-	min.y = fmin(fmin(q->v[0].y, q->v[1].y), fmin(q->v[0].y, q->v[1].y));
-	max.x = fmax(fmax(q->v[0].x, q->v[1].x), fmax(q->v[0].x, q->v[1].x));
-	max.y = fmax(fmax(q->v[0].y, q->v[1].y), fmax(q->v[0].y, q->v[1].y));
-	
-	mx = ceil(max.x);
-	my = ceil(max.y);
-	
-	// step 1: duplicate a mesh of all tiles the quad overlaps
-	for(y = floor(min.y); y <= my; y++) {
-		for(x = floor(min.y); x <= mx; x++) {
-			
-			
-			
-			
-		}
-	}
-	
-	
-	// step 2: slice off any parts outside the quad
-	
-	printf("!! NYI: genDecalMesh()\n");
-	
-	
-}
 
 
 
@@ -1130,6 +960,195 @@ void vSortLtoH42i(Vector2i* v) {
 	
 #undef SWAP
 }
+
+
+
+
+
+
+
+
+
+
+void Map_readConfigFile(MapInfo* map, char* path) {
+	int ret;
+	struct json_obj* o;
+	void* iter;
+	char* key, *texName, *tmp;
+	struct json_value* v, *tc;
+	json_file_t* jsf;
+	
+	/*
+	
+	jsf = json_load_path(configPath);
+	
+	json_value_t* tex;
+	json_obj_get_key(jsf->root, "textures", &tex);
+	
+	
+	iter = NULL;
+	
+	while(json_obj_next(jsf->root, &iter, &key, &tc)) {
+		json_value_t* val;
+		char* path;
+		DynamicMesh* dm;
+		
+		OBJContents obj;
+		
+		ret = json_obj_get_key(tc, "mesh", &val);
+		json_as_string(val, &path);
+		
+		loadOBJFile(path, 0, &obj);
+		dm = DynamicMeshFromOBJ(&obj);
+		dm->name = strdup(key);
+		
+		
+		ret = json_obj_get_key(tc, "texture", &val);
+		if(!ret) {
+			json_as_string(val, &path);
+			
+			dm->texIndex = TextureManager_reservePath(mm->tm, path);
+			printf("dmm: %d %s\n", dm->texIndex, path);
+		}
+
+#define grab_json_val(str, field, def) \
+		dm->field = def; \
+		if(!json_obj_get_key(tc, str, &val)) { \
+			json_as_float(val, &dm->field); \
+		}
+
+		grab_json_val("scale", defaultScale, 1.0)
+		grab_json_val("rotDegX", defaultRotX, 0.0)
+		grab_json_val("rotDegY", defaultRotY, 0.0)
+		grab_json_val("rotDegZ", defaultRotZ, 0.0)
+		
+		// radians are not easy to edit in a config file, so it's in degrees
+		dm->defaultRotX *= F_PI / 180.0;  
+		dm->defaultRotY *= F_PI / 180.0;  
+		dm->defaultRotZ *= F_PI / 180.0;  
+		
+
+		int ind = dynamicMeshManager_addMesh(mm, dm->name, dm);
+		printf("DM added mesh %d: %s \n", ind, dm->name);
+		
+	}
+	
+	*/
+	
+}
+
+
+
+
+
+
+
+
+
+static void preFrame(PassFrameParams* pfp, MapInfo* m);
+static void draw(MapInfo* m, GLuint progID, PassDrawParams* pdp);
+static void postFrame(MapInfo* m);
+
+
+
+static void preFrame(PassFrameParams* pfp, MapInfo* m) {
+	
+
+	
+}
+
+// this one has to handle different views, such as shadow mapping and reflections
+// (MapInfo* mi, UniformBuffer* perViewUB, Vector* cursor, Vector2* viewWH)
+static void draw(MapInfo* m, GLuint progID, PassDrawParams* pdp) {
+	
+	int i;
+	
+	glUseProgram(terrProg->id);
+	glEnable(GL_DEPTH_TEST);
+	
+	
+	glUniformMatrix4fv(view_ul, 1, GL_FALSE, pdp->mWorldView->m);
+	glUniformMatrix4fv(proj_ul, 1, GL_FALSE, pdp->mViewProj->m);
+	
+	//uniformBuffer_bindProg(perViewUB, terrProg->id, "perViewData");
+	//glUniformMatrix4fv(view_ul, 1, GL_FALSE, mView->m);
+	//glUniformMatrix4fv(proj_ul, 1, GL_FALSE, mProj->m);
+	
+	glUniform2f(winsize_ul, pdp->targetSize.x, pdp->targetSize.y);
+	
+	bindTerrainTextures(m);
+	
+	glUniform3f(glGetUniformLocation(terrProg->id, "cursorPos"), m->cursorPos.x, m->cursorPos.y, m->cursorPos.z);
+	glBindVertexArray(patchVAO);
+	
+	glPatchParameteri(GL_PATCH_VERTICES, 4);
+	glBindBuffer(GL_ARRAY_BUFFER, patchVBO);
+	
+	glUniformMatrix4fv(model_ul, 1, GL_FALSE, msGetTop(&model)->m);
+	
+	glDrawArraysInstanced(GL_PATCHES, 0, totalPatches * totalPatches * 4, m->numBlocksToRender);
+}
+
+
+
+static void postFrame(MapInfo* m) {
+
+}
+
+
+
+
+RenderPass* Map_CreateRenderPass(MapInfo* m) {
+	
+	RenderPass* rp;
+	PassDrawable* pd;
+
+	pd = Map_CreateDrawable(m);
+
+	rp = calloc(1, sizeof(*rp));
+	RenderPass_init(rp, terrProg);
+	RenderPass_addDrawable(rp, pd);
+	//rp->fboIndex = LIGHTING;
+	
+	return rp;
+}
+
+
+PassDrawable* Map_CreateDrawable(MapInfo* m) {
+	PassDrawable* pd;
+
+	pd = Pass_allocDrawable("MapInfo");
+	pd->data = m;
+	pd->preFrame = preFrame;
+	pd->draw = (PassDrawFn)draw;
+	pd->postFrame = postFrame;
+	
+	return pd;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /*
 

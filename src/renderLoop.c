@@ -372,7 +372,7 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is, PassFrameParams* pfp
 // 	drawTerrainBlock(&gs->map, msGetTop(&gs->model), msGetTop(&gs->view), msGetTop(&gs->proj), &gs->cursorPos);
 	//drawTerrain(&gs->scene.map, &gs->perViewUB, &gs->cursorPos, &gs->screen.wh);
 	query_queue_start(&gs->queries.terrain);
-	World_drawTerrain(gs->world);
+	World_drawTerrain(gs->world, pfp);
 	query_queue_stop(&gs->queries.terrain);
 	//renderMarker(gs, 0,0);
 
@@ -464,6 +464,7 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	pdp.mViewProj = msGetTop(&gs->proj);
 	pdp.eyeVec = gs->eyeDir;
 	pdp.eyePos = gs->eyePos;
+	pdp.targetSize = (Vector2i){800, 800};
 	
 	
 	PassFrameParams pfp;

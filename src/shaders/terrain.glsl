@@ -24,7 +24,6 @@ void main() {
 	vs_InstanceID = gl_InstanceID;
 	vs_rawTileOffset = texelFetch(sOffsetLookup, ivec2(gl_InstanceID, 0), 0).rg; 
 	vs_tileOffset = vs_rawTileOffset * 255* 255;
-
 	
 	gl_Position = vec4(pos_in.x + vs_tileOffset.r, pos_in.y + vs_tileOffset.g, pos_in.z, 1.0);
 }
@@ -42,10 +41,10 @@ layout (vertices = 4) out;
 uniform sampler2DArray sHeightMap;
 
 
-uniform perViewData {
-	mat4 mView;
-	mat4 mProj;
-};
+
+uniform mat4 mView;
+uniform mat4 mProj;
+
 
 
 in vec2 vs_tex[];
@@ -153,11 +152,9 @@ in int te_InstanceID[];
 uniform sampler2DArray sHeightMap;
 
 
+uniform mat4 mView;
+uniform mat4 mProj;
 
-uniform perViewData {
-	mat4 mView;
-	mat4 mProj;
-};
 
 uniform vec2 winSize;
 
@@ -309,7 +306,7 @@ void main(void) {
 //	out_Normal = vec4(normalize(vec3(0,1,0)),1);
 	
 	out_Color =  (zoneColor * .2 + tc2) * cursorIntensity;// * lineFactor; //(1.0, 0, .5, .6);
-	//out_Color = vec4(texCoord.xy , 1, 1);
+// 	out_Color = vec4(texCoord.xy , 1, 1);
 	
 }
 

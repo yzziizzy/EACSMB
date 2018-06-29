@@ -69,4 +69,18 @@ void terrain_initTexInfo(TerrainTexInfo* tti);
 void terrain_loadTextures(TerrainTexInfo* tti);
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #endif // __EACSMB_TERRAIN_H__

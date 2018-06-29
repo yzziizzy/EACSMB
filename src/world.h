@@ -119,10 +119,12 @@ typedef struct World {
 	DecalManager* dm;
 	CustomDecalManager* cdm;
 	
+	RenderPass* terrainPass; // temp hack
 	RenderPass* solidsPass; // temp hack
 	RenderPass* lightingPass; // temp hack
 	RenderPass* decalPass; // temp hack
 	
+	TextureManager* mapTexMan;
 	TextureManager* meshTexMan;
 	TextureManager* decalTexMan;
 	
@@ -130,7 +132,7 @@ typedef struct World {
 	
 	WaterPlane* wp;
 	
-	MapInfo map;
+	MapInfo map; 
 	
 	VEC(Item*) items;
 	HashTable(int) itemLookup;
@@ -164,7 +166,7 @@ typedef struct World {
 
 
 
-void World_drawTerrain(World* w);
+void World_drawTerrain(World* w, PassFrameParams* pfp);
 void World_drawSolids(World* w, PassFrameParams* pfp);
 void World_drawDecals(World* w, PassFrameParams* pfp);
 
@@ -173,7 +175,7 @@ int World_spawnAt_DynamicMesh(World* w, int dmIndex, Vector* location);
 int World_spawnAt_StaticMesh(World* w, int smIndex, Vector* location);
 int World_spawnAt_Light(World* w, int lightIndex, Vector* location); 
 int World_spawnAt_Decal(World* w, int index, Vector* location);
-int World_spawnAt_CustomDecal(World* w, int index, Vector* location); // TODO: needs way more options
+int World_spawnAt_CustomDecal(World* w, int texIndex, float width, const Vector2* p1, const Vector2* p2);
 void World_spawnAt_Road(World* w, Vector2* start,  Vector2* stop);
 int World_spawnAt_Emitter(World* w, int emitterIndex, Vector* location);
 

@@ -33,6 +33,7 @@ void World_init(World* w) {
 	
 	initMap(&w->map);
 	
+	w->mapTexMan = TextureManager_alloc();
 	w->meshTexMan = TextureManager_alloc();
 	w->decalTexMan = TextureManager_alloc();
 	
@@ -41,10 +42,12 @@ void World_init(World* w) {
 	w->dm = DecalManager_alloc(1024*50);
 	w->cdm = CustomDecalManager_alloc(1024*50);
 	
+	w->map.tm = w->mapTexMan;
 	w->dmm->tm = w->meshTexMan;
 	w->dm->tm = w->decalTexMan;
 	w->cdm->tm = w->decalTexMan;
 	
+	Map_readConfigFile(&w->map, "assets/config/map.json");
 	meshManager_readConfigFile(w->smm, "assets/config/models.json");
 	dynamicMeshManager_readConfigFile(w->dmm, "assets/config/models.json");
 	DecalManager_readConfigFile(w->dm, "assets/config/decals.json");
@@ -56,27 +59,6 @@ void World_init(World* w) {
 	meshManager_updateGeometry(w->smm);
 	dynamicMeshManager_updateGeometry(w->dmm);
 	
-	
-	StaticMeshInstance smi[] = {
-		{
-			{1,1,4}, 2.5,
-			{1, 0, 0}, 0.0,
-			.9, 0,0,0
-		}
-	};
-	
-//	meshManager_addInstance(w->smm, 0, &smi[0]);
-//	meshManager_addInstance(w->smm, 0, &smi[1]);
-//	meshManager_addInstance(w->smm, 0, &smi[2]);
-//	meshManager_updateInstances(w->smm);
-	
-	
-	
-	
-	
-	// HACK: emitters 
-
-
 	
 	
 	//  HACK roads
@@ -104,10 +86,14 @@ void World_init(World* w) {
 	
 	
 	// very last thing: load textures
+	TextureManager_loadAll(w->mapTexMan, (Vector2i){128, 128}); 
 	TextureManager_loadAll(w->meshTexMan, (Vector2i){128, 128}); 
 	TextureManager_loadAll(w->decalTexMan, (Vector2i){128, 128}); 
 
 
+	// terrain pass
+	w->terrainPass = Map_CreateRenderPass(&w->map);
+	
 	// solids pass
 	w->solidsPass = DynamicMeshManager_CreateRenderPass(w->dmm);
 	
@@ -373,6 +359,51 @@ int World_spawnAt_Decal(World* w, int index, Vector* location) {
 }
 
 
+int World_spawnAt_CustomDecal(World* w, int texIndex, float width, const Vector2* p1, const Vector2* p2) {
+	float h;
+	
+	Vector2i loci;
+	Vector groundloc;
+	CustomDecalInstance di;
+	
+	// look up the terrain heights
+	loci.x = p1->x;
+	loci.y = p1->y;	
+	getTerrainHeight(&w->map, &loci, 1, &h);
+	groundloc = (Vector){p1->x, p1->y, h};
+	
+	loci.x = p2->x;
+	loci.y = p2->y;
+	getTerrainHeight(&w->map, &loci, 1, &h);
+	groundloc = (Vector){p2->x, p2->y, h};
+
+	//printf("spawning decal %f,%f,%f\n", groundloc.x, groundloc.y, groundloc.z);
+
+	Vector2 n;
+	float hw = width / 2;
+	
+	Vector2 p12;	
+	vSub2(p2, p1, &p12);
+	
+	n = (Vector2){p12.y, -p12.x};
+	vNorm2(&n, &n);
+	vScale2(&n, hw, &n);
+	
+	vAdd(&n, p1, &di.pos1);
+	vAdd(&n, p2, &di.pos3);
+	
+	vScale(&n, -1, &n);
+	vAdd(&n, p1, &di.pos2);
+	vAdd(&n, p2, &di.pos4);
+	
+	
+	//di.pos = groundloc;
+	
+	CustomDecalManager_AddInstance(w->dm, index, &di);
+	
+}
+
+
 
 void World_spawnAt_Road(World* w, Vector2* start,  Vector2* stop) {
 	
@@ -390,8 +421,13 @@ void World_spawnAt_Road(World* w, Vector2* start,  Vector2* stop) {
 
 
 
-void World_drawTerrain(World* w) {
-	drawTerrain(&w->map, &w->gs->perViewUB, &w->gs->cursorPos, &w->gs->screen.wh);
+void World_drawTerrain(World* w, PassFrameParams* pfp) {
+	//drawTerrain(&w->map, &w->gs->perViewUB, &w->gs->cursorPos, &w->gs->screen.wh);
+	
+	RenderPass_preFrameAll(w->terrainPass, pfp);
+	RenderPass_renderAll(w->terrainPass, pfp->dp);
+	RenderPass_postFrameAll(w->terrainPass);
+	
 }
 
 
