@@ -42,6 +42,23 @@ typedef struct PassFrameParams {
 
 
 
+typedef struct DrawTimer {
+	char timerLen; // size of history buffer, max 16
+	char timerNext;
+	char timerUsed;
+	char timerHistIndex;
+	GLuint timerStartIDs[5];
+	GLuint timerEndIDs[5];
+	float timerHistory[16];
+	
+	// results values 
+	float timerAvg;
+	float timerMin;
+	float timerMax;
+} DrawTimer;
+
+
+
 
 struct PassDrawable;
 
@@ -64,6 +81,7 @@ typedef struct PassDrawable {
 	// where circular buffers are rotated
 	void (*postFrame)(void*);
 	
+	DrawTimer timer;
 } PassDrawable;
 
 
@@ -139,6 +157,9 @@ void RenderAllPrePasses(PassFrameParams* pfp);
 
 
 
+void DrawTimer_Init(DrawTimer* pd);
+void DrawTimer_Start(DrawTimer* pd);
+void DrawTimer_End(DrawTimer* pd);
 
 
 

@@ -34,7 +34,6 @@ enum {
 
 
 
-
 void initRenderPipeline() {
 	
 	float vertices[] = {
@@ -299,8 +298,13 @@ void RenderPass_renderAll(RenderPass* pass, PassDrawParams* pdp) {
 	
 	for(i = 0; i < VEC_LEN(&pass->drawables); i++) {
 		PassDrawable* d = VEC_ITEM(&pass->drawables, i);
+		
+		DrawTimer_Start(&d->timer);
+		
 		glUseProgram(pass->prog->id);
 		d->draw(d->data, d, pdp);
+		
+		DrawTimer_Start(&d->timer);
 	}
 }
 
@@ -345,6 +349,7 @@ PassDrawable* Pass_allocDrawable(char* name) {
 	CHECK_OOM(d);
 	
 	d->name = name;
+	DrawTimer_Init(&d->timer);
 	
 	return d;
 }
@@ -398,7 +403,84 @@ void RemovePrePass(char* name) {
 
 
 
+// ---- timer queries ----
 
 
+void checkQueries(DrawTimer* pd) {
+	uint64_t p;
+	uint64_t time;
+	int tail;
+	glexit("");
+	
+	//for(int j = 0; j < 5; j++) {
+		//printf(" - [%d] = %d  %d\n", j, pd->timerEndIDs[j], pd->timerStartIDs[j]);
+	//}
+	
+	while(pd->timerUsed > 0) {
+		tail = (pd->timerNext - pd->timerUsed + 5) % 5; 
+		//printf("tail: %d - %d = %d, %d\n",pd->timerNext, pd->timerUsed, tail, pd->timerEndIDs[tail]);
+		// the end result being available should imply the start one is too
+		// any ass-backwards hardware deserves the pipeline stall 
+		glexit("");
+		glGetQueryObjectui64v(pd->timerEndIDs[tail], GL_QUERY_RESULT_AVAILABLE, &p);
+		if(GL_FALSE == p) {
+			return; // the query isn't ready yet, so the ones after won't be either
+		}
+		
+		//for(int j = 0; j < 5; j++) {
+			//printf(" + [%d] = %d  %d\n", j, pd->timerEndIDs[j], pd->timerStartIDs[j]);
+		//}
+	
+		glexit("");
+		glGetQueryObjectui64v(pd->timerStartIDs[tail], GL_QUERY_RESULT, &time); 
+		double ts = ((double)time) / 1000000000.0; // gpu time is in nanoseconds
+		
+		glGetQueryObjectui64v(pd->timerEndIDs[tail], GL_QUERY_RESULT, &time); 
+		double te = ((double)time) / 1000000000.0;
+		double t = te - ts;
+		glexit("");
+		
+		pd->timerHistory[pd->timerHistIndex] = t;
+		
+		// calculate stats
+		float a = 0;
+		for(int i = 0; i < 16; i++) {
+			pd->timerMin = fmin(pd->timerMin, pd->timerHistory[i]);
+			pd->timerMax = fmax(pd->timerMax, pd->timerHistory[i]);
+			a += pd->timerHistory[i];
+		}
+		pd->timerAvg = a / 16;
+		 
+		pd->timerHistIndex = (pd->timerHistIndex + 1) % 16;
+		pd->timerUsed--;
+		glexit("");
+	}
+}
 
+void DrawTimer_Start(DrawTimer* pd) {
+	if(pd->timerUsed < 5) {
+		glQueryCounter(pd->timerStartIDs[pd->timerNext], GL_TIMESTAMP);
+	}
+	else {
+		fprintf(stderr, "PassDrawable query queue exhausted \n");
+	}	
+}
+
+void DrawTimer_End(DrawTimer* pd) {
+	glQueryCounter(pd->timerEndIDs[pd->timerNext], GL_TIMESTAMP);
+	
+	pd->timerNext = (pd->timerNext + 1) % 5;
+	pd->timerUsed++;
+	
+	checkQueries(pd);
+}
+
+
+void DrawTimer_Init(DrawTimer* pd) {
+	
+	memset(pd, 0, sizeof(*pd));
+	
+	glGenQueries(5, pd->timerStartIDs);
+	glGenQueries(5, pd->timerEndIDs);
+}
 

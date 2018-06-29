@@ -405,14 +405,6 @@ void renderDecals(XStuff* xs, GameState* gs, InputState* is, PassFrameParams* pf
 }
 
 
-void renderParticles(XStuff* xs, GameState* gs, InputState* is) {
-	//Draw_Emitter(dust, msGetTop(&gs->view), msGetTop(&gs->proj), gs->frameTime);
-	
-	glexit("render particles");
-}
-
-
-
 
 void cleanUpView(XStuff* xs, GameState* gs, InputState* is) {
 	msPop(&gs->view);
@@ -515,8 +507,7 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	
 	query_queue_start(&gs->queries.emitters);
-	glexit("");
-	renderParticles(xs, gs, is); // particles are alpha blended and need to be on top of decals
+
 	query_queue_stop(&gs->queries.emitters);
 	
 	// keep depth writes off for lighting
