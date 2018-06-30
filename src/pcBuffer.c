@@ -69,6 +69,7 @@ void* PCBuffer_beginWrite(PCBuffer* b) {
 
 
 void PCBuffer_afterDraw(PCBuffer* b) {
+	b->nextRegion = (b->nextRegion + 1) % PC_BUFFER_DEPTH; 
 	
 	if(b->fences[b->nextRegion]) glDeleteSync(b->fences[b->nextRegion]);
 	glexit("");
@@ -76,7 +77,6 @@ void PCBuffer_afterDraw(PCBuffer* b) {
 	b->fences[b->nextRegion] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 	glexit("");
 	
-	b->nextRegion = (b->nextRegion + 1) % PC_BUFFER_DEPTH; 
 }
 
 

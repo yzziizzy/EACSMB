@@ -497,7 +497,7 @@ static void preFrame(PassFrameParams* pfp, DynamicMeshManager* mm) {
 	//printf("instances %d %d %d %d  \n", mesh_index, dm->indexCnt, VEC_LEN(&dm->instances[0]), instance_offset );
 		
 		index_offset += dm->indexCnt;// * sizeof(DynamicMeshVertex);//dm->indexCnt;
-		instance_offset += VEC_LEN(&dm->instances[0]);
+		instance_offset += dm->numToDraw; //VEC_LEN(&dm->instances[0]);
 	}
 	
 }

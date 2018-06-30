@@ -1,3 +1,13 @@
+BUGS:
+------------------
+fix lighting algorithm
+
+false positive terrain culling when fview frustum overlaps a tile edge but not a vertex 
+
+fix tex scaling algorithm
+
+
+
 GUI:
 -------------------
 sliders
@@ -16,6 +26,8 @@ text wrapping
  
 SOONER:
 -------------------
+
+convert point lights to billboard sprites with geom shader
 
 sane version of dirname
 
@@ -48,7 +60,7 @@ rebuild eye/view code
 
 proper terrain scaling (mostly done)
 
-implement real lighting - partially done
+implement real lighting - DONE!
 
 dummy textures
 
@@ -63,6 +75,9 @@ add #include support to shaders
 
 LATER:
 --------------------
+
+frustum culling for meshes and other items
+   in compute shaders
 
 fancy thin coverage-to-alpha wires
 
@@ -82,7 +97,7 @@ stateful particle system
 
 fix lines
 terrain texture blending
-terrain texture atlas & json loader
+terrain texture atlas & json loader - DONE!
 
 fix all reallocs
 check all lib fn return values

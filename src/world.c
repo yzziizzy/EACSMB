@@ -101,7 +101,7 @@ void World_init(World* w) {
 
 	// decals pass
 	w->decalPass = DecalManager_CreateRenderPass(w->dm);
-	printf("world dm texman id: %d\n", w->dm->tm->tex_id);
+	
 	
 	RenderPass_addDrawable(w->decalPass, CustomDecalManager_CreateDrawable(w->cdm));
 	
