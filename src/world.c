@@ -86,9 +86,9 @@ void World_init(World* w) {
 	
 	
 	// very last thing: load textures
-	TextureManager_loadAll(w->mapTexMan, (Vector2i){128, 128}); 
-	TextureManager_loadAll(w->meshTexMan, (Vector2i){128, 128}); 
-	TextureManager_loadAll(w->decalTexMan, (Vector2i){128, 128}); 
+	TextureManager_loadAll(w->mapTexMan, (Vector2i){256, 256}); 
+	TextureManager_loadAll(w->meshTexMan, (Vector2i){256, 256}); 
+	TextureManager_loadAll(w->decalTexMan, (Vector2i){256, 256}); 
 
 
 	// terrain pass

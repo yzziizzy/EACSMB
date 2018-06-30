@@ -360,6 +360,128 @@ static BitmapRGBA8* resample(BitmapRGBA8* in, Vector2i outSz) {
 
 
 
+
+// nearest resizing
+
+static uint32_t bmpsample(BitmapRGBA8* b, Vector2i p) {
+	return b->data[iclamp(p.x, 0, b->width) + (iclamp(p.y, 0, b->height) * b->width)];
+}
+
+static uint32_t bmpsamplef(BitmapRGBA8* b, Vector2 p) {
+	Vector2i pi = {floor(p.x + .5), floor(p.y + .5)};
+	return bmpsample(b, pi);
+}
+
+static uint32_t bmpsamplescale(BitmapRGBA8* b, Vector2i p, float scale) {
+	Vector2i pi = {floor((p.x * scale) + .5), floor((p.y * scale) + .5)};
+	return bmpsample(b, pi);
+}
+
+
+static BitmapRGBA8* nearestRescale(BitmapRGBA8* in, Vector2i outSz) {
+	int ox, oy;
+	float scaleFactor = (float)outSz.x / (float)in->width;
+	BitmapRGBA8* out;
+	
+	out = calloc(1, sizeof(out));
+	out->width = outSz.x;
+	out->height = outSz.y;
+	out->data = malloc(out->width * out->height * sizeof(*out->data));
+	
+	for(oy = 0; oy < outSz.y; oy++) {
+		for(ox = 0; ox < outSz.x; ox++) {
+			out->data[ox + (oy * outSz.x)] = bmpsamplescale(in, (Vector2i){ox, oy}, 1.0f / scaleFactor);
+		}
+	}
+	
+	return out;
+}
+
+
+
+// linear rescaling
+
+static void unpack8(uint32_t v, uint32_t* r, uint32_t* g, uint32_t* b, uint32_t* a) {
+	union {
+		uint32_t n;
+		uint8_t b[4];
+	} u;
+	
+	u.n = v;
+	*r = u.b[0];
+	*g = u.b[1];
+	*b = u.b[2];
+	*a = u.b[3];
+}
+static void unpackadd8(uint32_t v, uint32_t* o) {
+	union {
+		uint32_t n;
+		uint8_t b[4];
+	} u;
+	
+	u.n = v;
+	o[0] += u.b[0];
+	o[1] += u.b[1];
+	o[2] += u.b[2];
+	o[3] += u.b[3];
+}
+
+static uint32_t repackdiv8(uint32_t* o, float divisor) {
+	union {
+		uint32_t n;
+		uint8_t b[4];
+	} u;
+	
+	u.b[0] = (float)o[0] / divisor;
+	u.b[1] = (float)o[1] / divisor;
+	u.b[2] = (float)o[2] / divisor;
+	u.b[3] = (float)o[3] / divisor;
+	
+	return u.n;
+}
+
+
+
+static uint32_t bmplinsamplescale(BitmapRGBA8* b, Vector2i p, int scale) {
+	int x, y;
+	float invscale = (float)scale;
+	Vector2i p0 = {p.x * invscale, p.y * invscale};
+	
+	uint32_t acc[4] = {0,0,0,0};
+	
+	for(y = 0; y < scale; y++) {
+		for(x = 0; x < scale; x++) {
+			unpackadd8(bmpsample(b, (Vector2i){p0.x + x, p0.y + y}), acc);
+		}
+	}
+	
+	return repackdiv8(acc, scale * scale);
+}
+
+
+static BitmapRGBA8* linearDownscale(BitmapRGBA8* in, Vector2i outSz) {
+	int ox, oy;
+	int scaleFactor = (float)in->width / (float)outSz.x;
+	BitmapRGBA8* out;
+	
+	out = calloc(1, sizeof(out));
+	out->width = outSz.x;
+	out->height = outSz.y;
+	out->data = malloc(out->width * out->height * sizeof(*out->data));
+	
+	for(oy = 0; oy < outSz.y; oy++) {
+		for(ox = 0; ox < outSz.x; ox++) {
+			out->data[ox + (oy * outSz.x)] = bmplinsamplescale(in, (Vector2i){ox, oy}, scaleFactor);
+		}
+	}
+	
+	return out;
+}
+
+
+
+
+
 // actually, the argument is a void**, but the compiler complains. stupid standards...
 size_t ptrlen(const void* a) {
 	size_t i = 0;
@@ -568,8 +690,8 @@ int TextureManager_loadAll(TextureManager* tm, Vector2i targetRes) {
 // 		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_GENERATE_MIPMAP, GL_FALSE);
 	glexit("failed to create texture array 2");
 
-	glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	
 	glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -601,7 +723,9 @@ int TextureManager_loadAll(TextureManager* tm, Vector2i targetRes) {
 		
 		if(bmp->width != targetRes.x || bmp->height != targetRes.y) {
 			printf("resizing %s to %d,%d\n", te->path, targetRes.x, targetRes.y);
-			BitmapRGBA8* tmp = resample(bmp, targetRes);
+			//BitmapRGBA8* tmp = resample(bmp, targetRes);
+			BitmapRGBA8* tmp = linearDownscale(bmp, targetRes);
+			//BitmapRGBA8* tmp = nearestRescale(bmp, targetRes);
 			free(bmp->data);
 			free(bmp);
 			
