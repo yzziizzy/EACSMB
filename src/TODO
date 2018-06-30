@@ -2,8 +2,6 @@ BUGS:
 ------------------
 fix lighting algorithm
 
-false positive terrain culling when fview frustum overlaps a tile edge but not a vertex 
-
 fix tex scaling algorithm
 
 

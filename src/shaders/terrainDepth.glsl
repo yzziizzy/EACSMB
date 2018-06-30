@@ -61,6 +61,24 @@ bool inBox(vec4 v) {
 	return true;
 }
 
+bool leftOf(vec2 l1, vec2 l2, vec2 p) { 
+	return (l2.x - l1.x) * (p.y - l1.y) > (l2.y - l1.y) * (p.x - l1.x);
+}
+
+bool insideTriangle(vec2 t1, vec2 t2, vec2 t3, vec2 p) {
+	bool s1 = leftOf(t1, t2, p);
+	bool s2 = leftOf(t2, t3, p);
+	if(s1 != s2) return false;
+	
+	bool s3 = leftOf(t3, t1, p);
+	return s2 == s3; 
+}
+
+bool insideQuad(vec2 t1, vec2 t2, vec2 t3, vec2 t4, vec2 p) {
+	return insideTriangle(t1, t2, t3, p) && insideTriangle(t3, t4, t1, p);
+}
+
+
 void main() {
  
 	if(gl_InvocationID == 0) {
@@ -77,7 +95,12 @@ void main() {
 		
 		// cull patches outside the view frustum
 		// TODO: sample height map and adjust corners
-		if((!inBox(w0) && !inBox(w1) && !inBox(w2) && !inBox(w3))) {
+		if((!inBox(w0) && !inBox(w1) && !inBox(w2) && !inBox(w3))
+			&& !insideQuad(w0.xz, w1.xz, w2.xz, w3.xz, vec2(1,1)) 
+			&& !insideQuad(w0.xz, w1.xz, w2.xz, w3.xz, vec2(-1,1)) 
+			&& !insideQuad(w0.xz, w1.xz, w2.xz, w3.xz, vec2(1,-1)) 
+			&& !insideQuad(w0.xz, w1.xz, w2.xz, w3.xz, vec2(-1,-1)) 
+		) {
 			
 			// discard the patch entirely
 			gl_TessLevelOuter[0] = 0; 

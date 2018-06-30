@@ -70,6 +70,75 @@ bool inBox(vec4 v) {
 	return true;
 }
 
+vec4 leftPlane(mat4 m) {
+	return vec4(
+		m[0][3] + m[0][0],
+		m[1][3] + m[1][0],
+		m[2][3] + m[2][0],
+		m[3][3] + m[3][0]
+	);
+}
+vec4 rightPlane(mat4 m) {
+	return vec4(
+		m[0][3] - m[0][0],
+		m[1][3] - m[1][0],
+		m[2][3] - m[2][0],
+		m[3][3] - m[3][0]
+	);
+}
+vec4 bottomPlane(mat4 m) {
+	return vec4(
+		m[0][3] + m[0][1],
+		m[1][3] + m[1][1],
+		m[2][3] + m[2][1],
+		m[3][3] + m[3][1]
+	);
+}
+vec4 topPlane(mat4 m) {
+	return vec4(
+		m[0][3] - m[0][1],
+		m[1][3] - m[1][1],
+		m[2][3] - m[2][1],
+		m[3][3] - m[3][1]
+	);
+}
+vec4 nearPlane(mat4 m) {
+	return vec4(
+		m[0][3] + m[0][2],
+		m[1][3] + m[1][2],
+		m[2][3] + m[2][2],
+		m[3][3] + m[3][2]
+	);
+}
+vec4 farPlane(mat4 m) {
+	return vec4(
+		m[0][3] - m[0][2],
+		m[1][3] - m[1][2],
+		m[2][3] - m[2][2],
+		m[3][3] - m[3][2]
+	);
+}
+
+bool linePlaneParallel(vec4 plane, vec4 line) {
+	return abs(dot(plane.xyz, line.xyz)) < 0.001;
+}
+
+bool leftOf(vec2 l1, vec2 l2, vec2 p) { 
+	return (l2.x - l1.x) * (p.y - l1.y) > (l2.y - l1.y) * (p.x - l1.x);
+}
+
+bool insideTriangle(vec2 t1, vec2 t2, vec2 t3, vec2 p) {
+	bool s1 = leftOf(t1, t2, p);
+	bool s2 = leftOf(t2, t3, p);
+	if(s1 != s2) return false;
+	
+	bool s3 = leftOf(t3, t1, p);
+	return s2 == s3; 
+}
+
+bool insideQuad(vec2 t1, vec2 t2, vec2 t3, vec2 t4, vec2 p) {
+	return insideTriangle(t1, t2, t3, p) && insideTriangle(t3, t4, t1, p);
+}
 
 void main() {
 
@@ -95,7 +164,12 @@ void main() {
 		w3 /= w3.w;
 		
 		// cull patches outside the view frustum
-		if((!inBox(w0) && !inBox(w1) && !inBox(w2) && !inBox(w3))) {
+		if((!inBox(w0) && !inBox(w1) && !inBox(w2) && !inBox(w3))
+			&& !insideQuad(w0.xz, w1.xz, w2.xz, w3.xz, vec2(1,1)) 
+			&& !insideQuad(w0.xz, w1.xz, w2.xz, w3.xz, vec2(-1,1)) 
+			&& !insideQuad(w0.xz, w1.xz, w2.xz, w3.xz, vec2(1,-1)) 
+			&& !insideQuad(w0.xz, w1.xz, w2.xz, w3.xz, vec2(-1,-1)) 
+		) {
 			
 			// discard the patch entirely
 			gl_TessLevelOuter[0] = 0; 
