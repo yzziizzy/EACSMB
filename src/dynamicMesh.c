@@ -519,6 +519,9 @@ static void draw(DynamicMeshManager* dmm, GLuint progID, PassDrawParams* pdp) {
 	mScale3f(150, 150, 150, &model);
 	//mTrans3f(0,0,0, &model);
 	
+	glActiveTexture(GL_TEXTURE0 + 8);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, dmm->tm->tex_id);
+	
 	tex_ul = glGetUniformLocation(prog->id, "sTexture");
 	glProgramUniform1i(prog->id, tex_ul, 8);
 	
