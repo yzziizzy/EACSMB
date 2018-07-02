@@ -12,6 +12,8 @@
 #include "world.h"
 #include "window.h"
 
+#include "component.h"
+
 
 typedef struct GameScreen {
 	
@@ -152,6 +154,9 @@ typedef struct GameState {
 	// need time of year and latitude for sun angle
 	Vector sunNormal;
 	float sunSpeed;
+	
+	
+	CES ces;
 	
 } GameState;
 

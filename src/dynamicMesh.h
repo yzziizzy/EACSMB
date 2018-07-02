@@ -14,6 +14,9 @@
 #include "pcBuffer.h"
 #include "pass.h"
 
+#include "component.h"
+
+
 
 // must be at least 3. higher values may waste large amounts of vram
 #define DMM_INST_VBO_BUFFER_DEPTH 3
@@ -76,6 +79,8 @@ typedef struct DynamicMesh {
 	VEC(Matrix) instMatrices;
 	int numToDraw; // TODO: cycle per frame or move elsewhere
 	
+	size_t matBufOffset;
+	
 	float defaultScale;
 	float defaultRotX;
 	float defaultRotY;
@@ -94,6 +99,11 @@ typedef struct DynamicMeshManager {
 	int totalInstances;
 	
 	int maxInstances;
+	
+	Matrix* matBuf;
+	size_t matBufAlloc;
+	CES* ces; // hack for now to get the component managers
+	
 	
 	//VEC(StaticMeshInstance*) instances;
 	

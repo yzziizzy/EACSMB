@@ -45,6 +45,7 @@ uniform mat4 mProjView;
 
 uniform vec2 resolution;
 
+
 out vec4 FragColor;
 
 void main() {
@@ -106,7 +107,14 @@ void main() {
 	}
 	else if(debugMode == 3) {
 		// depth
-		FragColor = vec4(texture(sDepth, tex).rrr,  1.0);
+		
+		// bring it back to linear
+		float nd = (
+				(2.0 * clipPlanes.x * clipPlanes.y) / 
+				(clipPlanes.y + clipPlanes.x - (texture(sDepth, tex).r * 2.0 - 1.0) * (clipPlanes.y - clipPlanes.x))
+			) / clipPlanes.y;
+		
+		FragColor = vec4(vec3(nd),  1.0);
 	}
 	else if(debugMode == 4) {
 		// selection buffer

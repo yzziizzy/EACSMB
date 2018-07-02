@@ -10,11 +10,13 @@
 
 
 #include "dynamicMesh.h"
+#include "component.h"
 
 #include "utilities.h"
 #include "objloader.h"
 #include "shader.h"
 #include "pass.h"
+
 
 #include "c_json/json.h"
 
@@ -414,6 +416,80 @@ void dynamicMeshManager_updateGeometry(DynamicMeshManager* mm) {
 void dynamicMeshManager_updateMatrices(DynamicMeshManager* dmm, PassFrameParams* pfp) {
 	int mesh_index, i;
 	
+	// make sure the matrix buffer has enough space
+	if(dmm->matBufAlloc < dmm->totalInstances) {
+		Matrix* p = realloc(dmm->matBuf, dmm->totalInstances * 2 * sizeof(*dmm->matBuf));
+		if(!p) {
+			printf(stderr, "OOM for matrix buffer in dmm\n");
+		}
+		dmm->matBuf = p;
+		dmm->matBufAlloc = dmm->totalInstances * 2;
+	}
+	
+	
+	// update dm matbuf offsets
+	size_t off = 0;
+	for(mesh_index = 0; mesh_index < VEC_LEN(&dmm->meshes); mesh_index++) {
+		DynamicMesh* dm = VEC_ITEM(&dmm->meshes, mesh_index);
+		
+		dm->numToDraw = 0; // clear this out while we're at it	
+		dm->matBufOffset = off;
+		
+		off += VEC_LEN(&dm->instances[0]);
+	}
+	
+	// walk the components
+	ComponentManager* posComp = CES_getCompManager(dmm->ces, "position");
+	ComponentManager* meshComp = CES_getCompManager(dmm->ces, "meshIndex");
+	ComponentManager* rotComp = CES_getCompManager(dmm->ces, "rotation");
+	
+	int cindex = -1;
+	int pindex = -1;
+	int rindex = -1;
+	uint32_t eid;
+	uint16_t* meshIndex;
+	while(meshIndex = ComponentManager_next(meshComp, &cindex, &eid)) {
+		//printf("eid %d %d %d\n", eid, cindex, pindex);
+		Vector* pos;
+		if(!(pos = ComponentManager_nextEnt(posComp, &pindex, eid))) {
+			 printf("continued\n");
+			 continue;
+		}
+		//printf("%d - %f,%f,%f\n", *meshIndex, pos->x, pos->y, pos->z);
+		
+		DynamicMesh* dm = VEC_ITEM(&dmm->meshes, *meshIndex);
+		
+		
+		Matrix m = IDENT_MATRIX, tmp = IDENT_MATRIX;
+		
+		float d = vDist(pos, &pfp->dp->eyePos);
+		
+		if(d > 500) continue;
+		
+		mTransv(pos, &m);
+	
+		C_Rotation* rot;
+		if(rot = ComponentManager_nextEnt(rotComp, &rindex, eid)) {
+			mRotv(&rot->axis, rot->theta, &m); 
+		}
+		
+		mRot3f(1, 0, 0, F_PI / 2, &m);
+		mRot3f(1, 0, 0, dm->defaultRotX, &m);
+		mRot3f(0, 1, 0, dm->defaultRotY, &m);
+		mRot3f(0, 0, 1, dm->defaultRotZ, &m);
+		
+	
+		mScale3f(dm->defaultScale, dm->defaultScale, dm->defaultScale, &m);			
+
+			
+		dmm->matBuf[dm->matBufOffset + dm->numToDraw] = m;
+		dm->numToDraw++;
+	}
+	
+	
+	
+	
+	
 	
 	
 	DynamicMeshInstShader* vmem = PCBuffer_beginWrite(&dmm->instVB);
@@ -423,6 +499,25 @@ void dynamicMeshManager_updateMatrices(DynamicMeshManager* dmm, PassFrameParams*
 		return;
 	}
 
+
+
+	for(mesh_index = 0; mesh_index < VEC_LEN(&dmm->meshes); mesh_index++) {
+		DynamicMesh* dm = VEC_ITEM(&dmm->meshes, mesh_index);
+		
+		// TODO make instances switch per frame
+		for(i = 0; i < dm->numToDraw; i++) {
+			DynamicMeshInstance* dmi = &VEC_ITEM(&dm->instances[0], i);
+		
+			vmem->m = dmm->matBuf[dm->matBufOffset + i];
+			vmem->diffuseIndex = dm->texIndex;
+			vmem->normalIndex = 0;
+			
+			vmem++;
+		}
+	}
+
+	/* 
+	pre-component version
 	
 	for(mesh_index = 0; mesh_index < VEC_LEN(&dmm->meshes); mesh_index++) {
 		DynamicMesh* dm = VEC_ITEM(&dmm->meshes, mesh_index);
@@ -444,9 +539,7 @@ void dynamicMeshManager_updateMatrices(DynamicMeshManager* dmm, PassFrameParams*
 			
 			mTransv(&dmi->pos, &m);
 			
-			// HACK
-			Vector noise;
-			vRandom(&(Vector){-1,-1,-1}, &(Vector){1,1,1}, &noise);
+
 			//mTransv(&noise, &m);
 			
 			// z-up hack for now
@@ -468,6 +561,7 @@ void dynamicMeshManager_updateMatrices(DynamicMeshManager* dmm, PassFrameParams*
 		//vmem += VEC_LEN(&dm->instances);
 	//	printf("num to draw %d\n", dm->numToDraw);
 	}
+	*/
 	
 }
 

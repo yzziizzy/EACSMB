@@ -724,8 +724,13 @@ int TextureManager_loadAll(TextureManager* tm, Vector2i targetRes) {
 		if(bmp->width != targetRes.x || bmp->height != targetRes.y) {
 			printf("resizing %s to %d,%d\n", te->path, targetRes.x, targetRes.y);
 			//BitmapRGBA8* tmp = resample(bmp, targetRes);
-			BitmapRGBA8* tmp = linearDownscale(bmp, targetRes);
-			//BitmapRGBA8* tmp = nearestRescale(bmp, targetRes);
+			BitmapRGBA8* tmp;
+			if(bmp->width > targetRes.x) {
+				tmp = linearDownscale(bmp, targetRes);
+			}
+			else {
+				tmp = nearestRescale(bmp, targetRes);
+			}
 			free(bmp->data);
 			free(bmp);
 			

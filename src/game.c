@@ -106,6 +106,16 @@ void initGame(XStuff* xs, GameState* gs) {
 	
 	glerr("left over error on game init");
 	
+	CES_init(&gs->ces);
+	
+	CES_addComponentManager(&gs->ces, ComponentManager_alloc("position", sizeof(Vector), 1024*8));
+	CES_addComponentManager(&gs->ces, ComponentManager_alloc("meshIndex", sizeof(uint16_t), 1024*8));
+	CES_addComponentManager(&gs->ces, ComponentManager_alloc("rotation", sizeof(C_Rotation), 1024*8));
+	
+	// about axis of rotation
+	CES_addComponentManager(&gs->ces, ComponentManager_alloc("angularVelocity", sizeof(float), 1024*8));
+	
+	
 	gs->hasMoved = 1;
 	gs->lastSelectionFrame = 0;
 	gs->frameCount = 0;
@@ -871,6 +881,33 @@ void checkResize(XStuff* xs, GameState* gs) {
 }
 
 
+// temp hack
+void runSystems(GameState* gs, InputState* is) {
+	
+	
+	// angular rotation
+	ComponentManager* avComp = CES_getCompManager(&gs->ces, "angularVelocity");
+	ComponentManager* rotComp = CES_getCompManager(&gs->ces, "rotation");
+	
+	int avindex = -1;
+	int rindex = -1;
+	uint32_t eid;
+	float* av;
+	while(av = ComponentManager_next(avComp, &avindex, &eid)) {
+		//printf("eid %d %d %d\n", eid, cindex, pindex);
+		C_Rotation* rot;
+		if(!(rot = ComponentManager_nextEnt(rotComp, &rindex, eid))) {
+			 continue;
+		}
+		
+		rot->theta = fmod(rot->theta + (gs->frameSpan * *av), F_2PI);
+	}
+		
+	
+	
+	
+}
+
 
 
 #define PF_START(x) gs->perfTimes.x = getCurrentTime()
@@ -892,6 +929,9 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	updateView(xs, gs, is);
 	
 	checkCursor(gs, is);
+	
+	
+	runSystems(gs, is);
 	
 	
 	drawFrame(xs, gs, is);

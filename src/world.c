@@ -42,6 +42,9 @@ void World_init(World* w) {
 	w->dm = DecalManager_alloc(1024*50);
 	w->cdm = CustomDecalManager_alloc(1024*50);
 	
+	// hack becore CES is made
+	w->dmm->ces = &w->gs->ces;
+	
 	w->map.tm = w->mapTexMan;
 	w->dmm->tm = w->meshTexMan;
 	w->dm->tm = w->decalTexMan;
@@ -153,7 +156,6 @@ void World_init(World* w) {
 
 static Item* findItem(World* w, char* itemName) {
 	int64_t index;
-	Item* item;
 	
 	if(HT_get(&w->itemLookup, itemName, &index)) {
 		fprintf(stderr, "!!! item not found: '%s'\n", itemName);
@@ -255,6 +257,22 @@ int World_spawnAt_DynamicMesh(World* w, int dmIndex, Vector* location) {
 	
 	dynamicMeshManager_addInstance(w->dmm, dmIndex, &dmi);
 	// note: dynamic mesh instances are updated every frame automatically
+	
+	uint16_t dmindex16 = dmIndex;
+	uint32_t eid = newEID();
+	CES_addComponentName(&w->gs->ces, "position", eid, &dmi.pos);
+	CES_addComponentName(&w->gs->ces, "meshIndex", eid, &dmindex16);
+	
+	C_Rotation r = {
+		{0, 1, 0},
+		frand(0, 6.28)
+	};
+	CES_addComponentName(&w->gs->ces, "rotation", eid, &r);
+	
+	float av = frand(-2, 2);
+	CES_addComponentName(&w->gs->ces, "angularVelocity", eid, &av);
+	
+	
 }
 
 int World_spawnAt_StaticMesh(World* w, int smIndex, Vector* location) {

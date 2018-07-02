@@ -9,6 +9,7 @@ eacsmb_SOURCES = main.c \
 	c3dlas/c3dlas.c \
 	c3dlas/meshgen.c \
 	c_json/json.c \
+	component.c \
 	config.c \
 	cursor.c \
 	decals.c \
