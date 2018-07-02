@@ -115,6 +115,8 @@ void initGame(XStuff* xs, GameState* gs) {
 	// about axis of rotation
 	CES_addComponentManager(&gs->ces, ComponentManager_alloc("angularVelocity", sizeof(float), 1024*8));
 	
+	CES_addComponentManager(&gs->ces, ComponentManager_alloc("pathFollow", sizeof(C_PathFollow), 1024*8));
+	
 	
 	gs->hasMoved = 1;
 	gs->lastSelectionFrame = 0;
@@ -903,8 +905,29 @@ void runSystems(GameState* gs, InputState* is) {
 		rot->theta = fmod(rot->theta + (gs->frameSpan * *av), F_2PI);
 	}
 		
+	// --------------------------------
 	
+	ComponentManager* posComp = CES_getCompManager(&gs->ces, "position");
+	ComponentManager* pathComp = CES_getCompManager(&gs->ces, "pathFollow");
 	
+	int findex = -1;
+	int pindex = -1;
+	eid = 0;
+	C_PathFollow* pf;
+	while(pf = ComponentManager_next(pathComp, &findex, &eid)) {
+		//printf("eid %d %d %d\n", eid, cindex, pindex);
+		Vector* pos;
+		if(!(pos = ComponentManager_nextEnt(posComp, &pindex, eid))) {
+			 continue;
+		}
+		
+		pf->distTravelled += pf->speed * gs->frameSpan;
+		Vector2 p2 = Path_GetPos(pf->path, pf->distTravelled);
+		
+		pos->x = p2.x;
+		pos->y = p2.y;
+		pos->z = getTerrainHeightf(&gs->world->map, &p2); 
+	}
 	
 }
 

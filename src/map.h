@@ -238,6 +238,7 @@ void flattenArea(TerrainBlock *tb, int x1, int y1, int x2, int y2);
 void updateMapTextures(MapInfo* mi);
 void setZone(MapInfo *mi, int x1, int y1, int x2, int y2, int zone);
 
+float getTerrainHeightf(MapInfo* map, Vector2* coords);
 void getTerrainHeight(MapInfo* map, Vector2i* coords, int coordLen, float* heightsOut);
 
 void tileCenterWorld(MapInfo* map, int tx, int ty, Vector* out);

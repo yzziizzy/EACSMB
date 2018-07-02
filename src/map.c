@@ -891,7 +891,14 @@ void setZone(MapInfo *mi, int x1, int y1, int x2, int y2, int zone) {
 	printf("!!! broken dead code: setZone()\n");
 }
 
+float getTerrainHeightf(MapInfo* map, Vector2* coords) {
+	Vector2i c = {coords->x, coords->y};
+	float h;
 
+	getTerrainHeight(map, &c, 1, &h);
+	
+	return h;
+}
 
 
 void getTerrainHeight(MapInfo* map, Vector2i* coords, int coordLen, float* heightsOut) {

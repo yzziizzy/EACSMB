@@ -99,5 +99,16 @@ typedef struct C_Rotation {
 } C_Rotation;
 
 
+#include "path.h"
+
+typedef struct C_PathFollow {
+	Path* path;
+	float speed;
+	float distTravelled;
+} C_PathFollow;
+
+
+
+
 
 #endif // __EACSMB__component_h__

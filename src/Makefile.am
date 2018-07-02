@@ -32,6 +32,7 @@ eacsmb_SOURCES = main.c \
 	objloader.c \
 	opensimplex.c \
 	pass.c \
+	path.c \
 	pcBuffer.c \
 	perlin.c \
 	pipe.c \

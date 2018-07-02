@@ -272,7 +272,12 @@ int World_spawnAt_DynamicMesh(World* w, int dmIndex, Vector* location) {
 	float av = frand(-2, 2);
 	CES_addComponentName(&w->gs->ces, "angularVelocity", eid, &av);
 	
-	
+	C_PathFollow pf = {
+		.path = Path_makeRandomLoop(&dmi.pos, 50, 10, .01),
+		.distTravelled = frand(0, 10000),
+		.speed = frand(5, 100)
+	};
+	CES_addComponentName(&w->gs->ces, "pathFollow", eid, &pf);
 }
 
 int World_spawnAt_StaticMesh(World* w, int smIndex, Vector* location) {
