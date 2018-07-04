@@ -15,5 +15,9 @@
 		texture: "assets/textures/test-checkers-128.png",
 		scale: 3.0,
 	},
+	road: {
+		texture: "assets/textures/road-256.png",
+		scale: 3.0,
+	},
 	
 }

@@ -386,7 +386,8 @@ MapBlock* spawnMapBlock(MapInfo* mi, int bix, int biy) {
 	mb = allocMapBlock(bix, biy);
 	initTerrainBlock(mb, bix, biy);
 	
-	initRoadBlock(&mb->roads);
+	// old bezier roads
+	//initRoadBlock(&mb->roads);
 	
 	return mb;
 }

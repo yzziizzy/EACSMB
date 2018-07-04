@@ -90,7 +90,7 @@ void setupFBOs(GameState* gs, int resized);
 // TerrainBlock* terrain;
 
 
-
+static void main_drag_handler(InputEvent* ev, GameState* gs);
 static void main_key_handler(InputEvent* ev, GameState* gs);
 static void main_perframe_handler(InputState* is, float frameSpan, GameState* gs);
 static void main_click_handler(InputEvent* ev, GameState* gs);
@@ -141,6 +141,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	gs->screen.resized = 0;
 	
 	gs->defaultInputHandlers = calloc(1, sizeof(*gs->defaultInputHandlers));
+	gs->defaultInputHandlers->dragStop = main_drag_handler;
 	gs->defaultInputHandlers->keyUp = main_key_handler;
 	gs->defaultInputHandlers->perFrame = main_perframe_handler;
 	gs->defaultInputHandlers->click = main_click_handler;
@@ -223,7 +224,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	initStaticMeshes(); // static meshes will probably be phased out due to the culling efficiency of dynamic meshes
 	initDynamicMeshes();
 	initLighting();
-	initRoads();
+	//initRoads();
 	initWaterPlane();
 	initEmitters();
 	initDecals();
@@ -525,6 +526,25 @@ static void main_perframe_handler(InputState* is, float frameSpan, GameState* gs
 }
 
 
+
+static void main_drag_handler(InputEvent* ev, GameState* gs) {
+	
+	printf("dragged from %d,%d to %d,%d \n", ev->intDragStart.x, ev->intDragStart.y,
+		ev->intPos.x, ev->intPos.y
+	);
+	printf("dragged from %f,%f to %f,%f \n", ev->normDragStart.x, ev->normDragStart.y,
+		ev->normPos.x, ev->normPos.y
+	);
+	
+	Vector2i tile;
+	getTileFromScreenCoords(gs, ev->normPos, &tile);
+	Vector2 to = {tile.x, tile.y};
+	getTileFromScreenCoords(gs, ev->normDragStart, &tile);
+	Vector2 from = {tile.x, tile.y};
+	
+	World_spawnAt_Road(gs->world, &from, &to);
+	
+}
 
 static void main_key_handler(InputEvent* ev, GameState* gs) {
 	

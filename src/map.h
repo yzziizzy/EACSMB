@@ -28,6 +28,14 @@
 #include "view.h"
 #include "uniformBuffer.h"
 
+
+struct MapInfo;
+typedef struct MapInfo MapInfo;
+
+struct MapBlockTreeLeaf;
+typedef struct MapBlockTreeLeaf MapBlockTreeLeaf;
+
+
 typedef struct TerrainPatchVertex {
 	float x, y, z;
 	float hmU, hmV; // these are in texels
@@ -63,7 +71,8 @@ typedef struct MapBlock {
 
 	TerrainBlock tb;
 	
-	RoadBlock roads;
+	// old bezier roads
+	//RoadBlock roads;
 	
 } MapBlock;
 

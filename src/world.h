@@ -128,11 +128,13 @@ typedef struct World {
 	TextureManager* meshTexMan;
 	TextureManager* decalTexMan;
 	
-	RoadBlock* roads;
+	// old bezier roads
+	//RoadBlock* roads;
 	
 	WaterPlane* wp;
 	
 	MapInfo map; 
+	RoadNetwork* roads;
 	
 	VEC(Item*) items;
 	HashTable(int) itemLookup;

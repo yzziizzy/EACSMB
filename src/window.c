@@ -333,6 +333,7 @@ void processEvents(XStuff* xs, InputState* st, InputFocusStack* ifs, int max_eve
 				//printf("lastpress\n");
 				st->lastPressTime = gt;
 				st->lastPressPosPixels = pixelPos;
+				st->lastPressPosNorm = normPos;
 			}
 			
 		}
@@ -355,6 +356,10 @@ void processEvents(XStuff* xs, InputState* st, InputFocusStack* ifs, int max_eve
 
 			if(st->inDrag) { //printf("release in drag\n");
 				iev.type = EVENT_DRAGSTOP;
+				
+				iev.intDragStart = st->lastPressPosPixels;
+				iev.normDragStart = st->lastPressPosNorm;
+				
 				InputFocusStack_Dispatch(ifs, &iev);
 				
 				st->inDrag = 0;

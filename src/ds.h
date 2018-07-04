@@ -34,6 +34,7 @@ do { \
 
 #define VEC_FIND(x, ptr_o) vec_find(VEC_DATA(x), VEC_LEN(x), sizeof(*VEC_DATA(x)), ptr_o)
 
+#define VEC_TRUNC(x) (VEC_LEN(x) = 0)
 //  
 
 #define VEC_GROW(x) vec_resize((void**)&VEC_DATA(x), &VEC_ALLOC(x), sizeof(*VEC_DATA(x)))
@@ -164,6 +165,107 @@ do { \
 	); \
 } while(0)
 	
+
+
+
+
+
+
+
+/*
+Loop macro magic
+
+https://www.chiark.greenend.org.uk/~sgtatham/mp/
+
+HashTable obj;
+HT_LOOP(&obj, key, char*, val) {
+	printf("loop: %s, %s", key, val);
+}
+
+effective source:
+
+	#define HT_LOOP(obj, keyname, valtype, valname)
+	if(0)
+		finished: ;
+	else
+		for(char* keyname;;) // internal declarations, multiple loops to avoid comma op funny business
+		for(valtype valname;;)
+		for(void* iter = NULL ;;)
+			if(HT_next(obj, iter, &keyname, &valname))
+				goto main_loop;
+			else
+				while(1)
+					if(1) {
+						// when the user uses break
+						goto finished;
+					}
+					else
+						while(1)
+							if(!HT_next(obj, iter, &keyname, &valname)) {
+								// normal termination
+								goto finished;
+							}
+							else
+								main_loop:
+								//	{ user block; not in macro }
+*/
+#define VEC__PASTEINNER(a, b) a ## b
+#define VEC__PASTE(a, b) VEC__PASTEINNER(a, b) 
+#define VEC__ITER(key, val) VEC__PASTE(VEC_iter_ ## key ## __ ## val ## __, __LINE__)
+#define VEC__FINISHED(key, val) VEC__PASTE(VEC_finished__ ## key ## __ ## val ## __, __LINE__)
+#define VEC__MAINLOOP(key, val) VEC__PASTE(VEC_main_loop__ ## key ## __ ## val ## __, __LINE__)    
+#define VEC_EACH(obj, index, valname) \
+if(0) \
+	VEC__FINISHED(index, val): ; \
+else \
+	for(typeof(*VEC_DATA(obj)) valname ;;) \
+	for(size_t index = 0;;) \
+		if(index < VEC_LEN(obj) && (valname = VEC_ITEM(obj, index), 1)) \
+			goto VEC__MAINLOOP(index, val); \
+		else \
+			while(1) \
+				if(1) { \
+					goto VEC__FINISHED(index, val); \
+				} \
+				else \
+					while(1) \
+						if(++index >= VEC_LEN(obj) || (valname = VEC_ITEM(obj, index), 0)) { \
+							goto VEC__FINISHED(index, val); \
+						} \
+						else \
+							VEC__MAINLOOP(index, val) :
+							
+							//	{ user block; not in macro }
+
+
+
+// this version only iterates the index   
+#define VEC_LOOP(obj, index) \
+if(0) \
+	VEC__FINISHED(index, val): ; \
+else \
+	for(size_t index = 0;;) \
+		if(index < VEC_LEN(obj)) \
+			goto VEC__MAINLOOP(index, val); \
+		else \
+			while(1) \
+				if(1) { \
+					goto VEC__FINISHED(index, val); \
+				} \
+				else \
+					while(1) \
+						if(++index >= VEC_LEN(obj)) { \
+							goto VEC__FINISHED(index, val); \
+						} \
+						else \
+							VEC__MAINLOOP(index, val) :
+							
+							//	{ user block; not in macro }
+
+
+
+
+
 
 
 void vec_resize(void** data, size_t* size, size_t elem_size);

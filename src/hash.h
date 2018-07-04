@@ -112,14 +112,15 @@ else \
 							//	{ user block; not in macro }
 
 
-/*
+
+
 // special faster version for storing just integer sets
 struct int_hash_bucket {
 	uint64_t key;
 	uint64_t value;
 };
 
-typedef struct hash_table {
+typedef struct int_hash_table {
 	size_t alloc_size;
 	size_t fill;
 	float grow_ratio;
@@ -127,7 +128,15 @@ typedef struct hash_table {
 	struct int_hash_bucket* buckets; 
 } IntHash;
 
-*/
+
+
+#define HT_TYPE(x) _Generic( (x), \
+	default: 'std', \
+	struct hash_table: HT_STD, \
+	struct int_hash_table: HT_INT, \
+)
+
+
 
 
 

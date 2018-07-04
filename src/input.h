@@ -52,6 +52,7 @@ typedef struct InputState {
 	double lastMoveTime;
 	
 	Vector2i lastPressPosPixels;
+	Vector2 lastPressPosNorm;
 	double lastPressTime;
 	
 	Vector2 lastClickPos;

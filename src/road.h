@@ -1,49 +1,81 @@
-#ifndef __EACSMB_ROAD_H__
-#define __EACSMB_ROAD_H__
+#ifndef __EACSMB__road_h__
+#define __EACSMB__road_h__
 
-#include "types.h"
 
-typedef struct RoadVertex {
-	Vector2 v;
-	struct { float u, v; } t;
-} RoadVertex;
+#include "common_math.h"
 
-// it occurs this is named incorrectly...
-typedef struct RoadControlPoint {
-	Vector2 cp0;
-	Vector2 cp2;
-	Vector2 cp1;
-} RoadControlPoint;
+#include "ds.h"
 
-typedef struct RoadSpline {
-	int numSegments;
-	RoadControlPoint cps[16];
-} RoadSpline;
 
-// dunno what to call this
-typedef struct RoadBlock {
-	int nextRoad, maxRoads;
+
+#define LL(x) struct { \
+	struct x##_link { \
+		x data; \
+		struct x##_link* next; \
+	}* head; \
+} 
+
+// requires GCC for typeof()
+#define LL_PUSH(list, x) \
+do { \
+	typeof((list)->head) LL_tmp__ = malloc(sizeof(*((list)->head))); \
+	LL_tmp__->data = x; \
+	LL_tmp__->next = (list)->head; \
+	(list)->head = LL_tmp__; \
+} while(0); \
+
+
+#define LL_DATA(link) ((link)->data)
+
+#define LL_HEAD(list) LL_DATA((list)->head)
+
+
+
+
+typedef struct RoadNode {
+	Vector2 pos;
 	
-	VEC(RoadControlPoint) cps; 
+	uint32_t eid;
+} RoadNode;
+
+typedef struct RoadEdge {
+	int from, to;
+	float length;
 	
-	char dirty;
+	uint32_t eid;
+} RoadEdge;
+
+
+typedef struct RoadNetwork {
 	
-} RoadBlock;
-
-
-
-void drawRoad(RoadBlock* rb, GLuint dtex, Matrix* view, Matrix* proj);
-void roadblock_update_vbo(RoadBlock* rb);
-RoadBlock* allocRoadBlock();
-void initRoadBlock(RoadBlock* rb);
-int rbAddRoad(RoadBlock* rb, RoadControlPoint* rcp, int* out_id);
-void initRoads(); 
-
-
+	VEC(RoadNode*) nodes;
+	VEC(RoadEdge) edges;
+	
+	
+	VEC(int) edgeDirtyList;
+	VEC(int) nodeDirtyList;
+	
+} RoadNetwork;
 
 
 
 
 
+RoadNetwork* RoadNetwork_alloc();
+void RoadNetwork_init(RoadNetwork* rn);
 
-#endif // __EACSMB_ROAD_H__
+int RoadNetwork_AddNode(RoadNetwork* rn, RoadNode* n); 
+void Road_AddEdge(RoadNetwork* rn, int from, int to);
+void Road_AddEdge1Way(RoadNetwork* rn, int from, int to);
+Vector2 RoadNetwork_Lerp(RoadNetwork* rn, int from, int to, float t);
+
+static inline RoadNode* RoadNetwork_GetNode(RoadNetwork* rn, int index) {
+	return VEC_LEN(&rn->nodes) > index && index >= 0 ? VEC_ITEM(&rn->nodes, index) : NULL;
+} 
+
+
+struct World;
+void RoadNetwork_FlushDirty(RoadNetwork* rn, struct World* w);
+
+
+#endif // __EACSMB__road_h__

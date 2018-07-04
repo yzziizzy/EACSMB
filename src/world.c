@@ -64,19 +64,19 @@ void World_init(World* w) {
 	
 	
 	
-	//  HACK roads
-	w->roads = calloc(1, sizeof(*w->roads));
-	initRoadBlock(w->roads);
+	// old bezier roads
+	//w->roads = calloc(1, sizeof(*w->roads));
+	//initRoadBlock(w->roads);
 	
-	RoadControlPoint rcp = {
-		{5,5},
-		{50,50},
-		{40,7}
-	};
-	int id;
-	rbAddRoad(w->roads, &rcp, &id);
+	//RoadControlPoint rcp = {
+		//{5,5},
+		//{50,50},
+		//{40,7}
+	//};
+	//int id;
+	//rbAddRoad(w->roads, &rcp, &id);
 	
-	roadblock_update_vbo(w->roads);
+	//roadblock_update_vbo(w->roads);
 	
 	// water plane, temporary hack
 	w->wp = calloc(1, sizeof(*w->wp));
@@ -107,6 +107,19 @@ void World_init(World* w) {
 	
 	
 	RenderPass_addDrawable(w->decalPass, CustomDecalManager_CreateDrawable(w->cdm));
+	
+	
+	w->roads = RoadNetwork_alloc();
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/// hacks
 	
 	for(int i = 0; i < 5000; i++) {
 		Vector v = {
@@ -152,10 +165,8 @@ void World_init(World* w) {
 	World_spawnAt_CustomDecal(w, 0, 50, &(Vector2){100, 100}, &(Vector2){300, 300});
 
 	
-	
-	
-	
 }
+
 
 
 static Item* findItem(World* w, char* itemName) {
@@ -439,6 +450,22 @@ int World_spawnAt_CustomDecal(World* w, int texIndex, float width, const Vector2
 
 void World_spawnAt_Road(World* w, Vector2* start,  Vector2* stop) {
 	
+	RoadNode* n = pcalloc(n);
+	RoadNode* n2 = pcalloc(n2);
+	
+	n->pos = *start;
+	n2->pos = *stop;
+	
+	int i1 = RoadNetwork_AddNode(w->roads, n);
+	int i2 = RoadNetwork_AddNode(w->roads, n2);
+	
+	Road_AddEdge1Way(w->roads, i1, i2);
+	
+	RoadNetwork_FlushDirty(w->roads, w);
+	
+	
+	/* old bezier roads
+	
 	RoadControlPoint rcp = {
 		{start->x, start->y},
 		{stop->x, stop->y},
@@ -448,6 +475,8 @@ void World_spawnAt_Road(World* w, Vector2* start,  Vector2* stop) {
 	rbAddRoad(w->roads, &rcp, &id);
 	
 	roadblock_update_vbo(w->roads);
+	
+	*/
 	
 }
 
@@ -476,7 +505,9 @@ void World_drawSolids(World* w, PassFrameParams* pfp) {
 
 
 void World_drawDecals(World* w, PassFrameParams* pfp) {
-	drawRoad(w->roads, w->gs->depthTexBuffer, pfp->dp->mWorldView, pfp->dp->mViewProj);
+	
+	// old bezier roads
+	//drawRoad(w->roads, w->gs->depthTexBuffer, pfp->dp->mWorldView, pfp->dp->mViewProj);
 	
 	RenderPass_preFrameAll(w->decalPass, pfp);
 	RenderPass_renderAll(w->decalPass, pfp->dp);
