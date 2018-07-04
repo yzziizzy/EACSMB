@@ -149,6 +149,10 @@ void World_init(World* w) {
 	
 	
 	
+	World_spawnAt_CustomDecal(w, 0, 50, &(Vector2){100, 100}, &(Vector2){300, 300});
+
+	
+	
 	
 	
 }
@@ -390,15 +394,15 @@ int World_spawnAt_CustomDecal(World* w, int texIndex, float width, const Vector2
 	CustomDecalInstance di;
 	
 	// look up the terrain heights
-	loci.x = p1->x;
-	loci.y = p1->y;	
-	getTerrainHeight(&w->map, &loci, 1, &h);
-	groundloc = (Vector){p1->x, p1->y, h};
+	//loci.x = p1->x;
+	//loci.y = p1->y;	
+	//getTerrainHeight(&w->map, &loci, 1, &h);
+	//groundloc = (Vector){p1->x, p1->y, h};
 	
-	loci.x = p2->x;
-	loci.y = p2->y;
-	getTerrainHeight(&w->map, &loci, 1, &h);
-	groundloc = (Vector){p2->x, p2->y, h};
+	//loci.x = p2->x;
+	//loci.y = p2->y;
+	//getTerrainHeight(&w->map, &loci, 1, &h);
+	//groundloc = (Vector){p2->x, p2->y, h};
 
 	//printf("spawning decal %f,%f,%f\n", groundloc.x, groundloc.y, groundloc.z);
 
@@ -419,10 +423,15 @@ int World_spawnAt_CustomDecal(World* w, int texIndex, float width, const Vector2
 	vAdd(&n, p1, &di.pos2);
 	vAdd(&n, p2, &di.pos4);
 	
+	di.pos1.z = getTerrainHeightf(&w->map, &di.pos1);
+	di.pos2.z = getTerrainHeightf(&w->map, &di.pos2);
+	di.pos3.z = getTerrainHeightf(&w->map, &di.pos3);
+	di.pos4.z = getTerrainHeightf(&w->map, &di.pos4);
 	
+	di.thickness = 50;
 	//di.pos = groundloc;
 	
-	CustomDecalManager_AddInstance(w->dm, index, &di);
+	CustomDecalManager_AddInstance(w->cdm, texIndex, &di);
 	
 }
 
