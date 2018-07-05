@@ -11,8 +11,8 @@ layout (location = 1) in vec2 v_tex_in;
 // per instance
 layout (location = 2) in vec4 vi_pos1_thickness_in;
 layout (location = 3) in vec4 vi_pos2_alpha_in;
-layout (location = 4) in vec4 vi_pos3_unused_in;
-layout (location = 5) in vec4 vi_pos4_unused_in;
+layout (location = 4) in vec4 vi_pos3_tex12_in;
+layout (location = 5) in vec4 vi_pos4_tex34_in;
 layout (location = 6) in vec2 vi_tex_tile_in;
 
 uniform mat4 mWorldView;
@@ -32,6 +32,8 @@ flat out float xm_yd;
 flat out float yp_xd;
 flat out float ym_xd;
 
+flat out vec2 texOffset;
+
 out float debug;
 
 void main() {
@@ -39,8 +41,8 @@ void main() {
 	
 	vec3 pos1 = vi_pos1_thickness_in.xyz;
 	vec3 pos2 = vi_pos2_alpha_in.xyz;
-	vec3 pos3 = vi_pos3_unused_in.xyz;
-	vec3 pos4 = vi_pos4_unused_in.xyz;
+	vec3 pos3 = vi_pos3_tex12_in.xyz;
+	vec3 pos4 = vi_pos4_tex34_in.xyz;
 	
 	
 	
@@ -81,6 +83,7 @@ void main() {
 	yp_xd = distance(pos2.xy, pos4.xy); 
 	ym_xd = distance(pos1.xy, pos3.xy); 
 	
+	texOffset = vec2(vi_pos3_tex12_in.w, vi_pos4_tex34_in.w);
 }
 
 
@@ -103,6 +106,8 @@ flat in float xp_yd;
 flat in float xm_yd;
 flat in float yp_xd;
 flat in float ym_xd;
+
+flat in vec2 texOffset;
 
 in float debug;
 
@@ -197,7 +202,14 @@ void main(void) {
 		discard; 
 	}
 	
-	out_Color = vec4(texture(sTexture, vec3(tc, texIndex)).rgb , 1); //vs_norm;
+	// handle texture offset, wrap, and repeat	
+	vec2 otc = vec2(
+		tc.x,
+		mix(texOffset.x, texOffset.y, tc.y)
+	);
+	
+	//out_Color = vec4(mod(otc.x , 1), mod(otc.y, 1) ,0 , 1); //vs_norm;
+	out_Color = vec4(texture(sTexture, vec3(otc, texIndex)).rgb , 1); //vs_norm;
 	out_Normal = vec4(1,0,0,0);
 }
 

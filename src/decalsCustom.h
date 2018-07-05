@@ -32,10 +32,10 @@ typedef struct CustomDecalInstance {
 	float alpha;
 	
 	Vector pos3;
-	float unused1;
+	float tex12;
 	
 	Vector pos4;
-	float unused2;
+	float tex34;
 	
 	unsigned short texIndex;
 	unsigned short tileInfo; // 0 = clamp to transparent, 1 = tilex, 2 = tiley, 3 = tile both

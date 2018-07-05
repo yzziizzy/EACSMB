@@ -69,6 +69,13 @@ void Road_AddEdge(RoadNetwork* rn, int from, int to);
 void Road_AddEdge1Way(RoadNetwork* rn, int from, int to);
 Vector2 RoadNetwork_Lerp(RoadNetwork* rn, int from, int to, float t);
 
+// -1 for not found
+int RoadNetwork_GetNodeRadius(RoadNetwork* rn, Vector2* pos, float radius);
+int RoadNetwork_GetClosestNode(RoadNetwork* rn, Vector2* pos);
+int RoadNetwork_GetClosest2Nodes(RoadNetwork* rn, Vector2* pos, int* closest, int* nextClosest);
+
+
+
 static inline RoadNode* RoadNetwork_GetNode(RoadNetwork* rn, int index) {
 	return VEC_LEN(&rn->nodes) > index && index >= 0 ? VEC_ITEM(&rn->nodes, index) : NULL;
 } 

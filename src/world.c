@@ -158,6 +158,8 @@ void World_init(World* w) {
 		.pos3 = pos3,
 		.pos4 = pos4,
 		.thickness = 5,
+		.tex12 = .5,
+		.tex34 = 2,
 	});
 	
 	
@@ -440,6 +442,9 @@ int World_spawnAt_CustomDecal(World* w, int texIndex, float width, const Vector2
 	di.pos4.z = getTerrainHeightf(&w->map, &di.pos4);
 	
 	di.thickness = 50;
+	
+	di.tex12 = .5;
+	di.tex34 = 3.0;
 	//di.pos = groundloc;
 	
 	CustomDecalManager_AddInstance(w->cdm, texIndex, &di);
@@ -450,15 +455,26 @@ int World_spawnAt_CustomDecal(World* w, int texIndex, float width, const Vector2
 
 void World_spawnAt_Road(World* w, Vector2* start,  Vector2* stop) {
 	
-	RoadNode* n = pcalloc(n);
-	RoadNode* n2 = pcalloc(n2);
 	
-	n->pos = *start;
-	n2->pos = *stop;
+	RoadNode* n, *n2;
 	
-	int i1 = RoadNetwork_AddNode(w->roads, n);
-	int i2 = RoadNetwork_AddNode(w->roads, n2);
+	//printf("start/stop: %f,%f / %f,%f\n", start->x, start->y, stop->x, stop->y);
 	
+	int i1 = RoadNetwork_GetNodeRadius(w->roads, start, 10);
+	int i2 = RoadNetwork_GetNodeRadius(w->roads, stop, 10);
+	
+	if(i1 == -1) {
+		n = pcalloc(n);
+		n->pos = *start;
+		i1 = RoadNetwork_AddNode(w->roads, n);
+	}
+	
+	if(i2 == -1 || i1 == i2) { // duplicate nodes can cause a math segfault deeper in the decal calculation
+		n2 = pcalloc(n2);
+		n2->pos = *stop;
+		i2 = RoadNetwork_AddNode(w->roads, n2);
+	}
+		
 	Road_AddEdge1Way(w->roads, i1, i2);
 	
 	RoadNetwork_FlushDirty(w->roads, w);

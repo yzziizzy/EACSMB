@@ -4,6 +4,10 @@ fix lighting algorithm
 
 fix tex scaling algorithm
 
+segfault when custom decal start/end points are the same
+
+when spawing and both points are close to the same point, merge with closest
+
 
 
 GUI:
@@ -24,6 +28,8 @@ text wrapping
  
 SOONER:
 -------------------
+
+update road network with quad tree
 
 convert point lights to billboard sprites with geom shader
 

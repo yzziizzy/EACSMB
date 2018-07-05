@@ -98,6 +98,78 @@ Vector2 RoadNetwork_Lerp(RoadNetwork* rn, int from, int to, float t) {
 }
 
 
+// -1 for not found
+int RoadNetwork_GetNodeRadius(RoadNetwork* rn, Vector2* pos, float radius) {
+	int closest = -1;
+	float cdist = 99999999.0; 
+	
+	if(VEC_LEN(&rn->nodes) < 1) return -1;
+		
+	VEC_EACH(&rn->nodes, i, n) {
+		float d = vDist2(pos, &n->pos);
+		//printf("dist: %d - %f - %f,%f -> %f,%f\n", i, d, pos->x, pos->y, n->pos.x, n->pos.y);
+		if(d <= radius && d < cdist) {
+			cdist = d;
+			closest = i;
+		}
+	} 
+	
+	return closest;
+}
+
+// -1 for not found
+int RoadNetwork_GetClosestNode(RoadNetwork* rn, Vector2* pos) {
+	int closest = -1;
+	float cdist = 99999999.0; 
+	
+	if(VEC_LEN(&rn->nodes) < 1) return -1;
+		
+	VEC_EACH(&rn->nodes, i, n) {
+		float d = vDist2(pos, &n->pos);
+		//printf("dist: %d - %f - %f,%f -> %f,%f\n", i, d, pos->x, pos->y, n->pos.x, n->pos.y);
+		if(d < cdist) {
+			cdist = d;
+			closest = i;
+		}
+	} 
+	
+	return closest;
+}
+
+// -1 for not found
+int RoadNetwork_GetClosest2Nodes(RoadNetwork* rn, Vector2* pos, int* closest, int* nextClosest) {
+	int close = -1;
+	int next = -1;
+	float cdist = 99999999.0; 
+	float ndist = 99999999.0; 
+	
+	if(VEC_LEN(&rn->nodes) < 2) return -1;
+		
+	VEC_EACH(&rn->nodes, i, n) {
+		float d = vDist2(pos, &n->pos);
+		//printf("dist: %d - %f - %f,%f -> %f,%f\n", i, d, pos->x, pos->y, n->pos.x, n->pos.y);
+		if(d < cdist) {
+			ndist = cdist;
+			next = close;
+			cdist = d;
+			closest = i;
+		}
+		else if(d < ndist) {
+			ndist = d;
+			next = i;
+		}
+	} 
+	
+	if(closest) *closest = close;
+	if(next) *nextClosest = next;
+	
+	return closest;
+}
+
+
+
+
+
 
 static void RoadEdge_spawnVisuals(RoadNetwork* rn, RoadEdge* e, World* w) {
 	RoadNode* fn = RoadNetwork_GetNode(rn, e->from);
