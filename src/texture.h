@@ -50,6 +50,27 @@ typedef struct TexBitmap {
 } TexBitmap;
 
 
+
+
+
+
+
+typedef struct FloatBitmap {
+	unsigned int w, h;
+	float* data;
+} FloatBitmap;
+
+typedef struct FloatTex {
+	char channels;
+	unsigned int w, h;
+	FloatBitmap* bmps[4];
+} FloatTex;
+
+
+
+
+
+
 typedef struct TexArray {
 	unsigned short width, height;
 	int depth;
@@ -113,8 +134,22 @@ void TextureManager_init(TextureManager* tm);
 int TextureManager_reservePath(TextureManager* tm, char* path);
 int TextureManager_loadAll(TextureManager* tm, Vector2i targetRes); 
 	
+	
+
+int TexBitmap_pixelStride(TexBitmap* bmp);
+int TexBitmap_componentSize(TexBitmap* bmp); 
+void* TexBitmap_pixelPointer(TexBitmap* bmp, int x, int y);
+
+void TexBitmap_sampleFloat(TexBitmap* bmp, int x, int y, float* out);
+
+
+
+FloatBitmap* FloatBitmap_alloc(int width, int height);
+FloatTex* FloatTex_alloc(int width, int height, int channels);
+float FloatTex_sample(FloatTex* ft, float xf, float yf, int channel);
+float FloatTex_texelFetch(FloatTex* ft, int x, int y, int channel); 
+
+BitmapRGBA8* FloatTex_ToRGBA8(FloatTex* ft);
+
 
 #endif // __EACSMB_texture_h__
-
-
-

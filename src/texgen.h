@@ -55,10 +55,17 @@ typedef struct tg_sampler {
 	double dval;
 	uint32_t colorval;
 	
-	TexBitmap* bmp;
+	FloatTex* bmp;
 	
 	
 } tg_sampler;
+
+
+typedef struct tg_context {
+	char primaryChannel;
+	
+	
+} tg_context;
 
 
 #define TG_REFL_STRUCT_NAME solid
@@ -79,6 +86,8 @@ typedef struct tg_sampler {
 #define XLIST \
 	X(float, spread_x, 0.00001, 9999999.0, 64.0) \
 	X(float, spread_y, 0.00001, 9999999.0, 64.0) \
+	X(float, offset_x, -999999.0, 9999999.0, 64.0) \
+	X(float, offset_y, -999999.0, 9999999.0, 64.0) \
 	X(float, persistence, 0.00001, 9999999.0, 0.1) \
 	X(int, octaves, 0, 99, 5) 
 #include "tg_reflect.h"

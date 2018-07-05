@@ -30,12 +30,12 @@ voronoi/worley noise
 
 
 // forward declarations
-#define TEXGEN_TYPE_MEMBER(x) static void gen_##x(TexBitmap* bmp, int channel, struct TG_##x* opts);
+#define TEXGEN_TYPE_MEMBER(x) static void gen_##x(FloatTex* ft, struct tg_context* context, struct TG_##x* opts);
 	TEXGEN_TYPE_LIST
 #undef TEXGEN_TYPE_MEMBER
 
 // dispatch table
-typedef void (*genfn)(TexBitmap*, int, void*);
+typedef void (*genfn)(FloatTex*, struct tg_context*, void*);
 
 genfn generators[] = {
 #define TEXGEN_TYPE_MEMBER(x) [TEXGEN_TYPE_##x] = (genfn)gen_##x,
@@ -43,80 +43,88 @@ genfn generators[] = {
 #undef TEXGEN_TYPE_MEMBER
 };
 
-static void run_op(TexBitmap* out, TexGenOp* op);
+static void run_op(FloatTex* out, struct tg_context* context, TexGenOp* op);
 
-static void gen_lerp(TexBitmap* bmp, int channel, struct TG_lerp* opts) {
+static void gen_lerp(FloatTex* ft, struct tg_context* context, struct TG_lerp* opts) {
 }
-static void gen_rotate(TexBitmap* bmp, int channel, struct TG_rotate* opts) {
+static void gen_rotate(FloatTex* ft, struct tg_context* context, struct TG_rotate* opts) {
 }
-static void gen_get(TexBitmap* bmp, int channel, struct TG_get* opts) {
+static void gen_get(FloatTex* ft, struct tg_context* context, struct TG_get* opts) {
 }
-static void gen_set(TexBitmap* bmp, int channel, struct TG_set* opts) {
+static void gen_set(FloatTex* ft, struct tg_context* context, struct TG_set* opts) {
 }
 
-static void gen_seq(TexBitmap* bmp, int channel, struct TG_seq* opts) {
+static void gen_seq(FloatTex* ft, struct tg_context* context, struct TG_seq* opts) {
 	int i;
 	
 	
 	for(i = 0; VEC_LEN(&opts->ops); i++) {
-		run_op(bmp, VEC_ITEM(&opts->ops, i));
+		run_op(ft, context, VEC_ITEM(&opts->ops, i));
 	}
 	
 }
 
-static void gen_chanmux(TexBitmap* bmp, int channel, struct TG_chanmux* opts) {
+static void gen_chanmux(FloatTex* ft, struct tg_context* context, struct TG_chanmux* opts) {
 }
-static void gen_solid(TexBitmap* bmp, int channel, struct TG_solid* opts) {
+static void gen_solid(FloatTex* ft, struct tg_context* context, struct TG_solid* opts) {
 	int x, y;
-	int bytedepth = 4;
-	unsigned char* d = bmp->data8;
-	int r = opts->color.x * 256;
-	int g = opts->color.y * 256;
-	int b = opts->color.z * 256;
-	int a = opts->color.w * 256;
+	float r = opts->color.x;
+	float g = opts->color.y;
+	float b = opts->color.z;
+	float a = opts->color.w;
 	
-	for(y = 0; y < bmp->height; y++) {
-		for(x = 0; x < bmp->width; x++) {
-			d[(y * bmp->width + x) * bytedepth + 0] = r;
-			d[(y * bmp->width + x) * bytedepth + 1] = g;
-			d[(y * bmp->width + x) * bytedepth + 2] = b;
-			d[(y * bmp->width + x) * bytedepth + 3] = a;
+	for(y = 0; y < ft->h; y++) {
+		for(x = 0; x < ft->w; x++) {
+			switch(ft->channels) {
+				case 4: ft->bmps[3]->data[y * ft->w + x] = a;
+				case 3: ft->bmps[2]->data[y * ft->w + x] = b;
+				case 2: ft->bmps[1]->data[y * ft->w + x] = g;
+				case 1: ft->bmps[0]->data[y * ft->w + x] = r;
+			}
 		}
 	}
 }
 
-static void gen_sinewave(TexBitmap* bmp, int channel, struct TG_sinewave* opts) {
+static void gen_sinewave(FloatTex* ft, struct tg_context* context, struct TG_sinewave* opts) {
 
 	int x,y;
-	int bytedepth = 4;
-	float scaler = (opts->period * 2 * F_PI) / (float)bmp->width;
+	float scaler = (opts->period * 2 * F_PI) / (float)ft->w;
 	float ph = opts->phase * F_2PI / scaler;
-	unsigned char* d = bmp->data8;
 	
-	for(y = 0; y < bmp->height; y++) {
-		for(x = 0; x < bmp->width; x++) {
+	for(y = 0; y < ft->h; y++) {
+		for(x = 0; x < ft->w; x++) {
 			float th = fmod(((float)x + ph) * scaler, F_2PI);
-			d[(y * bmp->width + x) * bytedepth + channel] = ((sin(th) * .5) + .5) * 256;
+			ft->bmps[context->primaryChannel]->data[y * ft->w + x] = ((sin(th) * .5) + .5);
 		}
 	}
 	
 }
 
 
-static void gen_perlin(TexBitmap* bmp, int channel, struct TG_perlin* opts) {
+static void gen_perlin(FloatTex* ft, struct tg_context* context, struct TG_perlin* opts) {
 	
-	int bytedepth = 4;
-	unsigned char* d = bmp->data8;
-	//printf("Generating new terrain [%d, %d]... \n", cx, cy);
+	float min = 999999, max = -99999;
+	
+	printf("Generating new perlin [%d, %d]... \n", ft->w, ft->h);
 	int x, y;
-	for(y = 0; y < bmp->height ; y++) {
-		for(x = 0; x < bmp->width ; x++) {
+	for(y = 0; y < ft->h ; y++) {
+		for(x = 0; x < ft->w ; x++) {
 			//tb->zs[x + (y * TERR_TEX_SZ)] = sin(x * .1) * .1;
-			float f = PerlinNoise_2D(x / 128.0, y / 128.0, opts->persistence, opts->octaves); // slow-ass function, disable except for noise testing
+			float f = PerlinNoise_2D(
+				opts->offset_x + (x / opts->spread_x), 
+				opts->offset_x + (y / opts->spread_y), 
+				opts->persistence, 
+				opts->octaves
+			);
 // 			printf("[%d,%d] %f\n", x,y,f);
-			d[(y * bmp->width + x) * bytedepth + channel] = fabs(1-f) * 100;
+			f = (f + .7) / 1.4;
+			min = fmin(min, f);
+			max = fmax(max, f);
+			ft->bmps[context->primaryChannel]->data[y * ft->w + x] = f;
 		}
 	}
+	
+	printf("min %f max %f\n", min, max);
 }
 
 /*
@@ -168,6 +176,8 @@ static TexGenOp* op_from_sexp(sexp* sex) {
 		op->perlin.octaves = sexp_argAsInt(sex, 2);
 		op->perlin.spread_x = sexp_argAsDouble(sex, 3);
 		op->perlin.spread_y = sexp_argAsDouble(sex, 4);
+		op->perlin.offset_x = sexp_argAsDouble(sex, 5);
+		op->perlin.offset_y = sexp_argAsDouble(sex, 6);
 	}
 	else {
 		printf("texgen: no such op '%s'\n", sex->str);
@@ -180,7 +190,7 @@ static TexGenOp* op_from_sexp(sexp* sex) {
 
 
 
-static void run_op(TexBitmap* out, TexGenOp* op) {
+static void run_op(FloatTex* out, struct tg_context* context, TexGenOp* op) {
 	//TexBitmap* out;
 	genfn fn;
 	
@@ -190,7 +200,7 @@ static void run_op(TexBitmap* out, TexGenOp* op) {
 		return;
 	}
 	
-	fn(out, 0, &op->solid); // the exact union member does not matter	
+	fn(out, context, &op->solid); // the exact union member does not matter	
 }
 
 
@@ -206,7 +216,7 @@ static void temptest(GUITexBuilderControl* bc) {
 	sexp* sex;
 	
 	//sex = sexp_parse("(sinewave 3.0 .25)");
-	sex = sexp_parse("(perlin .1 5)");
+	sex = sexp_parse("(perlin .1 8 100 100 20 20)");
 	op = op_from_sexp(sex);
 	sexp_free(sex);
 	
@@ -219,12 +229,20 @@ static void temptest(GUITexBuilderControl* bc) {
 	tgc->output->width = 512;
 	tgc->output->height = 512;
 	
-	TexBitmap* bmp = TexBitmap_create(512, 512, TEXDEPTH_8, 4);
+	FloatTex* ft = FloatTex_alloc(512, 512, 4);
+	
+	struct tg_context context;
+	
+	context.primaryChannel = 0;
 	
 	//gen_sinewave(&bmp, 0, &opts);
 	//gen_perlin(&bmp, 0, &op->perlin);
-	run_op(&bmp, op);
+	run_op(ft, &context, op);
 	//gen_sinewave(&bmp, 0, &op->sinewave);
+	
+	
+	BitmapRGBA8* bmp = FloatTex_ToRGBA8(ft);
+	
 	
 	GLuint id;
 	
@@ -252,7 +270,7 @@ static void temptest(GUITexBuilderControl* bc) {
 		0,  // border
 		GL_RGBA,  // format
 		GL_UNSIGNED_BYTE, // input type
-		data);
+		bmp->data);
 	
 	glGenerateMipmap(GL_TEXTURE_2D);
 		
@@ -261,6 +279,138 @@ static void temptest(GUITexBuilderControl* bc) {
 	
 	bc->im->customTexID = id;
 	
+}
+
+
+
+
+
+
+
+
+
+
+void* TexBitmap_pixelPointer(TexBitmap* bmp, int x, int y) {
+	int stride = TexBitmap_pixelStride(bmp);
+	return bmp->data8 + (stride * (x + (y * bmp->width)));
+}
+
+int TexBitmap_pixelStride(TexBitmap* bmp) {
+	return bmp->channels * TexBitmap_componentSize(bmp);
+}
+
+int TexBitmap_componentSize(TexBitmap* bmp) {
+	switch(bmp->depth) {
+		case TEXDEPTH_8: return 1;
+		case TEXDEPTH_16: return 2;
+		case TEXDEPTH_32: return 4;
+		case TEXDEPTH_FLOAT: return 4;
+		case TEXDEPTH_DOUBLE: return 8;
+	}	
+}
+
+
+
+
+
+
+FloatBitmap* FloatBitmap_alloc(int width, int height) {
+	FloatBitmap* fb;
+	pcalloc(fb);
+	
+	fb->w = width;
+	fb->h = height;
+	fb->data = calloc(1, sizeof(*fb->data) * width * height);
+	
+	return fb;
+}
+
+
+FloatTex* FloatTex_alloc(int width, int height, int channels) {
+	FloatTex* ft;
+	pcalloc(ft);
+	
+	ft->channels = channels;
+	ft->w = width;
+	ft->h = height;
+	
+	for(int i = 0; i < channels; i++) {
+		ft->bmps[i] = FloatBitmap_alloc(width, height);
+	}
+	
+	return ft;
+}
+
+
+
+
+float FloatTex_texelFetch(FloatTex* ft, int x, int y, int channel) {
+	int xx = iclamp(x, 0, ft->w);
+	int yy = iclamp(y, 0, ft->h);
+	
+	if(channel >= ft->channels) return 0.0;
+	
+	return ft->bmps[channel]->data[xx + (yy * ft->w)];
+}
+
+
+float FloatTex_sample(FloatTex* ft, float x, float y, int channel) {
+	
+	float xf = floor(ft->w * x);
+	float xc = ceil(ft->w * x);
+	float yf = floor(ft->h * y);
+	float yc = ceil(ft->h * y);
+	
+	float xfyf = FloatTex_texelFetch(ft, xf, yf, channel);
+	float xfyc = FloatTex_texelFetch(ft, xf, yc, channel);
+	float xcyf = FloatTex_texelFetch(ft, xc, yf, channel);
+	float xcyc = FloatTex_texelFetch(ft, xc, yc, channel);
+	
+	// TODO BUG: check the order here
+	float l_yf = flerp(xfyf, xcyf, xc - x);
+	float l_yc = flerp(xfyc, xcyc, xc - x);
+	return flerp(l_yf, l_yc, yc - y);
+}
+
+
+uint32_t floats_to_uin32(float r, float g, float b, float a) {
+	union {
+		uint8_t b[4];
+		uint32_t n;
+	} u;
+	
+	u.b[0] = iclamp(round(r * 255), 0, 255); 
+	u.b[1] = iclamp(round(g * 255), 0, 255); 
+	u.b[2] = iclamp(round(b * 255), 0, 255); 
+	u.b[3] = iclamp(round(a * 255), 0, 255); 
+	
+	return u.n;
+}
+
+BitmapRGBA8* FloatTex_ToRGBA8(FloatTex* ft) {
+	
+	BitmapRGBA8* bmp;
+	pcalloc(bmp);
+	bmp->width = ft->w;
+	bmp->height = ft->h;
+	bmp->data = malloc(ft->w * ft->h * 4);
+	
+	int x, y;
+	for(y = 0; y < ft->h; y++) {
+		for(x = 0; x < ft->w; x++) {
+			float r = 0, g = 0, b = 0, a = 0;
+			switch(ft->channels) {
+				case 4: a = FloatTex_texelFetch(ft, x, y, 3);
+				case 3: b = FloatTex_texelFetch(ft, x, y, 2);
+				case 2: g = FloatTex_texelFetch(ft, x, y, 1);
+				case 1: r = FloatTex_texelFetch(ft, x, y, 0);
+			}
+			
+			bmp->data[x + (y * ft->w)] = floats_to_uin32(r, g, b, a);
+		}
+	}
+	
+	return bmp;
 }
 
 /*
