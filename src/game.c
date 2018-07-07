@@ -125,7 +125,8 @@ void initGame(XStuff* xs, GameState* gs) {
 	gs->activeTool = 0;
 	
 	gs->debugMode = 0;
-	gs->sunSpeed = 0;
+	gs->sunSpeed = .3;
+	gs->sunTheta = 0;
 	
 	gs->nearClipPlane = 3;
 	gs->farClipPlane = 1700;
@@ -732,9 +733,12 @@ void depthPrepass(XStuff* xs, GameState* gs, InputState* is) {
 
 void updateView(XStuff* xs, GameState* gs, InputState* is) {
 		
-	gs->sunNormal.x = cos(gs->frameTime * gs->sunSpeed);
-	gs->sunNormal.y = sin(gs->frameTime * gs->sunSpeed);
-	gs->sunNormal.z = 0.0;
+	gs->sunTheta = fmod(gs->sunTheta + gs->sunSpeed * gs->frameSpan, F_2PI);
+	gs->sunNormal.x = cos(gs->sunTheta);
+	gs->sunNormal.y = 0.0;
+	gs->sunNormal.z = sin(gs->sunTheta);
+	
+	//printf("sun theta %f\n", gs->sunTheta);
 	
 	msPush(&gs->proj);
 	msPerspective(60, gs->screen.aspect, gs->nearClipPlane, gs->farClipPlane, &gs->proj);

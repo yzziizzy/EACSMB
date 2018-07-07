@@ -154,7 +154,9 @@ typedef struct GameState {
 	// need time of year and latitude for sun angle
 	Vector sunNormal;
 	float sunSpeed;
+	float sunTheta;
 	
+	//ShadowMap* sunShadow;
 	
 	CES ces;
 	

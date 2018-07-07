@@ -72,30 +72,42 @@ void main() {
 		// --------------------------------
 		// pos is in world coordinates now
 		
-		vec3 viewpos = (inverse(mViewProj * mWorldView) * vec4(0,0,0,1)).xyz;
 		
-		vec3 viewdir = normalize(viewpos - pos);
-		vec3 sundir = normalize(vec3(3,3,3));
+		vec3 viewpos = (inverse(mViewProj * mWorldView) * vec4(0,0,0,1)).xyz;
+		//vec3 viewpos_v = (inverse(mWorldView) * vec4(0,0,0,1)).xyz;
+		
+		//vec3 viewdir = normalize(viewpos - pos);
+		vec3 viewdir = normalize((inverse(mViewProj * mWorldView) * vec4(0,0,1,1)).xyz);
+		
+		vec3 sundir = normalize(sunNormal); //normalize(vec3(3,3,3));
+		//vec3 sundir_v = mWorldView * vec4(normalize(sunNormal), 1)).xyz; //normalize(vec3(3,3,3));
 		
 		float lambertian = max(dot(sundir, normal), 0.0);
 		
-		vec3 halfDir = normalize(sundir + viewdir);
-		float specAngle = max(dot(halfDir, normal), 0.0);
-		float specular = pow(specAngle, 16);
+		vec3 sunRefl = reflect(sundir, normal);
+		vec3 posToCam = normalize(viewpos - pos); 
+		
+		float specAngle = max(dot(posToCam, sunRefl), 0.0);
+		float specular = pow(specAngle, 8);
 
 		vec3 diffuseColor = texture(sDiffuse, tex).rgb;
-		vec3 specColor = vec3(0,0,0);//normalize(vec3(1,1,1));
+		vec3 specColor = vec3(1,1,1) * .5;//normalize(vec3(1,1,1));
 
 		vec3 ambient = vec3(0.1,0.1,0.1);
 		
 		vec3 light = texture(sLighting, tex).rgb;
 		
 		if(length(normal) < 1.01) { // things with normals get directional lighting
-			FragColor = vec4((ambient + (lambertian * .7) + light) * diffuseColor+ specular * specColor, 1.0);
+			FragColor = vec4(
+				ambient  
+				 + (((lambertian * .7) + light) * diffuseColor)
+				+ (specular * specColor)
+			, 1.0);
 		}
 		else { // no directional lighting for things without normals
 			FragColor = vec4(ambient + diffuseColor, 1.0);
 		}
+		
 	}
 	else if(debugMode == 1) {
 		// diffuse
