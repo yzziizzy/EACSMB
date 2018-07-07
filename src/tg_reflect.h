@@ -15,6 +15,8 @@
 #define decl_int int
 #define decl_unsigned_int unsigned int
 #define decl_char_ptr char*
+#define decl_tgop_ptr struct TexGenOp*
+#define decl_tgop_vec VEC(struct TexGenOp*)
 
 #define decl_typ(_type) CAT_(decl_, _type) 
 
@@ -32,6 +34,8 @@ typedef struct CAT_(TG_, TG_REFL_STRUCT_NAME) {
 #define init_int(z) { .i = (z) }
 #define init_unsigned_int(z) { .u = (z) }
 #define init_char_ptr(z) { .s = z }
+#define init_tgop_ptr(z) { .f = z }
+#define init_tgop_vec(z) { .f = z }
 
 #define init_val(type, z) init_##type(z) 
 

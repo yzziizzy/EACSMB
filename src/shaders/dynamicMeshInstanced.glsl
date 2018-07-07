@@ -20,9 +20,8 @@ layout (location = 2) in vec2 v_tex_in;
 layout (location = 3) in mat4 i_mat_in;
 layout (location = 7) in ivec2 i_tex_in;
 
-uniform mat4 mModel;
-uniform mat4 mView;
-uniform mat4 mProj;
+uniform mat4 mWorldView;
+uniform mat4 mViewProj;
 
 // out vec4 vs_pos;
 out vec3 vs_norm;
@@ -36,7 +35,7 @@ void main() {
 //	pos *= vec4(i_pos_scale_in.www, 1);
 //	pos += vec4(i_pos_scale_in.xyz, 0);
 	
-	gl_Position = (mProj * mView * i_mat_in) * (pos);// * i_scale_in;
+	gl_Position = (mViewProj * mWorldView * i_mat_in) * (pos);// * i_scale_in;
 	vs_norm = v_norm_in; // normalize(vec4(1,1,1,0));
 	vs_tex = v_tex_in;
 	vs_alpha = 1.0;//i_alpha_in.x;
@@ -57,7 +56,6 @@ in float vs_alpha;
 flat in ivec2 vs_tex_indices;
 
 // fragment shader
-uniform vec4 color;
 uniform sampler2DArray sTexture;
 
 layout(location = 0) out vec4 out_Color;

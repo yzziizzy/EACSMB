@@ -203,7 +203,8 @@ GUIBuilderControl* guiBuilderControlNew(Vector2 pos, Vector2 size, int zIndex) {
 	
 	pass->fboIndex = 0;
 	
-	RenderPass_init(pass, loadCombinedProgram("dynamicMeshInstanced"));
+	RenderPass_init(pass);
+	// loadCombinedProgram("dynamicMeshInstanced")
 	
 	bc->mm = meshManager_alloc();
 	//meshManager_readConfigFile(bc->mm, "assets/config/models.json");
@@ -221,6 +222,7 @@ GUIBuilderControl* guiBuilderControlNew(Vector2 pos, Vector2 size, int zIndex) {
 	PassDrawable* br1 = calloc(1, sizeof(*br1));
 	br1->draw = geom_pass_render;
 	br1->data = bc->mm;
+	br1->prog = loadCombinedProgram("dynamicMeshInstanced");
 	
 	VEC_PUSH(&pass->drawables, br1);
 	

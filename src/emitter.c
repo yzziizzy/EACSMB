@@ -337,7 +337,7 @@ RenderPass* Emitter_CreateRenderPass(Emitter* e) {
 	pd = Emitter_CreateDrawable(e);
 
 	rp = calloc(1, sizeof(*rp));
-	RenderPass_init(rp, prog);
+	RenderPass_init(rp);
 	RenderPass_addDrawable(rp, pd);
 	//rp->fboIndex = LIGHTING;
 	
@@ -353,6 +353,7 @@ PassDrawable* Emitter_CreateDrawable(Emitter* e) {
 	pd->preFrame = preFrame;
 	pd->draw = (PassDrawFn)draw;
 	pd->postFrame = postFrame;
+	pd->prog = prog;
 	
 	return pd;
 }

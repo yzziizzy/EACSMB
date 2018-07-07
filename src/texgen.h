@@ -6,6 +6,7 @@
 #include "common_math.h"
 #include "common_gl.h"
 
+#include "hash.h"
 
 #include "gui.h"
 #include "texture.h"
@@ -13,10 +14,17 @@
 #include "opensimplex.h"
 
 
+struct TexGenOp;
+
+typedef struct TexGenOp* tgop_ptr;
+typedef VEC(struct TexGenOp*) tgop_vec;
+
+
 #define TEXGEN_TYPE_LIST \
 	TEXGEN_TYPE_MEMBER(set) \
 	TEXGEN_TYPE_MEMBER(get) \
 	TEXGEN_TYPE_MEMBER(seq) \
+	TEXGEN_TYPE_MEMBER(context) \
 	TEXGEN_TYPE_MEMBER(solid) \
 	TEXGEN_TYPE_MEMBER(lerp) \
 	TEXGEN_TYPE_MEMBER(sinewave) \
@@ -64,6 +72,7 @@ typedef struct tg_sampler {
 typedef struct tg_context {
 	char primaryChannel;
 	
+	HashTable(FloatTex*)* storage;
 	
 } tg_context;
 
@@ -105,6 +114,34 @@ typedef struct tg_context {
 #include "tg_reflect.h"
 #undef XLIST
 
+#define TG_REFL_STRUCT_NAME context
+#define XLIST \
+	X(int, primaryChannel, 0, 3, 0) \
+	X(tgop_ptr, op, 0, 0, 0) 
+#include "tg_reflect.h"
+#undef XLIST
+
+
+#define TG_REFL_STRUCT_NAME seq
+#define XLIST \
+	X(char_ptr, name, "", "", "") \
+	X(tgop_vec, ops, 0, 0, 0) 
+#include "tg_reflect.h"
+#undef XLIST
+
+#define TG_REFL_STRUCT_NAME set
+#define XLIST \
+	X(char_ptr, name, "", "", "") \
+	X(tgop_ptr, op, 0, 0, 0) 
+#include "tg_reflect.h"
+#undef XLIST
+
+#define TG_REFL_STRUCT_NAME get
+#define XLIST \
+	X(char_ptr, name, "", "", "") 
+#include "tg_reflect.h"
+#undef XLIST
+
 //#define TG_REFL_STRUCT_NAME lerp
 //#define XLIST \
 	//X(int, flip, 0, 4, 0) 
@@ -122,22 +159,7 @@ struct TG_lerp {
 	float t;
 };
 
-struct TexGenOp;
 
-
-struct TG_set {
-	char* name;
-	struct TexGenOp* op;
-};
-
-struct TG_get {
-	char* name;
-};
-
-
-struct TG_seq {
-	VEC(struct TexGenOp*) ops;
-};
 
 
 typedef struct TexGenOp {

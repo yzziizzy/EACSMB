@@ -1114,7 +1114,7 @@ RenderPass* Map_CreateRenderPass(MapInfo* m) {
 	pd = Map_CreateDrawable(m);
 
 	rp = calloc(1, sizeof(*rp));
-	RenderPass_init(rp, terrProg);
+	RenderPass_init(rp);
 	RenderPass_addDrawable(rp, pd);
 	//rp->fboIndex = LIGHTING;
 	
@@ -1130,6 +1130,7 @@ PassDrawable* Map_CreateDrawable(MapInfo* m) {
 	pd->preFrame = preFrame;
 	pd->draw = (PassDrawFn)draw;
 	pd->postFrame = postFrame;
+	pd->prog = terrProg;
 	
 	return pd;
 }

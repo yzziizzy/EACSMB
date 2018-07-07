@@ -16,14 +16,21 @@
 typedef struct PassDrawParams {
 	Matrix* mWorldView;
 	Matrix* mViewProj;
+	Matrix* mWorldProj;
 	
 	// inverse
 	Matrix* mViewWorld;
 	Matrix* mProjView;
+	Matrix* mProjWorld;
 	
 	Vector eyeVec;
 	Vector eyePos;
 	Vector sunVec;
+	
+	Vector vEyePos;
+	Vector vLookDir;
+	Vector vEyeSun;
+	Vector vSunPos;
 	
 	float timeSeconds;
 	float timeFractional;
@@ -69,6 +76,26 @@ typedef struct PassDrawable {
 	
 	char* name;
 	
+	GLuint diffuseUL;
+	GLuint normalsUL;
+	GLuint lightingUL;
+	GLuint depthUL;
+	
+	// forward matrices
+	GLuint ul_mWorldView;
+	GLuint ul_mViewProj;
+	GLuint ul_mWorldProj;
+	
+	// inverse matrices
+	GLuint ul_mViewWorld;
+	GLuint ul_mProjView;
+	GLuint ul_mProjWorld;
+	
+	GLuint ul_timeSeconds;
+	GLuint ul_timeFractional;
+	
+	GLuint ul_targetSize;
+	
 	ShaderProgram* prog; 
 	void* data;
 	
@@ -94,15 +121,6 @@ typedef struct RenderPass {
 	
 	char fboIndex;
 	// fbo config, texture bindings, etc
-	
-	ShaderProgram* prog;
-	
-	// texture ul's to read from
-	GLuint diffuseUL;
-	GLuint normalsUL;
-	GLuint lightingUL;
-	GLuint depthUL;
-	
 	
 	VEC(PassDrawable*) drawables;
 	
@@ -131,7 +149,7 @@ void initRenderPipeline();
 int RenderPass_addDrawable(RenderPass* rp, PassDrawable* d);
 PassDrawable* Pass_allocDrawable(char* name);
 
-void RenderPass_init(RenderPass* pass, ShaderProgram* prog); 
+void RenderPass_init(RenderPass* pass); 
 void RenderPipeline_addShadingPass(RenderPipeline* rpipe, char* shaderName); 
 
 void RenderPipeline_renderAll(RenderPipeline* rp, PassDrawParams* pdp);

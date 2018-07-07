@@ -30,7 +30,7 @@ static GLuint color_ul, model_ul, view_ul, proj_ul;
 static ShaderProgram* prog;
 Texture* tex;
 
-
+static void core_draw(DynamicMeshManager* dmm);
 static void preFrame(PassFrameParams* pfp, DynamicMeshManager* dmm);
 static void draw(DynamicMeshManager* dmm, GLuint progID, PassDrawParams* pdp);
 static void postFrame(DynamicMeshManager* dmm);
@@ -599,35 +599,24 @@ static void preFrame(PassFrameParams* pfp, DynamicMeshManager* mm) {
 // this one has to handle different views, such as shadow mapping and reflections
 
 static void draw(DynamicMeshManager* dmm, GLuint progID, PassDrawParams* pdp) {
-	
-	
-		// matrices and uniforms
+		
+	// matrices and uniforms
 	GLuint tex_ul;
-	Matrix model;
-	
 
-	
-	//mFastMul(view, proj, &mvp);
-	mIdent(&model);
-	// HACK fix later
-	mScale3f(150, 150, 150, &model);
-	//mTrans3f(0,0,0, &model);
-	
 	glActiveTexture(GL_TEXTURE0 + 8);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, dmm->tm->tex_id);
 	
-	tex_ul = glGetUniformLocation(prog->id, "sTexture");
-	glProgramUniform1i(prog->id, tex_ul, 8);
-	
-	glUseProgram(prog->id);
+	tex_ul = glGetUniformLocation(progID, "sTexture");
+	glProgramUniform1i(progID, tex_ul, 8);
 	glexit("");
 
-	glUniformMatrix4fv(model_ul, 1, GL_FALSE, model.m);
-	glUniformMatrix4fv(view_ul, 1, GL_FALSE, pdp->mWorldView->m);
-	glUniformMatrix4fv(proj_ul, 1, GL_FALSE, pdp->mViewProj->m);
-	glUniform3f(color_ul, .5, .2, .9);
-	
 	// ---------------------------------
+	
+	core_draw(dmm);
+
+}
+
+static void core_draw(DynamicMeshManager* dmm) {
 	
 	glBindVertexArray(vao);
 	glBindBuffer(GL_ARRAY_BUFFER, dmm->geomVBO);
@@ -638,8 +627,8 @@ static void draw(DynamicMeshManager* dmm, GLuint progID, PassDrawParams* pdp) {
 	
 	glMultiDrawArraysIndirect(GL_TRIANGLES, 0, VEC_LEN(&dmm->meshes), 0);
 	glexit("multidrawarraysindirect");
-
 }
+
 
 static void postFrame(DynamicMeshManager* mm) {
 	PCBuffer_afterDraw(&mm->instVB);
@@ -657,7 +646,7 @@ RenderPass* DynamicMeshManager_CreateRenderPass(DynamicMeshManager* m) {
 	pd = DynamicMeshManager_CreateDrawable(m);
 
 	rp = calloc(1, sizeof(*rp));
-	RenderPass_init(rp, prog);
+	RenderPass_init(rp);
 	RenderPass_addDrawable(rp, pd);
 	//rp->fboIndex = LIGHTING;
 	
@@ -673,6 +662,7 @@ PassDrawable* DynamicMeshManager_CreateDrawable(DynamicMeshManager* m) {
 	pd->preFrame = preFrame;
 	pd->draw = (PassDrawFn)draw;
 	pd->postFrame = postFrame;
+	pd->prog = prog;
 	
 	return pd;
 }

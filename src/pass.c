@@ -103,11 +103,11 @@ void RenderPipeline_addShadingPass(RenderPipeline* rpipe, char* shaderName) {
 	pass->clearDepth = 1;
 	
 	
-	RenderPass_init(pass, loadCombinedProgram(shaderName));
+	RenderPass_init(pass);
 	
 	PassDrawable* d = calloc(1, sizeof(*d));
 	d->draw = shading_pass_render;
-	d->prog = pass->prog;
+	d->prog = loadCombinedProgram(shaderName);
 	d->data = rpipe;
 	
 	VEC_PUSH(&pass->drawables, d);
@@ -203,16 +203,14 @@ void RenderPipeline_rebuildFBOs(RenderPipeline* rp, Vector2i sz) {
 
 
 
-void RenderPass_init(RenderPass* bp, ShaderProgram* prog) {
-	
-	bp->prog = prog;
+void RenderPass_init(RenderPass* bp) {
 	
 	// these will generate harmless errors if the uniform is not found
-	bp->diffuseUL = glGetUniformLocation(prog->id, "sDiffuse");
-	bp->normalsUL = glGetUniformLocation(prog->id, "sNormals");
-	bp->lightingUL = glGetUniformLocation(prog->id, "sLighting");
-	bp->depthUL = glGetUniformLocation(prog->id, "sDepth");
-	glerr("harmless");
+	//bp->diffuseUL = glGetUniformLocation(prog->id, "sDiffuse");
+	//bp->normalsUL = glGetUniformLocation(prog->id, "sNormals");
+	//bp->lightingUL = glGetUniformLocation(prog->id, "sLighting");
+	//bp->depthUL = glGetUniformLocation(prog->id, "sDepth");
+	//glerr("harmless");
 }
 
 
@@ -236,7 +234,7 @@ void RenderPipeline_renderAll(RenderPipeline* bp, PassDrawParams* rp) {
 	
 	for(int i = 0; i < VEC_LEN(&bp->passes); i++) {
 		RenderPass* pass = VEC_ITEM(&bp->passes, i);
-		ShaderProgram* prog = pass->prog;
+		//ShaderProgram* prog = pass->prog;
 		
 		glBindFramebuffer(GL_FRAMEBUFFER, bp->fbos[pass->fboIndex].fb);
 		glDepthFunc(GL_LEQUAL);
@@ -252,29 +250,31 @@ void RenderPipeline_renderAll(RenderPipeline* bp, PassDrawParams* rp) {
 		}
 		
 		// TODO: ensure the backin textures are not bound to an active fbo
+		/*
 		if(pass->diffuseUL != -1) {
 			glActiveTexture(GL_TEXTURE0 + 10);
 			glBindTexture(GL_TEXTURE_2D, bp->backingTextures[DIFFUSE]);
-			glProgramUniform1i(prog->id, pass->diffuseUL, 10); // broken
+			//glProgramUniform1i(prog->id, pass->diffuseUL, 10); // broken
 		}
 		
 		if(pass->normalsUL != -1) {
 			glActiveTexture(GL_TEXTURE0 + 11);
 			glBindTexture(GL_TEXTURE_2D, bp->backingTextures[NORMAL]);
-			glProgramUniform1i(prog->id, pass->normalsUL, 11);
+			//glProgramUniform1i(prog->id, pass->normalsUL, 11);
 		}
 		
 		if(pass->lightingUL != -1) {
 			glActiveTexture(GL_TEXTURE0 + 12);
 			glBindTexture(GL_TEXTURE_2D, bp->backingTextures[LIGHTING]);
-			glProgramUniform1i(prog->id, pass->lightingUL, 12);
+			//glProgramUniform1i(prog->id, pass->lightingUL, 12);
 		}
 		
 		if(pass->depthUL != -1) {
 			glActiveTexture(GL_TEXTURE0 + 13);
 			glBindTexture(GL_TEXTURE_2D, bp->backingTextures[DEPTH]);
-			glProgramUniform1i(prog->id, pass->depthUL, 13);
+			//glProgramUniform1i(prog->id, pass->depthUL, 13);
 		}
+		*/
 		
 //		 glEnable (GL_BLEND);
 		// glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -288,9 +288,57 @@ void RenderPipeline_renderAll(RenderPipeline* bp, PassDrawParams* rp) {
 
 
 int RenderPass_addDrawable(RenderPass* rp, PassDrawable* d) {
+	
+	if(!d->prog) {
+		fprintf(stderr, "!!! RenderPass_addDrawable: missing shader.\n");
+		return 1;
+	}
+
+#define GET_UNIFORM(ul) \
+	d->ul_##ul = glGetUniformLocation(d->prog->id, #ul)
+	
+	GET_UNIFORM(mWorldView);
+	GET_UNIFORM(mViewProj);
+	GET_UNIFORM(mWorldProj);
+	
+	GET_UNIFORM(mViewWorld);
+	GET_UNIFORM(mProjView);
+	GET_UNIFORM(mProjWorld);
+	
+	GET_UNIFORM(timeSeconds);
+	GET_UNIFORM(timeFractional);
+	
+	GET_UNIFORM(targetSize);
+	
+	
+	d->diffuseUL = glGetUniformLocation(d->prog->id, "sDiffuse");
+	d->normalsUL = glGetUniformLocation(d->prog->id, "sNormals");
+	d->lightingUL = glGetUniformLocation(d->prog->id, "sLighting");
+	d->depthUL = glGetUniformLocation(d->prog->id, "sDepth");
+	glerr("harmless");
+	
 	VEC_PUSH(&rp->drawables, d);
 }
 
+static void bindUniforms(PassDrawable* d, PassDrawParams* pdp) {
+#define BIND_MATRIX(ul, val) \
+	if(d->ul_##ul != -1) glUniformMatrix4fv(d->ul_##ul, 1, GL_FALSE, val)
+	
+	BIND_MATRIX(mWorldView, pdp->mWorldView->m);
+	BIND_MATRIX(mViewProj, pdp->mViewProj->m);
+	BIND_MATRIX(mWorldProj, pdp->mWorldProj->m);
+	
+	BIND_MATRIX(mViewWorld, pdp->mViewWorld->m);
+	BIND_MATRIX(mProjView, pdp->mProjView->m);
+	BIND_MATRIX(mProjWorld, pdp->mProjWorld->m);
+	
+	if(d->ul_timeSeconds != -1) glUniform1f(d->ul_timeSeconds, pdp->timeSeconds);
+	if(d->ul_timeFractional != -1) glUniform1f(d->ul_timeFractional, pdp->timeFractional);
+	
+	if(d->ul_targetSize != -1) glUniform2iv(d->ul_targetSize, 1, &pdp->targetSize);
+	
+#undef BIND_MATRIX
+}
 
 void RenderPass_renderAll(RenderPass* pass, PassDrawParams* pdp) {
 	
@@ -301,8 +349,9 @@ void RenderPass_renderAll(RenderPass* pass, PassDrawParams* pdp) {
 		
 		DrawTimer_Start(&d->timer);
 		
-		glUseProgram(pass->prog->id);
-		d->draw(d->data, d, pdp);
+		glUseProgram(d->prog->id);
+		bindUniforms(d, pdp);
+		d->draw(d->data, d->prog->id, pdp);
 		
 		DrawTimer_Start(&d->timer);
 	}

@@ -177,6 +177,13 @@ char* sexp_argAsStr(sexp* x, int argn) {
 	return VEC_ITEM(&x->args, argn)->str;
 }
 
+sexp* sexp_argAsSexp(sexp* x, int argn) {
+	if(x->type != 0) return NULL;
+	if(VEC_LEN(&x->args) < argn) return NULL;
+		 
+	return VEC_ITEM(&x->args, argn);
+}
+
 
 void sexp_free(sexp* x) {
 	int i;

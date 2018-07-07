@@ -270,9 +270,10 @@ RenderPass* LightManager_CreateRenderPass(LightManager* lm) {
 	pd->preFrame = preFrame;
 	pd->draw = (PassDrawFn)draw;
 	pd->postFrame = postFrame;
+	pd->prog = prog;
 	
 	rp = calloc(1, sizeof(*rp));
-	RenderPass_init(rp, prog);
+	RenderPass_init(rp);
 	RenderPass_addDrawable(rp, pd);
 	//rp->fboIndex = LIGHTING;
 	

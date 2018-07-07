@@ -416,6 +416,22 @@ void cleanUpView(XStuff* xs, GameState* gs, InputState* is) {
 
 
 
+void SetUpPDP(GameState* gs, PassDrawParams* pdp) {
+	
+	pdp->mWorldView = msGetTop(&gs->view);
+	pdp->mViewProj = msGetTop(&gs->proj);
+	
+	pdp->eyeVec = gs->eyeDir;
+	pdp->eyePos = gs->eyePos;
+	pdp->targetSize = (Vector2i){800, 800};	
+	pdp->timeSeconds = (float)(long)gs->frameTime;
+	pdp->timeFractional = gs->frameTime - pdp->timeSeconds;
+	
+}
+
+
+
+
 
 #define PF_START(x) gs->perfTimes.x = getCurrentTime()
 #define PF_STOP(x) gs->perfTimes.x = timeSince(gs->perfTimes.x)

@@ -50,8 +50,13 @@ static void gen_lerp(FloatTex* ft, struct tg_context* context, struct TG_lerp* o
 static void gen_rotate(FloatTex* ft, struct tg_context* context, struct TG_rotate* opts) {
 }
 static void gen_get(FloatTex* ft, struct tg_context* context, struct TG_get* opts) {
+	FloatTex* ft2;
+	HT_get(context->storage, opts->name, &ft2);
 }
 static void gen_set(FloatTex* ft, struct tg_context* context, struct TG_set* opts) {
+	
+	
+	HT_set(context->storage, opts->name, ft); 
 }
 
 static void gen_seq(FloatTex* ft, struct tg_context* context, struct TG_seq* opts) {
@@ -65,7 +70,15 @@ static void gen_seq(FloatTex* ft, struct tg_context* context, struct TG_seq* opt
 }
 
 static void gen_chanmux(FloatTex* ft, struct tg_context* context, struct TG_chanmux* opts) {
+
 }
+
+// changes the context
+static void gen_context(FloatTex* ft, struct tg_context* context, struct TG_context* opts) {
+
+}
+
+
 static void gen_solid(FloatTex* ft, struct tg_context* context, struct TG_solid* opts) {
 	int x, y;
 	float r = opts->color.x;
@@ -162,9 +175,21 @@ static TexGenOp* op_from_sexp(sexp* sex) {
 		op->sinewave.period = sexp_argAsDouble(sex, 1);
 		op->sinewave.phase = sexp_argAsDouble(sex, 2);
 	}
+	else if(strcaseeq(name, "context")) {
+		op->type = TEXGEN_TYPE_context;
+		op->context.primaryChannel = sexp_argAsInt(sex, 1);
+		op->context.op = op_from_sexp(sexp_argAsSexp(sex, 2));
+	}
+	else if(strcaseeq(name, "seq")) {
+		op->type = TEXGEN_TYPE_context;
+		for(int i = 0; i < VEC_LEN(&sex->args); i++) {
+			VEC_PUSH(&op->seq.ops, op_from_sexp(sexp_argAsSexp(sex, 2)));
+		}
+	}
 	else if(strcaseeq(name, "set")) {
 		op->type = TEXGEN_TYPE_set;
 		op->set.name = strdup(sexp_argAsStr(sex, 1));
+		op->set.op = op_from_sexp(sexp_argAsSexp(sex, 2));
 	}
 	else if(strcaseeq(name, "get")) {
 		op->type = TEXGEN_TYPE_get;
@@ -215,8 +240,8 @@ static void temptest(GUITexBuilderControl* bc) {
 	
 	sexp* sex;
 	
-	//sex = sexp_parse("(sinewave 3.0 .25)");
-	sex = sexp_parse("(perlin .1 8 100 100 20 20)");
+	sex = sexp_parse("(seq (sinewave 3.0 .25) (sinewave 3.0 .25))");
+	//sex = sexp_parse("(perlin .1 8 100 100 20 20)");
 	op = op_from_sexp(sex);
 	sexp_free(sex);
 	
@@ -229,10 +254,14 @@ static void temptest(GUITexBuilderControl* bc) {
 	tgc->output->width = 512;
 	tgc->output->height = 512;
 	
+	HashTable(FloatTex*) storage;
+	HT_init(&storage, 4);
+	
 	FloatTex* ft = FloatTex_alloc(512, 512, 4);
 	
 	struct tg_context context;
 	
+	context.storage = &storage;
 	context.primaryChannel = 0;
 	
 	//gen_sinewave(&bmp, 0, &opts);
