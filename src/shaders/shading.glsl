@@ -97,16 +97,20 @@ void main() {
 		
 		vec3 light = texture(sLighting, tex).rgb;
 		
+		vec3 colorOut;
 		if(length(normal) < 1.01) { // things with normals get directional lighting
-			FragColor = vec4(
+			colorOut = vec3(
 				ambient  
 				 + (((lambertian * .7) + light) * diffuseColor)
 				+ (specular * specColor)
-			, 1.0);
+			);
 		}
 		else { // no directional lighting for things without normals
-			FragColor = vec4(ambient + diffuseColor, 1.0);
+			colorOut = vec3(ambient + diffuseColor);
 		}
+		
+		// gamma correction
+		FragColor = vec4(pow(colorOut, vec3(1.1)), 1.0);
 		
 	}
 	else if(debugMode == 1) {
