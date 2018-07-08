@@ -35,25 +35,25 @@ void initStaticMeshes() {
 	// VAO
 	VAOConfig opts[] = {
 		// per vertex
-		{3, GL_FLOAT}, // position
-		{3, GL_FLOAT}, // normal
-		{2, GL_UNSIGNED_SHORT}, // tex
+		{0, 3, GL_FLOAT, 0, GL_FALSE}, // position
+		{0, 3, GL_FLOAT, 0, GL_FALSE}, // normal
+		{0, 2, GL_UNSIGNED_SHORT, 0, GL_TRUE}, // tex
 		
 		// per instance 
-		{4, GL_FLOAT}, // position, scale
-		{4, GL_FLOAT}, // direction, rotation
-		{4, GL_FLOAT}, // alpha, x, x, x
+		{1, 4, GL_FLOAT, 1, GL_FALSE}, // position, scale
+		{1, 4, GL_FLOAT, 1, GL_FALSE}, // direction, rotation
+		{1, 4, GL_FLOAT, 1, GL_FALSE}, // alpha, x, x, x
 		
-		{0, 0}
+		{0, 0, 0}
 	};
 	
 	vao = makeVAO(opts);
 	
 	VAOConfig opts_single[] = {
 		// per vertex
-		{3, GL_FLOAT}, // position
-		{3, GL_FLOAT}, // normal
-		{2, GL_UNSIGNED_SHORT}, // tex
+		{0, 3, GL_FLOAT, 0, GL_FALSE}, // position
+		{0, 3, GL_FLOAT, 0, GL_FALSE}, // normal
+		{0, 2, GL_UNSIGNED_SHORT, 0, GL_TRUE}, // tex
 		
 		{0, 0}
 	};

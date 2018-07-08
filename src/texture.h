@@ -146,6 +146,8 @@ void TexBitmap_sampleFloat(TexBitmap* bmp, int x, int y, float* out);
 
 FloatBitmap* FloatBitmap_alloc(int width, int height);
 FloatTex* FloatTex_alloc(int width, int height, int channels);
+FloatTex* FloatTex_similar(FloatTex* orig);
+FloatTex* FloatTex_copy(FloatTex* orig);
 float FloatTex_sample(FloatTex* ft, float xf, float yf, int channel);
 float FloatTex_texelFetch(FloatTex* ft, int x, int y, int channel); 
 

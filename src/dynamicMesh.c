@@ -36,28 +36,29 @@ static void draw(DynamicMeshManager* dmm, GLuint progID, PassDrawParams* pdp);
 static void postFrame(DynamicMeshManager* dmm);
 
 
+// VAO
+VAOConfig vao_opts[] = {
+	// per vertex
+	{0, 3, GL_FLOAT, 0, GL_FALSE}, // position
+	{0, 3, GL_FLOAT, 0, GL_FALSE}, // normal
+	{0, 2, GL_UNSIGNED_SHORT, 0, GL_TRUE}, // tex
+	
+	// per instance 
+	{1, 1, GL_MATRIX_EXT, 1, GL_FALSE}, // model-world matrix
+	{1, 2, GL_UNSIGNED_SHORT, 1, GL_FALSE}, // texture indices
+	
+	{0, 0, 0}
+};
+
+
 
 void initDynamicMeshes() {
 	
 	PassDrawable* pd;
 	
-	// VAO
-	VAOConfig opts[] = {
-		// per vertex
-		{3, GL_FLOAT}, // position
-		{3, GL_FLOAT}, // normal
-		{2, GL_UNSIGNED_SHORT}, // tex
-		
-		// per instance 
-		{4, GL_FLOAT}, // model-world matrix
-		{4, GL_FLOAT}, // 
-		{4, GL_FLOAT}, // 
-		{4, GL_FLOAT}, // 
-		
-		{0, 0}
-	};
+
 	
-	vao = makeVAO(opts);
+	vao = makeVAO(vao_opts);
 
 	glexit("dynamic mesh vao");
 	
@@ -159,34 +160,12 @@ DynamicMeshManager* dynamicMeshManager_alloc(int maxInstances) {
 	
 	mm->maxInstances = maxInstances;
 	
+	
 	glBindVertexArray(vao);
 	
-	
 	PCBuffer_startInit(&mm->instVB, mm->maxInstances * sizeof(Matrix), GL_ARRAY_BUFFER);
-
-	// position matrix 	
-	glEnableVertexAttribArray(3);
-	glEnableVertexAttribArray(4);
-	glEnableVertexAttribArray(5);
-	glEnableVertexAttribArray(6);
-	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 4*4*4 + 2*2, 0);
-	glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 4*4*4 + 2*2, 1*4*4);
-	glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 4*4*4 + 2*2, 2*4*4);
-	glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, 4*4*4 + 2*2, 3*4*4);
-	
-	glVertexAttribDivisor(3, 1);
-	glVertexAttribDivisor(4, 1);
-	glVertexAttribDivisor(5, 1);
-	glVertexAttribDivisor(6, 1);
-	
-	// texture indices
-	glEnableVertexAttribArray(7);
-	glVertexAttribIPointer(7, 2, GL_UNSIGNED_SHORT, 4*4*4 + 2*2, 4*4*4);
-	glVertexAttribDivisor(7, 1);
-	
-	
+	updateVAO(1, vao_opts); 
 	PCBuffer_finishInit(&mm->instVB);
-	
 	
 	PCBuffer_startInit(
 		&mm->indirectCmds, 
@@ -348,13 +327,7 @@ void dynamicMeshManager_updateGeometry(DynamicMeshManager* mm) {
 	
 	glBindBuffer(GL_ARRAY_BUFFER, mm->geomVBO);
 	
-
-	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
-	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 2*3*4 + 4, 0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 2*3*4 + 4, 12);
-	glVertexAttribPointer(2, 2, GL_UNSIGNED_SHORT, GL_TRUE, 2*3*4 + 4, 24);
+	updateVAO(0, vao_opts); 
 
 	glBufferStorage(GL_ARRAY_BUFFER, mm->totalVertices * sizeof(DynamicMeshVertex), NULL, GL_MAP_WRITE_BIT | GL_DYNAMIC_STORAGE_BIT);
 	glexit("");

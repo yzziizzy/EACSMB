@@ -75,7 +75,7 @@ void gui_Image_Init(char* file) {
 	// image VAO
 	VAOConfig opts[] = {
 		// per vertex
-		{2, GL_FLOAT}, // position/tex coords
+		{0, 2, GL_FLOAT, 0, GL_FALSE}, // position/tex coords
 		
 		{0, 0}
 	};

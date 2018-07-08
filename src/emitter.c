@@ -99,17 +99,17 @@ void initEmitters() {
 		// VAO
 	VAOConfig opts[] = {
 		// per particle attributes
-		{4, GL_FLOAT}, // start position & offset
-		{4, GL_FLOAT}, // start velocity & spawn delay
-		{4, GL_FLOAT}, // start acceleration & lifetime
-		{4, GL_FLOAT}, // size, angular momentum, growth rate, randomness
-		{4, GL_FLOAT}, // fade-in, fade-out, unallocated
+		{0, 4, GL_FLOAT, 0, GL_FALSE}, // start position & offset
+		{0, 4, GL_FLOAT, 0, GL_FALSE}, // start velocity & spawn delay
+		{0, 4, GL_FLOAT, 0, GL_FALSE}, // start acceleration & lifetime
+		{0, 4, GL_FLOAT, 0, GL_FALSE}, // size, angular momentum, growth rate, randomness
+		{0, 4, GL_FLOAT, 0, GL_FALSE}, // fade-in, fade-out, unallocated
 		
 		// per emitter attributes
-		{4, GL_FLOAT}, // position & scale
-		{4, GL_FLOAT}, // start time, life span
+		{1, 4, GL_FLOAT, 1, GL_FALSE}, // position & scale
+		{1, 4, GL_FLOAT, 1, GL_FALSE}, // start time, life span
 		
-		{0, 0}
+		{0, 0, 0}
 	};
 	
 	vao = makeVAO(opts);

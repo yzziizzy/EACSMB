@@ -150,13 +150,19 @@ char* readFile(char* path, int* srcLen);
 
 
 typedef struct VAOConfig {
+	int bufferIndex; // for instancing
+	
 	int sz;
 	GLenum type;
+	
+	int divisor;
+	
+	int normalized;
 	
 } VAOConfig;
 
 GLuint makeVAO(VAOConfig* details);
-
+void updateVAO(int bufferIndex, VAOConfig* details); 
 
 void initKHRDebug();
 

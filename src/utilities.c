@@ -190,6 +190,27 @@ char* readFile(char* path, int* srcLen) {
 }
 
 
+static int attrib_type_size(GLenum t) {
+	switch(t) {
+		case GL_DOUBLE: 
+			return 8; 
+		case GL_FLOAT: 
+			return 4; 
+		case GL_SHORT: 
+		case GL_UNSIGNED_SHORT: 
+			return 2; 
+		case GL_BYTE: 
+		case GL_UNSIGNED_BYTE: 
+			return 1; 
+		case GL_MATRIX_EXT: // abused for this function. does not conflict with anything
+			return 4*16; 
+		default:
+			fprintf(stderr, "Unsupported VAO type\n");
+			int a = *((int*)0);
+			exit(2);
+	}	
+}
+
 
 
 GLuint makeVAO(VAOConfig* details) {
@@ -205,31 +226,7 @@ GLuint makeVAO(VAOConfig* details) {
 	glBindVertexArray(vao);
 
 	for(i = 0; details[i].sz != 0; i++) {
-		int type_size = 0;
-		switch(details[i].type) {
-			case GL_DOUBLE: 
-				type_size = 8; 
-				break;
-			case GL_FLOAT: 
-				type_size = 4; 
-				break;
-			case GL_SHORT: 
-			case GL_UNSIGNED_SHORT: 
-				type_size = 2; 
-				break;
-			case GL_BYTE: 
-			case GL_UNSIGNED_BYTE: 
-				type_size = 1; 
-				break;
-			case GL_MATRIX_EXT: // abused for this function. does not conflict with anything
-				type_size = 4*16; 
-				break;
-			default:
-				fprintf(stderr, "Unsupported VAO type\n");
-				exit(2);
-		}
-		
-		stride += details[i].sz * type_size;
+		stride += details[i].sz * attrib_type_size(details[i].type);
 	}
 	
 	for(i = 0; details[i].sz != 0; i++) {
@@ -265,6 +262,83 @@ GLuint makeVAO(VAOConfig* details) {
 }
 
 
+void updateVAO(int bufferIndex, VAOConfig* details) {
+	
+	int i;
+	int startIndex = -1, endIndex = -1;
+	int stride = 0;
+	
+	// determine the buffer's range
+	for(i = 0; details[i].sz != 0 && endIndex == -1; i++) {
+		if(startIndex == -1) {
+			if(details[i].bufferIndex == bufferIndex) startIndex = i;
+		}
+		else {
+			
+			if(details[i].bufferIndex != bufferIndex) {
+				endIndex = i - 1;
+				
+			}
+		}
+		
+		if(startIndex != -1 && endIndex == -1) {
+			stride += details[i].sz * attrib_type_size(details[i].type);
+		}		
+	}
+	if(endIndex == -1) endIndex = i - 1;
+	
+	
+	int offset = 0;
+	int attrSlot = startIndex;
+	for(i = startIndex; i <= endIndex; i++) {
+		glEnableVertexAttribArray(attrSlot);
+		
+		GLenum t = details[i].type;
+		
+		if(t == GL_FLOAT || details[i].normalized == GL_TRUE) { // works only for my usage
+			glVertexAttribPointer(attrSlot, details[i].sz, t, details[i].normalized, stride, (void*)offset);
+			glVertexAttribDivisor(attrSlot, details[i].divisor);
+			glexit("");
+		}
+		else if(t == GL_MATRIX_EXT) {
+			
+			glEnableVertexAttribArray(attrSlot+1);
+			glEnableVertexAttribArray(attrSlot+2);
+			glEnableVertexAttribArray(attrSlot+3);
+			
+			glVertexAttribPointer(attrSlot,   4, GL_FLOAT, details[i].normalized, stride, (void*)offset);
+			glVertexAttribPointer(attrSlot+1, 4, GL_FLOAT, details[i].normalized, stride, (void*)offset+4*4);
+			glVertexAttribPointer(attrSlot+2, 4, GL_FLOAT, details[i].normalized, stride, (void*)offset+4*8);
+			glVertexAttribPointer(attrSlot+3, 4, GL_FLOAT, details[i].normalized, stride, (void*)offset+4*12);
+
+			glVertexAttribDivisor(attrSlot,   details[i].divisor);
+			glVertexAttribDivisor(attrSlot+1, details[i].divisor);
+			glVertexAttribDivisor(attrSlot+2, details[i].divisor);
+			glVertexAttribDivisor(attrSlot+3, details[i].divisor);
+			glexit("");
+			
+			attrSlot += 3;
+		}
+		else {
+			glVertexAttribIPointer(attrSlot, details[i].sz, t, stride, (void*)offset);
+			glVertexAttribDivisor(attrSlot, details[i].divisor);
+			glexit("");
+		}
+		
+		
+		int ds = 0;
+		if(t == GL_UNSIGNED_BYTE || t == GL_BYTE) ds = 1;
+		else if(t == GL_UNSIGNED_SHORT || t == GL_SHORT) ds = 2;
+		else if(t == GL_MATRIX_EXT) ds = 4*16;
+		else ds = 4;
+		
+		offset += ds * details[i].sz;
+		attrSlot++;
+	} 
+	
+
+	glexit("vao update");
+}
 
 
 

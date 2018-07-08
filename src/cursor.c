@@ -35,9 +35,9 @@ void initCursors() {
 
 	// vao
 	VAOConfig opts[] = {
-		{3, GL_FLOAT}, // position
-		{2, GL_FLOAT}, // tex coords
-		{0, 0}
+		{0, 3, GL_FLOAT, 0, GL_FALSE}, // position
+		{0, 2, GL_FLOAT, 0, GL_FALSE}, // tex coords
+		{0, 0, 0}
 	};
 	
 	selectionVAO = makeVAO(opts);

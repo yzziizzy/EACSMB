@@ -41,15 +41,15 @@ void initDecals() {
 	// VAO
 	VAOConfig opts[] = {
 		// per vertex
-		{3, GL_FLOAT}, // position
-		{2, GL_UNSIGNED_SHORT}, // tex
+		{0, 3, GL_FLOAT, 0, GL_FALSE}, // position
+		{0, 2, GL_UNSIGNED_SHORT, 0, GL_TRUE}, // tex
 		
 		// per instance 
-		{4, GL_FLOAT}, // pos, size
-		{4, GL_FLOAT}, // rot, alpha, unused1/2
-		{2, GL_SHORT}, // tex index and tiling info
+		{1, 4, GL_FLOAT, 1, GL_FALSE}, // pos, size
+		{1, 4, GL_FLOAT, 1, GL_FALSE}, // rot, alpha, unused1/2
+		{1, 2, GL_SHORT, 1, GL_TRUE}, // tex index and tiling info
 		
-		{0, 0}
+		{0, 0, 0}
 	};
 	
 	vao = makeVAO(opts);

@@ -30,7 +30,8 @@ typedef VEC(struct TexGenOp*) tgop_vec;
 	TEXGEN_TYPE_MEMBER(sinewave) \
 	TEXGEN_TYPE_MEMBER(perlin) \
 	TEXGEN_TYPE_MEMBER(rotate) \
-	TEXGEN_TYPE_MEMBER(chanmux)
+	TEXGEN_TYPE_MEMBER(chanmux) \
+	TEXGEN_TYPE_MEMBER(blend)
 
 
 
@@ -70,7 +71,13 @@ typedef struct tg_sampler {
 
 
 typedef struct tg_context {
+	// target info
+	int w, h;
+	int channels;
+	
 	char primaryChannel;
+	
+	VEC(FloatTex*) stack;
 	
 	HashTable(FloatTex*)* storage;
 	
@@ -108,9 +115,30 @@ typedef struct tg_context {
 #include "tg_reflect.h"
 #undef XLIST
 
+#define TG_REFL_STRUCT_NAME bumpmap
+#define XLIST \
+	X(int, ignore, 0, 4, 0) 
+#include "tg_reflect.h"
+#undef XLIST
+
+
+#define TG_REFL_STRUCT_NAME blend
+#define XLIST \
+	X(int, a, 0, 4, 0) \
+	X(int, b, 0, 4, 0) 
+#include "tg_reflect.h"
+#undef XLIST
+
 #define TG_REFL_STRUCT_NAME chanmux
 #define XLIST \
-	X(int, flip, 0, 4, 0) 
+	X(int, r_i, -1, 4, 0) \
+	X(int, r_c, -1, 4, 0) \
+	X(int, g_i, -1, 4, 0) \
+	X(int, g_c, -1, 4, 0) \
+	X(int, b_i, -1, 4, 0) \
+	X(int, b_c, -1, 4, 0) \
+	X(int, a_i, -1, 4, 0) \
+	X(int, a_c, -1, 4, 0) 
 #include "tg_reflect.h"
 #undef XLIST
 
@@ -142,22 +170,18 @@ typedef struct tg_context {
 #include "tg_reflect.h"
 #undef XLIST
 
-//#define TG_REFL_STRUCT_NAME lerp
-//#define XLIST \
-	//X(int, flip, 0, 4, 0) 
-//#include "tg_reflect.h"
-//#undef XLIST
-
-
-struct TG_lerp {
-	char* name_A;
-	char* name_B;
-	char* name_Out;
-	int channel_A;
-	int channel_B;
-	int channel_Out;
-	float t;
-};
+#define TG_REFL_STRUCT_NAME lerp
+#define XLIST \
+	X(int, r_i, -1, 4, 0) \
+	X(int, r_c, -1, 4, 0) \
+	X(int, g_i, -1, 4, 0) \
+	X(int, g_c, -1, 4, 0) \
+	X(int, b_i, -1, 4, 0) \
+	X(int, b_c, -1, 4, 0) \
+	X(int, a_i, -1, 4, 0) \
+	X(int, a_c, -1, 4, 0) 
+#include "tg_reflect.h"
+#undef XLIST
 
 
 

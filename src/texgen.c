@@ -29,13 +29,22 @@ voronoi/worley noise
 */
 
 
+static void tg_context_push(tg_context* c, FloatTex* ft) {
+	VEC_PUSH(&c->stack, ft);
+}
+
+static FloatTex* FloatTex_fromContext(tg_context* c) {
+	return FloatTex_alloc(c->w, c->h, c->channels);
+}
+
+
 // forward declarations
-#define TEXGEN_TYPE_MEMBER(x) static void gen_##x(FloatTex* ft, struct tg_context* context, struct TG_##x* opts);
+#define TEXGEN_TYPE_MEMBER(x) static void gen_##x(struct tg_context* context, struct TG_##x* opts);
 	TEXGEN_TYPE_LIST
 #undef TEXGEN_TYPE_MEMBER
 
 // dispatch table
-typedef void (*genfn)(FloatTex*, struct tg_context*, void*);
+typedef void (*genfn)(struct tg_context*, void*);
 
 genfn generators[] = {
 #define TEXGEN_TYPE_MEMBER(x) [TEXGEN_TYPE_##x] = (genfn)gen_##x,
@@ -43,48 +52,120 @@ genfn generators[] = {
 #undef TEXGEN_TYPE_MEMBER
 };
 
-static void run_op(FloatTex* out, struct tg_context* context, TexGenOp* op);
+static void run_op(struct tg_context* context, TexGenOp* op);
 
-static void gen_lerp(FloatTex* ft, struct tg_context* context, struct TG_lerp* opts) {
-}
-static void gen_rotate(FloatTex* ft, struct tg_context* context, struct TG_rotate* opts) {
-}
-static void gen_get(FloatTex* ft, struct tg_context* context, struct TG_get* opts) {
-	FloatTex* ft2;
-	HT_get(context->storage, opts->name, &ft2);
-}
-static void gen_set(FloatTex* ft, struct tg_context* context, struct TG_set* opts) {
+static void gen_lerp(struct tg_context* context, struct TG_lerp* opts) {
+	FloatTex* ft = VEC_TAIL(&context->stack);
 	
 	
-	HT_set(context->storage, opts->name, ft); 
+	
+	
+	tg_context_push(context, ft);
 }
 
-static void gen_seq(FloatTex* ft, struct tg_context* context, struct TG_seq* opts) {
+static void gen_rotate(struct tg_context* context, struct TG_rotate* opts) {
+}
+
+static void gen_get(struct tg_context* context, struct TG_get* opts) {
+	FloatTex* ft;
+	//HT_get(context->storage, opts->name, &ft);
+	VEC_PUSH(&context->stack, ft);
+}
+
+static void gen_set(struct tg_context* context, struct TG_set* opts) {
+	
+	FloatTex* ft = VEC_TAIL(&context->stack);
+	//HT_set(context->storage, opts->name, ft); 
+}
+static void gen_blend(struct tg_context* context, struct TG_blend* opts) {
+	
+	int depth = VEC_LEN(&context->stack) - 1;
+	FloatTex* a = VEC_ITEM(&context->stack, depth - opts->a);
+	FloatTex* b = VEC_ITEM(&context->stack, depth - opts->b);
+	FloatTex* ft = FloatTex_fromContext(context);
+	
+	for(int y = 0; y < context->h; y++) {
+		for(int x = 0; x < context->w; x++) {
+			//float a_alpha = FloatTex_texelFetch(a, x, y, 3); 
+			float b_alpha = FloatTex_texelFetch(b, x, y, 3);
+			
+			for(int i = 0; i < 3; i++) {
+				
+				
+			} 
+			
+		}
+	}
+	
+	VEC_PUSH(&context->stack, ft);
+}
+
+static void gen_seq(struct tg_context* context, struct TG_seq* opts) {
 	int i;
 	
 	
-	for(i = 0; VEC_LEN(&opts->ops); i++) {
-		run_op(ft, context, VEC_ITEM(&opts->ops, i));
+	for(i = 0; i < VEC_LEN(&opts->ops); i++) {
+		run_op(context, VEC_ITEM(&opts->ops, i));
 	}
 	
 }
 
-static void gen_chanmux(FloatTex* ft, struct tg_context* context, struct TG_chanmux* opts) {
-
+static void gen_chanmux(struct tg_context* context, struct TG_chanmux* opts) {
+	FloatTex* ft = FloatTex_fromContext(context);
+	
+	int depth = VEC_LEN(&context->stack) - 1;
+	
+	if(opts->r_i > -1) { 
+		memcpy(
+			ft->bmps[0]->data,
+			VEC_ITEM(&context->stack, depth - opts->r_i)->bmps[opts->a_c]->data, 
+			context->w * context->h * sizeof(float)
+		);
+	}
+	
+	if(opts->g_i > -1) {
+		memcpy(
+			ft->bmps[1]->data,
+			VEC_ITEM(&context->stack, depth - opts->g_i)->bmps[opts->g_c]->data, 
+			context->w * context->h * sizeof(float)
+		);
+	}
+	
+	if(opts->b_i > -1) {
+		memcpy(
+			ft->bmps[2]->data,
+			VEC_ITEM(&context->stack, depth - opts->b_i)->bmps[opts->b_c]->data,  
+			context->w * context->h * sizeof(float)
+		);
+	}
+	
+	if(opts->a_i > -1) {
+		memcpy(
+			ft->bmps[3]->data,
+			VEC_ITEM(&context->stack, depth - opts->a_i)->bmps[opts->a_c]->data, 
+			context->w * context->h * sizeof(float)
+		);
+	}
+	
+	
+	
+	tg_context_push(context, ft);
 }
 
 // changes the context
-static void gen_context(FloatTex* ft, struct tg_context* context, struct TG_context* opts) {
+static void gen_context(struct tg_context* context, struct TG_context* opts) {
 
 }
 
 
-static void gen_solid(FloatTex* ft, struct tg_context* context, struct TG_solid* opts) {
+static void gen_solid(struct tg_context* context, struct TG_solid* opts) {
 	int x, y;
 	float r = opts->color.x;
 	float g = opts->color.y;
 	float b = opts->color.z;
 	float a = opts->color.w;
+	
+	FloatTex* ft = FloatTex_fromContext(context);
 	
 	for(y = 0; y < ft->h; y++) {
 		for(x = 0; x < ft->w; x++) {
@@ -96,10 +177,14 @@ static void gen_solid(FloatTex* ft, struct tg_context* context, struct TG_solid*
 			}
 		}
 	}
+	
+	tg_context_push(context, ft);
 }
 
-static void gen_sinewave(FloatTex* ft, struct tg_context* context, struct TG_sinewave* opts) {
+static void gen_sinewave(struct tg_context* context, struct TG_sinewave* opts) {
 
+	FloatTex* ft = FloatTex_fromContext(context);
+	
 	int x,y;
 	float scaler = (opts->period * 2 * F_PI) / (float)ft->w;
 	float ph = opts->phase * F_2PI / scaler;
@@ -111,10 +196,12 @@ static void gen_sinewave(FloatTex* ft, struct tg_context* context, struct TG_sin
 		}
 	}
 	
+	tg_context_push(context, ft);
 }
 
 
-static void gen_perlin(FloatTex* ft, struct tg_context* context, struct TG_perlin* opts) {
+static void gen_perlin(struct tg_context* context, struct TG_perlin* opts) {
+	FloatTex* ft = FloatTex_fromContext(context);
 	
 	float min = 999999, max = -99999;
 	
@@ -138,6 +225,8 @@ static void gen_perlin(FloatTex* ft, struct tg_context* context, struct TG_perli
 	}
 	
 	printf("min %f max %f\n", min, max);
+	
+	tg_context_push(context, ft);
 }
 
 /*
@@ -181,9 +270,11 @@ static TexGenOp* op_from_sexp(sexp* sex) {
 		op->context.op = op_from_sexp(sexp_argAsSexp(sex, 2));
 	}
 	else if(strcaseeq(name, "seq")) {
-		op->type = TEXGEN_TYPE_context;
-		for(int i = 0; i < VEC_LEN(&sex->args); i++) {
-			VEC_PUSH(&op->seq.ops, op_from_sexp(sexp_argAsSexp(sex, 2)));
+		op->type = TEXGEN_TYPE_seq;
+		VEC_INIT(&op->seq.ops);
+		for(int i = 0; i < VEC_LEN(&sex->args) - 1; i++) {
+			
+			VEC_PUSH(&op->seq.ops, op_from_sexp(sexp_argAsSexp(sex, 1 + i)));
 		}
 	}
 	else if(strcaseeq(name, "set")) {
@@ -194,6 +285,22 @@ static TexGenOp* op_from_sexp(sexp* sex) {
 	else if(strcaseeq(name, "get")) {
 		op->type = TEXGEN_TYPE_get;
 		op->get.name = strdup(sexp_argAsStr(sex, 1));
+	}
+	else if(strcaseeq(name, "blend")) {
+		op->type = TEXGEN_TYPE_blend;
+		op->blend.a = sexp_argAsInt(sex, 1);
+		op->blend.b = sexp_argAsInt(sex, 2);
+	}
+	else if(strcaseeq(name, "chanmux")) {
+		op->type = TEXGEN_TYPE_chanmux;
+		op->chanmux.r_i = sexp_argAsInt(sex, 1);
+		op->chanmux.r_c = sexp_argAsInt(sex, 2);
+		op->chanmux.g_i = sexp_argAsInt(sex, 3);
+		op->chanmux.g_c = sexp_argAsInt(sex, 4);
+		op->chanmux.b_i = sexp_argAsInt(sex, 5);
+		op->chanmux.b_c = sexp_argAsInt(sex, 6);
+		op->chanmux.a_i = sexp_argAsInt(sex, 7);
+		op->chanmux.a_c = sexp_argAsInt(sex, 8);
 	}
 	else if(strcaseeq(name, "perlin")) {
 		op->type = TEXGEN_TYPE_perlin;
@@ -215,17 +322,17 @@ static TexGenOp* op_from_sexp(sexp* sex) {
 
 
 
-static void run_op(FloatTex* out, struct tg_context* context, TexGenOp* op) {
+static void run_op(struct tg_context* context, TexGenOp* op) {
 	//TexBitmap* out;
 	genfn fn;
-	
+	printf("op\n");
 	fn = generators[op->type];
 	if(!fn) {
 		fprintf(stderr, "texgen: no generator function for type %d\n", op->type);
 		return;
 	}
 	
-	fn(out, context, &op->solid); // the exact union member does not matter	
+	fn(context, &op->solid); // the exact union member does not matter	
 }
 
 
@@ -240,8 +347,18 @@ static void temptest(GUITexBuilderControl* bc) {
 	
 	sexp* sex;
 	
-	sex = sexp_parse("(seq (sinewave 3.0 .25) (sinewave 3.0 .25))");
+	char* prog = "" \
+		"(seq " \
+		"	(sinewave 3.0 .25)" \
+		"	(perlin .1 8 100 100 20 20)" \
+		"	(chanmux 0 0  1 0  0 0  1 0)" \
+		"" \
+		")" \
+	;
+	
+	//sex = sexp_parse("(seq (sinewave 3.0 .25) (sinewave 3.0 .25))");
 	//sex = sexp_parse("(perlin .1 8 100 100 20 20)");
+	sex = sexp_parse(prog);
 	op = op_from_sexp(sex);
 	sexp_free(sex);
 	
@@ -257,19 +374,25 @@ static void temptest(GUITexBuilderControl* bc) {
 	HashTable(FloatTex*) storage;
 	HT_init(&storage, 4);
 	
-	FloatTex* ft = FloatTex_alloc(512, 512, 4);
+	//FloatTex* ft = FloatTex_alloc(512, 512, 4);
 	
 	struct tg_context context;
 	
+	context.w = 512;
+	context.h = 512;
+	context.channels = 4;
+	
+	VEC_INIT(&context.stack);
 	context.storage = &storage;
 	context.primaryChannel = 0;
 	
 	//gen_sinewave(&bmp, 0, &opts);
 	//gen_perlin(&bmp, 0, &op->perlin);
-	run_op(ft, &context, op);
+	run_op(&context, op);
 	//gen_sinewave(&bmp, 0, &op->sinewave);
 	
-	
+	FloatTex* ft = VEC_TAIL(&context.stack);
+	//FloatTex* ft = VEC_ITEM(&context.stack, 4);
 	BitmapRGBA8* bmp = FloatTex_ToRGBA8(ft);
 	
 	
@@ -370,7 +493,19 @@ FloatTex* FloatTex_alloc(int width, int height, int channels) {
 	return ft;
 }
 
+FloatTex* FloatTex_similar(FloatTex* orig) {
+	return FloatTex_alloc(orig->w, orig->h, orig->channels);
+}
 
+FloatTex* FloatTex_copy(FloatTex* orig) {
+	FloatTex* new = FloatTex_similar(orig);
+	
+	for(int i = 0; i < new->channels; i++) {
+		memcpy(new->bmps[i]->data, orig->bmps[i]->data, new->w * new->h * sizeof(*(orig->bmps[i]->data)));
+	}
+	
+	return new;
+}
 
 
 float FloatTex_texelFetch(FloatTex* ft, int x, int y, int channel) {
@@ -383,12 +518,13 @@ float FloatTex_texelFetch(FloatTex* ft, int x, int y, int channel) {
 }
 
 
+
 float FloatTex_sample(FloatTex* ft, float x, float y, int channel) {
 	
-	float xf = floor(ft->w * x);
-	float xc = ceil(ft->w * x);
-	float yf = floor(ft->h * y);
-	float yc = ceil(ft->h * y);
+	float xf = fmod(floor(ft->w * x), ft->w);
+	float xc = fmod(ceil(ft->w * x), ft->w);
+	float yf = fmod(floor(ft->h * y), ft->h);
+	float yc = fmod(ceil(ft->h * y), ft->h);
 	
 	float xfyf = FloatTex_texelFetch(ft, xf, yf, channel);
 	float xfyc = FloatTex_texelFetch(ft, xf, yc, channel);

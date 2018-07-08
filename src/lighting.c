@@ -46,15 +46,15 @@ void initLighting() {
 	// VAO
 	VAOConfig opts[] = {
 		// per vertex
-		{4, GL_FLOAT}, // position, category
+		{0, 4, GL_FLOAT, 0, GL_FALSE}, // position, category
 		
 		// per instance 
-		{4, GL_FLOAT}, // position, constant intensity
-		{4, GL_FLOAT}, // direction, linear intensity
-		{4, GL_FLOAT}, // color, quadratic intensity
-		{4, GL_FLOAT}, // cutoff angle, exponent, unused, unused
+		{1, 4, GL_FLOAT, 1, GL_FALSE}, // position, constant intensity
+		{1, 4, GL_FLOAT, 1, GL_FALSE}, // direction, linear intensity
+		{1, 4, GL_FLOAT, 1, GL_FALSE}, // color, quadratic intensity
+		{1, 4, GL_FLOAT, 1, GL_FALSE}, // cutoff angle, exponent, unused, unused
 		
-		{0, 0}
+		{0, 0, 0}
 	};
 	
 	vao = makeVAO(opts);

@@ -17,16 +17,16 @@ void initWaterPlane() {
 	// VAO
 	VAOConfig opts[] = {
 		// per vertex
-		{3, GL_FLOAT}, // position
+		{0, 3, GL_FLOAT, 0, GL_FALSE}, // position
 	//	{3, GL_FLOAT}, // normal is always up...
-		{2, GL_UNSIGNED_SHORT}, // tex
+		{0, 2, GL_UNSIGNED_SHORT, 0, GL_TRUE}, // tex
 		
 		// per instance 
 	//	{4, GL_FLOAT}, // position, scale
 	//	{4, GL_FLOAT}, // direction, rotation
 	//	{4, GL_FLOAT}, // alpha, x, x, x
 		
-		{0, 0}
+		{0, 0, 0}
 	};
 	
 	vao = makeVAO(opts);

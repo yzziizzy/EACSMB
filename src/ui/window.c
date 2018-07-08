@@ -20,7 +20,7 @@ void gui_Window_Init() {
 	// window VAO
 	VAOConfig opts[] = {
 		// per vertex
-		{2, GL_FLOAT}, // position
+		{0, 2, GL_FLOAT, 0, GL_FALSE}, // position
 		
 		{0, 0}
 	};
