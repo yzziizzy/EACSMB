@@ -21,6 +21,8 @@
 #include "config.h"
 #include "fbo.h"
 
+#include "json_gl.h"
+
 
 
 //
@@ -141,4 +143,23 @@ void Framebuffer_bind(Framebuffer* fb) {
 void Framebuffer_unbind() {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glexit("");
+}
+
+
+void unpack_fbo(json_value_t* p, char* key, FBOTexConfig* cfg) {
+	char* a, *b, *c;
+	json_value_t* o, *v1, *v2, *v3;
+	
+	json_obj_get_key(p, key, &o);
+	
+	json_obj_get_key(o, "internalType", &v1); a = v1->v.str;
+	json_as_GLenum(v1, &cfg->internalType);
+	
+	json_obj_get_key(o, "format", &v2); b = v2->v.str;
+	json_as_GLenum(v2, &cfg->format);
+	
+	json_obj_get_key(o, "size", &v3); c = v3->v.str;
+	json_as_GLenum(v3, &cfg->size);
+	
+	//printf("fbo cfg from json: %s: %x, %s: %x, %s: %x\n", a, cfg->internalType, b, cfg->format, c, cfg->size);
 }

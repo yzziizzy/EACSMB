@@ -162,7 +162,8 @@ typedef struct VAOConfig {
 } VAOConfig;
 
 GLuint makeVAO(VAOConfig* details);
-void updateVAO(int bufferIndex, VAOConfig* details); 
+size_t updateVAO(int bufferIndex, VAOConfig* details); 
+size_t calcVAOStride(int bufferIndex, VAOConfig* details);
 
 void initKHRDebug();
 

@@ -4,6 +4,7 @@
 
 #include "common_gl.h"
 
+#include "c_json/json.h"
 
 
 typedef struct FBOConfig {
@@ -58,5 +59,9 @@ void Framebuffer_bind(Framebuffer* fb);
 void Framebuffer_bindName(char* name);
 void Framebuffer_unbind();
 void Framebuffer_unbindRead();
+
+
+void unpack_fbo(json_value_t* p, char* key, FBOTexConfig* cfg);
+
 
 #endif // __EACSMB_FBO_H__

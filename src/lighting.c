@@ -31,6 +31,11 @@ static GLuint model_ul, view_ul, proj_ul, timeS_ul, timeMS_ul;
 
 
 
+// the distance at which the given light falls below an 8 bit integer's precision
+float lightDistance(float constant, float linear, float quadratic) {
+	return -linear + sqrt((linear * linear) + 4 * quadratic * (constant - 256)) / (2 * quadratic);	
+}
+
 
 static void preFrame(PassFrameParams* pfp, LightManager* lm);
 static void draw(LightManager* lm, PassDrawable* pd, PassDrawParams* pdp);
@@ -253,7 +258,6 @@ void LightManager_AddPointLight(LightManager* lm, Vector pos, float radius, floa
 	l->radius = radius;
 	
 }
-
 
 
 

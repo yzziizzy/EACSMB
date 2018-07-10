@@ -41,6 +41,7 @@ eacsmb_SOURCES = main.c \
 	scene.c \
 	sexp.c \
 	shader.c \
+	shadowMap.c \
 	sim.c \
 	staticMesh.c \
 	terrain.c \
