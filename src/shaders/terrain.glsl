@@ -357,7 +357,7 @@ void main(void) {
 	
  	
 //  	vec4 tc = texture2D(sBaseTex, texCoord);
- 	vec4 tc = texture(sDiffuse, vec3(texCoord.xy, t_tile.x /20 ));
+ 	vec4 tc = texture(sDiffuse, vec3(texCoord.xy, t_tile.x  ));
 //  	vec4 tc = vec4(texture(sMap, vec3(texCoord, 1)).rgb * 128, 1.0);
  	
  	// "in cursor"

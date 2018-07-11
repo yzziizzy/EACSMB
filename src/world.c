@@ -19,10 +19,6 @@ void World_init(World* w) {
 	VEC_INIT(&w->partInstances);
 	VEC_INIT(&w->items);
 	
-	// TODO: handle last frame's data on first frame
-	VEC_INIT(&w->orients[0]);
-	VEC_INIT(&w->orients[1]);
-	w->curOrient = 0;
 	
 	w->lm = calloc(1, sizeof(*w->lm));
 	LightManager_Init(w->lm);
@@ -41,6 +37,13 @@ void World_init(World* w) {
 	w->smm = meshManager_alloc();
 	w->dm = DecalManager_alloc(1024*50);
 	w->cdm = CustomDecalManager_alloc(1024*50);
+	
+
+	
+	w->sunShadow = ShadowMap_alloc();
+	w->sunShadow->size = (Vector2i){1024, 1024};
+	ShadowMap_SetupFBOs(w->sunShadow);
+
 	
 	// hack becore CES is made
 	w->dmm->ces = &w->gs->ces;
@@ -533,16 +536,6 @@ void World_drawDecals(World* w, PassFrameParams* pfp) {
 
 
 
-
-void World_addSimpleKinematics(World* w, int itemNum) {
-	
-	SimpleKinematics sk;
-	memset(&sk, 0, sizeof(sk));
-	
-	VEC_PUSH(&w->simpleKinematicsKeys, itemNum);
-	VEC_PUSH(&w->simpleKinematics, sk);
-	
-} 
 
 
 

@@ -10,6 +10,7 @@
 #include "fbo.h"
 #include "scene.h"
 #include "world.h"
+#include "shadowMap.h"
 #include "window.h"
 
 #include "component.h"
@@ -156,7 +157,7 @@ typedef struct GameState {
 	float sunSpeed;
 	float sunTheta;
 	
-	//ShadowMap* sunShadow;
+	
 	
 	CES ces;
 	

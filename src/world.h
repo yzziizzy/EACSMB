@@ -14,6 +14,7 @@
 #include "dynamicMesh.h"
 #include "waterPlane.h"
 #include "pass.h"
+#include "shadowMap.h"
 
 
 struct GameState;
@@ -57,35 +58,8 @@ typedef struct {
 
 
 
-struct OrientData {
-	Vector pos;
-	float scale;
-	
-	Vector dir;
-	float alpha;
-	
-	Vector rotAxis;
-	float rot;
-	
-};
-
-struct ItemFlags {
-	unsigned char shouldDelete : 1; 
-	unsigned char wasDeleted : 1; 
-	
-};
 
 
-typedef struct SimpleKinematics {
-	Vector velocity;
-	float angularVelocity;
-	
-	Vector acceleration;
-	float angularAcceleration;
-	
-	Vector axisOfRotation;
-	
-} SimpleKinematics;
 
 
 
@@ -104,11 +78,7 @@ static inline uint32_t itemBaseID(enum ItemTypes e) {
 }
 
 
-// World is the entire world's contents. Scene is the part you can see.
-// eventually, probably, the graphics data will be moved into Scene
 
-// no drawing is handled by the World code. It is for managment and operations only.
-// drawing is too complicated and crosses too many lines to fit here.
 typedef struct World {
 	struct GameState* gs; // pointer to parent
 	
@@ -131,6 +101,9 @@ typedef struct World {
 	// old bezier roads
 	//RoadBlock* roads;
 	
+	// HACK: should be moved elsewhere
+	ShadowMap* sunShadow;
+	
 	WaterPlane* wp;
 	
 	MapInfo map; 
@@ -146,17 +119,7 @@ typedef struct World {
 	
 	VEC(struct OrientData) staticOrients[2];
 	
-	int curOrient;
-	VEC(struct OrientData) orients[2];
-	
-	VEC(uint32_t) simpleKinematicsKeys;
-	VEC(struct SimpleKinematics) simpleKinematics;
-	
-	
-	VEC(struct ItemFlags) flags;
-	
-	
-	
+
 	PipeSegment testmesh;
 	
 	

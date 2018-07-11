@@ -471,6 +471,10 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	
 	
+	//ShadowMap_Render(gs->world->sunShadow, &pdp, &gs->sunNormal);
+	
+	
+	
 	if(gs->hasMoved && gs->lastSelectionFrame < gs->frameCount - 8 && !gs->selectionPassDisabled) {
 		//printf("doing selection pass %d\n", gs->frameCount);
 		gs->hasMoved = 0;

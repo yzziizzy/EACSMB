@@ -20,8 +20,9 @@ typedef struct ShadowMap {
 struct GameState;
 typedef struct GameState GameState;
 
+ShadowMap* ShadowMap_alloc();
 void ShadowMap_init(ShadowMap* sm);
-void ShadowMap_SetupFBOs(ShadowMap* sm, GameState* gs);
+void ShadowMap_SetupFBOs(ShadowMap* sm);
 void ShadowMap_Render(ShadowMap* sm, PassDrawParams* cameraPDP, Vector* lightPos);
 
 
