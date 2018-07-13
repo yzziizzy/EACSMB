@@ -181,6 +181,25 @@ static void gen_solid(struct tg_context* context, struct TG_solid* opts) {
 	tg_context_push(context, ft);
 }
 
+static void gen_gradient(struct tg_context* context, struct TG_gradient* opts) {
+	FloatTex* ft = FloatTex_fromContext(context);
+	FloatTex* b = VEC_ITEM(&context->stack, VEC_LEN(&context->stack) - opts->index);
+	
+	int x, y;	
+	for(y = 0; y < ft->h; y++) {
+		for(x = 0; x < ft->w; x++) {
+			Vector4 c;
+			float f = FloatTex_texelFetch(b, x, y, opts->channel);
+			
+			vLerp4(&opts->color1, &opts->color2, f, &c);
+			ft->bmps[0]->data[y * ft->w + x] = c.r;
+			ft->bmps[1]->data[y * ft->w + x] = c.g;
+			ft->bmps[2]->data[y * ft->w + x] = c.b;
+			ft->bmps[3]->data[y * ft->w + x] = c.a;
+		}
+	}
+}
+
 static void gen_sinewave(struct tg_context* context, struct TG_sinewave* opts) {
 
 	FloatTex* ft = FloatTex_fromContext(context);
@@ -198,6 +217,7 @@ static void gen_sinewave(struct tg_context* context, struct TG_sinewave* opts) {
 	
 	tg_context_push(context, ft);
 }
+
 
 
 static void gen_perlin(struct tg_context* context, struct TG_perlin* opts) {
@@ -228,6 +248,113 @@ static void gen_perlin(struct tg_context* context, struct TG_perlin* opts) {
 	
 	tg_context_push(context, ft);
 }
+
+
+// VERY slow
+static float wrapdist(Vector2 pos, Vector2 p, float w, float h) {
+	float d1 = vDist2(&pos, &(Vector2){p.x + w, p.y});
+	float d2 = vDist2(&pos, &(Vector2){p.x - w, p.y});
+	float d3 = vDist2(&pos, &(Vector2){p.x, p.y + h});
+	float d4 = vDist2(&pos, &(Vector2){p.x, p.y - h});
+	float d5 = vDist2(&pos, &(Vector2){p.x + w, p.y + h});
+	float d6 = vDist2(&pos, &(Vector2){p.x - w, p.y + h});
+	float d7 = vDist2(&pos, &(Vector2){p.x + w, p.y - h});
+	float d8 = vDist2(&pos, &(Vector2){p.x - w, p.y - h});
+	float d = vDist2(&pos, &p);
+	
+	return fmin(d, fmin(fmin(fmin(d1, d2), fmin(d3, d4)), fmin(fmin(d5, d6), fmin(d7, d8)))); 
+}
+
+
+static float closest(Vector2* points, int plen, Vector2 pos, float w, float h) {
+	int i;
+	float cdist = 9999999999;
+
+	for(i = 0; i < plen; i++) {
+		float d = wrapdist(pos, *(points + i), w, h);
+		cdist = fmin(cdist, d);
+	}
+	
+	return cdist;
+}
+
+static float second_closest(Vector2* points, int plen, Vector2 pos, float w, float h) {
+	int i;
+	float cdist = 9999999999;
+	float cdist2 = 9999999999;
+
+	for(i = 0; i < plen; i++) {
+		float d = wrapdist(pos, *(points + i), w, h);
+		if(d < cdist) {
+			cdist2 = cdist;
+			cdist = d;
+		}
+		else if(d < cdist2) {
+			cdist2 = d;
+		}
+	}
+	
+	return cdist2;
+}
+
+
+static void gen_worley(struct tg_context* context, struct TG_worley* opts) {
+	int x, y, i, p;
+	int pCnt = opts->num_points;
+	Vector2* points;
+	
+	FloatTex* ft = FloatTex_fromContext(context);
+	
+	// point generation
+	if(strcaseeq(opts->algorithm, "random")) {
+		// generate random points
+		points = malloc(sizeof(*points) * pCnt);
+		for(x = 0; x < pCnt; x++) {
+			points[x].x = frand(0, ft->w); 
+			points[x].y = frand(0, ft->h); 
+		}
+	}
+	else if(strcaseeq(opts->algorithm, "boxed")) {
+		Vector2 boxSide = {
+			(float)ft->w / (float)opts->boxes,
+			(float)ft->h / (float)opts->boxes
+		};
+		
+		pCnt *= opts->boxes * opts->boxes;
+		points = malloc(sizeof(*points) * pCnt);
+		
+		p = 0;
+		for(y = 0; y < opts->boxes; y++) {
+			for(x = 0; x < opts->boxes; x++) {
+				for(i = 0; i < opts->num_points; i++) {
+					points[p].x = frand(x * boxSide.x, (x + 1) * boxSide.x); 
+					points[p].y = frand(y * boxSide.y, (y + 1) * boxSide.y); 
+					p++; 
+				}
+			}
+		}
+				
+	}
+	else if(strcaseeq(opts->algorithm, "sample")) {
+		fprintf(stderr, "Worley sample algorithm not implemented\n");
+	}
+	else {
+		fprintf(stderr, "No such worley algorithm\n");
+	}
+	
+	
+	for(y = 0; y < ft->h ; y++) {
+		for(x = 0; x < ft->w ; x++) {
+			float f = closest(points, pCnt, (Vector2){x, y}, ft->w, ft->h);
+			ft->bmps[context->primaryChannel]->data[y * ft->w + x] = f / opts->divisor;
+		}
+	}
+	
+	
+	free(points);
+	tg_context_push(context, ft);
+}
+
 
 /*
 static void gen_lerp(BitmapRGBA8* a, BitmapRGBA8* b, int channel_a, int channel_b, float t) {
@@ -302,6 +429,29 @@ static TexGenOp* op_from_sexp(sexp* sex) {
 		op->chanmux.a_i = sexp_argAsInt(sex, 7);
 		op->chanmux.a_c = sexp_argAsInt(sex, 8);
 	}
+	else if(strcaseeq(name, "worley")) {
+		op->type = TEXGEN_TYPE_worley;
+		op->worley.algorithm = strdup(sexp_argAsStr(sex, 1));
+		
+		if(strcaseeq(op->worley.algorithm, "random")) {
+			op->worley.num_points = sexp_argAsInt(sex, 2);
+			op->worley.divisor = sexp_argAsDouble(sex, 3);
+		}
+		else if(strcaseeq(op->worley.algorithm, "boxed")) {
+			op->worley.num_points = sexp_argAsInt(sex, 2);
+			op->worley.boxes = sexp_argAsInt(sex, 3);
+			op->worley.divisor = sexp_argAsDouble(sex, 4);
+		}
+		else if(strcaseeq(op->worley.algorithm, "sample")) {
+			op->worley.sample_index = sexp_argAsInt(sex, 2);
+			op->worley.sample_channel = sexp_argAsInt(sex, 3);
+			op->worley.sample_thresh = sexp_argAsDouble(sex, 4);
+			op->worley.divisor = sexp_argAsDouble(sex, 5);
+		}
+		else {
+			fprintf(stderr, "Unknown worley noise algorithm: %s\n", op->worley.algorithm);
+		}
+	}
 	else if(strcaseeq(name, "perlin")) {
 		op->type = TEXGEN_TYPE_perlin;
 		op->perlin.persistence = sexp_argAsDouble(sex, 1);
@@ -350,8 +500,9 @@ static void temptest(GUITexBuilderControl* bc) {
 	char* prog = "" \
 		"(seq " \
 		"	(sinewave 3.0 .25)" \
-		"	(perlin .1 8 100 100 20 20)" \
-		"	(chanmux 0 0  1 0  0 0  1 0)" \
+		"	(worley boxed 4 8 70)" \
+		"	(perlin .5 6 16 16 100 100)" \
+		"	(chanmux 0 0  0 0  0 0  0 0)" \
 		"" \
 		")" \
 	;

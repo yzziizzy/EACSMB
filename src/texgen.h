@@ -29,8 +29,10 @@ typedef VEC(struct TexGenOp*) tgop_vec;
 	TEXGEN_TYPE_MEMBER(lerp) \
 	TEXGEN_TYPE_MEMBER(sinewave) \
 	TEXGEN_TYPE_MEMBER(perlin) \
+	TEXGEN_TYPE_MEMBER(worley) \
 	TEXGEN_TYPE_MEMBER(rotate) \
 	TEXGEN_TYPE_MEMBER(chanmux) \
+	TEXGEN_TYPE_MEMBER(gradient) \
 	TEXGEN_TYPE_MEMBER(blend)
 
 
@@ -109,6 +111,18 @@ typedef struct tg_context {
 #include "tg_reflect.h"
 #undef XLIST
 
+#define TG_REFL_STRUCT_NAME worley
+#define XLIST \
+	X(char_ptr, algorithm, "", "", "") \
+	X(float, divisor, 0, 99999, 0) \
+	X(int, num_points, 0, 99999, 0) \
+	X(int, boxes, 0, 99999, 0) \
+	X(int, sample_index, 0, 99999, 0) \
+	X(int, sample_channel, 0, 99999, 0) \
+	X(float, sample_thresh, 0, 99999, 0) 
+#include "tg_reflect.h"
+#undef XLIST
+
 #define TG_REFL_STRUCT_NAME rotate
 #define XLIST \
 	X(int, flip, 0, 4, 0) 
@@ -118,6 +132,15 @@ typedef struct tg_context {
 #define TG_REFL_STRUCT_NAME bumpmap
 #define XLIST \
 	X(int, ignore, 0, 4, 0) 
+#include "tg_reflect.h"
+#undef XLIST
+
+#define TG_REFL_STRUCT_NAME gradient
+#define XLIST \
+	X(int, index, 0, 99999, 0) \ 
+	X(int, channel, 0, 99999, 0) \ 
+	X(Vector4, color1, 0, 4, 0) \ 
+	X(Vector4, color2, 0, 4, 0) 
 #include "tg_reflect.h"
 #undef XLIST
 
