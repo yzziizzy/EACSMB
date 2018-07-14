@@ -142,7 +142,7 @@ void* TexBitmap_pixelPointer(TexBitmap* bmp, int x, int y);
 
 void TexBitmap_sampleFloat(TexBitmap* bmp, int x, int y, float* out);
 
-
+BitmapRGBA8* TexGen_Generate(char* source, Vector2i size); 
 
 FloatBitmap* FloatBitmap_alloc(int width, int height);
 FloatTex* FloatTex_alloc(int width, int height, int channels);

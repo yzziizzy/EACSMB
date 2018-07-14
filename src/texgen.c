@@ -526,11 +526,11 @@ BitmapRGBA8* TexGen_Generate(char* source, Vector2i size) {
 	HT_destroy(&storage, 0);
 	FloatTex_free(ft);
 	
-	VEC_EACH(&context->stack, i, f) {
+	VEC_EACH(&context.stack, i, f) {
 		FloatTex_free(f);
 	}
 	
-	VEC_FREE(&context->stack);
+	VEC_FREE(&context.stack);
 	
 
 	return bmp;
