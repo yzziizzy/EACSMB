@@ -37,6 +37,9 @@ static FloatTex* FloatTex_fromContext(tg_context* c) {
 	return FloatTex_alloc(c->w, c->h, c->channels);
 }
 
+static FloatTex* tg_context_index(tg_context* context, int i) {
+	return VEC_ITEM(&context->stack, VEC_LEN(&context->stack) - 1 - i);
+}
 
 // forward declarations
 #define TEXGEN_TYPE_MEMBER(x) static void gen_##x(struct tg_context* context, struct TG_##x* opts);
@@ -77,28 +80,7 @@ static void gen_set(struct tg_context* context, struct TG_set* opts) {
 	FloatTex* ft = VEC_TAIL(&context->stack);
 	//HT_set(context->storage, opts->name, ft); 
 }
-static void gen_blend(struct tg_context* context, struct TG_blend* opts) {
-	
-	int depth = VEC_LEN(&context->stack) - 1;
-	FloatTex* a = VEC_ITEM(&context->stack, depth - opts->a);
-	FloatTex* b = VEC_ITEM(&context->stack, depth - opts->b);
-	FloatTex* ft = FloatTex_fromContext(context);
-	
-	for(int y = 0; y < context->h; y++) {
-		for(int x = 0; x < context->w; x++) {
-			//float a_alpha = FloatTex_texelFetch(a, x, y, 3); 
-			float b_alpha = FloatTex_texelFetch(b, x, y, 3);
-			
-			for(int i = 0; i < 3; i++) {
-				
-				
-			} 
-			
-		}
-	}
-	
-	VEC_PUSH(&context->stack, ft);
-}
+
 
 static void gen_seq(struct tg_context* context, struct TG_seq* opts) {
 	int i;
@@ -192,10 +174,10 @@ static void gen_gradient(struct tg_context* context, struct TG_gradient* opts) {
 			float f = FloatTex_texelFetch(b, x, y, opts->channel);
 			
 			vLerp4(&opts->color1, &opts->color2, f, &c);
-			ft->bmps[0]->data[y * ft->w + x] = c.r;
-			ft->bmps[1]->data[y * ft->w + x] = c.g;
-			ft->bmps[2]->data[y * ft->w + x] = c.b;
-			ft->bmps[3]->data[y * ft->w + x] = c.a;
+			ft->bmps[0]->data[y * ft->w + x] = c.x;
+			ft->bmps[1]->data[y * ft->w + x] = c.y;
+			ft->bmps[2]->data[y * ft->w + x] = c.z;
+			ft->bmps[3]->data[y * ft->w + x] = c.w;
 		}
 	}
 }
@@ -356,6 +338,30 @@ static void gen_worley(struct tg_context* context, struct TG_worley* opts) {
 }
 
 
+#define pixel(ft, x, y, c) ((ft)->bmps[(c)]->data[((y) * (ft)->w) + (x)])
+
+static void gen_blend(struct tg_context* context, struct TG_blend* opts) {
+	int x, y;
+	FloatTex* a = tg_context_index(context, opts->a_index);
+	FloatTex* b = tg_context_index(context, opts->b_index);
+	FloatTex* ft = FloatTex_fromContext(context);
+	
+	
+	for(y = 0; y < ft->h ; y++) {
+		for(x = 0; x < ft->w ; x++) {
+			pixel(ft, x, y, 0) = flerp(pixel(a, x, y, 0), pixel(b, x, y, 0), opts->t);
+			pixel(ft, x, y, 1) = flerp(pixel(a, x, y, 1), pixel(b, x, y, 1), opts->t);
+			pixel(ft, x, y, 2) = flerp(pixel(a, x, y, 2), pixel(b, x, y, 2), opts->t);
+			pixel(ft, x, y, 3) = flerp(pixel(a, x, y, 3), pixel(b, x, y, 3), opts->t);
+		}
+	}
+	
+	tg_context_push(context, ft);
+}
+
+
+
+
 /*
 static void gen_lerp(BitmapRGBA8* a, BitmapRGBA8* b, int channel_a, int channel_b, float t) {
 	
@@ -415,8 +421,9 @@ static TexGenOp* op_from_sexp(sexp* sex) {
 	}
 	else if(strcaseeq(name, "blend")) {
 		op->type = TEXGEN_TYPE_blend;
-		op->blend.a = sexp_argAsInt(sex, 1);
-		op->blend.b = sexp_argAsInt(sex, 2);
+		op->blend.a_index = sexp_argAsInt(sex, 1);
+		op->blend.b_index = sexp_argAsInt(sex, 2);
+		op->blend.t = sexp_argAsDouble(sex, 3);
 	}
 	else if(strcaseeq(name, "chanmux")) {
 		op->type = TEXGEN_TYPE_chanmux;
@@ -489,6 +496,48 @@ static void run_op(struct tg_context* context, TexGenOp* op) {
 
 
 
+BitmapRGBA8* TexGen_Generate(char* source, Vector2i size) {
+	TexGenContext* tgc;
+	TexGenOp* op;
+	sexp* sex;
+	struct tg_context context;
+
+	
+	sex = sexp_parse(source);
+	op = op_from_sexp(sex);
+	sexp_free(sex);
+	
+	
+	HashTable(FloatTex*) storage;
+	HT_init(&storage, 4);
+	
+	context.w = size.x;
+	context.h = size.y;
+	context.channels = 4;
+	context.storage = &storage;
+	context.primaryChannel = 0;
+	VEC_INIT(&context.stack);
+
+	run_op(&context, op);
+	
+	FloatTex* ft = VEC_TAIL(&context.stack);
+	BitmapRGBA8* bmp = FloatTex_ToRGBA8(ft);
+	
+	HT_destroy(&storage, 0);
+	FloatTex_free(ft);
+	
+	VEC_EACH(&context->stack, i, f) {
+		FloatTex_free(f);
+	}
+	
+	VEC_FREE(&context->stack);
+	
+
+	return bmp;
+}
+
+
+
 
 static void temptest(GUITexBuilderControl* bc) {
 	TexGenContext* tgc;
@@ -502,7 +551,8 @@ static void temptest(GUITexBuilderControl* bc) {
 		"	(sinewave 3.0 .25)" \
 		"	(worley boxed 4 8 70)" \
 		"	(perlin .5 6 16 16 100 100)" \
-		"	(chanmux 0 0  0 0  0 0  0 0)" \
+		"	(blend 1 2 .5)" \
+		//"	(chanmux 0 0  0 0  0 0  0 0)" 
 		"" \
 		")" \
 	;
@@ -642,6 +692,18 @@ FloatTex* FloatTex_alloc(int width, int height, int channels) {
 	}
 	
 	return ft;
+}
+
+void FloatBitmap_free(FloatBitmap* bmp) {
+	free(bmp->data);
+	free(bmp);
+}
+void FloatTex_free(FloatTex* ft) {
+	FloatBitmap_free(ft->bmps[0]);
+	FloatBitmap_free(ft->bmps[1]);
+	FloatBitmap_free(ft->bmps[2]);
+	FloatBitmap_free(ft->bmps[3]);
+	free(ft);
 }
 
 FloatTex* FloatTex_similar(FloatTex* orig) {

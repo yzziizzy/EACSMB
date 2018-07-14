@@ -713,28 +713,38 @@ int TextureManager_loadAll(TextureManager* tm, Vector2i targetRes) {
 	
 	for(i = 0; i < VEC_LEN(&tm->texEntries); i++) {
 		TexEntry* te = &VEC_ITEM(&tm->texEntries, i);
+		BitmapRGBA8* bmp;
 		
-		BitmapRGBA8* bmp = readPNG(te->path);
-		
-		if(!bmp) {
-			printf("TextureManager: Failed to load %s\n", te->path);
-			continue;
+		if(te->path[0] == '$') {
+			// texgen
+
+			bmp = TexGen_Generate(te->path + 1, targetRes);
 		}
-		
-		if(bmp->width != targetRes.x || bmp->height != targetRes.y) {
-			printf("resizing %s to %d,%d\n", te->path, targetRes.x, targetRes.y);
-			//BitmapRGBA8* tmp = resample(bmp, targetRes);
-			BitmapRGBA8* tmp;
-			if(bmp->width > targetRes.x) {
-				tmp = linearDownscale(bmp, targetRes);
-			}
-			else {
-				tmp = nearestRescale(bmp, targetRes);
-			}
-			free(bmp->data);
-			free(bmp);
+		else {
+			// load from file
 			
-			bmp = tmp;
+			bmp = readPNG(te->path);
+			
+			if(!bmp) {
+				printf("TextureManager: Failed to load %s\n", te->path);
+				continue;
+			}
+			
+			if(bmp->width != targetRes.x || bmp->height != targetRes.y) {
+				printf("resizing %s to %d,%d\n", te->path, targetRes.x, targetRes.y);
+				//BitmapRGBA8* tmp = resample(bmp, targetRes);
+				BitmapRGBA8* tmp;
+				if(bmp->width > targetRes.x) {
+					tmp = linearDownscale(bmp, targetRes);
+				}
+				else {
+					tmp = nearestRescale(bmp, targetRes);
+				}
+				free(bmp->data);
+				free(bmp);
+				
+				bmp = tmp;
+			}
 		}
 		
 		glTexSubImage3D(GL_TEXTURE_2D_ARRAY, // target

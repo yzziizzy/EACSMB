@@ -145,10 +145,12 @@ typedef struct tg_context {
 #undef XLIST
 
 
+// all-channel blend
 #define TG_REFL_STRUCT_NAME blend
 #define XLIST \
-	X(int, a, 0, 4, 0) \
-	X(int, b, 0, 4, 0) 
+	X(int, a_index, 0, 9999, 0) \
+	X(int, b_index, 0, 9999, 0) \
+	X(float, t, 0.0, 1.0, 0.5) 
 #include "tg_reflect.h"
 #undef XLIST
 
@@ -257,6 +259,7 @@ GUITexBuilderControl* guiTexBuilderControlNew(Vector2 pos, Vector2 size, int zIn
 
 
 
+BitmapRGBA8* TexGen_Generate(char* source, Vector2i size);
 
 
 
