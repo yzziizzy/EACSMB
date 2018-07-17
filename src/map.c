@@ -90,7 +90,8 @@ void initMap(MapInfo* mi) {
 	
 	for(by = 0; by < 8; by++) {
 		for(bx = 0; bx < 8; bx++) {
-			mi->blocks[bx][by] = allocMapBlock(bx, by);
+			//mi->blocks[bx][by] = allocMapBlock(bx, by);
+			printf("fix me %s:%d\n", __FILE__, __LINE__);
 // 			mi->blocks[bx][by]->n_xm = mi->blocks[bx][by];
 // 			mi->blocks[0]->n_xp = mi->blocks[mi->blocksLen];
 // 			mi->blocksLen++;
@@ -143,7 +144,8 @@ void initMap(MapInfo* mi) {
 		for(y = 0; y < 8; y++) {
 			for(x = 0; x < 8; x++) {
 				mb = loadMapBlock(f);
-				mi->blocks[mb->bix][mb->biy] = mb;
+				//mi->blocks[mb->bix][mb->biy] = mb;
+				printf("fix me %s:%d\n", __FILE__, __LINE__);
 			}
 		}
 	} 
@@ -151,8 +153,9 @@ void initMap(MapInfo* mi) {
 		f = fopen(tmpSavePath, "wb");
 		for(y = 0; y < 8; y++) {
 			for(x = 0; x < 8; x++) {
-				mi->blocks[x][y] = spawnMapBlock(mi, x, y);
-				saveMapBlock(f, mi->blocks[x][y]);
+				//mi->blocks[x][y] = spawnMapBlock(mi, x, y);
+				//saveMapBlock(f, mi->blocks[x][y]);
+				printf("fix me %s:%d\n", __FILE__, __LINE__);
 			}
 		}
 	}
@@ -168,6 +171,7 @@ void initMap(MapInfo* mi) {
 		for(x = 0; x < 8; x++) {
 			mi->offsetData[i].x = x;
 			mi->offsetData[i].y = y;
+			printf("fix me %s:%d\n", __FILE__, __LINE__);
 			i++;
 		}
 	}
@@ -348,6 +352,8 @@ void initTerrain(MapInfo* mi) {
 	glexit("buffering terrain patch vertex data");
 	
 	// ---- location offsets ----
+	
+	
 	glGenTextures(1, &mi->locationTex);
 	glBindTexture(GL_TEXTURE_2D, mi->locationTex);
 	glexit("failed to create offset textures b");
@@ -374,6 +380,8 @@ void initTerrain(MapInfo* mi) {
 	
 	mi->offsetData = calloc(1, sizeof(struct sGL_RG8) * 64);
 	mi->numBlocksToRender = 0;
+	
+	
 }
 
 
@@ -397,8 +405,8 @@ MapBlock* allocMapBlock(int bix, int biy) {
 	
 	
 	MapBlock* b = calloc(sizeof(MapBlock), 1);
-	b->bix = bix;
-	b->biy = biy;
+	b->w = bix;
+	b->h = biy;
 	
 	return b;
 }
@@ -409,11 +417,11 @@ MapBlock* loadMapBlock(FILE* f) {
 	int32_t bix, biy;
 	MapBlock* mb;
 	
-	fread(&bix, sizeof(int32_t), 1, f);
-	fread(&biy, sizeof(int32_t), 1, f);
+	//fread(&bix, sizeof(int32_t), 1, f);
+	//fread(&biy, sizeof(int32_t), 1, f);
 	
 	mb = allocMapBlock(bix, biy);
-	fread(mb->tb.zs, sizeof(float), TERR_TEX_SZ * TERR_TEX_SZ, f);
+	//fread(mb->tb.zs, sizeof(float), TERR_TEX_SZ * TERR_TEX_SZ, f);
 	
 	return mb;
 }
@@ -421,17 +429,21 @@ MapBlock* loadMapBlock(FILE* f) {
 void saveMapBlock(FILE* f, MapBlock* mb) {
 	int x, y;
 	
-	fwrite(&mb->bix, sizeof(int32_t), 1, f);
-	fwrite(&mb->biy, sizeof(int32_t), 1, f);
+	//fwrite(&mb->bix, sizeof(int32_t), 1, f);
+	//fwrite(&mb->biy, sizeof(int32_t), 1, f);
 	
-	fwrite(mb->tb.zs, sizeof(float), TERR_TEX_SZ * TERR_TEX_SZ, f);
+	//fwrite(mb->tb.zs, sizeof(float), TERR_TEX_SZ * TERR_TEX_SZ, f);
+	printf("fix me %s:%d\n", __FILE__, __LINE__);
 }
 
 
 void initTerrainBlock(MapBlock* mb, int cx, int cy) {
+	
+	printf("initTerrainBlock is deprecated\n");
 	int x, y;
 	
-	TerrainBlock* tb = &mb->tb;
+	TerrainBlock* tb = 0;//&mb->tb;
+	printf("fix me %s:%d\n", __FILE__, __LINE__);
 	FILE* f;
 	
 	float offx = cx * TERR_BLOCK_SZ;
@@ -543,6 +555,7 @@ void updateMapTextures(MapInfo* mi) {
 		mb->zones);
 	*/
 	
+	
 	int i;
 	for(i = 0; i < 32; i++) {
 		glTexSubImage3D(GL_TEXTURE_2D_ARRAY, // target
@@ -553,9 +566,9 @@ void updateMapTextures(MapInfo* mi) {
 			1,
 			GL_RED_INTEGER,  // format
 			GL_UNSIGNED_BYTE, // input type
-			mi->texIndexMap[i]->surface);
+			/*mi->texIndexMap[i]->surface*/ 9999);
 	}
-	
+	printf("fix me ^ %s:%d\n", __FILE__, __LINE__);
 	
 	glerr("failed to update map tex info");
 }
@@ -563,6 +576,8 @@ void updateMapTextures(MapInfo* mi) {
 
 void updateTerrainTexture(MapInfo* mi) {
 	int x, y, i;
+	MapLayer* ml = mi->block->terrain;
+	
 	
 	if(!mi->terrainTex) {
 		
@@ -585,8 +600,8 @@ void updateTerrainTexture(MapInfo* mi) {
 		glTexStorage3D(GL_TEXTURE_2D_ARRAY,
 			1,  // mips, flat
 			GL_R32F,
-			MAP_TEX_SZ, MAP_TEX_SZ,
-			64); // layers
+			ml->w, ml->h,
+			1); // layers
 		
 		glexit("failed to create map textures");
 		printf("created terrain tex\n");
@@ -594,7 +609,7 @@ void updateTerrainTexture(MapInfo* mi) {
 	else {
 		glBindTexture(GL_TEXTURE_2D_ARRAY, mi->terrainTex);
 	}
-	
+	glexit("");
 	/*
 	glTexSubImage3D(GL_TEXTURE_2D_ARRAY, // target
 		0,  // mip level, 0 = base, no mipmap,
@@ -608,21 +623,20 @@ void updateTerrainTexture(MapInfo* mi) {
 	*/
 	
 printf("loading terrain data\n");
+//printf("fix me %s:%d\n", __FILE__, __LINE__);
 
-	i = 0;
-	for(y = 0; y < 8; y++) {
-		for(x = 0; x < 8; x++) {
-			glTexSubImage3D(GL_TEXTURE_2D_ARRAY, // target
-				0,  // mip level, 0 = base, no mipmap,
-				0, 0, i++,// offset
-				MAP_TEX_SZ,
-				MAP_TEX_SZ,
-				1,
-				GL_RED,  // format
-				GL_FLOAT, // input type
-				mi->blocks[x][y]->tb.zs);
-		}
-	}
+
+
+	glTexSubImage3D(GL_TEXTURE_2D_ARRAY, // target
+		0,  // mip level, 0 = base, no mipmap,
+		0, 0, 0,// offset
+		ml->w,
+		ml->h,
+		1,
+		GL_RED,  // format
+		GL_FLOAT, // input type
+		ml->data.f);
+
 glexit("");
 
 	
@@ -644,7 +658,7 @@ static void bindTerrainTextures(MapInfo* mi) {
 	
 	glActiveTexture(GL_TEXTURE0 + 20);
 	glBindTexture(GL_TEXTURE_2D, mi->locationTex);
-	
+	glexit("");
 }
 
 
@@ -681,7 +695,7 @@ glexit("");
 }
 
 
-
+/*
 void drawTerrainRoads(GLuint dtex, MapInfo* mi, Matrix* mView, Matrix* mProj, Vector* cursor, Vector2* viewWH) {
 	
 	int i;
@@ -714,7 +728,7 @@ void drawTerrainRoads(GLuint dtex, MapInfo* mi, Matrix* mView, Matrix* mProj, Ve
 	//	drawRoad(roads, dtex, mView, mProj);
 	//}
 }
-
+*/
 
 
 
@@ -915,8 +929,10 @@ void getTerrainHeight(MapInfo* map, Vector2i* coords, int coordLen, float* heigh
 		int locy = coord->y % MAP_BLOCK_SZ;
 		
 		//printf("data for b[%d, %d] l[%d, %d]\n", bix, biy, locx, locy);
-		
-		*hout = map->blocks[bix][biy]->tb.zs[locx + (locy * TERR_TEX_SZ)];
+		// TODO: fix
+		//printf("fix me %s:%d\n", __FILE__, __LINE__);
+		//*hout = map->blocks[bix][biy]->tb.zs[locx + (locy * TERR_TEX_SZ)];
+		*hout = 0.0f;
 		
 		coord++;
 		hout++;
@@ -935,8 +951,8 @@ void tileCenterWorld(MapInfo* map, int tx, int ty, Vector* out) {
 	ty = iclamp(ty, 0, TERR_TEX_SZ);
 	
 	
-	
-	float z = map->blocks[0][0]->tb.zs[tx + (ty * TERR_TEX_SZ)];
+	printf("fix me %s:%d\n", __FILE__, __LINE__);
+	float z = 0;//map->blocks[0][0]->tb.zs[tx + (ty * TERR_TEX_SZ)];
 	
 	out->x = tx;
 	out->y = ty;
@@ -1144,21 +1160,6 @@ PassDrawable* Map_CreateDrawable(MapInfo* m) {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /*
 
 void slopeBetween(MapInfo* map, Vector2* p1, Vector2* p2, float width) {
@@ -1279,94 +1280,167 @@ void slopeBetween(MapInfo* map, Vector2* p1, Vector2* p2, float width) {
 */
 
 
-/* complicated premature optimization below
-
-static MapNode* allocMapNode(MapNode* parent, int ix, int iy);
 
 
 
-
-void printMapMemoryStats() {
+void MapLayer_init(MapLayer* ml, Vector2i size, float scale) {
+	//ml->name = strdup(name);
 	
-
-	printf("MapBlock size: %d\n", (int)sizeof(MapBlock));
-	printf("MapNode size: %d\n", (int)sizeof(MapNode));
+	ml->w = size.x;
+	ml->h = size.y;
+	ml->scale = scale;
+	//ml->chunkEdgeLen = 512;
 	
+	//ml->data_f = calloc(1, sizeof(*ml->data_f) * ml->w * ml->h);
+}
+
+
+MapLayer* MapLayer_Alloc(Vector2i size, float scale) {
+	MapLayer* ml;
+	
+	pcalloc(ml);
+	MapLayer_init(ml, size, scale);
+	
+	return ml;
 }
 
 
 
-MapNode* allocRootMapNode(short stride) {
+float MapLayer_sample(MapLayer* ml, float x, float y) {
 	
-	MapNode* mn;
-	
-	
-	mn = (MapNode*)malloc(sizeof(MapNode));
-	
-	// root node stuff
-	mn->level = 0;
-	mn->x = 0.0;
-	mn->y = 0.0;
-	mn->parent = NULL;
-	
-	mn->dataStride = stride;
-	
-	mn->kids[0][0] = allocMapNode(mn, 0, 0);
-	mn->kids[0][1] = allocMapNode(mn, 0, 1);
-	mn->kids[1][0] = allocMapNode(mn, 1, 0);
-	mn->kids[1][1] = allocMapNode(mn, 1, 1);
-	
-	mn->usage = 0x00;
-	
-	return mn;
 }
 
 
 
 
 
-static MapNode* allocMapNode(MapNode* parent, int ix, int iy) {
-	
-	MapNode* mn;
-	
-	mn = (MapNode*)malloc(sizeof(MapNode));
-	
-	// root node stuff
-	mn->level = parent->level + 1;
-	mn->x = ix;
-	mn->y = iy;
-	mn->parent = parent;
-	mn->kids[0][0] = NULL;
-	mn->kids[0][1] = NULL;
-	mn->kids[1][0] = NULL;
-	mn->kids[1][1] = NULL;
-	
-	mn->usage = 0;
-	
-	return mn;
-}
-	
-	
-void allocBlockData(MapNode* mn, char ix, char iy) {
-	
+
+
+MapBlock* MapBlock_Alloc(int w, int h) {
 	MapBlock* mb;
 	
-	mb = (MapBlock*)malloc(sizeof(MapBlock));
+	pcalloc(mb);
 	
-	mb->data = calloc(mn->dataStride * MAP_SZ * MAP_SZ, 1);
-	mb->counter = 0;
+	mb->w = w;
+	mb->h = h;
 	
-	// TODO: fill in location;
-	// TODO: fill in neighbors
+	VEC_INIT(&mb->layers);
+	HT_init(&mb->layerLookup, 4);
 	
-	mn->usage |= MAP_IDX_MASK(ix,iy);
-	mn->blocks[ix][iy] = mb;
+	return mb;
+}
+
+
+int MapBlock_AddLayer(MapBlock* mb, char* name, int scale) {
+	MapLayer* ml;
+	int lw, lh;
 	
+	lw = mb->w / scale;
+	lh = mb->h / scale;
+	
+	ml = MapLayer_Alloc((Vector2i){lw, lh}, 1.0 / (float)scale);
+	ml->name = strdup(name);
+	
+	VEC_PUSH(&mb->layers, ml);
+	int i = VEC_LEN(&mb->layers) - 1;
+	HT_set(&mb->layerLookup, name, i);
+	
+	if(strcaseeq(name, "terrain")) {
+		mb->terrain = ml;
+	}
+	
+	return i;
 }
 
 
 
-*/
 
+
+
+void MapLayer_GenTerrain(MapLayer* ml) {
+	int x, y;
+	FILE* f;
+	
+
+	OpenSimplexNoise osn;
+	OpenSimplex_init(&osn, 6456, 512, 512);
+	
+	OpenSimplexOctave octs[] = {
+		{2, 1.0},
+		{4, 0.7},
+		{8, 0.4},
+		{16, 0.2},
+		{32, 0.05},
+		{-1, -1}
+	};
+	OpenSimplexParams params = {
+		ml->w, ml->h,
+		1024*512, 1024*512,
+		octs
+	};
+	
+	float* data = OpenSimplex_GenNoise2D(&osn, &params);
+	
+	ml->data.f = malloc(sizeof(*ml->data.f) * ml->w * ml->h);
+	
+	for(y = 0; y < ml->h ; y++) {
+		for(x = 0; x < ml->w ; x++) {
+			float f = data[x + (y * ml->w)];
+			ml->data.f[x + (y * ml->w)] = fabs(1-f) * 10;
+		}
+	}
+	
+	free(data);
+}
+
+
+
+
+void MapInfo_Init(MapInfo* mi) {
+	
+	
+	mi->block = MapBlock_Alloc(TERR_TEX_SZ, TERR_TEX_SZ);
+	
+	MapBlock_AddLayer(mi->block, "terrain", 1);
+	
+	// temp, initializes the patches
+	initTerrain(mi);
+	
+	// gen heightmap
+	MapLayer_GenTerrain(mi->block->terrain);
+	
+	
+	updateTerrainTexture(mi);
+	
+	
+	
+	
+	
+	int	x,y,i = 0;
+	for(y = 0; y < 8; y++) {
+		for(x = 0; x < 8; x++) {
+			mi->offsetData[i].x = x;
+			mi->offsetData[i].y = y;
+			//printf("fix me %s:%d\n", __FILE__, __LINE__);
+			i++;
+		}
+	}
+	
+ 	glBindTexture(GL_TEXTURE_2D, mi->locationTex);
+	glexit("");
+	glTexSubImage2D(GL_TEXTURE_2D, // target
+		0,  // level, 0 = base, no minimap,
+		0, 0, // offset
+		64,
+		1,
+		GL_RG,  // format
+		GL_UNSIGNED_BYTE, // input type
+		mi->offsetData);
+	glexit("");
+	
+	mi->numBlocksToRender = 64;
+	
+	
+}
 
 

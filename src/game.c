@@ -125,8 +125,8 @@ void initGame(XStuff* xs, GameState* gs) {
 	gs->activeTool = 0;
 	
 	gs->debugMode = 0;
-	gs->sunSpeed = .3;
-	gs->sunTheta = 0;
+	gs->sunSpeed = 0;
+	gs->sunTheta = 2;
 	
 	gs->nearClipPlane = 3;
 	gs->farClipPlane = 1700;
@@ -191,8 +191,10 @@ void initGame(XStuff* xs, GameState* gs) {
 	getPrintGLEnum(GL_MAX_PROGRAM_TEXEL_OFFSET, "meh");
 	getPrintGLEnum(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, "meh");
 	getPrintGLEnum(GL_MAX_UNIFORM_BLOCK_SIZE, "meh");
+	getPrintGLEnum(GL_MAX_TEXTURE_SIZE, "meh");
 	
 	*/
+	
 	// set up matrix stacks
 	MatrixStack* view, *proj;
 	
@@ -853,11 +855,11 @@ void checkCursor(GameState* gs, InputState* is) {
 	gs->cursorTilePos.y = u.rgb[1];
 	gs->cursorTilePos.z = u.rgb[2];
 	
-	struct sGL_RG8* off = &gs->world->map.offsetData[(int)gs->cursorTilePos.z]; 
+	//struct sGL_RG8* off = &gs->world->map.offsetData[(int)gs->cursorTilePos.z]; 
 	
-	
-	gs->cursorPos.x = (off->x * 256.0) + gs->cursorTilePos.x;
-	gs->cursorPos.y = (off->y * 256.0) + gs->cursorTilePos.y;
+	// NOTE: modified to not segfault during map update
+	gs->cursorPos.x =  gs->cursorTilePos.x;
+	gs->cursorPos.y =  gs->cursorTilePos.y;
 	
 	
 	//printf("tile offset: %u - %d - %d,%d,%d - %d,%d\n", j, u.rgb[2], (int)gs->cursorPos.x, (int)gs->cursorPos.y,

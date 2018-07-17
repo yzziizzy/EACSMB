@@ -27,7 +27,8 @@ void World_init(World* w) {
 	
 	HT_init(&w->itemLookup, 4);
 	
-	initMap(&w->map);
+	//initMap(&w->map);
+	MapInfo_Init(&w->map);
 	
 	w->mapTexMan = TextureManager_alloc();
 	w->meshTexMan = TextureManager_alloc();
@@ -517,8 +518,12 @@ void World_drawSolids(World* w, PassFrameParams* pfp) {
 	RenderPass_renderAll(w->solidsPass, pfp->dp);
 	RenderPass_postFrameAll(w->solidsPass);
 	
-	
+	//glBlendFuncSeparatei(1, GL_SRC_COLOR, GL_ZERO, GL_SRC_ALPHA, GL_ZERO);
+	//glBlendFuncSeparatei(1, GL_ONE, GL_ZERO, GL_SRC_ALPHA,  GL_ONE_MINUS_DST_COLOR);
+	//glBlendFuncSeparatei(1, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendFuncSeparatei(1, GL_ONE, GL_ZERO, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 	WaterPlane_draw(w->wp, pfp->dp->mWorldView, pfp->dp->mViewProj);
+	
 }
 
 

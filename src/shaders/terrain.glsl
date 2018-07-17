@@ -25,6 +25,7 @@ void main() {
 	vs_rawTileOffset = texelFetch(sOffsetLookup, ivec2(gl_InstanceID, 0), 0).rg; 
 	vs_tileOffset = vs_rawTileOffset * 255* 255;
 	
+	
 	gl_Position = vec4(pos_in.x + vs_tileOffset.r, pos_in.y + vs_tileOffset.g, pos_in.z, 1.0);
 }
 
@@ -380,7 +381,7 @@ void main(void) {
 //	out_Normal = vec4(normalize(vec3(0,1,0)),1);
 	
 	out_Color =  (zoneColor * .2 + tc2) * cursorIntensity;// * lineFactor; //(1.0, 0, .5, .6);
-// 	out_Color = vec4(texCoord.xy , 1, 1);
+ 	//out_Color = vec4(texCoord.xy , 1, 1);
 	
 }
 

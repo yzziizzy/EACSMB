@@ -45,6 +45,24 @@ uniform globalTimer {
 layout(location = 0) out vec4 out_Color;
 layout(location = 1) out vec4 out_Normal;
 
+/*
+float gerstner(amp, wl, dir, phase, time, pos) {
+	return amp * sin(
+		dot(wl * dir, pos) + phase * time)
+	);
+	
+}*/
+
+// vec3 gerstner_normal(amp, wl, dir, phase, time, pos) {
+// 	return vec3(
+// 		amp * sin(dot(wl * dir, pos) + phase * time)),
+// 	);
+// 	
+// }
+
+
+
+
 
 void main(void) {
 	
@@ -63,10 +81,13 @@ void main(void) {
 		vs_tex.y,
 		0, 1);
 	*/
-	float f = ((sin(vs_tex.x * 30 + theta) + 1) * .5);
-	float fc = ((cos(vs_tex.x * 30 + theta) + 1) * .5);
+	float f = sin(vs_tex.x * 30 + theta) ;
+	float fc = cos(vs_tex.x * 30 + theta);
 // 	out_Color = vec4(vs_tex.xy, 0, 1); //vs_norm;
 //	out_Color = vec4(1,0, 0, 1); //vs_norm;
-	out_Normal = vec4(normalize(vec3(f, 0, fc)), 1);
+
+	vec3 norm = normalize(vec3(fc,0, f));
+	
+	out_Normal = vec4((norm.xyz * .5) + .5, 1);
 }
 

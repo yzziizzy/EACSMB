@@ -21,6 +21,9 @@
 #include "common_gl.h"
 #include "common_math.h"
 
+#include "ds.h"
+#include "hash.h"
+
 #include "pass.h"
 #include "texture.h"
 
@@ -31,6 +34,16 @@
 
 struct MapInfo;
 typedef struct MapInfo MapInfo;
+
+
+
+
+
+
+
+
+
+
 
 struct MapBlockTreeLeaf;
 typedef struct MapBlockTreeLeaf MapBlockTreeLeaf;
@@ -58,64 +71,58 @@ typedef struct TerrainBlock {
 
 
 
+
+
+
+
+typedef struct MapLayer {
+	char* name;
+	
+	int w, h; // tex size
+	float scale; // baked ratio 
+	
+	char dataType;
+	union {
+		char* c;
+		unsigned char* uc;
+		int* i;
+		unsigned int* ui;
+		float* f;
+	} data;
+	
+} MapLayer;
+
+
+
+
+
 typedef struct MapBlock {
-	int32_t bix, biy; // location in blocks. max world size is 2^32 blocks square ~5.6e8 km2 ~1.1x earth surface area  
+	//int32_t bix, biy; // location in blocks. max world size is 2^32 blocks square ~5.6e8 km2 ~1.1x earth surface area  
 	
-	struct MapBlock* n_xp, *n_xm, *n_yp, *n_ym;
+	int w, h;
 	
-	unsigned char surface[TERR_TEX_SZ * TERR_TEX_SZ];
-	unsigned char zones[TERR_TEX_SZ * TERR_TEX_SZ];
+	VEC(MapLayer*) layers;
+	HashTable(MapLayer*) layerLookup;
 	
-	int dirtyZone, dirtySurface;
+	MapLayer* terrain; // shortcut for heightmap
+	
+	//struct MapBlock* n_xp, *n_xm, *n_yp, *n_ym;
+	
+	//unsigned char surface[TERR_TEX_SZ * TERR_TEX_SZ];
+	//unsigned char zones[TERR_TEX_SZ * TERR_TEX_SZ];
+	
+	//int dirtyZone, dirtySurface;
 	
 
-	TerrainBlock tb;
+	//TerrainBlock tb;
 	
 	// old bezier roads
 	//RoadBlock roads;
 	
 } MapBlock;
 
-// typedef struct MapBlockTreeLeaf {
-// 	MapBlock* c[8][8];
-// 	int32_t minx, miny;
-// } MapBlockTreeLeaf;
-// 
 
 
-
-
-
-// //TODO: mark some regular terrain tiles as transparent... to see excavations
-// typedef struct VirtualTerrainBlock { // used for planning, renders as wireframe, usually
-// 	float* zs;
-// 	AABB2i worldBounds; // in world tile space, not TB tile space
-// 	
-// 	GLuint vbo;
-// 	int vertices;
-// 	
-// 	TerrainBlock** blocks;
-// 	
-// } VirtualTerrainBlock;
-// 
-
-/*
-
-in general:
-
-render opaque buildings
-render terrain
-render infrastructure
-render ui
-
-
-
-conservative frustum culling/selection
-sort by distance
-render front to back
-
-
-*/
 
 
 typedef struct MapBlockRenderInfo {
@@ -135,37 +142,6 @@ struct sGL_RG8 {
 	unsigned char x, y;
 };
 
-// typedef struct MapLayer_Roads {
-// 	
-// } MapLayer_Roads;
-// 
-// typedef struct MapLayer_Trees {
-// 	TerrainBlock* blocks;
-// } MapLayer_Trees;
-// 
-// typedef struct MapLayer_Zones {
-// 	uint8_t* zone_data;
-// 	// zone list
-// 	// zone colors
-// } MapLayer_Zones;
-// 
-// typedef struct MapLayer_Terrain {
-// 	TerrainBlock* blocks;
-// } MapLayer_Terrain;
-
-// // just hardcode to some moderately large size for now
-// typedef struct MapLayer {
-// 	uint16_t id;
-// 	uint16_t type;
-// 	uint32_t flags;
-// 	char* name;
-// 	
-// 	union {
-// 		MapLayer_Terrain terrain;
-// 		MapLayer_Roads roads;
-// 		MapLayer_Zones zones;
-// 	};
-// } MapLayer;
 
 
 typedef struct MapRenderComponent {
@@ -180,13 +156,18 @@ typedef struct MapRenderComponent {
 } MapRenderComponent;
 
 
-typedef struct MapInfo {
+typedef struct MapInfo {	
+	
 	// will be replaced by expandable structures later
 	//TerrainBlock* tb;
-	MapBlock* blocks[8][8];
-	int blocksSz;
-	int blocksLen;
-// 	MapBlock* originMB;
+	
+	int w, h;
+	
+	MapBlock* block;
+	//MapBlock* blocks[8][8];
+	
+	
+
 	
 // 	MapBlockTreeLeaf* root;
 	
@@ -260,6 +241,16 @@ MapBlock* loadMapBlock(FILE* f);
 
 
 
+int MapBlock_AddLayer(MapBlock* mb, char* name, int scale);
+void MapLayer_GenTerrain(MapLayer* ml);
+MapLayer* MapLayer_Alloc(Vector2i size, float scale);
+void MapLayer_init(MapLayer* ml, Vector2i size, float scale);
+void MapInfo_Init(MapInfo* mi);
+
+
+void updateTerrainTexture(MapInfo* mi);
+
+
 void Map_readConfigFile(MapInfo* map, char* path);
 
 RenderPass* Map_CreateRenderPass(MapInfo* m); 
@@ -271,63 +262,7 @@ PassDrawable* Map_CreateDrawable(MapInfo* m);
 
 
 
-// stuff below is too complicated for now. more knowledge is needed about the game to proceed.
 
 
-/*
-#define MAP_SZ 32
-
-
-#define MAP_IDX_MASK(x,y) (((1 << 2) << (x)) & (1 << (y)))
-
-struct MapBlock;
-
-
-
-typedef struct MapInfo {
-	short dataStride;
-	
-	MapNode root;
-}
-
-
-
-typedef struct MapNode {
-	
-	
-	unsigned char level;
-	unsigned char usage;
-	
-	int x, y; // center coords
-	struct MapNode* parent;
-	
-	union {
-		struct MapNode* kids[2][2];
-		struct MapBlock* blocks[2][2];
-	};
-} MapNode;
-
-
-typedef struct MapBlock {
-	void* data;
-	int cx, cy;
-	int counter;
-	struct MapBlock* xp, *xm, *yp, *ym;
-} MapBlock;
-
-
-
-
-// MapBlock* allocRootMapNode(short stride);
-
-
-
-
-
-
-
-void printMapMemoryStats();
-
-*/
 
 #endif // __EACSMB_MAP_H__
