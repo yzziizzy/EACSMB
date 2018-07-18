@@ -88,6 +88,10 @@ typedef struct GameState {
 	MatrixStack view;
 	MatrixStack proj;
 	
+	// temp. 
+	Matrix invView;
+	Matrix invProj;
+	
 	double nearClipPlane;
 	double farClipPlane;
 	

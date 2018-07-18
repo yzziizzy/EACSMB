@@ -28,6 +28,7 @@ eacsmb_SOURCES = main.c \
 	lighting.c \
 	log.c \
 	map.c \
+	mdi.c \
 	MurmurHash3.c \
 	objloader.c \
 	opensimplex.c \

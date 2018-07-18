@@ -272,6 +272,7 @@ void initTerrain(MapInfo* mi) {
 	printf("sideUnit: %f ", sideUnit);
 	printf("wpSide: %f \n", wpSide);
 	
+	/*
 	TerrainPatchVertex* pv = patchVertices;
 	
 	int ix, iy;
@@ -284,16 +285,14 @@ void initTerrain(MapInfo* mi) {
 			
 			pv->x = (ix * wpSide);
 			pv->y = (iy * wpSide);
-			pv->z = 0;
-			pv->hmU = (ix * MaxTessGenLevel * sideUnit / TERR_TEX_SZ);
-			pv->hmV = (iy * MaxTessGenLevel * sideUnit / TERR_TEX_SZ);
+			pv->v = (ix * MaxTessGenLevel * sideUnit / TERR_TEX_SZ);
+			pv->v = (iy * MaxTessGenLevel * sideUnit / TERR_TEX_SZ);
 			pv->divX = ix * MaxTessGenLevel;
 			pv->divY = iy * MaxTessGenLevel;
 			pv++;
 			
 			pv->x = (ix * wpSide);
 			pv->y = ((iy+1) * wpSide);
-			pv->z = 0;
 			pv->hmU = (ix * MaxTessGenLevel * sideUnit  / TERR_TEX_SZ);
 			pv->hmV = ((iy+1) * MaxTessGenLevel * sideUnit  / TERR_TEX_SZ);
 			pv->divX = ix * MaxTessGenLevel;
@@ -302,7 +301,6 @@ void initTerrain(MapInfo* mi) {
 
 			pv->x = ((ix+1) * wpSide);
 			pv->y = ((iy+1) * wpSide);
-			pv->z = 0;
 			pv->hmU = ((ix+1) * MaxTessGenLevel * sideUnit  / TERR_TEX_SZ);
 			pv->hmV = ((iy+1) * MaxTessGenLevel * sideUnit  / TERR_TEX_SZ);
 			pv->divX = (ix+1) * MaxTessGenLevel;
@@ -311,7 +309,6 @@ void initTerrain(MapInfo* mi) {
 
 			pv->x = ((ix+1) * wpSide);
 			pv->y = (iy * wpSide);
-			pv->z = 0;
 			pv->hmU = ((ix+1) * MaxTessGenLevel * sideUnit / TERR_TEX_SZ);
 			pv->hmV = (iy * MaxTessGenLevel * sideUnit  / TERR_TEX_SZ);
 			pv->divX = (ix+1) * MaxTessGenLevel;
@@ -321,18 +318,22 @@ void initTerrain(MapInfo* mi) {
 	}
 	
 	
+	*/
+	
 // 	GLuint tp_ul = glGetUniformLocation(textProg->id, "mProj");
 // 	GLuint tm_ul = glGetUniformLocation(textProg->id, "mModel");
 // 	GLuint ts_ul = glGetUniformLocation(textProg->id, "fontTex");
 
 	glexit("before terrain patch");
 	glPatchParameteri(GL_PATCH_VERTICES, 4);
-	
+
+/*	
 	glGenVertexArrays(1, &patchVAO);
 	glBindVertexArray(patchVAO);
 	
 	glGenBuffers(1, &patchVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, patchVBO);
+
 
 	// position
 	glEnableVertexAttribArray(0);
@@ -350,7 +351,7 @@ void initTerrain(MapInfo* mi) {
 	
 	glBufferData(GL_ARRAY_BUFFER, sizeof(TerrainPatchVertex) * 4 * patchCnt, patchVertices, GL_STATIC_DRAW);
 	glexit("buffering terrain patch vertex data");
-	
+	*/
 	// ---- location offsets ----
 	
 	
@@ -1068,35 +1069,30 @@ void Map_readConfigFile(MapInfo* map, char* path) {
 
 
 
-
+/*
 static void preFrame(PassFrameParams* pfp, MapInfo* m);
 static void draw(MapInfo* m, GLuint progID, PassDrawParams* pdp);
 static void postFrame(MapInfo* m);
+*/
 
-
-
+/*
 static void preFrame(PassFrameParams* pfp, MapInfo* m) {
 	
 
 	
 }
+*/
 
+/*
 // this one has to handle different views, such as shadow mapping and reflections
 // (MapInfo* mi, UniformBuffer* perViewUB, Vector* cursor, Vector2* viewWH)
 static void draw(MapInfo* m, GLuint progID, PassDrawParams* pdp) {
 	
 	int i;
 	
-	glUseProgram(terrProg->id);
-	glEnable(GL_DEPTH_TEST);
+	//glUseProgram(terrProg->id);
+	//glEnable(GL_DEPTH_TEST);
 	
-	
-	glUniformMatrix4fv(view_ul, 1, GL_FALSE, pdp->mWorldView->m);
-	glUniformMatrix4fv(proj_ul, 1, GL_FALSE, pdp->mViewProj->m);
-	
-	//uniformBuffer_bindProg(perViewUB, terrProg->id, "perViewData");
-	//glUniformMatrix4fv(view_ul, 1, GL_FALSE, mView->m);
-	//glUniformMatrix4fv(proj_ul, 1, GL_FALSE, mProj->m);
 	
 	glUniform2f(winsize_ul, pdp->targetSize.x, pdp->targetSize.y);
 	
@@ -1108,16 +1104,50 @@ static void draw(MapInfo* m, GLuint progID, PassDrawParams* pdp) {
 	glPatchParameteri(GL_PATCH_VERTICES, 4);
 	glBindBuffer(GL_ARRAY_BUFFER, patchVBO);
 	
+	
+	
 	glUniformMatrix4fv(model_ul, 1, GL_FALSE, msGetTop(&model)->m);
 	
 	glDrawArraysInstanced(GL_PATCHES, 0, totalPatches * totalPatches * 4, m->numBlocksToRender);
+	
+}
+*/
+
+
+//static void postFrame(MapInfo* m) {
+
+//}
+
+
+
+static void uniformSetup(MapInfo* mi, GLuint progID) {
+	glPatchParameteri(GL_PATCH_VERTICES, 4);	
+	
+	//	glUniform3f(glGetUniformLocation(terrProg->id, "cursorPos"), m->cursorPos.x, m->cursorPos.y, m->cursorPos.z);
+
+	//glUniformMatrix4fv(model_ul, 1, GL_FALSE, msGetTop(&model)->m);
+	
 }
 
 
-
-static void postFrame(MapInfo* m) {
-
+static void instanceSetup(MapInfo* mi, TerrainPatchInstance* vmem, MDIDrawInfo** di, int diCount, PassFrameParams* pfp) {
+	
+	int i, j;
+	
+	for(j = 0; j < diCount; j++) {
+		di[j]->numToDraw = 4;
+			
+		for(i = 0; i < 4; i++) {
+			vmem[i].offx = i * 256;
+			vmem[i].offy = i * 256;
+		}
+		
+		di++;
+	}
+	
 }
+
+
 
 
 
@@ -1141,12 +1171,15 @@ RenderPass* Map_CreateRenderPass(MapInfo* m) {
 PassDrawable* Map_CreateDrawable(MapInfo* m) {
 	PassDrawable* pd;
 
-	pd = Pass_allocDrawable("MapInfo");
-	pd->data = m;
-	pd->preFrame = preFrame;
-	pd->draw = (PassDrawFn)draw;
-	pd->postFrame = postFrame;
-	pd->prog = terrProg;
+	//pd = Pass_allocDrawable("MapInfo");
+	//pd->data = m;
+	//pd->preFrame = preFrame;
+	//pd->draw = (PassDrawFn)draw;
+	//pd->postFrame = postFrame;
+	//pd->prog = terrProg;
+	
+	
+	pd = MultiDrawIndirect_CreateDrawable(m->blockPatch, terrProg);
 	
 	return pd;
 }
@@ -1399,12 +1432,27 @@ void MapLayer_GenTerrain(MapLayer* ml) {
 void MapInfo_Init(MapInfo* mi) {
 	
 	
+	static VAOConfig vao_opts[] = {
+		// per vertex
+		{0, 2, GL_FLOAT, 0, GL_FALSE}, // position
+		{0, 2, GL_FLOAT, 0, GL_FALSE}, // tex
+		
+		// per instance 
+		{1, 2, GL_FLOAT, 1, GL_FALSE}, // block offset
+		
+		{0, 0, 0}
+	};
+	
+	mi->blockPatch = MultiDrawIndirect_alloc(vao_opts, 64);
+	
 	mi->block = MapBlock_Alloc(TERR_TEX_SZ, TERR_TEX_SZ);
 	
 	MapBlock_AddLayer(mi->block, "terrain", 1);
 	
 	// temp, initializes the patches
 	initTerrain(mi);
+	
+	MapInfo_GenMesh(mi);
 	
 	// gen heightmap
 	MapLayer_GenTerrain(mi->block->terrain);
@@ -1441,6 +1489,104 @@ void MapInfo_Init(MapInfo* mi) {
 	mi->numBlocksToRender = 64;
 	
 	
+}
+
+
+void MapInfo_GenMesh(MapInfo* mi) {
+	
+ 	GLint MaxTessGenLevel = 0;
+ 	GLint MaxPatchVertices = 0;
+ 	glGetIntegerv(GL_MAX_PATCH_VERTICES, &MaxPatchVertices);
+ 	if(MaxPatchVertices < 4) {
+		fprintf(stderr, "FATAL: GL_MAX_PATCH_VERTICES is too low: %d. Minimum required value is 4.\n", MaxPatchVertices);
+		exit(3);
+	};
+	
+	glGetIntegerv(GL_MAX_TESS_GEN_LEVEL, &MaxTessGenLevel);
+	printf("GL_MAX_TESS_GEN_LEVEL: %d\n", MaxTessGenLevel);
+	if(MaxTessGenLevel < 32) {
+		fprintf(stderr, "FATAL: GL_MAX_TESS_GEN_LEVEL is too low: %d. Minimum required value is 32.\n", MaxTessGenLevel);
+		exit(3);
+	};
+	
+	MapBlock* mb = mi->block;
+	
+	
+	
+	Vector2i totalPatches = {
+		ceil(mb->w / MaxTessGenLevel), //wholePatches + (fracPatchSize > 0 ? 1 : 0);
+		ceil(mb->h / MaxTessGenLevel)
+	};
+	
+	int patchCnt = (totalPatches.x * totalPatches.y);
+	TerrainPatchVertex* patchVertices = calloc(1, sizeof(TerrainPatchVertex) * 4 * patchCnt);
+	
+	
+	float sideUnit = 1.0; // size of a square, the smallest tessellation level
+	float patchSide = sideUnit * MaxTessGenLevel;
+
+	
+	
+	TerrainPatchVertex* pv = patchVertices;
+	
+	int ix, iy;
+	for(iy = 0; iy < totalPatches.y; iy++) {
+		for(ix = 0; ix < totalPatches.x; ix++) {
+			
+			pv->x = ((ix + 0) * patchSide);
+			pv->y = ((iy + 0) * patchSide);
+			pv->u = pv->x / mb->w;
+			pv->v = pv->y / mb->h;
+			printf("x:%f  y:%f  u:%f  v:%f \n", pv->x, pv->y, pv->u, pv->v);
+			pv++;
+			
+			pv->x = ((ix + 0) * patchSide);
+			pv->y = ((iy + 1) * patchSide);
+			pv->u = pv->x / mb->w;
+			pv->v = pv->y / mb->h;
+			printf("x:%f  y:%f  u:%f  v:%f \n", pv->x, pv->y, pv->u, pv->v);
+			pv++;	
+			
+			pv->x = ((ix + 1) * patchSide);
+			pv->y = ((iy + 1) * patchSide);
+			pv->u = pv->x / mb->w;
+			pv->v = pv->y / mb->h;
+			printf("x:%f  y:%f  u:%f  v:%f \n", pv->x, pv->y, pv->u, pv->v);
+			pv++;	
+			
+			pv->x = ((ix + 1) * patchSide);
+			pv->y = ((iy + 0) * patchSide);
+			pv->u = pv->x / mb->w;
+			pv->v = pv->y / mb->h;
+			printf("x:%f  y:%f  u:%f  v:%f \n", pv->x, pv->y, pv->u, pv->v);
+			pv++;	
+			
+			printf("\n");
+		}
+	}
+	
+	
+	
+	glPatchParameteri(GL_PATCH_VERTICES, 4);
+	
+	MDIDrawInfo* di = pcalloc(di);
+	
+	*di = (MDIDrawInfo){
+		.vertices = patchVertices,
+		.vertexCount = patchCnt * 4,
+		
+		.indices = NULL,
+		.indexCount = 0,
+	};
+	
+	mi->blockPatch->isIndexed = 0;
+	mi->blockPatch->primMode = GL_PATCHES;
+	mi->blockPatch->uniformSetup = (void*)uniformSetup;
+	mi->blockPatch->instanceSetup = (void*)instanceSetup;
+	mi->blockPatch->data = mi;
+	
+	MultiDrawIndirect_addMesh(mi->blockPatch, di);
+	MultiDrawIndirect_updateGeometry(mi->blockPatch);
 }
 
 

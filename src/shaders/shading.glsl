@@ -65,21 +65,33 @@ void main() {
 		float ndc_depth = depth * 2.0 - 1.0;
 		
 // 		mat4 invVP = inverse(mViewProj * mWorldView);
-		mat4 invVP = mViewWorld * mProjView;
+		mat4 invVP = inverse(mViewProj * mWorldView);
 // 		
 		vec4 tmppos = invVP * vec4(screenCoord * 2.0 - 1.0, ndc_depth, 1.0);
 		vec3 pos = tmppos.xyz / tmppos.w;
 		// --------------------------------
 		// pos is in world coordinates now
 		
+		//vec3 pos_vw = (vec4(pos, 1) * mWorldView).xyz;
 		
-		vec3 viewpos = (inverse(mViewProj * mWorldView) * vec4(0,0,0,1)).xyz;
+		
+		
+		// world space
+// 		vec3 viewpos = (inverse(mViewProj * mWorldView) * vec4(0,0,0,1)).xyz;
+		vec3 viewpos = (invVP * vec4(0,0,0,1)).xyz;
 		//vec3 viewpos_v = (inverse(mWorldView) * vec4(0,0,0,1)).xyz;
 		
 		//vec3 viewdir = normalize(viewpos - pos);
-		vec3 viewdir = normalize((inverse(mViewProj * mWorldView) * vec4(0,0,1,1)).xyz);
+		// world space
+		vec3 viewdir = normalize((invVP * vec4(0,0,1,1)).xyz);
 		
-		vec3 sundir = normalize(sunNormal); //normalize(vec3(3,3,3));
+		//normal = (mWorldView * vec4(normal, 1)).xyz;
+		
+		// voodoo: specular is inverted from diffuse otherwise. something is wrong
+		normal *= -1;
+		
+		// world space
+		vec3 sundir = normalize((vec4(sunNormal, 1)).xyz); //normalize(vec3(3,3,3));
 		//vec3 sundir_v = mWorldView * vec4(normalize(sunNormal), 1)).xyz; //normalize(vec3(3,3,3));
 		
 		float lambertian = max(dot(sundir, normal), 0.0);
@@ -111,6 +123,9 @@ void main() {
 		
 		// gamma correction
 		FragColor = vec4(pow(colorOut, vec3(1.1)), 1.0);
+		
+		
+		//FragColor = vec4(sundir * .5 + .5, 1.0);
 		
 	}
 	else if(debugMode == 1) {

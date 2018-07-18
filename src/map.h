@@ -26,6 +26,7 @@
 
 #include "pass.h"
 #include "texture.h"
+#include "mdi.h"
 
 #include "road.h"
 #include "view.h"
@@ -50,10 +51,13 @@ typedef struct MapBlockTreeLeaf MapBlockTreeLeaf;
 
 
 typedef struct TerrainPatchVertex {
-	float x, y, z;
-	float hmU, hmV; // these are in texels
-	float divX, divY;
+	float x, y;
+	float u, v;
 } TerrainPatchVertex;
+
+typedef struct TerrainPatchInstance {
+	float offx, offy;
+} TerrainPatchInstance;
 
 
 typedef struct TerrainBlock {
@@ -166,7 +170,7 @@ typedef struct MapInfo {
 	MapBlock* block;
 	//MapBlock* blocks[8][8];
 	
-	
+	MultiDrawIndirect* blockPatch;
 
 	
 // 	MapBlockTreeLeaf* root;
@@ -246,6 +250,8 @@ void MapLayer_GenTerrain(MapLayer* ml);
 MapLayer* MapLayer_Alloc(Vector2i size, float scale);
 void MapLayer_init(MapLayer* ml, Vector2i size, float scale);
 void MapInfo_Init(MapInfo* mi);
+void MapInfo_GenMesh(MapInfo* mi);
+
 
 
 void updateTerrainTexture(MapInfo* mi);

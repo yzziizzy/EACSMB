@@ -258,14 +258,14 @@ void shadingPass(GameState* gs, PassFrameParams* pfp) {
 	glexit("shading samplers");
 	
 //	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "world"), 1, GL_FALSE, world.m);
-	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "mViewProj"), 1, GL_FALSE, msGetTop(&gs->proj)->m);
-	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "mWorldView"), 1, GL_FALSE, msGetTop(&gs->view)->m);
+	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "mViewProj"), 1, GL_FALSE, pfp->dp->mViewProj);
+	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "mWorldView"), 1, GL_FALSE, pfp->dp->mWorldView);
 
-	mInverse(msGetTop(&gs->proj), &projView);
-	mInverse(msGetTop(&gs->view), &viewWorld);
+	//mInverse(msGetTop(&gs->proj), &projView);
+	//mInverse(msGetTop(&gs->view), &viewWorld);
 	
-	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "mProjView"), 1, GL_FALSE, projView.m);
-	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "mViewWorld"), 1, GL_FALSE, viewWorld.m);
+	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "mProjView"), 1, GL_FALSE, pfp->dp->mProjView);
+	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "mViewWorld"), 1, GL_FALSE, pfp->dp->mViewWorld);
 
 	glexit("shading world");
 
@@ -298,6 +298,7 @@ void shadingPass(GameState* gs, PassFrameParams* pfp) {
 
 void selectionPass(XStuff* xs, GameState* gs, InputState* is) {
 
+	glexit("");
 	gs->lastSelectionFrame = gs->frameCount; 
 	
 	query_queue_start(&gs->queries.selection);
@@ -405,6 +406,12 @@ void SetUpPDP(GameState* gs, PassDrawParams* pdp) {
 	pdp->mWorldView = msGetTop(&gs->view);
 	pdp->mViewProj = msGetTop(&gs->proj);
 	
+	pdp->mProjView = &gs->invProj;
+	pdp->mViewWorld = &gs->invView;
+	
+	mInverse(&pdp->mViewProj, &gs->invProj);
+	mInverse(&pdp->mWorldView, &gs->invView);
+	
 	pdp->eyeVec = gs->eyeDir;
 	pdp->eyePos = gs->eyePos;
 	pdp->targetSize = (Vector2i){800, 800};	
@@ -452,13 +459,10 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 // 	}
 
 	PassDrawParams pdp;
-	pdp.mWorldView = msGetTop(&gs->view);
-	pdp.mViewProj = msGetTop(&gs->proj);
-	pdp.eyeVec = gs->eyeDir;
-	pdp.eyePos = gs->eyePos;
-	pdp.targetSize = (Vector2i){800, 800};	
-	pdp.timeSeconds = (float)(long)gs->frameTime;
-	pdp.timeFractional = gs->frameTime - pdp.timeSeconds;
+	//pdp.mWorldView = msGetTop(&gs->view);
+	//pdp.mViewProj = msGetTop(&gs->proj);
+	
+	SetUpPDP(gs, &pdp);
 	
 	
 	PassFrameParams pfp;
@@ -466,6 +470,10 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	pfp.timeElapsed = gs->frameSpan;
 	pfp.gameTime = gs->frameTime; // this will get regenerated from save files later
 	pfp.wallTime = gs->frameTime;
+	
+	
+
+	
 	
 	RenderAllPrePasses(&pfp);
 	
@@ -479,7 +487,8 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 		//printf("doing selection pass %d\n", gs->frameCount);
 		gs->hasMoved = 0;
 		
-		selectionPass(xs, gs, is);
+		// HACK: disabled for map 
+		//selectionPass(xs, gs, is);
 	}
 	
 	// update world state

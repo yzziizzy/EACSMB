@@ -126,7 +126,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	
 	gs->debugMode = 0;
 	gs->sunSpeed = 0;
-	gs->sunTheta = 2;
+	gs->sunTheta = 4;
 	
 	gs->nearClipPlane = 3;
 	gs->farClipPlane = 1700;
