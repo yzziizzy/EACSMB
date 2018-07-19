@@ -170,7 +170,7 @@ void main() {
 		w3 /= w3.w;
 		
 		// cull patches outside the view frustum
-		if(false && (!inBox(w0) && !inBox(w1) && !inBox(w2) && !inBox(w3))
+		if((!inBox(w0) && !inBox(w1) && !inBox(w2) && !inBox(w3))
 			&& !insideQuad(w0.xz, w1.xz, w2.xz, w3.xz, vec2(1,1)) 
 			&& !insideQuad(w0.xz, w1.xz, w2.xz, w3.xz, vec2(-1,1)) 
 			&& !insideQuad(w0.xz, w1.xz, w2.xz, w3.xz, vec2(1,-1)) 
@@ -188,7 +188,7 @@ void main() {
 			return;
 		}
 
-		float lod = 128;
+		float lod = 128; // lower means worse quality. 128 is optimal
 		
 		float f0 = clamp(distance(w1, w2) * lod, 1, 64);
 		float f1 = clamp(distance(w0, w1) * lod, 1, 64);
@@ -396,7 +396,7 @@ void main(void) {
 //	out_Normal = vec4(normalize(vec3(0,1,0)),1);
 	
 	out_Color =  (zoneColor * .2 + tc2) * cursorIntensity;// * lineFactor; //(1.0, 0, .5, .6);
- 	out_Color = vec4(texCoord.xy , 1, 1);
+ //	out_Color = vec4(texCoord.xy , 1, 1);
 	
 }
 

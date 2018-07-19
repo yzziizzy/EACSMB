@@ -74,67 +74,9 @@ void initMap(MapInfo* mi) {
 	
 	initTerrain(mi);
 	
-	// HACK: should probably be scaled by data from mapinfo
-	msAlloc(4, &model);
-	msIdent(&model);
-	msScale3f(TERR_TEX_SZ,TERR_TEX_SZ,1, &model);
-	msPush(&model);
-	
-	//mi->blocksSz = 32 * 32;
-	//mi->blocks = malloc(sizeof(MapBlock*) * mi->blocksSz);
-	
 
-// 	mi->originMB = allocMapBlock(0, 0);
-// 	mi->blocks[0] = mi->originMB;
-// 	mi->blocksLen++;
-	
-	for(by = 0; by < 8; by++) {
-		for(bx = 0; bx < 8; bx++) {
-			//mi->blocks[bx][by] = allocMapBlock(bx, by);
-			printf("fix me %s:%d\n", __FILE__, __LINE__);
-// 			mi->blocks[bx][by]->n_xm = mi->blocks[bx][by];
-// 			mi->blocks[0]->n_xp = mi->blocks[mi->blocksLen];
-// 			mi->blocksLen++;
-		}
-	}
-	
-	
-	// zone stuff
-	memset(&mi->zoneColors, 0, 256);
-	
-	// TODO: load zone colors
-	mi->zoneColors[0] = 0x00000000;
-	mi->zoneColors[1] = 0x0000ff00;
-	mi->zoneColors[2] = 0x00ff0000;
-	mi->zoneColors[3] = 0x0000FFFF;
-	
-	/*
-	glGenTextures(1, &mi->zoneColorTex);
-	glBindTexture(GL_TEXTURE_1D, mi->zoneColorTex);
-	
-// 	glTexParameteri(GL_TEXTURE_1D, GL_GENERATE_MIPMAP, GL_FALSE);
-	
-	// need to switch to nearest later on
-	glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-// 	glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 
-	// squash the data in
-	glPixelStorei(GL_PACK_ALIGNMENT, 1);
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-	glTexImage1D(GL_TEXTURE_1D, // target
-		0,  // level, 0 = base, no minimap,
-		GL_RGBA8, // internalformat
-		256,
-		0,  // border
-		GL_RGBA,  // format
-		GL_UNSIGNED_BYTE, // input type
-		mi->zoneColors);
-	
-	glerr("zone color map");
-	*/
 	FILE* f;
 	f = fopen(tmpSavePath, "rb");
 	MapBlock* mb;
@@ -143,7 +85,7 @@ void initMap(MapInfo* mi) {
 		printf("Loading saved terrain from %s\n", tmpSavePath);
 		for(y = 0; y < 8; y++) {
 			for(x = 0; x < 8; x++) {
-				mb = loadMapBlock(f);
+				//mb = loadMapBlock(f);
 				//mi->blocks[mb->bix][mb->biy] = mb;
 				printf("fix me %s:%d\n", __FILE__, __LINE__);
 			}
@@ -252,107 +194,10 @@ void initTerrain(MapInfo* mi) {
 	glProgramUniform1i(terrDepthProg->id, heightmap_d_ul, 21);
 	glProgramUniform1i(terrDepthProg->id, offset_d_ul, 20);
 	
-	// generate geometry
-	//------------------
-	
-	// in one dimension
-	totalPatches = TERR_TEX_SZ / MaxTessGenLevel; //wholePatches + (fracPatchSize > 0 ? 1 : 0);
-	
-	int patchCnt = (totalPatches * totalPatches);
-	patchVertices = malloc(sizeof(TerrainPatchVertex) * 4 * patchCnt);
-	
-	
-	float sideUnit = 1.0; // size of a square, the smallest tessellation level
-	float wpSide = sideUnit * MaxTessGenLevel; // total length of a whole patch side
-	
-	printf("TERR_TEX_SZ: %d ", TERR_TEX_SZ);
-	printf("MaxTessGenLevel: %d ", MaxTessGenLevel);
-	printf("totalPatches: %d ", totalPatches);
-	printf("patchCnt: %d ", patchCnt);
-	printf("sideUnit: %f ", sideUnit);
-	printf("wpSide: %f \n", wpSide);
-	
-	/*
-	TerrainPatchVertex* pv = patchVertices;
-	
-	int ix, iy;
-	for(iy = 0; iy < totalPatches; iy++) {
-		for(ix = 0; ix < totalPatches; ix++) {
-			//printf("pv: %d\n", pv);
-			int tlX = MaxTessGenLevel;
-			int tlY = MaxTessGenLevel;
-			
-			
-			pv->x = (ix * wpSide);
-			pv->y = (iy * wpSide);
-			pv->v = (ix * MaxTessGenLevel * sideUnit / TERR_TEX_SZ);
-			pv->v = (iy * MaxTessGenLevel * sideUnit / TERR_TEX_SZ);
-			pv->divX = ix * MaxTessGenLevel;
-			pv->divY = iy * MaxTessGenLevel;
-			pv++;
-			
-			pv->x = (ix * wpSide);
-			pv->y = ((iy+1) * wpSide);
-			pv->hmU = (ix * MaxTessGenLevel * sideUnit  / TERR_TEX_SZ);
-			pv->hmV = ((iy+1) * MaxTessGenLevel * sideUnit  / TERR_TEX_SZ);
-			pv->divX = ix * MaxTessGenLevel;
-			pv->divY = (iy+1) * MaxTessGenLevel;
-			pv++;
 
-			pv->x = ((ix+1) * wpSide);
-			pv->y = ((iy+1) * wpSide);
-			pv->hmU = ((ix+1) * MaxTessGenLevel * sideUnit  / TERR_TEX_SZ);
-			pv->hmV = ((iy+1) * MaxTessGenLevel * sideUnit  / TERR_TEX_SZ);
-			pv->divX = (ix+1) * MaxTessGenLevel;
-			pv->divY = (iy+1) * MaxTessGenLevel;
-			pv++;
-
-			pv->x = ((ix+1) * wpSide);
-			pv->y = (iy * wpSide);
-			pv->hmU = ((ix+1) * MaxTessGenLevel * sideUnit / TERR_TEX_SZ);
-			pv->hmV = (iy * MaxTessGenLevel * sideUnit  / TERR_TEX_SZ);
-			pv->divX = (ix+1) * MaxTessGenLevel;
-			pv->divY = iy * MaxTessGenLevel;
-			pv++;
-		}
-	}
-	
-	
-	*/
-	
-// 	GLuint tp_ul = glGetUniformLocation(textProg->id, "mProj");
-// 	GLuint tm_ul = glGetUniformLocation(textProg->id, "mModel");
-// 	GLuint ts_ul = glGetUniformLocation(textProg->id, "fontTex");
 
 	glexit("before terrain patch");
-	glPatchParameteri(GL_PATCH_VERTICES, 4);
 
-/*	
-	glGenVertexArrays(1, &patchVAO);
-	glBindVertexArray(patchVAO);
-	
-	glGenBuffers(1, &patchVBO);
-	glBindBuffer(GL_ARRAY_BUFFER, patchVBO);
-
-
-	// position
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(TerrainPatchVertex), 0);
-	
-	// heightmap texel coordinates
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(TerrainPatchVertex), (void*)offsetof(TerrainPatchVertex, hmU));
-	
-	// data for TCS output divisions
-	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(TerrainPatchVertex), (void*)offsetof(TerrainPatchVertex, divX));
-	glexit("terrain vertex attrib calls");
-	
-	
-	glBufferData(GL_ARRAY_BUFFER, sizeof(TerrainPatchVertex) * 4 * patchCnt, patchVertices, GL_STATIC_DRAW);
-	glexit("buffering terrain patch vertex data");
-	*/
-	// ---- location offsets ----
 	
 	
 	glGenTextures(1, &mi->locationTex);
@@ -388,19 +233,6 @@ void initTerrain(MapInfo* mi) {
 
 
 
-MapBlock* spawnMapBlock(MapInfo* mi, int bix, int biy) {
-	
-	MapBlock* mb;
-	
-	mb = allocMapBlock(bix, biy);
-	initTerrainBlock(mb, bix, biy);
-	
-	// old bezier roads
-	//initRoadBlock(&mb->roads);
-	
-	return mb;
-}
-
 
 MapBlock* allocMapBlock(int bix, int biy) {
 	
@@ -412,30 +244,6 @@ MapBlock* allocMapBlock(int bix, int biy) {
 	return b;
 }
 
-
-MapBlock* loadMapBlock(FILE* f) {
-	int i;
-	int32_t bix, biy;
-	MapBlock* mb;
-	
-	//fread(&bix, sizeof(int32_t), 1, f);
-	//fread(&biy, sizeof(int32_t), 1, f);
-	
-	mb = allocMapBlock(bix, biy);
-	//fread(mb->tb.zs, sizeof(float), TERR_TEX_SZ * TERR_TEX_SZ, f);
-	
-	return mb;
-}
-
-void saveMapBlock(FILE* f, MapBlock* mb) {
-	int x, y;
-	
-	//fwrite(&mb->bix, sizeof(int32_t), 1, f);
-	//fwrite(&mb->biy, sizeof(int32_t), 1, f);
-	
-	//fwrite(mb->tb.zs, sizeof(float), TERR_TEX_SZ * TERR_TEX_SZ, f);
-	printf("fix me %s:%d\n", __FILE__, __LINE__);
-}
 
 
 void initTerrainBlock(MapBlock* mb, int cx, int cy) {
@@ -1053,70 +861,15 @@ void Map_readConfigFile(MapInfo* map, char* path) {
 		dm->defaultRotZ *= F_PI / 180.0;  
 		
 
-		int ind = dynamicMeshManager_addMesh(mm, dm->name, dm);
-		printf("DM added mesh %d: %s \n", ind, dm->name);
+	//	int ind = dynamicMeshManager_addMesh(mm, dm->name, dm);
+	//	printf("DM added mesh %d: %s \n", ind, dm->name);
 		
 	}
+*/	
 	
-	*/
 	
 }
 
-
-
-
-
-
-
-
-/*
-static void preFrame(PassFrameParams* pfp, MapInfo* m);
-static void draw(MapInfo* m, GLuint progID, PassDrawParams* pdp);
-static void postFrame(MapInfo* m);
-*/
-
-/*
-static void preFrame(PassFrameParams* pfp, MapInfo* m) {
-	
-
-	
-}
-*/
-
-/*
-// this one has to handle different views, such as shadow mapping and reflections
-// (MapInfo* mi, UniformBuffer* perViewUB, Vector* cursor, Vector2* viewWH)
-static void draw(MapInfo* m, GLuint progID, PassDrawParams* pdp) {
-	
-	int i;
-	
-	//glUseProgram(terrProg->id);
-	//glEnable(GL_DEPTH_TEST);
-	
-	
-	glUniform2f(winsize_ul, pdp->targetSize.x, pdp->targetSize.y);
-	
-	bindTerrainTextures(m);
-	
-	glUniform3f(glGetUniformLocation(terrProg->id, "cursorPos"), m->cursorPos.x, m->cursorPos.y, m->cursorPos.z);
-	glBindVertexArray(patchVAO);
-	
-	glPatchParameteri(GL_PATCH_VERTICES, 4);
-	glBindBuffer(GL_ARRAY_BUFFER, patchVBO);
-	
-	
-	
-	glUniformMatrix4fv(model_ul, 1, GL_FALSE, msGetTop(&model)->m);
-	
-	glDrawArraysInstanced(GL_PATCHES, 0, totalPatches * totalPatches * 4, m->numBlocksToRender);
-	
-}
-*/
-
-
-//static void postFrame(MapInfo* m) {
-
-//}
 
 
 
@@ -1124,21 +877,23 @@ static void uniformSetup(MapInfo* mi, GLuint progID) {
 	glPatchParameteri(GL_PATCH_VERTICES, 4);	
 	
 	//	glUniform3f(glGetUniformLocation(terrProg->id, "cursorPos"), m->cursorPos.x, m->cursorPos.y, m->cursorPos.z);
+//	glUniform2f(winsize_ul, pdp->targetSize.x, pdp->targetSize.y);
 
 	//glUniformMatrix4fv(model_ul, 1, GL_FALSE, msGetTop(&model)->m);
-	
+	bindTerrainTextures(mi);
 }
 
 
 static void instanceSetup(MapInfo* mi, TerrainPatchInstance* vmem, MDIDrawInfo** di, int diCount, PassFrameParams* pfp) {
 	
 	int i, j;
+	int x, y;
 	
 	for(j = 0; j < diCount; j++) {
 		di[j]->numToDraw = 4;
 			
-		for(i = 0; i < 4; i++) {
-			vmem[i].offx = i * 256;
+		for(i = 0; i < 1; i++) { // each instance
+			vmem[i].offx = i * 256; // multiplier should be mb->w
 			vmem[i].offy = i * 256;
 		}
 		
@@ -1445,7 +1200,7 @@ void MapInfo_Init(MapInfo* mi) {
 	
 	mi->blockPatch = MultiDrawIndirect_alloc(vao_opts, 64);
 	
-	mi->block = MapBlock_Alloc(TERR_TEX_SZ, TERR_TEX_SZ);
+	mi->block = MapBlock_Alloc(1024, 1024);
 	
 	MapBlock_AddLayer(mi->block, "terrain", 1);
 	
