@@ -1,14 +1,9 @@
 {
-	grass: {
-		diffuse: "grass_texture-256.png",
+	textures: {
+		grass: "assets/textures/grass_texture-256.png",
+		dirt: "assets/textures/dirt_texture-256.png",
+		fract: "assets/textures/snowfractal-256.png",
 	},
-	dirt: {
-		diffuse: "dirt_texture-256.png",
-	},
-	sand: {
-		diffuse: "sand_texture-256.png",
-	},
-	
 	
 	
 } 

@@ -45,7 +45,6 @@ eacsmb_SOURCES = main.c \
 	shadowMap.c \
 	sim.c \
 	staticMesh.c \
-	terrain.c \
 	text/fcfg.c \
 	text/text.c \
 	texgen.c \

@@ -54,7 +54,7 @@ void World_init(World* w) {
 	w->dm->tm = w->decalTexMan;
 	w->cdm->tm = w->decalTexMan;
 	
-	Map_readConfigFile(&w->map, "assets/config/map.json");
+	Map_readConfigFile(&w->map, "assets/config/terrain.json");
 	meshManager_readConfigFile(w->smm, "assets/config/models.json");
 	dynamicMeshManager_readConfigFile(w->dmm, "assets/config/models.json");
 	DecalManager_readConfigFile(w->dm, "assets/config/decals.json");

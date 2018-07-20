@@ -19,7 +19,7 @@
 #include "map.h"
 #include "perlin.h"
 #include "opensimplex.h"
-#include "terrain.h"
+//#include "terrain.h"
 
 
 
@@ -33,7 +33,7 @@ static int totalPatches;
 Texture* cnoise;
 
 // temp
-TerrainTexInfo tti;
+//TerrainTexInfo tti;
 
 static TerrainPatchVertex* patchVertices;
 
@@ -56,9 +56,9 @@ void initMap(MapInfo* mi) {
 	
 	// HACK DEBUG. leaks like wiki
 	
-	terrain_initTexInfo(&tti);
-	terrain_readConfigJSON(&tti, "assets/config/terrain.json");
-	terrain_loadTextures(&tti);
+	//terrain_initTexInfo(&tti);
+	//terrain_readConfigJSON(&tti, "assets/config/terrain.json");
+	//terrain_loadTextures(&tti);
 	
 	tmpDir = "data"; // getenv("TMPDIR");
 	
@@ -194,7 +194,6 @@ void initTerrain(MapInfo* mi) {
 	glProgramUniform1i(terrDepthProg->id, heightmap_d_ul, 21);
 	glProgramUniform1i(terrDepthProg->id, offset_d_ul, 20);
 	
-
 
 	glexit("before terrain patch");
 
@@ -459,11 +458,17 @@ static void bindTerrainTextures(MapInfo* mi) {
 	glActiveTexture(GL_TEXTURE0 + 21);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, mi->terrainTex);
 	
+	
 	glActiveTexture(GL_TEXTURE0 + 22);
-	glBindTexture(GL_TEXTURE_2D, cnoise->tex_id);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, mi->tm->tex_id);
+	GLuint texul = glGetUniformLocation(terrProg->id, "sTextures");
+	glProgramUniform1i(terrProg->id, texul, 22);
+	
+	//glActiveTexture(GL_TEXTURE0 + 22);
+	//glBindTexture(GL_TEXTURE_2D, cnoise->tex_id);
 
-	glActiveTexture(GL_TEXTURE0 + 23);
-	glBindTexture(GL_TEXTURE_2D_ARRAY, tti.diffuse.tex_id);
+	//glActiveTexture(GL_TEXTURE0 + 23);
+//	glBindTexture(GL_TEXTURE_2D_ARRAY, tti.diffuse.tex_id);
 	
 	glActiveTexture(GL_TEXTURE0 + 20);
 	glBindTexture(GL_TEXTURE_2D, mi->locationTex);
@@ -803,69 +808,46 @@ void vSortLtoH42i(Vector2i* v) {
 
 
 
-void Map_readConfigFile(MapInfo* map, char* path) {
+void Map_readConfigFile(MapInfo* mi, char* path) {
+	
+	json_file_t* jsf;
+	jsf = json_load_path(path);
+	
+	size_t l, i;
+	
 	int ret;
+	struct json_value* tex_o;
 	struct json_obj* o;
 	void* iter;
 	char* key, *texName, *tmp;
 	struct json_value* v, *tc;
-	json_file_t* jsf;
+
 	
-	/*
+	// TODO: error handling
+	if(jsf->root->type != JSON_TYPE_OBJ) {
+		printf("invalid terrain tex config format\n");
+		return;
+	}
+
 	
-	jsf = json_load_path(configPath);
-	
-	json_value_t* tex;
-	json_obj_get_key(jsf->root, "textures", &tex);
+	json_obj_get_key(jsf->root, "textures", &tex_o);
+	if(tex_o->type != JSON_TYPE_OBJ) {
+		printf("invalid terrain tex config format (2)\n");
+		return;
+	}
 	
 	
 	iter = NULL;
-	
-	while(json_obj_next(jsf->root, &iter, &key, &tc)) {
-		json_value_t* val;
+	while(json_obj_next(tex_o, &iter, &key, &tc)) {
 		char* path;
-		DynamicMesh* dm;
 		
-		OBJContents obj;
-		
-		ret = json_obj_get_key(tc, "mesh", &val);
-		json_as_string(val, &path);
-		
-		loadOBJFile(path, 0, &obj);
-		dm = DynamicMeshFromOBJ(&obj);
-		dm->name = strdup(key);
-		
-		
-		ret = json_obj_get_key(tc, "texture", &val);
-		if(!ret) {
-			json_as_string(val, &path);
+		texName = strdup(key);
+		json_as_string(tc, &path);
 			
-			dm->texIndex = TextureManager_reservePath(mm->tm, path);
-			printf("dmm: %d %s\n", dm->texIndex, path);
-		}
-
-#define grab_json_val(str, field, def) \
-		dm->field = def; \
-		if(!json_obj_get_key(tc, str, &val)) { \
-			json_as_float(val, &dm->field); \
-		}
-
-		grab_json_val("scale", defaultScale, 1.0)
-		grab_json_val("rotDegX", defaultRotX, 0.0)
-		grab_json_val("rotDegY", defaultRotY, 0.0)
-		grab_json_val("rotDegZ", defaultRotZ, 0.0)
-		
-		// radians are not easy to edit in a config file, so it's in degrees
-		dm->defaultRotX *= F_PI / 180.0;  
-		dm->defaultRotY *= F_PI / 180.0;  
-		dm->defaultRotZ *= F_PI / 180.0;  
-		
-
-	//	int ind = dynamicMeshManager_addMesh(mm, dm->name, dm);
-	//	printf("DM added mesh %d: %s \n", ind, dm->name);
-		
+		TextureManager_reservePath(mi->tm, path);
 	}
-*/	
+	
+	
 	
 	
 }

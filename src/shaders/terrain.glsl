@@ -325,19 +325,20 @@ layout(location = 1) out vec4 out_Normal;
 #define UNIT 1
 #define HALFUNIT .5
 
-uniform sampler2D sBaseTex;
-uniform sampler2DArray sDiffuse;
-uniform isampler2DArray sMap; // 0 = zones, 1 = surfaceTex
-uniform sampler1D sZoneColors;
-uniform sampler2D sOffsetLookup;
+// uniform sampler2D sBaseTex;
+// uniform sampler2DArray sDiffuse;
+uniform sampler2DArray sTextures;
+// uniform isampler2DArray sMap; // 0 = zones, 1 = surfaceTex
+// uniform sampler1D sZoneColors;
+// uniform sampler2D sOffsetLookup;
 
 
 void main(void) {
 	
 	ivec2 tile = ivec2(floor(texCoord * 256));
 	
-	int zoneIndex = texelFetch(sMap, ivec3(tile.xy,0), 0).r;
-	vec4 zoneColor = texelFetch(sZoneColors, zoneIndex, 0);
+	int zoneIndex = 0; //texelFetch(sMap, ivec3(tile.xy,0), 0).r;
+	vec4 zoneColor = vec4(0); //texelFetch(sZoneColors, zoneIndex, 0);
 	
 	float scaleNear = 4;
 	float scaleFar = 16;
@@ -349,8 +350,8 @@ void main(void) {
 	float rn = mod(texCoord.y * 256, scaleNear) / scaleNear;
 	
 	
-	vec2 thisPixelOffset = texelFetch(sOffsetLookup, ivec2(ps_InstanceID, 0), 0).rg;
-	vec2 rawTileOffset = texelFetch(sOffsetLookup, ivec2(cursorPos.z, 0), 0).rg; 
+	vec2 thisPixelOffset = vec2(0);//texelFetch(sOffsetLookup, ivec2(ps_InstanceID, 0), 0).rg;
+	vec2 rawTileOffset = vec2(0);//texelFetch(sOffsetLookup, ivec2(cursorPos.z, 0), 0).rg; 
 	
 	vec2 realtile = (rawTileOffset * 256.0 * 256.0) + cursorPos.xy;
 	vec2 realpix = (thisPixelOffset * 256.0 * 256.0) + t_tile; 
@@ -373,7 +374,8 @@ void main(void) {
 	
  	
 //  	vec4 tc = texture2D(sBaseTex, texCoord);
- 	vec4 tc = texture(sDiffuse, vec3(texCoord.xy, t_tile.x  ));
+	int texIndex = 0;
+ 	vec4 tc = texture(sTextures, vec3(texCoord.xy, texIndex));
 //  	vec4 tc = vec4(texture(sMap, vec3(texCoord, 1)).rgb * 128, 1.0);
  	
  	// "in cursor"
