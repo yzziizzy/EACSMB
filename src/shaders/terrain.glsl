@@ -334,7 +334,9 @@ uniform sampler2DArray sTextures;
 // uniform sampler2D sOffsetLookup;
 uniform sampler2DArray sHeightMap;
 
-
+uniform int waterIndex;
+const int win = 1 + waterIndex;
+const int wout = 2 - waterIndex;
 
 void main(void) {
 	
@@ -396,8 +398,8 @@ void main(void) {
 	vec4 tc2 = mix(lineColor, tc, lineFactor.r);
 	
 	
-	// water. should cycle between textures
-	float wlevel = texture(sHeightMap, vec3(texCoord.xy, 1), 0).r;
+	// water. 
+	float wlevel = texture(sHeightMap, vec3(texCoord.xy, wout), 0).r;
 	// soil.
 	float slevel = texture(sHeightMap, vec3(texCoord.xy, 3), 0).r;
 	

@@ -861,6 +861,11 @@ static void uniformSetup(MapInfo* mi, GLuint progID) {
 //	glUniform2f(winsize_ul, pdp->targetSize.x, pdp->targetSize.y);
 
 	//glUniformMatrix4fv(model_ul, 1, GL_FALSE, msGetTop(&model)->m);
+	
+	static int waterIndex = 0;
+	waterIndex = (waterIndex + 1) % 2;
+	glUniform1i(glGetUniformLocation(progID, "waterIndex"), waterIndex);
+	
 	bindTerrainTextures(mi);
 }
 
@@ -1219,8 +1224,8 @@ void MapInfo_Init(MapInfo* mi) {
 	MapBlock_AddLayer(mi->block, "water2", 1);
 	MapBlock_AddLayer(mi->block, "soil", 1);
 	
-	MapLayer_Fill(MapBlock_GetLayer(mi->block, "water"), 5.0);
-	MapLayer_Fill(MapBlock_GetLayer(mi->block, "water2"), 5.0);
+	MapLayer_Fill(MapBlock_GetLayer(mi->block, "water"), 150.0);
+	MapLayer_Fill(MapBlock_GetLayer(mi->block, "water2"), 150.0);
 	MapLayer_Fill(MapBlock_GetLayer(mi->block, "soil"), 0.0);
 	
 	
