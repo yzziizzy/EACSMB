@@ -976,7 +976,7 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	gs->frameCount++;
 	
 	static erodeDelay = 0;
-	erodeDelay = (erodeDelay + 1) % 10;
+	//erodeDelay = (erodeDelay + 1) % 1;
 	
 	if(!erodeDelay) MapGen_erode(&gs->world->map, erodeProg);
 	

@@ -31,11 +31,11 @@ float maxDiff(float h, float w, float h2, float w2) {
 	float t = h + w;
 	float t2 = h2 + w2;
 	
-	d = (t2 - t);
+	d = (t2 - t) / div;
 	
 	//d = ((t + t2) / 2) - t;
 	
- 	return clamp(d / div, 0.0, w2 / div);
+ 	return clamp(d * .65, -w / div, w2 / div);
 // 	return d / div;
 }
 
@@ -61,7 +61,7 @@ void main() {
 	
 	
 // 	o = maxDiff(h, w, h1, w1) + maxDiff(h, w, h2, w2) + maxDiff(h, w, h3, w3) + maxDiff(h, w, h4, w4);
-	o = maxDiff(h, w, h1, w1) + maxDiff(h, w, h3, w3);
+	o = w + maxDiff(h, w, h1, w1) + maxDiff(h, w, h3, w3);
 	
 	
 	

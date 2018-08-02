@@ -1224,8 +1224,8 @@ void MapInfo_Init(MapInfo* mi) {
 	MapBlock_AddLayer(mi->block, "water2", 1);
 	MapBlock_AddLayer(mi->block, "soil", 1);
 	
-	MapLayer_Fill(MapBlock_GetLayer(mi->block, "water"), 150.0);
-	MapLayer_Fill(MapBlock_GetLayer(mi->block, "water2"), 150.0);
+	MapLayer_Fill(MapBlock_GetLayer(mi->block, "water"), 10.0);
+	MapLayer_Fill(MapBlock_GetLayer(mi->block, "water2"), 10.0);
 	MapLayer_Fill(MapBlock_GetLayer(mi->block, "soil"), 0.0);
 	
 	
