@@ -975,7 +975,10 @@ void runSystems(GameState* gs, InputState* is) {
 void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	gs->frameCount++;
 	
-	MapGen_erode(&gs->world->map, erodeProg);
+	static erodeDelay = 0;
+	erodeDelay = (erodeDelay + 1) % 10;
+	
+	if(!erodeDelay) MapGen_erode(&gs->world->map, erodeProg);
 	
 	checkResize(xs,gs);
 	

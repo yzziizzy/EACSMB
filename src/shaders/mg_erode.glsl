@@ -61,11 +61,11 @@ void main() {
 	
 	
 // 	o = maxDiff(h, w, h1, w1) + maxDiff(h, w, h2, w2) + maxDiff(h, w, h3, w3) + maxDiff(h, w, h4, w4);
-	o = maxDiff(h, w, h1, w1);// + maxDiff(h, w, h3, w3);
+	o = maxDiff(h, w, h1, w1) + maxDiff(h, w, h3, w3);
 	
 	
 	
- 	o = clamp(o , 0.0, w + w1 + w3);
+ 	//o = clamp(o , 0.0, w + w1 + w3);
 	//o = clamp(o, 0.0 ,999999999999999.0);
 	
 	
