@@ -79,6 +79,8 @@ Emitter* dust;
 
 RenderPipeline* rpipe;
 
+ShaderProgram* erodeProg;
+
 
 
 // in renderLoop.c, a temporary factoring before a proper renderer is designed
@@ -117,6 +119,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	
 	CES_addComponentManager(&gs->ces, ComponentManager_alloc("pathFollow", sizeof(C_PathFollow), 1024*8));
 	
+	erodeProg = loadCombinedProgram("mg_erode");
 	
 	gs->hasMoved = 1;
 	gs->lastSelectionFrame = 0;
@@ -596,6 +599,11 @@ static void main_key_handler(InputEvent* ev, GameState* gs) {
 		
 		InputFocusStack_PushTarget(&gs->ifs, texbuilder, inputHandlers);
 	}
+	
+	if(ev->character == 'k') {
+		
+		
+	}
 }  
 
 
@@ -966,6 +974,8 @@ void runSystems(GameState* gs, InputState* is) {
 
 void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	gs->frameCount++;
+	
+	MapGen_erode(&gs->world->map, erodeProg);
 	
 	checkResize(xs,gs);
 	

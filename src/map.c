@@ -409,7 +409,7 @@ void updateTerrainTexture(MapInfo* mi) {
 			1,  // mips, flat
 			GL_R32F,
 			ml->w, ml->h,
-			1); // layers
+			4); // layers: terrain, water 1&2, soil
 		
 		glexit("failed to create map textures");
 		printf("created terrain tex\n");
@@ -448,7 +448,40 @@ printf("loading terrain data\n");
 glexit("");
 
 	
+	MapLayer* ml_water = MapBlock_GetLayer(mi->block, "water");
+	if(ml_water) {
+		glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0,
+			0, 0, 1,// offset
+			ml->w, ml->h, 1,
+			GL_RED,	GL_FLOAT, ml_water->data.f);
+	}
+	else {
+		printf("!!! water tex not found\n");
+	}
+		
+	MapLayer* ml_water2 = MapBlock_GetLayer(mi->block, "water2");
+	if(ml_water2) {
+		glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0,
+			0, 0, 2,// offset
+			ml->w, ml->h, 1,
+			GL_RED,	GL_FLOAT, ml_water2->data.f);
+	}
+	else {
+		printf("!!! water2 tex not found\n");
+	}
 	
+	MapLayer* ml_soil = MapBlock_GetLayer(mi->block, "soil");
+	if(ml_soil) {
+		glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0,
+			0, 0, 3,// offset
+			ml->w, ml->h, 1,
+			GL_RED,	GL_FLOAT, ml_soil->data.f);
+	}
+	else {
+		printf("!!! soil tex not found\n");
+	}
+	
+		
 	glerr("updating terrain tex info");
 }
 
@@ -457,6 +490,8 @@ static void bindTerrainTextures(MapInfo* mi) {
 	
 	glActiveTexture(GL_TEXTURE0 + 21);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, mi->terrainTex);
+	GLuint hmul = glGetUniformLocation(terrProg->id, "sHeightMap");
+	glProgramUniform1i(terrProg->id, hmul, 21);
 	
 	
 	glActiveTexture(GL_TEXTURE0 + 22);
@@ -507,42 +542,6 @@ glexit("");
 glexit("");
 	glDrawArraysInstanced(GL_PATCHES, 0, totalPatches * totalPatches * 4, mi->numBlocksToRender);
 }
-
-
-/*
-void drawTerrainRoads(GLuint dtex, MapInfo* mi, Matrix* mView, Matrix* mProj, Vector* cursor, Vector2* viewWH) {
-	
-	int i;
-	
-	printf("!!! drawTerrainRoads is deprecated\n");
-	
-	glUseProgram(terrProg->id);
-	glEnable(GL_DEPTH_TEST);
-	
-	glUniformMatrix4fv(view_ul, 1, GL_FALSE, mView->m);
-	glUniformMatrix4fv(proj_ul, 1, GL_FALSE, mProj->m);
-	
-	glUniform2f(winsize_ul, viewWH->x, viewWH->y);
-	
-	bindTerrainTextures(mi);
-	
-	glUniform3f(glGetUniformLocation(terrProg->id, "cursorPos"), cursor->x, cursor->y, cursor->z);
-	glBindVertexArray(patchVAO);
-	
-	glPatchParameteri(GL_PATCH_VERTICES, 4);
-	glBindBuffer(GL_ARRAY_BUFFER, patchVBO);
-	
-
-//		msPush(&msModel);
-		//msTrans3f(mb->bix * 256.0f, mb->biy * 256.0f , 0, &msModel);
-	
-	glUniformMatrix4fv(model_ul, 1, GL_FALSE, msGetTop(&model)->m);
-	//printf("Using depth decal tex: %d \n", dtex);
-	//for(i = 0; i < 64; i++) {
-	//	drawRoad(roads, dtex, mView, mProj);
-	//}
-}
-*/
 
 
 
@@ -676,7 +675,7 @@ void flattenArea(TerrainBlock *tb, int x1, int y1, int x2, int y2) {
 	
 	areaStats(tb, x1,y1,x2,y2, &ass);
 	
-	printf("flattening: %d,%d|%d,%d to %f\n",xmin,ymin,xmax,ymax, ass.avg);
+	//printf("flattening: %d,%d|%d,%d to %f\n",xmin,ymin,xmax,ymax, ass.avg);
 	// something seems off here, there might be a mismatch in resolution
 	for(y = ymin; y <= ymax; y++) {
 		for(x = xmin; x <= xmax; x++) {
@@ -1123,6 +1122,18 @@ int MapBlock_AddLayer(MapBlock* mb, char* name, int scale) {
 }
 
 
+MapLayer* MapBlock_GetLayer(MapBlock* mb, char* name) {
+	MapLayer* ml;
+	int64_t i;
+		
+	if(HT_get(&mb->layerLookup, name, &i)) {
+		return NULL;
+	}
+	
+	return VEC_ITEM(&mb->layers, i);
+}
+
+
 
 
 
@@ -1131,14 +1142,17 @@ void MapLayer_GenTerrain(MapLayer* ml) {
 	int x, y;
 	FILE* f;
 	
+	Mapgen_v1(ml);
+	
+	return;
 
 	OpenSimplexNoise osn;
 	OpenSimplex_init(&osn, 6456, 512, 512);
 	
 	OpenSimplexOctave octs[] = {
 		{2, 1.0},
-		{4, 0.7},
-		{8, 0.4},
+		{4, 0.9},
+		{8, 0.7},
 		{16, 0.2},
 		{32, 0.05},
 		{-1, -1}
@@ -1156,13 +1170,29 @@ void MapLayer_GenTerrain(MapLayer* ml) {
 	for(y = 0; y < ml->h ; y++) {
 		for(x = 0; x < ml->w ; x++) {
 			float f = data[x + (y * ml->w)];
-			ml->data.f[x + (y * ml->w)] = fabs(1-f) * 10;
+			float ff = fabs(1-f);
+			float fff = ff * ff;
+			ml->data.f[x + (y * ml->w)] = fff * 10;
 		}
 	}
 	
 	free(data);
 }
 
+
+
+void MapLayer_Fill(MapLayer* ml, float value) {
+	int x, y;
+	
+	if(!ml->data.f)
+		ml->data.f = malloc(sizeof(*ml->data.f) * ml->w * ml->h);
+	
+	for(y = 0; y < ml->h ; y++) {
+		for(x = 0; x < ml->w ; x++) {
+			ml->data.f[x + (y * ml->w)] = value;
+		}
+	}
+}
 
 
 
@@ -1185,6 +1215,15 @@ void MapInfo_Init(MapInfo* mi) {
 	mi->block = MapBlock_Alloc(1024, 1024);
 	
 	MapBlock_AddLayer(mi->block, "terrain", 1);
+	MapBlock_AddLayer(mi->block, "water", 1);
+	MapBlock_AddLayer(mi->block, "water2", 1);
+	MapBlock_AddLayer(mi->block, "soil", 1);
+	
+	MapLayer_Fill(MapBlock_GetLayer(mi->block, "water"), 5.0);
+	MapLayer_Fill(MapBlock_GetLayer(mi->block, "water2"), 5.0);
+	MapLayer_Fill(MapBlock_GetLayer(mi->block, "soil"), 0.0);
+	
+	
 	
 	// temp, initializes the patches
 	initTerrain(mi);
@@ -1274,31 +1313,31 @@ void MapInfo_GenMesh(MapInfo* mi) {
 			pv->y = ((iy + 0) * patchSide);
 			pv->u = pv->x / mb->w;
 			pv->v = pv->y / mb->h;
-			printf("x:%f  y:%f  u:%f  v:%f \n", pv->x, pv->y, pv->u, pv->v);
+			//printf("x:%f  y:%f  u:%f  v:%f \n", pv->x, pv->y, pv->u, pv->v);
 			pv++;
 			
 			pv->x = ((ix + 0) * patchSide);
 			pv->y = ((iy + 1) * patchSide);
 			pv->u = pv->x / mb->w;
 			pv->v = pv->y / mb->h;
-			printf("x:%f  y:%f  u:%f  v:%f \n", pv->x, pv->y, pv->u, pv->v);
+			//printf("x:%f  y:%f  u:%f  v:%f \n", pv->x, pv->y, pv->u, pv->v);
 			pv++;	
 			
 			pv->x = ((ix + 1) * patchSide);
 			pv->y = ((iy + 1) * patchSide);
 			pv->u = pv->x / mb->w;
 			pv->v = pv->y / mb->h;
-			printf("x:%f  y:%f  u:%f  v:%f \n", pv->x, pv->y, pv->u, pv->v);
+			//printf("x:%f  y:%f  u:%f  v:%f \n", pv->x, pv->y, pv->u, pv->v);
 			pv++;	
 			
 			pv->x = ((ix + 1) * patchSide);
 			pv->y = ((iy + 0) * patchSide);
 			pv->u = pv->x / mb->w;
 			pv->v = pv->y / mb->h;
-			printf("x:%f  y:%f  u:%f  v:%f \n", pv->x, pv->y, pv->u, pv->v);
+			//printf("x:%f  y:%f  u:%f  v:%f \n", pv->x, pv->y, pv->u, pv->v);
 			pv++;	
 			
-			printf("\n");
+			//printf("\n");
 		}
 	}
 	

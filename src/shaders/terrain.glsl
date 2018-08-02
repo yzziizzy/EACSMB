@@ -146,6 +146,7 @@ bool insideQuad(vec2 t1, vec2 t2, vec2 t3, vec2 t4, vec2 p) {
 	return insideTriangle(t1, t2, t3, p) && insideTriangle(t3, t4, t1, p);
 }
 
+
 void main() {
 
 	if(gl_InvocationID == 0) {
@@ -188,7 +189,7 @@ void main() {
 			return;
 		}
 
-		float lod = 128; // lower means worse quality. 128 is optimal
+		float lod = 256; // lower means worse quality. 128 is optimal
 		
 		float f0 = clamp(distance(w1, w2) * lod, 1, 64);
 		float f1 = clamp(distance(w0, w1) * lod, 1, 64);
@@ -331,6 +332,8 @@ uniform sampler2DArray sTextures;
 // uniform isampler2DArray sMap; // 0 = zones, 1 = surfaceTex
 // uniform sampler1D sZoneColors;
 // uniform sampler2D sOffsetLookup;
+uniform sampler2DArray sHeightMap;
+
 
 
 void main(void) {
@@ -375,7 +378,7 @@ void main(void) {
  	
 //  	vec4 tc = texture2D(sBaseTex, texCoord);
 	int texIndex = 0;
- 	vec4 tc = texture(sTextures, vec3(texCoord.xy, texIndex));
+ 	vec4 tc = texture(sTextures, vec3(texCoord.xy * 100, texIndex));
 //  	vec4 tc = vec4(texture(sMap, vec3(texCoord, 1)).rgb * 128, 1.0);
  	
  	// "in cursor"
@@ -392,13 +395,26 @@ void main(void) {
 	vec4 lineColor = vec4(0,0,0,1.0);
 	vec4 tc2 = mix(lineColor, tc, lineFactor.r);
 	
+	
+	// water. should cycle between textures
+	float wlevel = texture(sHeightMap, vec3(texCoord.xy, 1), 0).r;
+	// soil.
+	float slevel = texture(sHeightMap, vec3(texCoord.xy, 3), 0).r;
+	
+	
 //	out_Selection = vec4(floor(t_tile.x) / 256, floor(t_tile.y) / 256, ps_InstanceID, 1);
 //	out_Normal = vec4(normalize(vec3((te_normal.x + 1) / 2, (te_normal.z + 1) / 2, (te_normal.y + 1) / 2)), 1);
 	out_Normal = vec4(te_normal.xyz * .5 + .5, 1.0);
 //	out_Normal = vec4(normalize(vec3(0,1,0)),1);
 	
-	out_Color =  (zoneColor * .2 + tc2) * cursorIntensity;// * lineFactor; //(1.0, 0, .5, .6);
- //	out_Color = vec4(texCoord.xy , 1, 1);
+	if(wlevel > 0.1) {
+		tc2 = vec4(wlevel, wlevel, wlevel, 1);
+	}
+	else if(slevel > 0.1) {
+		tc2 = vec4(.3, .3, 0, 1);
+	}
 	
+	out_Color =  (zoneColor * .2 + tc2) * cursorIntensity;// * lineFactor; //(1.0, 0, .5, .6);
+	out_Color = vec4(wlevel, wlevel / 200, wlevel / 4000, 1);;
 }
 

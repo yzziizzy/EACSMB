@@ -106,7 +106,7 @@ typedef struct MapBlock {
 	int w, h;
 	
 	VEC(MapLayer*) layers;
-	HashTable(MapLayer*) layerLookup;
+	HashTable(int) layerLookup;
 	
 	MapLayer* terrain; // shortcut for heightmap
 	
@@ -244,8 +244,9 @@ MapBlock* loadMapBlock(FILE* f);
 
 
 
-
+void MapLayer_Fill(MapLayer* ml, float value);
 int MapBlock_AddLayer(MapBlock* mb, char* name, int scale);
+MapLayer* MapBlock_GetLayer(MapBlock* mb, char* name);
 void MapLayer_GenTerrain(MapLayer* ml);
 MapLayer* MapLayer_Alloc(Vector2i size, float scale);
 void MapLayer_init(MapLayer* ml, Vector2i size, float scale);
@@ -266,7 +267,8 @@ PassDrawable* Map_CreateDrawable(MapInfo* m);
 
 
 
-
+void Mapgen_v1(MapLayer* ml);
+void MapGen_erode(MapInfo* mb, ShaderProgram* prog);
 
 
 
