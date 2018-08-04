@@ -110,18 +110,9 @@ typedef struct MapBlock {
 	
 	MapLayer* terrain; // shortcut for heightmap
 	
-	//struct MapBlock* n_xp, *n_xm, *n_yp, *n_ym;
 	
-	//unsigned char surface[TERR_TEX_SZ * TERR_TEX_SZ];
-	//unsigned char zones[TERR_TEX_SZ * TERR_TEX_SZ];
-	
-	//int dirtyZone, dirtySurface;
-	
-
-	//TerrainBlock tb;
-	
-	// old bezier roads
-	//RoadBlock roads;
+	// temp hack
+	GLuint waterVelTex;
 	
 } MapBlock;
 
@@ -268,8 +259,10 @@ PassDrawable* Map_CreateDrawable(MapInfo* m);
 
 
 void Mapgen_v1(MapLayer* ml);
+void MapGen_water(MapInfo* mb, ShaderProgram* prog);
 void MapGen_erode(MapInfo* mb, ShaderProgram* prog);
 
+void MapGen_initWaterVelTex(MapInfo* mi); 
 
 
 

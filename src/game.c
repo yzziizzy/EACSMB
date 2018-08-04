@@ -79,7 +79,9 @@ Emitter* dust;
 
 RenderPipeline* rpipe;
 
+ShaderProgram* waterProg;
 ShaderProgram* erodeProg;
+ShaderProgram* soilProg;
 
 
 
@@ -119,7 +121,9 @@ void initGame(XStuff* xs, GameState* gs) {
 	
 	CES_addComponentManager(&gs->ces, ComponentManager_alloc("pathFollow", sizeof(C_PathFollow), 1024*8));
 	
+	waterProg = loadCombinedProgram("mg_water");
 	erodeProg = loadCombinedProgram("mg_erode");
+	soilProg = loadCombinedProgram("mg_soil");
 	
 	gs->hasMoved = 1;
 	gs->lastSelectionFrame = 0;
@@ -978,7 +982,17 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	static erodeDelay = 0;
 	//erodeDelay = (erodeDelay + 1) % 1;
 	
-	if(!erodeDelay) MapGen_erode(&gs->world->map, erodeProg);
+	if(!erodeDelay) {
+		
+		MapGen_water(&gs->world->map, waterProg);
+		MapGen_erode(&gs->world->map, erodeProg);
+	//	MapGen_erode(&gs->world->map, soilProg);
+	//	MapGen_erode(&gs->world->map, erodeProg);
+	//	MapGen_erode(&gs->world->map, erodeProg);
+	//	MapGen_erode(&gs->world->map, erodeProg);
+		//glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+	
+	}
 	
 	checkResize(xs,gs);
 	

@@ -117,37 +117,12 @@ void Mapgen_v1(MapLayer* ml) {
 
 
 // only supports float layers
-void MapGen_erode(MapInfo* mi, ShaderProgram* prog) {
+void MapGen_water(MapInfo* mi, ShaderProgram* prog) {
 	
 	static int waterIndex = 0;
 	
 	waterIndex = (waterIndex + 1) % 2;
 	
-	/*
-	// output texture
-	GLuint outTex;
-	
-	glGenTextures(1, &outTex);
-	glBindTexture(GL_TEXTURE_2D_ARRAY, outTex);
-	glexit("failed to create map textures b");
-		
-	glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	
-	glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);	
-	
-	glTexStorage3D(GL_TEXTURE_2D_ARRAY,
-		1,  // mips, flat
-		GL_R32F,
-		ml->w, ml->h,
-		1); // layers
-		
-		
-	// TODO fix args	
-	glBindImageTexture(0, outTex, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
-		*/
-	// 
 	glUseProgram(prog->id);
 	
 	glUniform1i(glGetUniformLocation(prog->id, "waterIndex"), waterIndex);
@@ -161,15 +136,18 @@ void MapGen_erode(MapInfo* mi, ShaderProgram* prog) {
 	
 	
 	glActiveTexture(GL_TEXTURE0 + 5);
-	glBindImageTexture(5, mi->terrainTex, 0, GL_TRUE, 0, GL_READ_WRITE, GL_R32F);
+	glBindImageTexture(5, mi->terrainTex, 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_R32F);
 	GLuint hmul2 = glGetUniformLocation(prog->id, "sOut");
 	glProgramUniform1i(prog->id, hmul2, 5);
-	
-	
+
+	glActiveTexture(GL_TEXTURE0 + 6);
+	glBindImageTexture(6, mi->terrainTex, 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_RG8);
+	GLuint hmul3 = glGetUniformLocation(prog->id, "sVel");
+	glProgramUniform1i(prog->id, hmul3, 6);
 	
 	glDispatchCompute(mi->block->w, mi->block->h, 1);
 	
-	glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+	//glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 	
 	
 	//glMapBuffer();
@@ -181,6 +159,81 @@ void MapGen_erode(MapInfo* mi, ShaderProgram* prog) {
 
 
 
+void MapGen_erode(MapInfo* mi, ShaderProgram* prog) {
+
+	glUseProgram(prog->id);
+
+	
+	glActiveTexture(GL_TEXTURE0 + 4);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, mi->terrainTex);
+	GLuint hmul = glGetUniformLocation(prog->id, "sHeightMap");
+	glProgramUniform1i(prog->id, hmul, 4);
+	
+	glActiveTexture(GL_TEXTURE0 + 7);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, mi->terrainTex);
+	GLuint hmul4 = glGetUniformLocation(prog->id, "sVel");
+	glProgramUniform1i(prog->id, hmul4, 7);
+	
+	
+	
+	glActiveTexture(GL_TEXTURE0 + 5);
+	glBindImageTexture(5, mi->terrainTex, 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_R32F);
+	GLuint hmul2 = glGetUniformLocation(prog->id, "iOut");
+	glProgramUniform1i(prog->id, hmul2, 5);
+
+	glActiveTexture(GL_TEXTURE0 + 6);
+	glBindImageTexture(6, mi->terrainTex, 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_RG8);
+	GLuint hmul3 = glGetUniformLocation(prog->id, "iVel");
+	glProgramUniform1i(prog->id, hmul3, 6);
+	
+	glDispatchCompute(mi->block->w, mi->block->h, 1);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void MapGen_initWaterVelTex(MapInfo* mi) {
+	glGenTextures(1, &mi->block->waterVelTex);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, mi->block->waterVelTex);
+	glexit("failed to create map textures b");
+	
+	glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	
+	glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+// 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	glexit("failed to create map textures a");
+	
+	// squash the data in
+	glPixelStorei(GL_PACK_ALIGNMENT, 1);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	
+	glTexStorage3D(GL_TEXTURE_2D_ARRAY,
+		1,  // mips, flat
+		GL_RG8,
+		mi->block->w, mi->block->h,
+		1); // layers: water velocity
+	
+	glexit("failed to create map textures");
+	printf("created terrain tex\n");
+
+}
 
 
 

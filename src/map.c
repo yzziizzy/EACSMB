@@ -1194,10 +1194,11 @@ void MapLayer_Fill(MapLayer* ml, float value) {
 	
 	for(y = 0; y < ml->h ; y++) {
 		for(x = 0; x < ml->w ; x++) {
-			ml->data.f[x + (y * ml->w)] = value;
+			ml->data.f[x + (y * ml->w)] = frand(value/2.0, value);
 		}
 	}
 }
+
 
 
 
@@ -1217,18 +1218,21 @@ void MapInfo_Init(MapInfo* mi) {
 	
 	mi->blockPatch = MultiDrawIndirect_alloc(vao_opts, 64);
 	
-	mi->block = MapBlock_Alloc(1024, 1024);
+	//mi->block = MapBlock_Alloc(1024, 1024);
+	mi->block = MapBlock_Alloc(512, 512);
+	//mi->block = MapBlock_Alloc(4096, 4096);
 	
 	MapBlock_AddLayer(mi->block, "terrain", 1);
 	MapBlock_AddLayer(mi->block, "water", 1);
 	MapBlock_AddLayer(mi->block, "water2", 1);
 	MapBlock_AddLayer(mi->block, "soil", 1);
 	
-	MapLayer_Fill(MapBlock_GetLayer(mi->block, "water"), 10.0);
-	MapLayer_Fill(MapBlock_GetLayer(mi->block, "water2"), 10.0);
+	MapLayer_Fill(MapBlock_GetLayer(mi->block, "water"), 8.0);
+	MapLayer_Fill(MapBlock_GetLayer(mi->block, "water2"), 8.0);
 	MapLayer_Fill(MapBlock_GetLayer(mi->block, "soil"), 0.0);
 	
 	
+	MapGen_initWaterVelTex(mi); 
 	
 	// temp, initializes the patches
 	initTerrain(mi);
