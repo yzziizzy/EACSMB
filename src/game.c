@@ -984,8 +984,10 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	
 	if(!erodeDelay) {
 		
-		MapGen_water(&gs->world->map, waterProg);
-		MapGen_erode(&gs->world->map, erodeProg);
+	//	MapGen_water(&gs->world->map, waterProg);
+	//	MapGen_erode(&gs->world->map, erodeProg);
+	
+	
 	//	MapGen_erode(&gs->world->map, soilProg);
 	//	MapGen_erode(&gs->world->map, erodeProg);
 	//	MapGen_erode(&gs->world->map, erodeProg);

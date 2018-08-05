@@ -266,8 +266,8 @@ flat out int ps_InstanceID;
 // flat out vec2 ps_tileOffset;
 
 float maptextureOffset(vec3 terrCoords, ivec2 off) {
-	return textureOffset(sHeightMap, terrCoords, off).x
-		+ textureOffset(sHeightMap, vec3(terrCoords.xy, wout), off).x;
+	return textureOffset(sHeightMap, terrCoords, off).x;
+//		+ textureOffset(sHeightMap, vec3(terrCoords.xy, wout), off).x;
 }
 
 void main(void){
@@ -287,8 +287,8 @@ void main(void){
 	vec3 terrCoords = vec3(ttmp.xy, 0);
 	
 	float t = texture(sHeightMap, terrCoords, 0).r;
-	t += texture(sHeightMap, vec3(ttmp.xy, wout), 0).r;
-	t += texture(sHeightMap, vec3(ttmp.xy, 3), 0).r;
+	//t += texture(sHeightMap, vec3(ttmp.xy, wout), 0).r;
+	//t += texture(sHeightMap, vec3(ttmp.xy, 3), 0).r;
 	
 	// normals. remember that z is still up at this point
 // 	float xm1 = textureOffset(sHeightMap, terrCoords, off.xy).x;
@@ -413,24 +413,26 @@ void main(void) {
 	vec4 lineColor = vec4(0,0,0,1.0);
 	vec4 tc2 = mix(lineColor, tc, lineFactor.r);
 	
-	
+	/*
 	// water. 
 	float wlevel = texture(sHeightMap, vec3(texCoord.xy, wout), 0).r;
 	// soil.
 	float slevel = texture(sHeightMap, vec3(texCoord.xy, 3), 0).r;
-	
+	*/
 	
 //	out_Selection = vec4(floor(t_tile.x) / 256, floor(t_tile.y) / 256, ps_InstanceID, 1);
 //	out_Normal = vec4(normalize(vec3((te_normal.x + 1) / 2, (te_normal.z + 1) / 2, (te_normal.y + 1) / 2)), 1);
 	out_Normal = vec4(te_normal.xyz * .5 + .5, 1.0);
 //	out_Normal = vec4(normalize(vec3(0,1,0)),1);
 	
+	/*
 	if(wlevel > 4.7) {
 		tc2 = vec4(wlevel / 4000, wlevel / 200, wlevel, 1);
 	}
 	else if(slevel > 0.1) {
 		tc2 = vec4(.3, .3, 0, 1);
 	}
+	*/
 	
 	out_Color =  (zoneColor * .2 + tc2) * cursorIntensity;// * lineFactor; //(1.0, 0, .5, .6);
 //	out_Color = vec4(wlevel, wlevel / 200, wlevel / 4000, 1);;
