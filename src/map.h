@@ -257,6 +257,9 @@ PassDrawable* Map_CreateDrawable(MapInfo* m);
 
 
 
+float Map_getTerrainHeight(MapInfo* mi, Vector2i p);
+float Map_getTerrainHeightf(MapInfo* mi, Vector2 p);
+float Map_getTerrainHeight3f(MapInfo* mi, Vector p);
 
 void Mapgen_v1(MapLayer* ml);
 void MapGen_water(MapInfo* mb, ShaderProgram* prog);

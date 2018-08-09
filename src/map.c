@@ -719,43 +719,6 @@ void setZone(MapInfo *mi, int x1, int y1, int x2, int y2, int zone) {
 	printf("!!! broken dead code: setZone()\n");
 }
 
-float getTerrainHeightf(MapInfo* map, Vector2* coords) {
-	Vector2i c = {coords->x, coords->y};
-	float h;
-
-	getTerrainHeight(map, &c, 1, &h);
-	
-	return h;
-}
-
-
-void getTerrainHeight(MapInfo* map, Vector2i* coords, int coordLen, float* heightsOut) {
-	int i;
-	Vector2i* coord = coords;
-	float* hout = heightsOut;
-	
-	for(i = 0; i < coordLen; i++) {
-		int bix = coord->x / MAP_BLOCK_SZ;
-		int biy = coord->y / MAP_BLOCK_SZ;
-		
-		int locx = coord->x % MAP_BLOCK_SZ;
-		int locy = coord->y % MAP_BLOCK_SZ;
-		
-		//printf("data for b[%d, %d] l[%d, %d]\n", bix, biy, locx, locy);
-		// TODO: fix
-		//printf("fix me %s:%d\n", __FILE__, __LINE__);
-		//*hout = map->blocks[bix][biy]->tb.zs[locx + (locy * TERR_TEX_SZ)];
-		*hout = 0.0f;
-		
-		coord++;
-		hout++;
-	}
-	
-	
-	
-};
-
-
 // calculate a tile's center point in world coordinates
 void tileCenterWorld(MapInfo* map, int tx, int ty, Vector* out) {
 	//printf("!!! broken dead code: tileCenterWorld() \n");
@@ -893,6 +856,7 @@ static void instanceSetup(MapInfo* mi, TerrainPatchInstance* vmem, MDIDrawInfo**
 
 
 
+
 RenderPass* Map_CreateRenderPass(MapInfo* m) {
 	
 	RenderPass* rp;
@@ -930,6 +894,35 @@ PassDrawable* Map_CreateDrawable(MapInfo* m) {
 
 
 
+float Map_getTerrainHeight(MapInfo* mi, Vector2i p) {
+	MapLayer* ml = mi->block->terrain;
+	
+	if(p.x >= ml->w || p.x < 0 || p.y >= ml->h || p.y < 0) return 0.0f;
+	
+	return ml->data.f[p.x + (p.y * ml->w)];
+}
+
+
+
+float Map_getTerrainHeight3f(MapInfo* mi, Vector p) {
+	Vector2 p2 = {.x = p.x, .y = p.y};
+	return Map_getTerrainHeightf(mi, p2);
+}
+
+float Map_getTerrainHeightf(MapInfo* mi, Vector2 p) {
+	MapLayer* ml = mi->block->terrain;
+	
+	if(p.x >= ml->w || p.x < 0 || p.y >= ml->h || p.y < 0) return 0.0f;
+	
+	float cc = ml->data.f[(int)(ceil(p.x) + (ceil(p.y)) * ml->w)];
+	float cf = ml->data.f[(int)(ceil(p.x) + (floor(p.y)) * ml->w)];
+	float fc = ml->data.f[(int)(floor(p.x) + (ceil(p.y)) * ml->w)];
+	float ff = ml->data.f[(int)(floor(p.x) + (floor(p.y)) * ml->w)];
+	
+	float c = flerp(cc, cf, p.y - floor(p.y));
+	float f = flerp(ff, fc, p.y - floor(p.y));
+	return flerp(c, f, p.x - floor(p.x));
+}
 
 
 

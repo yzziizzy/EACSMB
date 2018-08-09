@@ -260,7 +260,8 @@ int World_spawnAt_DynamicMesh(World* w, int dmIndex, Vector* location) {
 	loci.y = location->y;
 	
 	// look up the height there.
-	getTerrainHeight(&w->map, &loci, 1, &h);
+	//getTerrainHeight(&w->map, &loci, 1, &h);
+	h = Map_getTerrainHeight(&w->map, loci);
 	
 	//printf("map h at [%.1f, %.1f]: %.4f\n", location->x, location->y, h);
 	
@@ -312,7 +313,8 @@ int World_spawnAt_StaticMesh(World* w, int smIndex, Vector* location) {
 	loci.y = location->y;
 	
 	// look up the height there.
-	getTerrainHeight(&w->map, &loci, 1, &h);
+	//getTerrainHeight(&w->map, &loci, 1, &h);
+	h = Map_getTerrainHeight(&w->map, loci);
 	
 	//printf("map h at [%.1f, %.1f]: %.4f\n", location->x, location->y, h);
 	
@@ -342,7 +344,8 @@ int World_spawnAt_Emitter(World* w, int emitterIndex, Vector* location) {
 	loci.y = location->y;
 	
 	// look up the height there.
-	getTerrainHeight(&w->map, &loci, 1, &h);
+	//getTerrainHeight(&w->map, &loci, 1, &h);
+	h = Map_getTerrainHeight(&w->map, loci);
 	
 	// printf("map h at [%.1f, %.1f]: %.4f\n", location->x, location->y, h);
 	// emitter
@@ -368,7 +371,8 @@ int World_spawnAt_Light(World* w, int lightIndex, Vector* location) {
 	loci.x = location->x;
 	loci.y = location->y;
 	// look up the height there.
-	getTerrainHeight(&w->map, &loci, 1, &h);
+	//getTerrainHeight(&w->map, &loci, 1, &h);
+	h = Map_getTerrainHeight(&w->map, loci);
 	
 	groundloc = (Vector){location->x, location->y, h};
 
@@ -388,7 +392,8 @@ int World_spawnAt_Decal(World* w, int index, Vector* location) {
 	loci.x = location->x;
 	loci.y = location->y;
 	// look up the height there.
-	getTerrainHeight(&w->map, &loci, 1, &h);
+	//getTerrainHeight(&w->map, &loci, 1, &h);
+	h = Map_getTerrainHeight(&w->map, loci);
 	
 	groundloc = (Vector){location->x, location->y, h};
 
@@ -440,10 +445,10 @@ int World_spawnAt_CustomDecal(World* w, int texIndex, float width, const Vector2
 	vAdd(&n, p1, &di.pos2);
 	vAdd(&n, p2, &di.pos4);
 	
-	di.pos1.z = getTerrainHeightf(&w->map, &di.pos1);
-	di.pos2.z = getTerrainHeightf(&w->map, &di.pos2);
-	di.pos3.z = getTerrainHeightf(&w->map, &di.pos3);
-	di.pos4.z = getTerrainHeightf(&w->map, &di.pos4);
+	di.pos1.z = Map_getTerrainHeight3f(&w->map, di.pos1);
+	di.pos2.z = Map_getTerrainHeight3f(&w->map, di.pos2);
+	di.pos3.z = Map_getTerrainHeight3f(&w->map, di.pos3);
+	di.pos4.z = Map_getTerrainHeight3f(&w->map, di.pos4);
 	
 	di.thickness = 50;
 	

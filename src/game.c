@@ -964,7 +964,7 @@ void runSystems(GameState* gs, InputState* is) {
 		
 		pos->x = p2.x;
 		pos->y = p2.y;
-		pos->z = getTerrainHeightf(&gs->world->map, &p2); 
+		pos->z = Map_getTerrainHeightf(&gs->world->map, p2); 
 	}
 	
 }
