@@ -91,6 +91,22 @@ unsigned char TranslateModState(unsigned int state) {
 	return out;
 }
 
+
+void _khr_debug_callback( // i hate this stype of formatting, but this function has too many damn arguments
+	GLenum source,
+	GLenum type,
+	GLuint id,
+	GLenum severity,
+	GLsizei length,
+	const GLchar *message,
+	GLvoid *userParam) {
+
+	printf(TERM_BOLD TERM_COLOR_RED "GL ERROR:" TERM_RESET TERM_COLOR_RED " %s\n" TERM_RESET, message);
+	
+}
+
+
+
  
 // this function will exit() on fatal errors. what good is error handling then?
 int initXWindow(XStuff* xs) {
@@ -197,7 +213,10 @@ int initXWindow(XStuff* xs) {
 	initGLEW();
 	
 #ifdef USE_KHR_DEBUG
-	initKHRDebug();
+	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_LOW, 0, NULL, GL_FALSE);
+	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL, GL_FALSE);
+	
+	glDebugMessageCallback(_khr_debug_callback , NULL);
 #endif
 	
 }

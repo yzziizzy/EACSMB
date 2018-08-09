@@ -8,32 +8,6 @@
 
 #include "common_gl.h"
 
-#define USE_KHR_DEBUG
-#define NO_GL_GET_ERR_DEBUG
-
-
-void _glexit(char* msg, const char* file, int line, const char* func);
-char* _glerr(char* msg, const char* file, int line, const char* func);
-
-// i pronounce this one like "Grexit", greece's only smart move which they won't make cause they're greedy, short-sighted and dumb. just like the rest of us.
-#define glexit(msg) _glexit(msg, __FILE__, __LINE__, __func__)
-
-// returns NULL for no error, a human error string otherwise. the error is printed to stderr.
-#define glerr(msg) _glerr(msg, __FILE__, __LINE__, __func__)
-
-
-
-#define getPrintGLEnum(e, m) _getPrintGLEnumMin(e, #e, m)
-static int _getPrintGLEnumMin(GLenum e, char* name, char* message) {
-	GLint i;
-	
-	glGetIntegerv(e, &i);
-	printf("%s: %d\n", name, i);
-	
-	return i;
-}
-
-
 
 
 #define MAX(a,b) ({ \
@@ -164,9 +138,6 @@ typedef struct VAOConfig {
 GLuint makeVAO(VAOConfig* details);
 size_t updateVAO(int bufferIndex, VAOConfig* details); 
 size_t calcVAOStride(int bufferIndex, VAOConfig* details);
-
-void initKHRDebug();
-
 
 
 #define streq(a, b) (0 == strcmp(a, b))
