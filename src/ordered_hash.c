@@ -172,7 +172,7 @@ int OHT_getInt(OHashTable* obj, char* key, int64_t* val) {
 } 
 
 
-// zero for success
+// zero for success. added to the end of the list.
 int OHT_set(OHashTable* obj, char* key, void* val) {
 	uint64_t hash;
 	int64_t bi;
@@ -197,6 +197,13 @@ int OHT_set(OHashTable* obj, char* key, void* val) {
 	obj->buckets[bi].value = val;
 	obj->buckets[bi].key = key;
 	obj->buckets[bi].hash = hash;
+	obj->buckets[bi].next = 0;
+	obj->buckets[bi].prev = obj->tail;
+	obj->tail = bi;
+		
+	if(obj->fill == 1) {
+		obj->head = bi;
+	}
 	
 	return 0;
 }
@@ -255,6 +262,8 @@ int OHT_delete(OHashTable* obj, char* key) {
 			obj->buckets[empty_bi].hash = obj->buckets[bi].hash;
 			obj->buckets[empty_bi].value = obj->buckets[bi].value;
 			
+			// TODO: fix ordering
+			
 			empty_bi = bi;
 		}
 	} while(1);
@@ -270,20 +279,20 @@ int OHT_delete(OHashTable* obj, char* key) {
 int OHT_next(OHashTable* obj, void** iter, char** key, void** value) { 
 	struct ordered_hash_bucket* b = *iter;
 	
-	// TODO: fix for ordered traversal
-	 
-	// a tiny bit of idiot-proofing
-	if(b == NULL) b = &obj->buckets[-1];
 	
-	do {
-		b++;
-		if(b >= obj->buckets + obj->alloc_size) {
-			// end of the list
-			*value = NULL;
-			*key = NULL;
-			return 0;
-		}
-	} while(!b->key);
+	if(obj->fill == 0) return 0;
+	
+	if(b == NULL) {
+		b = &obj->buckets[obj->head];
+	}
+	else if(obj->tail ==  (b - obj->buckets) / sizeof(*b)) { // end of list
+		*value = NULL;
+		*key = NULL;
+		return 0;
+	}
+	else {
+		b = &obj->buckets[b->next];
+	}
 	
 	*key = b->key;
 	*value = b->value;
@@ -292,3 +301,89 @@ int OHT_next(OHashTable* obj, void** iter, char** key, void** value) {
 	return 1;
 }
 
+
+
+// reverse ordered iteration.
+// returns 0 when there is none left
+// set iter to NULL to start
+int OHT_prev(OHashTable* obj, void** iter, char** key, void** value) {
+	struct ordered_hash_bucket* b = *iter;
+	
+	
+	if(obj->fill == 0) return 0;
+	
+	if(b == NULL) {
+		b = &obj->buckets[obj->tail];
+	}
+	else if(obj->head ==  (b - obj->buckets) / sizeof(*b)) { // end of list
+		*value = NULL;
+		*key = NULL;
+		return 0;
+	}
+	else {
+		b = &obj->buckets[b->prev];
+	}
+	
+	*key = b->key;
+	*value = b->value;
+	*iter = b;
+	
+	return 1;
+}
+
+
+
+
+// same signature as next/prev except it always selects the first item
+int OHT_first(OHashTable* obj, void** iter, char** key, void** value) {
+	struct ordered_hash_bucket* b = *iter;
+	
+	
+	if(obj->fill == 0) return 0;
+	
+	b = &obj->buckets[obj->head];
+	
+	*key = b->key;
+	*value = b->value;
+	*iter = b;
+	
+	return 1;
+}
+
+
+// same signature as next/prev except it always selects the last item
+int OHT_last(OHashTable* obj, void** iter, char** key, void** value) {
+	struct ordered_hash_bucket* b = *iter;
+	
+	
+	if(obj->fill == 0) return 0;
+	
+	b = &obj->buckets[obj->tail];
+	
+	*key = b->key;
+	*value = b->value;
+	*iter = b;
+	
+	return 1;
+}
+
+// same general operation as next/prev except it always selects the nth item
+int OHT_nth(OHashTable* obj, uint32_t n, void** iter, char** key, void** value) {
+	struct ordered_hash_bucket* b = *iter;
+	
+	
+	if(obj->fill == 0) return 0;
+	
+	
+	b = &obj->buckets[obj->head];
+	
+	while(n--) {
+		b = &obj->buckets[b->prev];
+	}
+	
+	*key = b->key;
+	*value = b->value;
+	*iter = b;
+	
+	return 1;
+}

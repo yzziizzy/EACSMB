@@ -18,7 +18,7 @@ typedef struct ordered_hash_table {
 	float grow_ratio; // default 0.75
 	float shrink_ratio; // set greater than 1.0 to entirely disable, default 99.0
 	struct ordered_hash_bucket* buckets;
-	uint32_t first, last;
+	uint32_t head, tail;
 } OHashTable;
 
 #define OHashTable(x) struct ordered_hash_table
@@ -42,7 +42,7 @@ int OHT_setInt(OHashTable* obj, char* key, int64_t val);
 
 int OHT_delete(OHashTable* obj, char* key);
 
-// iteration. no order. results undefined if modified while iterating
+// ordered iteration.
 // returns 0 when there is none left
 // set iter to NULL to start
 int OHT_next(OHashTable* obj, void** iter, char** key, void** value);
