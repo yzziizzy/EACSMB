@@ -140,6 +140,8 @@ int OHT_resize(OHashTable* obj, int newSize) {
 		obj->buckets[bi].hash = op->hash;
 		obj->buckets[bi].key = op->key;
 		
+		// TODO: fix ordering
+		
 		n++;
 	}
 	
@@ -262,14 +264,30 @@ int OHT_delete(OHashTable* obj, char* key) {
 			obj->buckets[empty_bi].hash = obj->buckets[bi].hash;
 			obj->buckets[empty_bi].value = obj->buckets[bi].value;
 			
-			// TODO: fix ordering
+			// fix the linked list
+			if(obj->head == bi) obj->head = empty_bi;
+			if(obj->tail == bi) obj->tail = empty_bi;
+			
+			obj->buckets[empty_bi].next = obj->buckets[bi].next;
+			obj->buckets[empty_bi].prev = obj->buckets[bi].prev;
+			
+			obj->buckets[obj->buckets[bi].prev].next = empty_bi;
+			obj->buckets[obj->buckets[bi].next].prev = empty_bi;
+			
 			
 			empty_bi = bi;
 		}
 	} while(1);
 	
+	
+	// mark the bucket as empty
 	obj->buckets[empty_bi].key = NULL;
 	
+	// fix the list
+	obj->buckets[obj->buckets[empty_bi].prev].next = obj->buckets[empty_bi].next;
+	obj->buckets[obj->buckets[empty_bi].next].prev = obj->buckets[empty_bi].prev;
+	
+			
 	return 0;
 }
 
