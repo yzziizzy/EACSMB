@@ -11,6 +11,8 @@ typedef struct BuildingOutline {
 	VEC(Vector2) points;
 	char closed;
 	
+	float extruded_height;
+	
 	// mesh info
 	int first_index;
 	int index_count;
@@ -26,7 +28,6 @@ typedef struct BuildingOutline {
 typedef struct Building {
 	VEC(BuildingOutline*) outlines;
 	
-	
 	VEC(Vector) vertices;
 	VEC(unsigned short) indices;
 	
@@ -36,11 +37,12 @@ typedef struct Building {
 
 
 
+void Building_extrudeAll(Building* b, float height);
+void Building_extrudeOutline(Building* b, BuildingOutline* o, float height);
 
-
-
-
-
+// flat cap
+void Building_capAll(Building* b, float height);
+void Building_capOutline(Building* building, BuildingOutline* o, float height);
 
 
 

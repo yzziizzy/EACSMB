@@ -6,6 +6,7 @@ eacsmb_SOURCES = main.c \
 	builder/render.c \
 	builder/core.c \
 	builder/builder.c \
+	building.c \
 	c3dlas/c3dlas.c \
 	c3dlas/meshgen.c \
 	c_json/json.c \
