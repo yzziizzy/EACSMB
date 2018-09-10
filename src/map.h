@@ -151,7 +151,7 @@ typedef struct MapRenderComponent {
 } MapRenderComponent;
 
 
-typedef struct MapInfo {	
+typedef struct MapInfo {
 	
 	// will be replaced by expandable structures later
 	//TerrainBlock* tb;
@@ -232,11 +232,12 @@ void tileCenterWorld(MapInfo* map, int tx, int ty, Vector* out);
 void saveMapBlock(FILE* f, MapBlock* mb);
 MapBlock* loadMapBlock(FILE* f);
 
-
+void MapInfo_initLayerTextures(MapInfo*mi);
 
 
 void MapLayer_Fill(MapLayer* ml, float value);
-int MapBlock_AddLayer(MapBlock* mb, char* name, int scale);
+void MapLayer_FillUChar(MapLayer* ml, unsigned char value);
+int MapBlock_AddLayer(MapBlock* mb, char* name, int scale, char type);
 MapLayer* MapBlock_GetLayer(MapBlock* mb, char* name);
 void MapLayer_GenTerrain(MapLayer* ml);
 MapLayer* MapLayer_Alloc(Vector2i size, float scale);

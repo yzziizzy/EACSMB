@@ -97,7 +97,8 @@ void Mapgen_v1(MapLayer* ml) {
 			float ff = fabs(1-f) + 1;
 			ff *= 1.5;
 			//float fff = ff * ff;
-			ml->data.f[x + (y * ml->w)] = pow(ff, 4);
+			//ml->data.f[x + (y * ml->w)] = pow(ff, 4); // make it super steep
+			ml->data.f[x + (y * ml->w)] = pow(ff, 2.2);
 		}
 	}
 	

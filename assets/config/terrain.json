@@ -1,5 +1,5 @@
 {
-	textures: {
+	types: {
 		grass: "assets/textures/grass_texture-256.png",
 		dirt: "assets/textures/dirt_texture-256.png",
 		fract: "assets/textures/snowfractal-256.png",

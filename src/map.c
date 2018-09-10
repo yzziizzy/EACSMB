@@ -792,7 +792,7 @@ void Map_readConfigFile(MapInfo* mi, char* path) {
 	}
 
 	
-	json_obj_get_key(jsf->root, "textures", &tex_o);
+	json_obj_get_key(jsf->root, "types", &tex_o);
 	if(tex_o->type != JSON_TYPE_OBJ) {
 		printf("invalid terrain tex config format (2)\n");
 		return;
@@ -805,7 +805,7 @@ void Map_readConfigFile(MapInfo* mi, char* path) {
 		
 		texName = strdup(key);
 		json_as_string(tc, &path);
-			
+		
 		TextureManager_reservePath(mi->tm, path);
 	}
 	
@@ -1098,7 +1098,7 @@ MapBlock* MapBlock_Alloc(int w, int h) {
 }
 
 
-int MapBlock_AddLayer(MapBlock* mb, char* name, int scale) {
+int MapBlock_AddLayer(MapBlock* mb, char* name, int scale, char type) {
 	MapLayer* ml;
 	int lw, lh;
 	
@@ -1107,6 +1107,7 @@ int MapBlock_AddLayer(MapBlock* mb, char* name, int scale) {
 	
 	ml = MapLayer_Alloc((Vector2i){lw, lh}, 1.0 / (float)scale);
 	ml->name = strdup(name);
+	ml->dataType = type;
 	
 	VEC_PUSH(&mb->layers, ml);
 	int i = VEC_LEN(&mb->layers) - 1;
@@ -1187,7 +1188,22 @@ void MapLayer_Fill(MapLayer* ml, float value) {
 	
 	for(y = 0; y < ml->h ; y++) {
 		for(x = 0; x < ml->w ; x++) {
+			// HACK: randomized for erosion tests
 			ml->data.f[x + (y * ml->w)] = frand(value/2.0, value);
+		}
+	}
+}
+
+
+void MapLayer_FillUChar(MapLayer* ml, unsigned char value) {
+	int x, y;
+	
+	if(!ml->data.uc)
+		ml->data.uc = malloc(sizeof(*ml->data.uc) * ml->w * ml->h);
+	
+	for(y = 0; y < ml->h ; y++) {
+		for(x = 0; x < ml->w ; x++) {
+			ml->data.uc[x + (y * ml->w)] = value;
 		}
 	}
 }
@@ -1215,10 +1231,16 @@ void MapInfo_Init(MapInfo* mi) {
 	mi->block = MapBlock_Alloc(512, 512);
 	//mi->block = MapBlock_Alloc(4096, 4096);
 	
-	MapBlock_AddLayer(mi->block, "terrain", 1);
-	MapBlock_AddLayer(mi->block, "water", 1);
-	MapBlock_AddLayer(mi->block, "water2", 1);
-	MapBlock_AddLayer(mi->block, "soil", 1);
+	MapBlock_AddLayer(mi->block, "terrain", 1, 0);
+	MapBlock_AddLayer(mi->block, "water", 1, 0);
+	MapBlock_AddLayer(mi->block, "water2", 1, 0);
+	MapBlock_AddLayer(mi->block, "soil", 1, 0);
+	
+	// surface textures
+	int si = MapBlock_AddLayer(mi->block, "surface", 1, 1);
+	MapLayer* surface = VEC_ITEM(&mi->block->layers, si);
+	MapLayer_FillUChar(surface, 1);
+	
 	
 	MapLayer_Fill(MapBlock_GetLayer(mi->block, "water"), 8.0);
 	MapLayer_Fill(MapBlock_GetLayer(mi->block, "water2"), 8.0);
@@ -1238,7 +1260,7 @@ void MapInfo_Init(MapInfo* mi) {
 	
 	updateTerrainTexture(mi);
 	
-	
+	MapInfo_initLayerTextures(mi);
 	
 	
 	
@@ -1265,6 +1287,13 @@ void MapInfo_Init(MapInfo* mi) {
 	glexit("");
 	
 	mi->numBlocksToRender = 64;
+	
+	
+}
+
+void MapInfo_initLayerTextures(MapInfo*mi) {
+	
+	
 	
 	
 }

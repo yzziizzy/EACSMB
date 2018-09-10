@@ -133,6 +133,7 @@ TextureManager* TextureManager_alloc();
 void TextureManager_init(TextureManager* tm);
 int TextureManager_reservePath(TextureManager* tm, char* path);
 int TextureManager_loadAll(TextureManager* tm, Vector2i targetRes); 
+ 
 	
 	
 

@@ -140,6 +140,7 @@ size_t updateVAO(int bufferIndex, VAOConfig* details);
 size_t calcVAOStride(int bufferIndex, VAOConfig* details);
 
 
+
 #define streq(a, b) (0 == strcmp(a, b))
 #define strcaseeq(a, b) (0 == strcasecmp(a, b))
 

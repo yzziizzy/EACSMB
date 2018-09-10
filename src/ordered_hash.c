@@ -142,6 +142,7 @@ int OHT_resize(OHashTable* obj, int newSize) {
 		
 		// TODO: fix ordering
 		
+		
 		n++;
 	}
 	
