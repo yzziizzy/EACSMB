@@ -67,5 +67,11 @@ src/simplex.png
 # these are not build files
 !/assets/**/*.obj
 
+# too much junk in the untracked list
+/assets/**/*
+
 # saved sdf font data
 *.sdf
+
+#log file
+_eacsmb.log
