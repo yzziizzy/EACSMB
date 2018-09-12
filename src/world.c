@@ -10,6 +10,9 @@
 #include "world.h"
 #include "scene.h"
 
+// temp?
+#include "building.h"
+
 
 
 
@@ -63,9 +66,6 @@ void World_init(World* w) {
 	
 	loadItemConfig(w, "assets/config/items.json");
 	
-	meshManager_updateGeometry(w->smm);
-	dynamicMeshManager_updateGeometry(w->dmm);
-	
 	
 	
 	// old bezier roads
@@ -90,6 +90,54 @@ void World_init(World* w) {
 	
 	// hack to test lightmanager
 	LightManager_AddPointLight(w->lm, (Vector){10,10, 10}, 200, 20);
+	
+	
+	// -------- building test ------------
+	
+	
+	Building b;
+	VEC_INIT(&b.outlines);
+	VEC_INIT(&b.vertices);
+	VEC_INIT(&b.indices);
+	
+	
+	BuildingOutline* bo = calloc(1, sizeof(*bo));
+	VEC_PUSH(&bo->points, ((Vector2){10, 10}));
+	VEC_PUSH(&bo->points, ((Vector2){10, 20}));
+	VEC_PUSH(&bo->points, ((Vector2){20, 20}));
+	VEC_PUSH(&bo->points, ((Vector2){20, 10}));
+	//VEC_PUSH(&bo->points, ((Vector2){2,6}));
+	
+	VEC_PUSH(&b.outlines, bo);
+	
+	Building_extrudeAll(&b, 30);
+	//Building_capAll(&b, 30); // causes memory corruption
+	
+	
+	int building_ind = dynamicMeshManager_addMesh(w->dmm, "building", Building_CreateDynamicMesh(&b));
+	
+
+	
+	
+	
+	// -----------------------------------
+	
+	meshManager_updateGeometry(w->smm);
+	dynamicMeshManager_updateGeometry(w->dmm);
+	
+
+	DynamicMeshInstance inst = {
+		pos: {0, 0, 0},
+		scale: 30,
+		dir: {0, 0, 1},
+		rot: 0,
+		alpha: 0.5,
+		texIndex: 0,
+	};
+	//dynamicMeshManager_addInstance(w->dmm, building_ind, &inst);
+	printf("^^^^ %d\n", building_ind);
+	Vector v = {0,0,0};
+	World_spawnAt_DynamicMesh(w, building_ind, &v);
 	
 	
 	// very last thing: load textures
@@ -132,7 +180,8 @@ void World_init(World* w) {
 			.z = 20,
 		};
 		
-		World_spawnAt_Item(w, "tree", &v);
+		//World_spawnAt_Item(w, "tree", &v);
+		World_spawnAt_DynamicMesh(w, i%5, &v);
 	}
 	
 	CustomDecal* cd = pcalloc(cd); 
@@ -273,7 +322,7 @@ int World_spawnAt_DynamicMesh(World* w, int dmIndex, Vector* location) {
 	dmi.scale = 1;
 	
 	dmi.dir = (Vector){1, 0, 0};
-	dmi.rot = F_PI / 2.0;
+	dmi.rot = 0;// F_PI / 5.0;
 	
 	dmi.alpha = 1.0;
 	
@@ -286,8 +335,8 @@ int World_spawnAt_DynamicMesh(World* w, int dmIndex, Vector* location) {
 	CES_addComponentName(&w->gs->ces, "meshIndex", eid, &dmindex16);
 	
 	C_Rotation r = {
-		{0, 1, 0},
-		frand(0, 6.28)
+		{0, 0, 1},
+		frand(0, 3.28)
 	};
 	CES_addComponentName(&w->gs->ces, "rotation", eid, &r);
 	
@@ -299,7 +348,7 @@ int World_spawnAt_DynamicMesh(World* w, int dmIndex, Vector* location) {
 		.distTravelled = frand(0, 10000),
 		.speed = frand(5, 100)
 	};
-	CES_addComponentName(&w->gs->ces, "pathFollow", eid, &pf);
+//	CES_addComponentName(&w->gs->ces, "pathFollow", eid, &pf);
 }
 
 int World_spawnAt_StaticMesh(World* w, int smIndex, Vector* location) {

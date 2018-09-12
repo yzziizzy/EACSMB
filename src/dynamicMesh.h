@@ -67,13 +67,15 @@ typedef struct DynamicMesh {
 	} indices;
 	int indexCnt;
 	int indexWidth; // 0 = no index usage
+		
+	int texIndex; // index to texture array
 	
+	// not used now
 	GLuint vbo;
 	GLuint ibo;
 	GLuint texID;
 	
-	int texIndex; // index to texture array
-	
+	// rendering info
 	int curFrameIndex;
 	VEC(DynamicMeshInstance) instances[2];
 	VEC(Matrix) instMatrices;

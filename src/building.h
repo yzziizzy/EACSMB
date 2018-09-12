@@ -5,6 +5,7 @@
 #include "common_math.h"
 #include "ds.h"
 
+#include "dynamicMesh.h"
 
 
 typedef struct BuildingOutline {
@@ -28,7 +29,7 @@ typedef struct BuildingOutline {
 typedef struct Building {
 	VEC(BuildingOutline*) outlines;
 	
-	VEC(Vector) vertices;
+	VEC(Vertex_PNT) vertices;
 	VEC(unsigned short) indices;
 	
 	
@@ -44,8 +45,10 @@ void Building_extrudeOutline(Building* b, BuildingOutline* o, float height);
 void Building_capAll(Building* b, float height);
 void Building_capOutline(Building* building, BuildingOutline* o, float height);
 
+void Building_pointCapOutline(Building* building, BuildingOutline* o, float height, float capHeight);
 
 
+DynamicMesh* Building_CreateDynamicMesh(Building* b);
 
 
 
