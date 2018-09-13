@@ -13,6 +13,7 @@
 #include "texture.h"
 #include "pcBuffer.h"
 #include "pass.h"
+#include "mdi.h"
 
 #include "component.h"
 
@@ -118,6 +119,7 @@ typedef struct DynamicMeshManager {
 	GLuint geomIBO;
 	
 	TextureManager* tm;
+	MultiDrawIndirect* mdi;
 	
 	//VEC(Texture*) textures;
 	//HashTable(int) textureLookup;
