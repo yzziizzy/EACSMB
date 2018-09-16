@@ -371,9 +371,6 @@ static void instanceSetup(DynamicMeshManager* dmm, DynamicMeshInstShader* vmem, 
 	ComponentManager* rotComp = CES_getCompManager(dmm->ces, "rotation");
 	
 	
-	/*
-	  THE BUG: this is conflating meshIndex with instanceIndex
-	*/
 	int instIndex = 0;
 	
 	int cindex = -1;
@@ -383,14 +380,11 @@ static void instanceSetup(DynamicMeshManager* dmm, DynamicMeshInstShader* vmem, 
 	uint16_t* meshIndex;
 	while(meshIndex = ComponentManager_next(meshComp, &cindex, &eid)) {
 		//printf("eid %d %d %d\n", eid, cindex, pindex);
-		printf("---------------------------\n");
-
 		Vector* pos;
 		if(!(pos = ComponentManager_nextEnt(posComp, &pindex, eid))) {
 			 printf("continued\n");
 			 continue;
 		}
-		//printf("%d - %f,%f,%f\n", *meshIndex, pos->x, pos->y, pos->z);
 		
 		DynamicMesh* dm = VEC_ITEM(&dmm->meshes, *meshIndex);
 		
@@ -399,10 +393,10 @@ static void instanceSetup(DynamicMeshManager* dmm, DynamicMeshInstShader* vmem, 
 		
 		float d = vDist(pos, &pfp->dp->eyePos);
 		
-		//if(d > 500) continue;
+		if(d > 500) continue;
 		
 		mTransv(pos, &m);
-	mPrint(&m, stdout);
+		
 		C_Rotation* rot;
 		if(rot = ComponentManager_nextEnt(rotComp, &rindex, eid)) {
 			mRotv(&rot->axis, rot->theta, &m); 
@@ -413,14 +407,11 @@ static void instanceSetup(DynamicMeshManager* dmm, DynamicMeshInstShader* vmem, 
 		mRot3f(0, 1, 0, dm->defaultRotY, &m);
 		mRot3f(0, 0, 1, dm->defaultRotZ, &m);
 		
-	
+		
 		mScale3f(dm->defaultScale, dm->defaultScale, dm->defaultScale, &m);
-
-			
+		
 		dmm->matBuf[dm->matBufOffset + di[*meshIndex]->numToDraw] = m;
 		
-		mPrint(&m, stdout);
-		printf("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ mi: %d, ntd: %d, ii: %d\n", *meshIndex, dm->numToDraw, instIndex);
 		di[*meshIndex]->numToDraw++;
 	}
 	

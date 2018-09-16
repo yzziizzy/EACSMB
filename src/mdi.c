@@ -150,6 +150,7 @@ int MultiDrawIndirect_addMesh(MultiDrawIndirect* mdi, MDIDrawInfo* di) {
 
 static void preFrame(PassFrameParams* pfp, MultiDrawIndirect* mdi) {
 	int index_offset = 0;
+	int vertex_offset = 0;
 	int instance_offset = 0;
 	int mesh_index;
 	void* vmem = PCBuffer_beginWrite(&mdi->instVB);
@@ -170,7 +171,7 @@ static void preFrame(PassFrameParams* pfp, MultiDrawIndirect* mdi) {
 	if(mdi->isIndexed) {
 		
 		DrawElementsIndirectCommand* cmdsi = PCBuffer_beginWrite(&mdi->indirectCmds);
-		printf("-\n");
+		
 		for(mesh_index = 0; mesh_index < VEC_LEN(&mdi->meshes); mesh_index++) {
 			MDIDrawInfo* di = VEC_ITEM(&mdi->meshes, mesh_index);
 				
@@ -180,21 +181,12 @@ static void preFrame(PassFrameParams* pfp, MultiDrawIndirect* mdi) {
 			// offset into instanced vertex attributes
 			cmdsi[mesh_index].baseInstance = (mdi->maxInstances * ((mdi->instVB.nextRegion) % PC_BUFFER_DEPTH)) + instance_offset; 
 			// number of instances
-			cmdsi[mesh_index].instanceCount = di->numToDraw; //VEC_LEN(&dm->instances[0]); 
-		//printf("instances %d %d %d %d  \n", mesh_index, dm->indexCnt, VEC_LEN(&dm->instances[0]), instance_offset );
-			cmdsi[mesh_index].baseVertex = 0;
+			cmdsi[mesh_index].instanceCount = di->numToDraw; 
+			cmdsi[mesh_index].baseVertex = vertex_offset;
 			
-			printf("#%d, fi: %d, cnt: %d, bi: %d, ic: %d, bv: %d \n",
-				VEC_LEN(&mdi->meshes),
-				index_offset,
-				di->indexCount,
-				(mdi->maxInstances * ((mdi->instVB.nextRegion) % PC_BUFFER_DEPTH)) + instance_offset,
-				di->numToDraw,
-				0
-			);
-			
-			index_offset += di->indexCount;// * sizeof(DynamicMeshVertex);//dm->indexCnt;
-			instance_offset += di->numToDraw; //VEC_LEN(&dm->instances[0]);
+			index_offset += di->indexCount;
+			vertex_offset += di->vertexCount;
+			instance_offset += di->numToDraw;
 		}
 		
 	}
@@ -205,17 +197,16 @@ static void preFrame(PassFrameParams* pfp, MultiDrawIndirect* mdi) {
 		for(mesh_index = 0; mesh_index < VEC_LEN(&mdi->meshes); mesh_index++) {
 			MDIDrawInfo* di = VEC_ITEM(&mdi->meshes, mesh_index);
 				
-			cmds[mesh_index].first = index_offset; // offset of this mesh into the instances
+			cmds[mesh_index].first = vertex_offset; // offset of this mesh into the instances
 			cmds[mesh_index].count = di->vertexCount; // number of polys
 			
 			// offset into instanced vertex attributes
 			cmds[mesh_index].baseInstance = (mdi->maxInstances * ((mdi->instVB.nextRegion) % PC_BUFFER_DEPTH)) + instance_offset; 
 			// number of instances
-			cmds[mesh_index].instanceCount = di->numToDraw; //VEC_LEN(&dm->instances[0]); 
-		//printf("instances %d %d %d %d  \n", mesh_index, dm->indexCnt, VEC_LEN(&dm->instances[0]), instance_offset );
+			cmds[mesh_index].instanceCount = di->numToDraw; 
 			
-			index_offset += di->indexCount;// * sizeof(DynamicMeshVertex);//dm->indexCnt;
-			instance_offset += di->numToDraw; //VEC_LEN(&dm->instances[0]);
+			instance_offset += di->numToDraw;
+			vertex_offset += di->vertexCount;
 		}
 	}
 	

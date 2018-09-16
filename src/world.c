@@ -173,15 +173,15 @@ void World_init(World* w) {
 	
 	/// hacks
 	
-	for(int i = 0; i < 200; i++) {
+	for(int i = 0; i < 2000; i++) {
 		Vector v = {
-			.x = frand(0, 1000),
-			.y = frand(0, 1000),
+			.x = frand(0, 500),
+			.y = frand(0, 500),
 			.z = 30,
 		};
 		
 		//World_spawnAt_Item(w, "tree", &v);
-		World_spawnAt_DynamicMesh(w, i %4, &v);
+		World_spawnAt_DynamicMesh(w, i % 4, &v);
 	}
 	
 	CustomDecal* cd = pcalloc(cd); 
