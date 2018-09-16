@@ -38,6 +38,8 @@ void Building_extrudeOutline(Building* b, BuildingOutline* o, float height) {
 	// add two layers of the outline, offset by the height
 	float tdist = 0;
 	
+	o->extruded_height = height;
+	
 	// TODO: extra vertex at the end for texture wrap
 	VEC_EACH(&o->points, i, p) {
 		Vector2* prev = &VEC_ITEM(&o->points, (i + plen - 1) % plen);
@@ -83,7 +85,7 @@ void Building_extrudeOutline(Building* b, BuildingOutline* o, float height) {
 	o->first_index = VEC_LEN(&b->indices) - 1;
 	
 	printf("> plen: %d \n", plen);
-	for(i = 0; i <= plen; i += 2) {
+	for(i = 0; i <= plen+1; i += 2) {
 		VEC_PUSH(&b->indices, base_vertex + i);
 		VEC_PUSH(&b->indices, base_vertex + i + 1);
 		VEC_PUSH(&b->indices, base_vertex + plen2 + i);
@@ -151,11 +153,12 @@ do { \
 
 #define LIST_REMOVE(list, link) \
 do { \
-	if((link)->prev) (link)->prev->next = (link)->next; \
-	if((link)->next) (link)->next->prev = (link)->prev; \
-	if((link) == (list)->head) (list)->head == (link)->next; \
-	if((link) == (list)->tail) (list)->tail == (link)->prev; \
-	free(link); \
+	typeof((list)->head) __link = (link); \
+	if((__link) == (list)->head) (list)->head = (__link)->next; \
+	if((__link) == (list)->tail) (list)->tail = (__link)->prev; \
+	if((__link)->prev) (__link)->prev->next = (__link)->next; \
+	if((__link)->next) (__link)->next->prev = (__link)->prev; \
+	free(__link); \
 	(list)->length = (list)->length == 0 ? 0 : (list)->length - 1; \
 } while(0);
 
@@ -192,11 +195,13 @@ void Building_capOutline(Building* building, BuildingOutline* o, float height) {
 		maxy = fmax(maxy, p.y);
 	}
 	
+	
 	float spanx = maxx - minx;
 	float spany = maxy - miny;
 	
 	int ii = 0;
 	Link* l = list.head;
+	
 	while(list.length > 2) {
 		Vector2* a = &l->point;
 		Link* bl = LIST_NEXT_LOOP(&list, l);
@@ -204,8 +209,14 @@ void Building_capOutline(Building* building, BuildingOutline* o, float height) {
 		Vector2* c = &LIST_NEXT_LOOP(&list, bl)->point;
 		float area = triArea2(a, b, c);
 		
+// 		printf("ii: %d\n",ii++);
+// 		fflush(stdout);
+// 		LIST_REMOVE(&list, bl);
+// 		continue;
+		
 		// check winding
-		if(0 && area >= 0) { // zero area or counter-clockwise, meaning it's not inside the poly
+		printf("area: %f\n", area);
+		if(area <= 0) { // zero area or counter-clockwise, meaning it's not inside the poly
 			// TODO: check for degenerate cases causing infinite loop
 			printf(" - area skip %f %ul\n", area, l);
 			goto CONTINUE;
@@ -220,7 +231,9 @@ void Building_capOutline(Building* building, BuildingOutline* o, float height) {
 					printf("point inside");
 					goto CONTINUE;
 				}
+				else printf("outside\n");
 			}
+			else printf("in tri\n");
 			
 			lp = lp->next;
 		} while(lp->next);
@@ -328,7 +341,7 @@ DynamicMesh* Building_CreateDynamicMesh(Building* b) {
 	}
 	
 	dm->defaultScale = 1.0;
-	dm->defaultRotX = -3.14 / 2;
+	dm->defaultRotX = -3.14159265358979323846264 / 2;
 	dm->defaultRotY = 0.0;
 	dm->defaultRotZ = 0.0;
 	dm->polyMode = GL_TRIANGLES;

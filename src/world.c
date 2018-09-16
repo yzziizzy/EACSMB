@@ -103,16 +103,17 @@ void World_init(World* w) {
 	
 	BuildingOutline* bo = calloc(1, sizeof(*bo));
 	VEC_PUSH(&bo->points, ((Vector2){-10, -10}));
+	VEC_PUSH(&bo->points, ((Vector2){-5, 0}));
 	VEC_PUSH(&bo->points, ((Vector2){-10, 10}));
 	VEC_PUSH(&bo->points, ((Vector2){10, 10}));
-	VEC_PUSH(&bo->points, ((Vector2){10, -10}));
+	VEC_PUSH(&bo->points, ((Vector2){-5, -20}));
 	//VEC_PUSH(&bo->points, ((Vector2){2,6}));
 	
 	bo->closed = 1;
 	VEC_PUSH(&b.outlines, bo);
 	
-	Building_extrudeAll(&b, 5);
-	Building_capAll(&b, 20); // causes memory corruption
+	Building_extrudeAll(&b, 10);
+	Building_capAll(&b, 10); // causes memory corruption
 	
 	
 	int building_ind = dynamicMeshManager_addMesh(w->dmm, "building", Building_CreateDynamicMesh(&b));
