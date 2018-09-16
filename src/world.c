@@ -102,19 +102,20 @@ void World_init(World* w) {
 	
 	
 	BuildingOutline* bo = calloc(1, sizeof(*bo));
+	VEC_PUSH(&bo->points, ((Vector2){-10, -10}));
+	VEC_PUSH(&bo->points, ((Vector2){-10, 10}));
 	VEC_PUSH(&bo->points, ((Vector2){10, 10}));
-	VEC_PUSH(&bo->points, ((Vector2){10, 20}));
-	VEC_PUSH(&bo->points, ((Vector2){20, 20}));
-	VEC_PUSH(&bo->points, ((Vector2){20, 10}));
+	VEC_PUSH(&bo->points, ((Vector2){10, -10}));
 	//VEC_PUSH(&bo->points, ((Vector2){2,6}));
 	
+	bo->closed = 1;
 	VEC_PUSH(&b.outlines, bo);
 	
-	Building_extrudeAll(&b, 30);
-	//Building_capAll(&b, 30); // causes memory corruption
+	Building_extrudeAll(&b, 5);
+	Building_capAll(&b, 20); // causes memory corruption
 	
 	
-	//int building_ind = dynamicMeshManager_addMesh(w->dmm, "building", Building_CreateDynamicMesh(&b));
+	int building_ind = dynamicMeshManager_addMesh(w->dmm, "building", Building_CreateDynamicMesh(&b));
 	
 
 	
@@ -127,17 +128,17 @@ void World_init(World* w) {
 	
 
 	DynamicMeshInstance inst = {
-		pos: {0, 0, 0},
+		pos: {100, 100, 30},
 		scale: 30,
 		dir: {0, 0, 1},
 		rot: 0,
 		alpha: 0.5,
-		texIndex: 0,
+		texIndex: 2,
 	};
-	//dynamicMeshManager_addInstance(w->dmm, building_ind, &inst);
+	dynamicMeshManager_addInstance(w->dmm, building_ind, &inst);
 	//printf("^^^^ %d\n", building_ind);
-	Vector v = {0,0,0};
-	//World_spawnAt_DynamicMesh(w, building_ind, &v);
+	Vector v = {50,50,0};
+	World_spawnAt_DynamicMesh(w, building_ind, &v);
 	
 	
 	// very last thing: load textures
@@ -173,15 +174,15 @@ void World_init(World* w) {
 	
 	/// hacks
 	
-	for(int i = 0; i < 2000; i++) {
+	for(int i = 0; i < 0; i++) {
 		Vector v = {
-			.x = frand(0, 500),
-			.y = frand(0, 500),
+			.x = 10, //frand(0, 500),
+			.y = 10, //frand(0, 500),
 			.z = 30,
 		};
 		
 		//World_spawnAt_Item(w, "tree", &v);
-		World_spawnAt_DynamicMesh(w, i % 4, &v);
+		World_spawnAt_DynamicMesh(w,  4, &v);
 	}
 	
 	CustomDecal* cd = pcalloc(cd); 

@@ -82,7 +82,8 @@ void Building_extrudeOutline(Building* b, BuildingOutline* o, float height) {
 	// fill in the triangles
 	o->first_index = VEC_LEN(&b->indices) - 1;
 	
-	for(i = 0; i <= plen; i += 4) {
+	printf("> plen: %d \n", plen);
+	for(i = 0; i <= plen; i += 2) {
 		VEC_PUSH(&b->indices, base_vertex + i);
 		VEC_PUSH(&b->indices, base_vertex + i + 1);
 		VEC_PUSH(&b->indices, base_vertex + plen2 + i);
@@ -327,7 +328,7 @@ DynamicMesh* Building_CreateDynamicMesh(Building* b) {
 	}
 	
 	dm->defaultScale = 1.0;
-	dm->defaultRotX = 0.0;
+	dm->defaultRotX = -3.14 / 2;
 	dm->defaultRotY = 0.0;
 	dm->defaultRotZ = 0.0;
 	dm->polyMode = GL_TRIANGLES;
