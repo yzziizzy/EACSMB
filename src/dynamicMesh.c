@@ -30,12 +30,6 @@ static GLuint color_ul, model_ul, view_ul, proj_ul;
 static ShaderProgram* prog;
 Texture* tex;
 
-// old?
-static void core_draw(DynamicMeshManager* dmm);
-static void preFrame(PassFrameParams* pfp, DynamicMeshManager* dmm);
-static void draw(DynamicMeshManager* dmm, GLuint progID, PassDrawParams* pdp);
-static void postFrame(DynamicMeshManager* dmm);
-
 
 // new
 static void uniformSetup(DynamicMeshManager* dmm, GLuint progID);
@@ -69,7 +63,7 @@ void initDynamicMeshes() {
 	
 
 	
-	vao = makeVAO(vao_opts);
+//	vao = makeVAO(vao_opts);
 
 	glexit("dynamic mesh vao");
 	
@@ -90,16 +84,7 @@ void initDynamicMeshes() {
 	
 	glexit("");
 	
-	
-	/*
-	pd = Pass_allocDrawable("dynamic mesh manager");
-	pd->preFrame = preFrame;
-	pd->draw = draw;
-	pd->postFrame = postFrame;
-	pd->prog = prog;
-	
-	Pass_registerDrawable(pd);
-	*/
+
 }
 
 
@@ -181,21 +166,7 @@ DynamicMeshManager* dynamicMeshManager_alloc(int maxInstances) {
 	mm->mdi->data = mm;
 	
 	
-	
-	glBindVertexArray(vao);
-	
-	PCBuffer_startInit(&mm->instVB, mm->maxInstances * sizeof(Matrix), GL_ARRAY_BUFFER);
-	updateVAO(1, vao_opts); 
-	PCBuffer_finishInit(&mm->instVB);
-	
-	/*
-	PCBuffer_startInit(
-		&mm->indirectCmds, 
-		16 * sizeof(DrawArraysIndirectCommand), 
-		GL_DRAW_INDIRECT_BUFFER
-	);
-	PCBuffer_finishInit(&mm->indirectCmds);
-	*/
+	//glBindVertexArray(vao);
 	
 	
 	return mm;
@@ -325,7 +296,6 @@ int dynamicMeshManager_addMesh(DynamicMeshManager* mm, char* name, DynamicMesh* 
 	int index;
 	
 	
-		
 	MDIDrawInfo* di = pcalloc(di);
 	
 	*di = (MDIDrawInfo){
@@ -354,76 +324,7 @@ int dynamicMeshManager_addMesh(DynamicMeshManager* mm, char* name, DynamicMesh* 
 
 // should only used for initial setup
 void dynamicMeshManager_updateGeometry(DynamicMeshManager* mm) {
-	
-	int i;
-	size_t offset;
-	
-	
 	MultiDrawIndirect_updateGeometry(mm->mdi);
-	
-	/*
-	glBindVertexArray(vao);
-	
-	if(glIsBuffer(mm->geomVBO)) glDeleteBuffers(1, &mm->geomVBO);
-	glGenBuffers(1, &mm->geomVBO);
-	
-	glBindBuffer(GL_ARRAY_BUFFER, mm->geomVBO);
-	
-	updateVAO(0, vao_opts); 
-
-	glBufferStorage(GL_ARRAY_BUFFER, mm->totalVertices * sizeof(DynamicMeshVertex), NULL, GL_MAP_WRITE_BIT | GL_DYNAMIC_STORAGE_BIT);
-	glexit("");
-	
-	
-	void* buf = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-	glexit("");
-	
-	offset = 0;
-	for(i = 0; i < VEC_LEN(&mm->meshes); i++) {
-		DynamicMesh* dm = VEC_ITEM(&mm->meshes, i);
-		
-		memcpy(buf + offset, dm->vertices, dm->vertexCnt * sizeof(DynamicMeshVertex));
-		
-		offset += dm->vertexCnt * sizeof(DynamicMeshVertex);
-	}
-	
-	
-	glUnmapBuffer(GL_ARRAY_BUFFER);
-	
-	
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
-	
-	
-	
-	
-	// index buffers
-	if(glIsBuffer(mm->geomIBO)) glDeleteBuffers(1, &mm->geomIBO);
-	glGenBuffers(1, &mm->geomIBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mm->geomIBO);
-	
-	glBufferStorage(GL_ELEMENT_ARRAY_BUFFER, mm->totalIndices * sizeof(uint16_t), NULL, GL_MAP_WRITE_BIT);
-
-	uint16_t* ib = glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
-	
-	offset = 0;
-	for(i = 0; i < VEC_LEN(&mm->meshes); i++) {
-		
-		memcpy(ib + offset, VEC_ITEM(&mm->meshes, i)->indices.w16, VEC_ITEM(&mm->meshes, i)->indexCnt * sizeof(uint16_t));
-		//for(i = 0; i < m->vertexCnt; i++) ib[i] = i;
-		
-		offset += VEC_ITEM(&mm->meshes, i)->indexCnt;
-	}
-	
-	glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
-	
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	
-	
-	*/
-	
-	
-	glexit(__FILE__);
 }
 
 
@@ -446,7 +347,7 @@ static void instanceSetup(DynamicMeshManager* dmm, DynamicMeshInstShader* vmem, 
 	// update dm matbuf offsets
 	for(j = 0; j < diCount; j++) { // j is mesh index
 		DynamicMesh* dm = VEC_ITEM(&dmm->meshes, j);
-		di[j]->numToDraw = 4;
+		di[j]->numToDraw = 0;
 		dm->matBufOffset = off;
 		
 		off += VEC_LEN(&dm->instances[0]);
@@ -469,6 +370,12 @@ static void instanceSetup(DynamicMeshManager* dmm, DynamicMeshInstShader* vmem, 
 	ComponentManager* meshComp = CES_getCompManager(dmm->ces, "meshIndex");
 	ComponentManager* rotComp = CES_getCompManager(dmm->ces, "rotation");
 	
+	
+	/*
+	  THE BUG: this is conflating meshIndex with instanceIndex
+	*/
+	int instIndex = 0;
+	
 	int cindex = -1;
 	int pindex = -1;
 	int rindex = -1;
@@ -476,12 +383,14 @@ static void instanceSetup(DynamicMeshManager* dmm, DynamicMeshInstShader* vmem, 
 	uint16_t* meshIndex;
 	while(meshIndex = ComponentManager_next(meshComp, &cindex, &eid)) {
 		//printf("eid %d %d %d\n", eid, cindex, pindex);
+		printf("---------------------------\n");
+
 		Vector* pos;
 		if(!(pos = ComponentManager_nextEnt(posComp, &pindex, eid))) {
 			 printf("continued\n");
 			 continue;
 		}
-		printf("%d - %f,%f,%f\n", *meshIndex, pos->x, pos->y, pos->z);
+		//printf("%d - %f,%f,%f\n", *meshIndex, pos->x, pos->y, pos->z);
 		
 		DynamicMesh* dm = VEC_ITEM(&dmm->meshes, *meshIndex);
 		
@@ -490,10 +399,10 @@ static void instanceSetup(DynamicMeshManager* dmm, DynamicMeshInstShader* vmem, 
 		
 		float d = vDist(pos, &pfp->dp->eyePos);
 		
-		if(d > 500) continue;
+		//if(d > 500) continue;
 		
 		mTransv(pos, &m);
-	
+	mPrint(&m, stdout);
 		C_Rotation* rot;
 		if(rot = ComponentManager_nextEnt(rotComp, &rindex, eid)) {
 			mRotv(&rot->axis, rot->theta, &m); 
@@ -505,33 +414,22 @@ static void instanceSetup(DynamicMeshManager* dmm, DynamicMeshInstShader* vmem, 
 		mRot3f(0, 0, 1, dm->defaultRotZ, &m);
 		
 	
-		mScale3f(dm->defaultScale, dm->defaultScale, dm->defaultScale, &m);			
+		mScale3f(dm->defaultScale, dm->defaultScale, dm->defaultScale, &m);
 
 			
-		dmm->matBuf[dm->matBufOffset + dm->numToDraw] = m;
+		dmm->matBuf[dm->matBufOffset + di[*meshIndex]->numToDraw] = m;
+		
+		mPrint(&m, stdout);
+		printf("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ mi: %d, ntd: %d, ii: %d\n", *meshIndex, dm->numToDraw, instIndex);
 		di[*meshIndex]->numToDraw++;
 	}
 	
 	
-	
-	
-	
-	
-	
-	//DynamicMeshInstShader* vmem = PCBuffer_beginWrite(&dmm->instVB);
-	
-	//if(!vmem) {
-		//printf("attempted to update invalid dynamic mesh manager\n");
-		//return;
-	//}
-
-
-
 	for(mesh_index = 0; mesh_index < VEC_LEN(&dmm->meshes); mesh_index++) {
 		DynamicMesh* dm = VEC_ITEM(&dmm->meshes, mesh_index);
 		
 		// TODO make instances switch per frame
-		for(i = 0; i < dm->numToDraw; i++) {
+		for(i = 0; i < di[mesh_index]->numToDraw; i++) {
 			DynamicMeshInstance* dmi = &VEC_ITEM(&dm->instances[0], i);
 		
 			vmem->m = dmm->matBuf[dm->matBufOffset + i];
@@ -594,80 +492,6 @@ static void instanceSetup(DynamicMeshManager* dmm, DynamicMeshInstShader* vmem, 
 
 
 
-static void preFrame(PassFrameParams* pfp, DynamicMeshManager* mm) {
-	
-	// pre-mdi
-//	dynamicMeshManager_updateMatrices(mm, pfp);
-	
-	/* now inside mdi
-	
-	// set up the indirect draw commands
-	DrawArraysIndirectCommand* cmds = PCBuffer_beginWrite(&mm->indirectCmds);
-	
-	int index_offset = 0;
-	int instance_offset = 0;
-	int mesh_index;
-	for(mesh_index = 0; mesh_index < VEC_LEN(&mm->meshes); mesh_index++) {
-		DynamicMesh* dm = VEC_ITEM(&mm->meshes, mesh_index);
-			
-		cmds[mesh_index].first = index_offset; // offset of this mesh into the instances
-		cmds[mesh_index].count = dm->indexCnt; // number of polys
-		
-		// offset into instanced vertex attributes
-		cmds[mesh_index].baseInstance = (mm->maxInstances * ((mm->instVB.nextRegion) % PC_BUFFER_DEPTH)) + instance_offset; 
-		// number of instances
-		cmds[mesh_index].instanceCount = dm->numToDraw; //VEC_LEN(&dm->instances[0]); 
-	//printf("instances %d %d %d %d  \n", mesh_index, dm->indexCnt, VEC_LEN(&dm->instances[0]), instance_offset );
-		
-		index_offset += dm->indexCnt;// * sizeof(DynamicMeshVertex);//dm->indexCnt;
-		instance_offset += dm->numToDraw; //VEC_LEN(&dm->instances[0]);
-	}
-	
-	*/
-}
-
-// this one has to handle different views, such as shadow mapping and reflections
-
-static void draw(DynamicMeshManager* dmm, GLuint progID, PassDrawParams* pdp) {
-		
-	// matrices and uniforms
-	GLuint tex_ul;
-
-	glActiveTexture(GL_TEXTURE0 + 8);
-	glBindTexture(GL_TEXTURE_2D_ARRAY, dmm->tm->tex_id);
-	
-	tex_ul = glGetUniformLocation(progID, "sTexture");
-	glProgramUniform1i(progID, tex_ul, 8);
-	glexit("");
-
-	// ---------------------------------
-	
-	core_draw(dmm);
-
-}
-
-static void core_draw(DynamicMeshManager* dmm) {
-	
-	glBindVertexArray(vao);
-	glBindBuffer(GL_ARRAY_BUFFER, dmm->geomVBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, dmm->geomIBO);
-	
-	PCBuffer_bind(&dmm->instVB);
-	PCBuffer_bind(&dmm->indirectCmds);
-	
-	glMultiDrawArraysIndirect(GL_TRIANGLES, 0, VEC_LEN(&dmm->meshes), 0);
-	glexit("multidrawarraysindirect");
-}
-
-
-static void postFrame(DynamicMeshManager* mm) {
-	PCBuffer_afterDraw(&mm->instVB);
-	PCBuffer_afterDraw(&mm->indirectCmds);
-}
-
-
-
-
 RenderPass* DynamicMeshManager_CreateRenderPass(DynamicMeshManager* m) {
 	
 	RenderPass* rp;
@@ -685,18 +509,7 @@ RenderPass* DynamicMeshManager_CreateRenderPass(DynamicMeshManager* m) {
 
 
 PassDrawable* DynamicMeshManager_CreateDrawable(DynamicMeshManager* m) {
-	PassDrawable* pd;
-
-	//pd = Pass_allocDrawable("DynamicMeshManager");
-	//pd->data = m;
-	//pd->preFrame = preFrame;
-	//pd->draw = (PassDrawFn)draw;
-	//pd->postFrame = postFrame;
-	//pd->prog = prog;
-	
-	pd = MultiDrawIndirect_CreateDrawable(m->mdi, prog);
-	
-	return pd;
+	return MultiDrawIndirect_CreateDrawable(m->mdi, prog);
 }
 
 
@@ -714,23 +527,3 @@ static void uniformSetup(DynamicMeshManager* dmm, GLuint progID) {
 	glexit("");
 }
 
-//static void instanceSetup(DynamicMeshManager* dmm, TerrainPatchInstance* vmem, MDIDrawInfo** di, int diCount, PassFrameParams* pfp) {
-	
-	/* example code from map.c
-	int i, j;
-	int x, y;
-	
-	for(j = 0; j < diCount; j++) {
-		di[j]->numToDraw = 4;
-			
-		for(i = 0; i < 1; i++) { // each instance
-			vmem[i].offx = i * 256; // multiplier should be mb->w
-			vmem[i].offy = i * 256;
-		}
-		
-		di++;
-	}
-	*/
-	
-//	dynamicMeshManager_updateMatrices(mm, pfp);
-//}

@@ -24,11 +24,11 @@ typedef  struct {
 } DrawArraysIndirectCommand;
 
 typedef  struct {
-	uint  count;
-	uint  instanceCount;
-	uint  firstIndex;
-	uint  baseVertex;
-	uint  baseInstance;
+	GLuint  count;
+	GLuint  instanceCount;
+	GLuint  firstIndex;
+	GLuint  baseVertex;
+	GLuint  baseInstance;
 } DrawElementsIndirectCommand;
 
 

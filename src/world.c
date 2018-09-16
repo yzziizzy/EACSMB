@@ -114,7 +114,7 @@ void World_init(World* w) {
 	//Building_capAll(&b, 30); // causes memory corruption
 	
 	
-	int building_ind = dynamicMeshManager_addMesh(w->dmm, "building", Building_CreateDynamicMesh(&b));
+	//int building_ind = dynamicMeshManager_addMesh(w->dmm, "building", Building_CreateDynamicMesh(&b));
 	
 
 	
@@ -135,9 +135,9 @@ void World_init(World* w) {
 		texIndex: 0,
 	};
 	//dynamicMeshManager_addInstance(w->dmm, building_ind, &inst);
-	printf("^^^^ %d\n", building_ind);
+	//printf("^^^^ %d\n", building_ind);
 	Vector v = {0,0,0};
-	World_spawnAt_DynamicMesh(w, building_ind, &v);
+	//World_spawnAt_DynamicMesh(w, building_ind, &v);
 	
 	
 	// very last thing: load textures
@@ -173,15 +173,15 @@ void World_init(World* w) {
 	
 	/// hacks
 	
-	for(int i = 0; i < 5000; i++) {
+	for(int i = 0; i < 200; i++) {
 		Vector v = {
 			.x = frand(0, 1000),
 			.y = frand(0, 1000),
-			.z = 20,
+			.z = 30,
 		};
 		
 		//World_spawnAt_Item(w, "tree", &v);
-		World_spawnAt_DynamicMesh(w, i%5, &v);
+		World_spawnAt_DynamicMesh(w, i %4, &v);
 	}
 	
 	CustomDecal* cd = pcalloc(cd); 

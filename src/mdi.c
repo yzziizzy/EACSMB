@@ -38,9 +38,10 @@ void MultiDrawIndirect_init(MultiDrawIndirect* mdi, VAOConfig* vaoConfig, int ma
 	updateVAO(1, vaoConfig); 
 	PCBuffer_finishInit(&mdi->instVB);
 	
+	
 	PCBuffer_startInit(
 		&mdi->indirectCmds, 
-		16 * sizeof(DrawArraysIndirectCommand), 
+		16 * sizeof(DrawElementsIndirectCommand), // carefull here
 		GL_DRAW_INDIRECT_BUFFER
 	);
 	PCBuffer_finishInit(&mdi->indirectCmds);
@@ -118,7 +119,7 @@ void MultiDrawIndirect_updateGeometry(MultiDrawIndirect* mdi) {
 		glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
 		
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	}	
+	}
 	
 	glexit(__FILE__);
 }
@@ -169,7 +170,7 @@ static void preFrame(PassFrameParams* pfp, MultiDrawIndirect* mdi) {
 	if(mdi->isIndexed) {
 		
 		DrawElementsIndirectCommand* cmdsi = PCBuffer_beginWrite(&mdi->indirectCmds);
-		
+		printf("-\n");
 		for(mesh_index = 0; mesh_index < VEC_LEN(&mdi->meshes); mesh_index++) {
 			MDIDrawInfo* di = VEC_ITEM(&mdi->meshes, mesh_index);
 				
@@ -183,10 +184,19 @@ static void preFrame(PassFrameParams* pfp, MultiDrawIndirect* mdi) {
 		//printf("instances %d %d %d %d  \n", mesh_index, dm->indexCnt, VEC_LEN(&dm->instances[0]), instance_offset );
 			cmdsi[mesh_index].baseVertex = 0;
 			
+			printf("#%d, fi: %d, cnt: %d, bi: %d, ic: %d, bv: %d \n",
+				VEC_LEN(&mdi->meshes),
+				index_offset,
+				di->indexCount,
+				(mdi->maxInstances * ((mdi->instVB.nextRegion) % PC_BUFFER_DEPTH)) + instance_offset,
+				di->numToDraw,
+				0
+			);
+			
 			index_offset += di->indexCount;// * sizeof(DynamicMeshVertex);//dm->indexCnt;
 			instance_offset += di->numToDraw; //VEC_LEN(&dm->instances[0]);
 		}
-				
+		
 	}
 	else {
 		

@@ -11,7 +11,7 @@
 		rotDegY: 0.0,
 		rotDegZ: 0.0,
 	},
-*/
+*/ 
 	fence: {
 		mesh: "assets/models/picketfence.obj",
 		texture: "assets/textures/snowfractal-256.png",
@@ -20,6 +20,7 @@
 	gazebo: {
 		mesh: "assets/models/gazebo.obj",
 		texture: "assets/textures/colornoise.png",
+		scale: 1,
 	},
 	house: {
 		mesh: "assets/models/house1.obj",
