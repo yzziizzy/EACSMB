@@ -101,18 +101,24 @@ void World_init(World* w) {
 	VEC_INIT(&b.indices);
 	
 	
-	BuildingOutline* bo = calloc(1, sizeof(*bo));
-	VEC_PUSH(&bo->points, ((Vector2){-10, -10}));
-	VEC_PUSH(&bo->points, ((Vector2){-5, 0}));
-	VEC_PUSH(&bo->points, ((Vector2){-10, 10}));
-	VEC_PUSH(&bo->points, ((Vector2){10, 10}));
-	VEC_PUSH(&bo->points, ((Vector2){-5, -20}));
-	//VEC_PUSH(&bo->points, ((Vector2){2,6}));
-	
-	bo->closed = 1;
+	BuildingOutline* bo;
+	bo = BuildingOutline_rect(0, 30, (Vector2){0,0}, (Vector2){10,10});
+	VEC_PUSH(&b.outlines, bo);
+	bo = BuildingOutline_rect(0, 20, (Vector2){-6,0}, (Vector2){2,10});
+	VEC_PUSH(&b.outlines, bo);
+	bo = BuildingOutline_rect(0, 20, (Vector2){6,0}, (Vector2){2,10});
+	VEC_PUSH(&b.outlines, bo);
+	bo = BuildingOutline_rect(0, 10, (Vector2){-8,0}, (Vector2){2,10});
+	VEC_PUSH(&b.outlines, bo);
+	bo = BuildingOutline_rect(0, 10, (Vector2){8,0}, (Vector2){2,10});
 	VEC_PUSH(&b.outlines, bo);
 	
 	Building_extrudeAll(&b, 10);
+	
+// 	VEC_EACH(&b.vertices, i, v) {
+// 		printf("~%d [%.2f,%.2f,%.2f]\n", i, v.p.x,v.p.y,v.p.z);
+// 	}
+	
 	Building_capAll(&b, 10); // causes memory corruption
 	
 	

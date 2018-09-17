@@ -8,10 +8,18 @@
 #include "dynamicMesh.h"
 
 
+
+LIST_DECL(Vector2, point);
+
+
+
+
+
 typedef struct BuildingOutline {
-	VEC(Vector2) points;
+	Vector2_List points;
 	char closed;
 	
+	float h_offset;
 	float extruded_height;
 	
 	// mesh info
@@ -35,6 +43,11 @@ typedef struct Building {
 	
 } Building;
 
+
+
+
+BuildingOutline* BuildingOutline_alloc(float h_offset, float ex_height);
+BuildingOutline* BuildingOutline_rect(float h_offset, float ex_height, Vector2 pos, Vector2 size);
 
 
 

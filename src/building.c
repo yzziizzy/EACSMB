@@ -30,24 +30,25 @@ void Building_extrudeAll(Building* b, float height) {
 }
 
 void Building_extrudeOutline(Building* b, BuildingOutline* o, float height) {
-	int i;
-	int plen = VEC_LEN(&o->points);
+	int i = 0;
+	int plen = o->points.length;
 	int plen2 = plen * 2;
 	int base_vertex = VEC_LEN(&b->vertices);
 	
 	// add two layers of the outline, offset by the height
 	float tdist = 0;
 	
-	o->extruded_height = height;
+	//o->extruded_height = height;
+	height = o->extruded_height;
 	
 	// TODO: extra vertex at the end for texture wrap
-	VEC_EACH(&o->points, i, p) {
-		Vector2* prev = &VEC_ITEM(&o->points, (i + plen - 1) % plen);
-		Vector2* next = &VEC_ITEM(&o->points, (i + plen + 1) % plen);
+	LIST_LOOP(&o->points, p) {
+		Vector2* prev = &LIST_PREV_LOOP(&o->points, p)->point;
+		Vector2* next = &LIST_NEXT_LOOP(&o->points, p)->point;
 		
 		// TODO: fix normals
 		VEC_PUSH(&b->vertices, ((Vertex_PNT){ 
-			p: {p.x, p.y, 0},
+			p: {p->point.x, p->point.y, 0},
 			n: {0,0,0},
 			t: {u: tdist, v: 0},
 		}));
@@ -60,32 +61,47 @@ void Building_extrudeOutline(Building* b, BuildingOutline* o, float height) {
 		}));
 		
 		tdist += vDist2(&p, next);
+		i++;
 	}
 	
+			
+// 	VEC_EACH(&b->vertices, i, v) {
+// 		printf(")-%d [%.2f,%.2f,%.2f]\n",  i, v.p.x,v.p.y,v.p.z);
+// 	}
+// 		
+	
 	// duplicate the vertices vertically
-	for(i = 0; i < plen2; i += 2) {
-		Vertex_PNT* p1 = &VEC_ITEM(&b->vertices, i);
-		Vertex_PNT* p2 = &VEC_ITEM(&b->vertices, i + 1);
+	for(i = 0; i < plen2; i++) {
+		Vertex_PNT* p1 = &VEC_ITEM(&b->vertices, base_vertex + i);
+	//	Vertex_PNT* p2 = &VEC_ITEM(&b->vertices, i + 1);
 		
+// 		printf("adding vertex [%.2f,%.2f,%.2f]\n", p1->p.x,p1->p.y,p1->p.z);
 		VEC_PUSH(&b->vertices, ((Vertex_PNT){ 
 			p: {p1->p.x, p1->p.y, height},
 			n: p1->n,
 			t: {u: p1->t.u, v: 1},
 		}));
-		VEC_PUSH(&b->vertices, ((Vertex_PNT){ 
-			p: {p2->p.x, p2->p.y, height},
-			n: p2->n,
-			t: {u: p1->t.v, v: 1},
-		}));
+		
+// 	VEC_EACH(&b->vertices, i2, v) {
+// 		printf("%d-%d [%.2f,%.2f,%.2f]\n", i, i2, v.p.x,v.p.y,v.p.z);
+// 	}
+		
+// 		VEC_PUSH(&b->vertices, ((Vertex_PNT){ 
+// 			p: {p2->p.x, p2->p.y, height},
+// 			n: p2->n,
+// 			t: {u: p1->t.v, v: 1},
+// 		}));
 	}
 	
-	
+// 	VEC_EACH(&b->vertices, i, v) {
+// 		printf("0&%d [%.2f,%.2f,%.2f]\n", i, v.p.x,v.p.y,v.p.z);
+// 	}
 	
 	// fill in the triangles
 	o->first_index = VEC_LEN(&b->indices) - 1;
 	
-	printf("> plen: %d \n", plen);
-	for(i = 0; i <= plen+1; i += 2) {
+	int q = 0;
+	for(i = 0; i <= plen; i+=2) {
 		VEC_PUSH(&b->indices, base_vertex + i);
 		VEC_PUSH(&b->indices, base_vertex + i + 1);
 		VEC_PUSH(&b->indices, base_vertex + plen2 + i);
@@ -93,7 +109,18 @@ void Building_extrudeOutline(Building* b, BuildingOutline* o, float height) {
 		VEC_PUSH(&b->indices, base_vertex + i + 1);
 		VEC_PUSH(&b->indices, base_vertex + plen2 + i + 1);
 		VEC_PUSH(&b->indices, base_vertex + plen2 + i);
+		q+=6;
 	}
+	
+// 	VEC_EACH(&b->vertices, i, v) {
+// 		printf("&%d [%.2f,%.2f,%.2f]\n", i, v.p.x,v.p.y,v.p.z);
+// 	}
+	
+	// there is a weird bug somewhere in this function
+	// sometimes a vertex is corrupted
+	// sometimes spurrious extra geometry appears
+	// it varies on the amount of input data, but not in a sane way
+	
 	
 	// stitch up the end to the beginning
 	if(1 /*o->closed*/) { // only closed loops are allowed atm
@@ -104,66 +131,12 @@ void Building_extrudeOutline(Building* b, BuildingOutline* o, float height) {
 		VEC_PUSH(&b->indices, base_vertex);
 		VEC_PUSH(&b->indices, base_vertex + plen2);
 		VEC_PUSH(&b->indices, base_vertex + plen2 + i);
+		q+=6;
 	}
 	
-	o->index_count = VEC_LEN(&b->indices) - o->first_index;
+	o->index_count = q;//VEC_LEN(&b->indices) - o->first_index;
 }
 
-
-
-
-
-typedef struct Link {
-	struct Link* next;
-	struct Link* prev;
-	
-	Vector2 point;
-} Link;
-
-typedef struct List {
-	Link* head;
-	Link* tail;
-	int length;
-} List;
-
-
-
-#define LIST_APPEND(list, prop, x) \
-do { \
-	typeof((list)->head) __new_link = calloc(1, sizeof(*__new_link)); \
-	__new_link->prev = (list)->tail; \
-	if(__new_link->prev) __new_link->prev->next = __new_link; \
-	(list)->tail = __new_link; \
-	if((list)->head == NULL) (list)->head = __new_link; \
-	__new_link->prop = (x); \
-	(list)->length++; \
-} while(0);
-
-
-#define LIST_PREPEND(list, prop, x) \
-do { \
-	typeof((list)->head) __new_link = calloc(1, sizeof(*__new_link)); \
-	__new_link->next = (list)->head; \
-	if(__new_link->next) __new_link->next->prev = __new_link; \
-	(list)->head = __new_link; \
-	if((list)->tail == NULL) (list)->tail = __new_link; \
-	__new_link->prop = x; \
-	(list)->length++; \
-} while(0);
-
-#define LIST_REMOVE(list, link) \
-do { \
-	typeof((list)->head) __link = (link); \
-	if((__link) == (list)->head) (list)->head = (__link)->next; \
-	if((__link) == (list)->tail) (list)->tail = (__link)->prev; \
-	if((__link)->prev) (__link)->prev->next = (__link)->next; \
-	if((__link)->next) (__link)->next->prev = (__link)->prev; \
-	free(__link); \
-	(list)->length = (list)->length == 0 ? 0 : (list)->length - 1; \
-} while(0);
-
-#define LIST_NEXT_LOOP(list, link) \
-((link)->next ? (link)->next : (list)->head)
 
 
 
@@ -180,51 +153,62 @@ void Building_capOutline(Building* building, BuildingOutline* o, float height) {
 	remove the middle point from the polygon
 	*/
 	
+	height = o->extruded_height;
 	
 	// setup
-	List list;
-	list.head = NULL;
-	list.tail = NULL;
+	Vector2_List list;
+	LIST_INIT(&list);
 	float minx = 9999999, maxx = -9999999, miny = 9999999, maxy = -9999999;
 	
-	VEC_EACH(&o->points, i, p) {
-		LIST_APPEND(&list, point, p);
-		minx = fmin(minx, p.x);
-		miny = fmin(miny, p.y);
-		maxx = fmax(maxx, p.x);
-		maxy = fmax(maxy, p.y);
+	LIST_CONCAT(&o->points, &list);
+	
+// 	LIST_LOOP(&o->points, p) {
+// 		printf("1> [%.2f,%.2f] %d\n", p->point.x,p->point.y, list.length);
+// 	}
+// 	LIST_LOOP(&list, p) {
+// 		printf("2> [%.2f,%.2f] %d\n", p->point.x,p->point.y, list.length);
+// 	}
+	
+	LIST_LOOP(&o->points, p) {
+		minx = fmin(minx, p->point.x);
+		miny = fmin(miny, p->point.y);
+		maxx = fmax(maxx, p->point.x);
+		maxy = fmax(maxy, p->point.y);
 	}
+	
+// 	LIST_LOOP(&list, p) {
+// 		printf("3> [%.2f,%.2f]\n", p->point.x,p->point.y);
+// 	}
+// 	
 	
 	
 	float spanx = maxx - minx;
 	float spany = maxy - miny;
 	
 	int ii = 0;
-	Link* l = list.head;
+	Vector2_Link* l = list.head;
 	
 	while(list.length > 2) {
 		Vector2* a = &l->point;
-		Link* bl = LIST_NEXT_LOOP(&list, l);
+		Vector2_Link* bl = LIST_NEXT_LOOP(&list, l);
 		Vector2* b = &bl->point;
 		Vector2* c = &LIST_NEXT_LOOP(&list, bl)->point;
 		float area = triArea2(a, b, c);
 		
-// 		printf("ii: %d\n",ii++);
-// 		fflush(stdout);
-// 		LIST_REMOVE(&list, bl);
-// 		continue;
-		
 		// check winding
-		printf("area: %f\n", area);
+// 		printf("area: %f\n", area);
 		if(area <= 0) { // zero area or counter-clockwise, meaning it's not inside the poly
 			// TODO: check for degenerate cases causing infinite loop
+// 			printf(" [%.2f,%.2f] [%.2f,%.2f] [%.2f,%.2f]\n", 
+// 				a->x,a->y, b->x,b->y, c->x,c->y
+// 			);
 			printf(" - area skip %f %ul\n", area, l);
 			goto CONTINUE;
 		}
 		
 		// ensure no other point is inside this triangle
 		// a point inside means the triangle is partially outside the polygon
-		Link* lp = list.head;
+		Vector2_Link* lp = list.head;
 		do {
 			if(lp != bl && lp != bl->next && lp != l) {
 				if(triPointInside2(&lp->point, a, b, c)) {
@@ -283,8 +267,8 @@ void Building_capOutline(Building* building, BuildingOutline* o, float height) {
 	}
 	
 	// free the last two links
-	LIST_REMOVE(&list, list.head);
-	LIST_REMOVE(&list, list.head);
+	// BUG: stack corruption
+ 	LIST_FREE(&list);
 }
 
 
@@ -315,7 +299,7 @@ DynamicMesh* Building_CreateDynamicMesh(Building* b) {
 	dm->indexCnt = ilen;
 	dm->indexWidth = 2;
 	
-	printf("\n*\n*\nbuilding: vlen: %d, ilen: %d \n", vlen, ilen);
+	//printf("\n*\n*\nbuilding: vlen: %d, ilen: %d \n", vlen, ilen);
 	
 	for(i = 0; i < vlen; i++) {
 		Vertex_PNT* v = &VEC_ITEM(&b->vertices, i);
@@ -325,20 +309,20 @@ DynamicMesh* Building_CreateDynamicMesh(Building* b) {
 			t: {v->t.u * 65536, v->t.v * 65536 },
 		};
 		
-		printf("[%.2f, %.2f, %.2f] %d,%d \n", 
-			dm->vertices[i].v.x,
-			dm->vertices[i].v.y,
-			dm->vertices[i].v.z,
-			dm->vertices[i].t.u,
-			dm->vertices[i].t.v
-		);
+// 		printf("[%.2f, %.2f, %.2f] %d,%d \n", 
+// 			dm->vertices[i].v.x,
+// 			dm->vertices[i].v.y,
+// 			dm->vertices[i].v.z,
+// 			dm->vertices[i].t.u,
+// 			dm->vertices[i].t.v
+// 		);
 	}
 	
 	memcpy(dm->indices.w16, VEC_DATA(&b->indices), ilen * 2);
 	
-	for(i = 0; i < ilen; i++) {
-		printf("+ %u\t%u\n", (int)VEC_ITEM(&b->indices, i),  (int)dm->indices.w16[i]);
-	}
+// 	for(i = 0; i < ilen; i++) {
+// 		printf("+ %u\t%u\n", (int)VEC_ITEM(&b->indices, i),  (int)dm->indices.w16[i]);
+// 	}
 	
 	dm->defaultScale = 1.0;
 	dm->defaultRotX = -3.14159265358979323846264 / 2;
@@ -350,4 +334,59 @@ DynamicMesh* Building_CreateDynamicMesh(Building* b) {
 }
 
 
+
+
+
+
+
+
+
+
+BuildingOutline* BuildingOutline_alloc(float h_offset, float ex_height) {
+	BuildingOutline* bo;
+	
+	pcalloc(bo);
+	
+	LIST_INIT(&bo->points);
+	bo->closed = 1;
+	bo->h_offset = h_offset;
+	bo->extruded_height = ex_height;
+	
+	return bo;
+}
+
+void BuildingOutline_addPoint(BuildingOutline* bo, Vector2 pos) {
+	LIST_APPEND(&bo->points, point, pos);
+}
+
+BuildingOutline* BuildingOutline_rect(float h_offset, float ex_height, Vector2 pos, Vector2 size) {
+	BuildingOutline* bo;
+	
+	bo = BuildingOutline_alloc(h_offset, ex_height);
+	
+	float xh = size.x / 2;
+	float yh = size.y / 2;
+	
+	LIST_APPEND(&bo->points, point, ((Vector2){pos.x - xh, pos.y - yh}));
+	LIST_APPEND(&bo->points, point, ((Vector2){pos.x - xh, pos.y + yh}));
+	LIST_APPEND(&bo->points, point, ((Vector2){pos.x + xh, pos.y + yh}));
+	LIST_APPEND(&bo->points, point, ((Vector2){pos.x + xh, pos.y - yh}));
+// 	LIST_APPEND(&bo->points, point, ((Vector2){pos.x + 3 + xh, pos.y - yh - 3}));
+// 	LIST_APPEND(&bo->points, point, ((Vector2){pos.x + 6 + xh, pos.y - yh - 9}));
+	
+	
+	// test shape
+// 	LIST_APPEND(&bo->points, point, ((Vector2){-10, -10}));
+// 	LIST_APPEND(&bo->points, point, ((Vector2){-5, 0}));
+// 	LIST_APPEND(&bo->points, point, ((Vector2){-10, 10}));
+// 	LIST_APPEND(&bo->points, point, ((Vector2){10, 10}));
+// 	LIST_APPEND(&bo->points, point, ((Vector2){-5, -20}));
+	
+// 	LIST_LOOP(&bo->points, p) {
+// 		printf("> [%.2f,%.2f]\n", p->point.x,p->point.y);
+// 	}
+	
+	
+	return bo;
+}
 

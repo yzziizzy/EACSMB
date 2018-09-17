@@ -275,6 +275,163 @@ void vec_resize_to(void** data, size_t* size, size_t elem_size, size_t new_size)
 
 
 
+/*********************************
+      Linked Lists
+**********************************
+
+minimal struct signature: 
+
+typedef struct Link {
+	struct Link* next;
+	struct Link* prev;
+} Link;
+
+typedef struct List {
+	Link* head;
+	Link* tail;
+	int length;
+} List;
+
+
+these macros are not perfect. they create temporary variables and should not be nested.
+
+*/
+ 
+
+#define LIST_DECL(type, prop) \
+typedef struct type ## _Link { \
+	struct type ## _Link *next, *prev; \
+	type prop; \
+} type ## _Link; \
+typedef struct type ## _List { \
+	struct type ## _Link *head, *tail; \
+	int length; \
+} type ## _List; 
+
+
+#define LIST_INIT(list) \
+(list)->head = NULL; \
+(list)->tail = NULL; \
+(list)->length = 0; 
+
+
+#define LIST_APPEND(list, prop, x) \
+do { \
+	typeof((list)->head) __new_link = calloc(1, sizeof(*__new_link)); \
+	__new_link->prev = (list)->tail; \
+	if(__new_link->prev) __new_link->prev->next = __new_link; \
+	(list)->tail = __new_link; \
+	if((list)->head == NULL) (list)->head = __new_link; \
+	__new_link->prop = (x); \
+	(list)->length++; \
+} while(0);
+
+
+
+#define LIST_PREPEND(list, prop, x) \
+do { \
+	typeof((list)->head) __new_link = calloc(1, sizeof(*__new_link)); \
+	__new_link->next = (list)->head; \
+	if(__new_link->next) __new_link->next->prev = __new_link; \
+	(list)->head = __new_link; \
+	if((list)->tail == NULL) (list)->tail = __new_link; \
+	__new_link->prop = x; \
+	(list)->length++; \
+} while(0);
+
+
+
+#define LIST_REMOVE(list, link) \
+do { \
+	typeof((list)->head) __link = (link); \
+	if((__link) == (list)->head) (list)->head = (__link)->next; \
+	if((__link) == (list)->tail) (list)->tail = (__link)->prev; \
+	if((__link)->prev) (__link)->prev->next = (__link)->next; \
+	if((__link)->next) (__link)->next->prev = (__link)->prev; \
+	free(__link); \
+	(list)->length = (list)->length == 0 ? 0 : (list)->length - 1; \
+} while(0);
+
+
+// allows for cyclic iteration
+#define LIST_NEXT_LOOP(list, link) \
+((link)->next ? (link)->next : (list)->head)
+
+#define LIST_PREV_LOOP(list, link) \
+((link)->prev ? (link)->prev : (list)->tail)
+
+
+// concat or copy a list
+#define LIST_CONCAT(src, dest) \
+do { \
+	typeof((src)->head) __link = (src)->head; \
+	while(__link) { \
+		typeof((src)->head) __new_link = calloc(1, sizeof(*__new_link)); \
+		memcpy(__new_link, __link, sizeof(*__link)); \
+		__new_link->next = NULL; \
+		__new_link->prev = (dest)->tail; \
+		if((dest)->tail) (dest)->tail->next = __new_link; \
+		if((dest)->head == NULL) (dest)->head = __new_link; \
+		(dest)->tail = __new_link; \
+		(dest)->length++; \
+		__link = __link->next; \
+	} \
+} while(0);
+
+
+// does not create a new list from the output
+#define LIST_MAP(list, fn) \
+do { \
+	typeof((list)->head) __link = (list)->head; \
+	while(__link) { \
+		(fn)(__link); \
+		__link = __link->next; \
+	} \
+} while(0);
+
+
+#define LIST_FREE(list) \
+do { \
+	typeof((list)->head) __link = (list)->head; \
+	while(__link) { \
+		typeof((list)->head) __tmp = __link; \
+		__link = __link->next; \
+		free(__tmp); \
+	} \
+	(list)->head = NULL; \
+	(list)->tail = NULL; \
+	(list)->length = 0; \
+} while(0);
+
+
+
+#define LIST__PASTEINNER(a, b) a ## b
+#define LIST__PASTE(a, b) LIST__PASTEINNER(a, b) 
+#define LIST__FINISHED(iter) LIST__PASTE(LIST_finished__ ## iter ## __, __LINE__)
+#define LIST__MAINLOOP(iter) LIST__PASTE(LIST_main_loop__ ## iter ## __, __LINE__) 
+#define LIST_LOOP(list, iter) \
+if(0) \
+	LIST__FINISHED(iter): ; \
+else \
+	for(typeof((list)->head) iter = (list)->head;;) \
+		if(iter != NULL) \
+			goto LIST__MAINLOOP(iter); \
+		else \
+			while(1) \
+				if(1) { \
+					goto LIST__FINISHED(iter); \
+				} \
+				else \
+					while(1) \
+						if(iter = iter->next, iter == NULL) { \
+							goto LIST__FINISHED(iter); \
+						} \
+						else \
+							LIST__MAINLOOP(iter) :
+							
+							//	{ user block; not in macro }
+
+
 
 
 
