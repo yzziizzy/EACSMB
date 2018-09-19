@@ -22,6 +22,8 @@ typedef struct BuildingOutline {
 	float h_offset;
 	float extruded_height;
 	
+	float cap_height;
+	
 	// mesh info
 	int first_index;
 	int index_count;
@@ -51,14 +53,14 @@ BuildingOutline* BuildingOutline_rect(float h_offset, float ex_height, Vector2 p
 
 
 
-void Building_extrudeAll(Building* b, float height);
-void Building_extrudeOutline(Building* b, BuildingOutline* o, float height);
+void Building_extrudeAll(Building* b);
+void Building_extrudeOutline(Building* b, BuildingOutline* o);
 
 // flat cap
-void Building_capAll(Building* b, float height);
-void Building_capOutline(Building* building, BuildingOutline* o, float height);
+void Building_capAll(Building* b);
+void Building_capOutline(Building* building, BuildingOutline* o);
 
-void Building_pointCapOutline(Building* building, BuildingOutline* o, float height, float capHeight);
+void Building_pointCapOutline(Building* building, BuildingOutline* o);
 
 
 DynamicMesh* Building_CreateDynamicMesh(Building* b);

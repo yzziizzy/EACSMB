@@ -23,13 +23,13 @@
 
 
 
-void Building_extrudeAll(Building* b, float height) {
+void Building_extrudeAll(Building* b) {
 	VEC_EACH(&b->outlines, i, o) {
-		Building_extrudeOutline(b, o, height);
+		Building_extrudeOutline(b, o);
 	}
 }
 
-void Building_extrudeOutline(Building* b, BuildingOutline* o, float height) {
+void Building_extrudeOutline(Building* b, BuildingOutline* o) {
 	int i = 0;
 	int plen = o->points.length;
 	int plen2 = plen * 2;
@@ -39,7 +39,7 @@ void Building_extrudeOutline(Building* b, BuildingOutline* o, float height) {
 	float tdist = 0;
 	
 	//o->extruded_height = height;
-	height = o->extruded_height;
+	float height = o->extruded_height;
 	
 	// TODO: extra vertex at the end for texture wrap
 	LIST_LOOP(&o->points, p) {
@@ -48,14 +48,14 @@ void Building_extrudeOutline(Building* b, BuildingOutline* o, float height) {
 		
 		// TODO: fix normals
 		VEC_PUSH(&b->vertices, ((Vertex_PNT){ 
-			p: {p->point.x, p->point.y, 0},
+			p: {p->point.x, p->point.y, o->h_offset},
 			n: {0,0,0},
 			t: {u: tdist, v: 0},
 		}));
 		
 		// two vertices for hard creases
 		VEC_PUSH(&b->vertices, ((Vertex_PNT){ 
-			p: {next->x, next->y, 0},
+			p: {next->x, next->y, o->h_offset},
 			n: {0,0,0},
 			t: {u: tdist, v: 0},
 		}));
@@ -77,7 +77,7 @@ void Building_extrudeOutline(Building* b, BuildingOutline* o, float height) {
 		
 // 		printf("adding vertex [%.2f,%.2f,%.2f]\n", p1->p.x,p1->p.y,p1->p.z);
 		VEC_PUSH(&b->vertices, ((Vertex_PNT){ 
-			p: {p1->p.x, p1->p.y, height},
+			p: {p1->p.x, p1->p.y, o->h_offset + height},
 			n: p1->n,
 			t: {u: p1->t.u, v: 1},
 		}));
@@ -141,7 +141,7 @@ void Building_extrudeOutline(Building* b, BuildingOutline* o, float height) {
 
 
 
-void Building_capOutline(Building* building, BuildingOutline* o, float height) {
+void Building_capOutline(Building* building, BuildingOutline* o) {
 	
 	/*
 	ear-clipping triangulation algorithm:
@@ -153,7 +153,7 @@ void Building_capOutline(Building* building, BuildingOutline* o, float height) {
 	remove the middle point from the polygon
 	*/
 	
-	height = o->extruded_height;
+	float height = o->extruded_height;
 	
 	// setup
 	Vector2_List list;
@@ -231,17 +231,17 @@ void Building_capOutline(Building* building, BuildingOutline* o, float height) {
 		// new vertices for normals
 		// TODO: uv's?
 		VEC_PUSH(&building->vertices, ((Vertex_PNT){
-			p: {a->x, a->y, height}, 
+			p: {a->x, a->y, o->h_offset + height}, 
 			n: {0,0,1}, 
 			t: {(a->x - minx) / spanx, (a->y - miny) / spany}
 		}));
 		VEC_PUSH(&building->vertices, ((Vertex_PNT){
-			p: {b->x, b->y, height}, 
+			p: {b->x, b->y, o->h_offset + height}, 
 			n: {0,0,1}, 
 			t: {(b->x - minx) / spanx, (b->y - miny) / spany}
 		}));
 		VEC_PUSH(&building->vertices, ((Vertex_PNT){
-			p: {c->x, c->y, height}, 
+			p: {c->x, c->y, o->h_offset + height}, 
 			n: {0,0,1}, 
 			t: {(c->x - minx) / spanx, (c->y - miny) / spany}
 		}));
@@ -272,9 +272,18 @@ void Building_capOutline(Building* building, BuildingOutline* o, float height) {
 }
 
 
-void Building_capAll(Building* b, float height) {
+
+// this uses an extremely naive averaging algorithm.
+// do no use it on strongly convex or irregular shapes
+void Building_pointCapOutline(Building* building, BuildingOutline* o) {
+	
+}
+
+
+
+void Building_capAll(Building* b) {
 	VEC_EACH(&b->outlines, i, o) {
-		Building_capOutline(b, o, height);
+		Building_capOutline(b, o);
 	}
 }
 
@@ -389,4 +398,52 @@ BuildingOutline* BuildingOutline_rect(float h_offset, float ex_height, Vector2 p
 	
 	return bo;
 }
+
+
+
+void BuildingOutline_bevelCorner(BuildingOutline* o, Vector2_Link* l, int divisions, float radius) {
+	
+	/* algorithm:
+	original point is p0
+	
+	subtract the radius from both segments (p1 & p2), forming a rhombus. the point 
+	opposite the vertex to be beveled is the center (p3) of the circle.
+	
+	generate (divisions) points along the lines between p1 and p2 (pn).
+	
+	push each pn point away from p3 to radius.
+	
+	replace p0 with p1, pn, pn2
+	*/
+	
+	Vector2_Link* prior = LIST_PREV_LOOP(&o->points);
+	Vector2 p0 = l->p;
+	
+	
+	
+	
+	
+	// get rid of the original corner
+	LIST_REMOVE(&o->points, l);
+	
+	for(int i = 0; i < divisions; i++) {
+		Vector2 pn = {
+			
+		};
+		
+		
+		
+	}
+	
+	
+	
+	
+}
+
+
+
+
+
+
+
 

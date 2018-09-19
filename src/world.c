@@ -113,13 +113,13 @@ void World_init(World* w) {
 	bo = BuildingOutline_rect(0, 10, (Vector2){8,0}, (Vector2){2,10});
 	VEC_PUSH(&b.outlines, bo);
 	
-	Building_extrudeAll(&b, 10);
+	Building_extrudeAll(&b);
 	
 // 	VEC_EACH(&b.vertices, i, v) {
 // 		printf("~%d [%.2f,%.2f,%.2f]\n", i, v.p.x,v.p.y,v.p.z);
 // 	}
 	
-	Building_capAll(&b, 10); // causes memory corruption
+	Building_capAll(&b); // causes memory corruption
 	
 	
 	int building_ind = dynamicMeshManager_addMesh(w->dmm, "building", Building_CreateDynamicMesh(&b));
