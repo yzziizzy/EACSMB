@@ -189,6 +189,8 @@ typedef struct MapInfo {
 	char* zoneNames[256];
 	
 	
+	unsigned char* zones;
+	
 	Vector cursorPos;
 	TextureManager* tm;
 	

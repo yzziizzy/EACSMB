@@ -344,8 +344,6 @@ do { \
 #define LIST_INS_AFTER(list, exist, prop, x) \
 do { \
 	typeof((list)->head) __new_link = calloc(1, sizeof(*__new_link)); \
-	
-	
 } while(0);
 
 

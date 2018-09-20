@@ -416,8 +416,8 @@ void BuildingOutline_bevelCorner(BuildingOutline* o, Vector2_Link* l, int divisi
 	replace p0 with p1, pn, pn2
 	*/
 	
-	Vector2_Link* prior = LIST_PREV_LOOP(&o->points);
-	Vector2 p0 = l->p;
+	Vector2_Link* prior = LIST_PREV_LOOP(&o->points, l);
+	Vector2 p0 = l->point;
 	
 	
 	

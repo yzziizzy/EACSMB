@@ -342,8 +342,8 @@ void updateMapTextures(MapInfo* mi) {
 		glTexStorage3D(GL_TEXTURE_2D_ARRAY,
 			1,  // mips, flat
 			GL_R8UI,
-			MAP_TEX_SZ, MAP_TEX_SZ,
-			32); // layers
+			mi->block->w, mi->block->h,
+			2); // layers
 		
 		glexit("failed to create map textures");
 	}
@@ -351,19 +351,28 @@ void updateMapTextures(MapInfo* mi) {
 		glBindTexture(GL_TEXTURE_2D_ARRAY, mi->tex);
 	}
 	
-	/*
+	if(!mi->zones) mi->zones = malloc(mi->block->w * mi->block->h);
+	for(int y = 0; y < mi->block->h; y++) {
+		for(int x = 0; x < mi->block->w; x++) {
+			mi->zones[x + (y * mi->block->w)] = (y+x) % 3;
+			//printf("%d", mi->zones[x + (y * mi->block->w)]);
+		}
+		//printf("\n");
+	}
+	
+	
 	glTexSubImage3D(GL_TEXTURE_2D_ARRAY, // target
 		0,  // mip level, 0 = base, no mipmap,
 		0, 0, 0,// offset
-		MAP_TEX_SZ,
-		MAP_TEX_SZ,
+		mi->block->w,
+		mi->block->h,
 		1,
 		GL_RED_INTEGER,  // format
 		GL_UNSIGNED_BYTE, // input type
-		mb->zones);
-	*/
+		mi->zones);
 	
-	
+	printf("sz: %d, %d\n", mi->block->w, mi->block->h);
+/*	
 	int i;
 	for(i = 0; i < 32; i++) {
 		glTexSubImage3D(GL_TEXTURE_2D_ARRAY, // target
@@ -374,8 +383,8 @@ void updateMapTextures(MapInfo* mi) {
 			1,
 			GL_RED_INTEGER,  // format
 			GL_UNSIGNED_BYTE, // input type
-			/*mi->texIndexMap[i]->surface*/ 9999);
-	}
+			/*mi->texIndexMap[i]->surface 9999);
+	}*/
 	printf("fix me ^ %s:%d\n", __FILE__, __LINE__);
 	
 	glerr("failed to update map tex info");
@@ -488,11 +497,14 @@ glexit("");
 
 static void bindTerrainTextures(MapInfo* mi) {
 	
+	glActiveTexture(GL_TEXTURE0 + 19);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, mi->tex);
+	glProgramUniform1i(terrProg->id, glGetUniformLocation(terrProg->id, "sData"), 19);
+
 	glActiveTexture(GL_TEXTURE0 + 21);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, mi->terrainTex);
 	GLuint hmul = glGetUniformLocation(terrProg->id, "sHeightMap");
 	glProgramUniform1i(terrProg->id, hmul, 21);
-	
 	
 	glActiveTexture(GL_TEXTURE0 + 22);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, mi->tm->tex_id);
@@ -711,9 +723,6 @@ void setZone(MapInfo *mi, int x1, int y1, int x2, int y2, int zone) {
 		}
 	}
 	
-	
-	
-	
 	mi->mb->dirtyZone = 1;
 	*/
 	printf("!!! broken dead code: setZone()\n");
@@ -874,19 +883,7 @@ RenderPass* Map_CreateRenderPass(MapInfo* m) {
 
 
 PassDrawable* Map_CreateDrawable(MapInfo* m) {
-	PassDrawable* pd;
-
-	//pd = Pass_allocDrawable("MapInfo");
-	//pd->data = m;
-	//pd->preFrame = preFrame;
-	//pd->draw = (PassDrawFn)draw;
-	//pd->postFrame = postFrame;
-	//pd->prog = terrProg;
-	
-	
-	pd = MultiDrawIndirect_CreateDrawable(m->blockPatch, terrProg);
-	
-	return pd;
+	return MultiDrawIndirect_CreateDrawable(m->blockPatch, terrProg);
 }
 
 
@@ -1246,6 +1243,7 @@ void MapInfo_Init(MapInfo* mi) {
 	MapLayer_Fill(MapBlock_GetLayer(mi->block, "water2"), 8.0);
 	MapLayer_Fill(MapBlock_GetLayer(mi->block, "soil"), 0.0);
 	
+	updateMapTextures(mi);
 	
 	MapGen_initWaterVelTex(mi); 
 	
