@@ -420,29 +420,35 @@ void main(void) {
 	vec4 t_01 = texture(sTextures, vec3(texCoord.xy * 64, ti_01));
 	vec4 t_0n1 = texture(sTextures, vec3(texCoord.xy * 64, ti_0n1));
 	
-	float a = .2;
+	float a = .1;
 
 	float xpw = smoothstep(1.0-a, 1.0, ftile.x); 
 	float xmw = smoothstep(0.0, a, ftile.x); 
+
 			
 	float ypw = smoothstep(1.0-a, 1.0, ftile.y); 
 	float ymw = smoothstep(0.0, a, ftile.y); 
 	
 	
-	vec4 tcx = mix(t_10, t, 1 - smoothstep(1.0-a, 1.0, ftile.x)) * xpw +
-		mix(t_n10, t, 1 - smoothstep(0.0, a, ftile.x)) * (1-xmw);
-
-	
-	vec4 tcy = mix(t_01, t, 1 - smoothstep(1.0-a, 1.0, ftile.y)) * ypw +
-		mix(t_0n1, t, 1 - smoothstep(0.0, a, ftile.y)) * (1-ymw);
+// 	vec4 tcx = mix(t_10, t, 1 - smoothstep(1.0-a, 1.0, ftile.x)) * xpw +
+// 		mix(t_n10, t, 1 - smoothstep(0.0, a, ftile.x)) * (1-xmw);
+// 
+// 	
+// 	vec4 tcy = mix(t_01, t, 1 - smoothstep(1.0-a, 1.0, ftile.y)) * ypw +
+// 		mix(t_0n1, t, 1 - smoothstep(0.0, a, ftile.y)) * (1-ymw);
 		
 	tc = vec4(0,0,0,0);
 
-	tc = min(min(1-ypw, ymw), min(1-xpw, xmw)) * t; // + t_10 * xpw + t_n10 * xmw;
-	tc += min(1-ypw, ymw) * xpw * t_10;
-	tc += min(1-ypw, ymw) * (1-xmw) * t_n10;
-	tc += min(1-xpw, xmw) * ypw * t_01;
-	tc += min(1-xpw, xmw) * (1-ymw) * t_0n1;
+//	tc = min(min(1-ypw, ymw), min(1-xpw, xmw)) * t; // + t_10 * xpw + t_n10 * xmw;
+	tc = min(xmw, ymw) * t; // + t_10 * xpw + t_n10 * xmw;
+	
+ 	tc += min(/*1-ypw*/99, ymw) * (1-smoothstep(0.0, a, ftile.x)) * t_n10;
+ 	tc += min(/*1-xpw*/999, xmw) * (1-smoothstep(0.0, a, ftile.y)) * t_0n1;
+//  	tc += min(1-ypw, ymw) * xmw * t_n10;
+// 	tc += min(1-ypw, ymw) * (((xpw/2) + .1)) * t_10;
+//  	tc += min(1-ypw, ymw) * ((((1-xmw)/2) - .1)) * t_n10;
+	//tc += min(1-xpw, xmw) * ypw * t_01;
+	//tc += min(1-xpw, xmw) * (1-ymw) * t_0n1;
 	
 	//tc = mix(
 	//	mix(t_10, t, 1 - smoothstep(1.0-a, 1.0, ftile.x)),
