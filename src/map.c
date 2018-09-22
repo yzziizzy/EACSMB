@@ -30,7 +30,7 @@ static GLuint proj_ul, view_ul, model_ul, heightmap_ul, offset_ul, winsize_ul, b
 static GLuint proj_d_ul, view_d_ul, model_d_ul, heightmap_d_ul, offset_d_ul, winsize_d_ul;
 static GLuint map_ul, zoneColors_ul;
 static int totalPatches;
-Texture* cnoise;
+// Texture* cnoise;
 
 // temp
 //TerrainTexInfo tti;
@@ -152,13 +152,43 @@ void initTerrain(MapInfo* mi) {
 	};
 	
 	
-	cnoise = loadBitmapTexture("./assets/textures/grass_texture-256.png");
+//	cnoise = loadBitmapTexture("./assets/textures/grass_texture-256.png");
 	
 	// shader setup
 	//-------------
+	glPatchParameteri(GL_PATCH_VERTICES, 4);
+	
+	
+	
+	// testing to see if gl vertex state if corrupting the shader
+	static VAOConfig vao_opts[] = {
+		// per vertex
+		{0, 2, GL_FLOAT, 0, GL_FALSE}, // position
+		{0, 2, GL_FLOAT, 0, GL_FALSE}, // tex
+		
+		// per instance 
+		{1, 2, GL_FLOAT, 1, GL_FALSE}, // block offset
+		
+		{0, 0, 0}
+	};
+	
+	glDepthFunc(GL_LEQUAL);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_ONE, GL_ONE);
+	glBlendEquationSeparate(GL_FUNC_ADD, GL_MAX);
+	
+	glDisable(GL_BLEND);
+	glDepthMask(GL_TRUE);
+	
+	GLuint tempvao = makeVAO(vao_opts);
+	glBindVertexArray(tempvao);
+	
+	
+	
 	
 	glexit("before terrain progs");
 	terrProg = loadCombinedProgram("terrain");
+	printf("terrProg: %d\n", terrProg->id);
 	glexit("mid terrain progs");
 	terrDepthProg = loadCombinedProgram("terrainDepth");
 	glexit("after terrain progs");
@@ -320,7 +350,7 @@ void initTerrainBlock(MapBlock* mb, int cx, int cy) {
 
 
 
-void updateMapTextures(MapInfo* mi) {
+void updateMapTextures(MapInfo* mi) { return;
 	if(!mi->tex) {
 		
 		glGenTextures(1, &mi->tex);
@@ -350,7 +380,7 @@ void updateMapTextures(MapInfo* mi) {
 	else {
 		glBindTexture(GL_TEXTURE_2D_ARRAY, mi->tex);
 	}
-	
+/*	
 	if(!mi->zones) mi->zones = malloc(mi->block->w * mi->block->h);
 	for(int y = 0; y < mi->block->h; y++) {
 		for(int x = 0; x < mi->block->w; x++) {
@@ -370,7 +400,7 @@ void updateMapTextures(MapInfo* mi) {
 		GL_RED_INTEGER,  // format
 		GL_UNSIGNED_BYTE, // input type
 		mi->zones);
-	
+	*/
 	printf("sz: %d, %d\n", mi->block->w, mi->block->h);
 /*	
 	int i;
@@ -441,6 +471,13 @@ void updateTerrainTexture(MapInfo* mi) {
 	
 printf("loading terrain data\n");
 //printf("fix me %s:%d\n", __FILE__, __LINE__);
+	
+	if(!ml->data.f) ml->data.f = calloc(1, sizeof(float) * ml->w * ml->h);
+
+// 	for(int y = 0; y < ml->h; y++)
+// 	for(int x = 0; x < ml->w; x++) {
+// 		ml->data.f[x + (y * ml->w)] = 0;
+// 	}
 
 
 
@@ -496,11 +533,11 @@ glexit("");
 
 
 static void bindTerrainTextures(MapInfo* mi) {
-	
+	/*
 	glActiveTexture(GL_TEXTURE0 + 19);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, mi->tex);
 	glProgramUniform1i(terrProg->id, glGetUniformLocation(terrProg->id, "sData"), 19);
-
+*/
 	glActiveTexture(GL_TEXTURE0 + 21);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, mi->terrainTex);
 	GLuint hmul = glGetUniformLocation(terrProg->id, "sHeightMap");
@@ -1243,7 +1280,7 @@ void MapInfo_Init(MapInfo* mi) {
 	MapLayer_Fill(MapBlock_GetLayer(mi->block, "water2"), 8.0);
 	MapLayer_Fill(MapBlock_GetLayer(mi->block, "soil"), 0.0);
 	
-	updateMapTextures(mi);
+	//updateMapTextures(mi);
 	
 	MapGen_initWaterVelTex(mi); 
 	
@@ -1258,6 +1295,8 @@ void MapInfo_Init(MapInfo* mi) {
 	
 	updateTerrainTexture(mi);
 	
+	
+	// does nothing atm
 	MapInfo_initLayerTextures(mi);
 	
 	

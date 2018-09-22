@@ -197,22 +197,22 @@ void main() {
 		float f3 = clamp(distance(w2, w3) * lod, 1, 64);
 	
 
-// 		gl_TessLevelOuter[0] = 4; 
-// 		gl_TessLevelOuter[1] = 4; 
-// 		gl_TessLevelOuter[2] = 4; 
-// 		gl_TessLevelOuter[3] = 4;
-// 	
-// 		gl_TessLevelInner[0] = 4;
-// 		gl_TessLevelInner[1] = 4;
-// 
-// 		
-		gl_TessLevelOuter[0] = f0; 
-		gl_TessLevelOuter[1] = f1; 
-		gl_TessLevelOuter[2] = f2; 
-		gl_TessLevelOuter[3] = f3;
+		gl_TessLevelOuter[0] = 4; 
+		gl_TessLevelOuter[1] = 4; 
+		gl_TessLevelOuter[2] = 4; 
+		gl_TessLevelOuter[3] = 4;
 	
-		gl_TessLevelInner[0] = mix(f1, f2, 0.5);
-		gl_TessLevelInner[1] = mix(f2, f3, 0.5);
+		gl_TessLevelInner[0] = 4;
+		gl_TessLevelInner[1] = 4;
+
+// 		
+// 		gl_TessLevelOuter[0] = f0; 
+// 		gl_TessLevelOuter[1] = f1; 
+// 		gl_TessLevelOuter[2] = f2; 
+// 		gl_TessLevelOuter[3] = f3;
+// 	
+// 		gl_TessLevelInner[0] = mix(f1, f2, 0.5);
+// 		gl_TessLevelInner[1] = mix(f2, f3, 0.5);
 		
 	}
 		
@@ -349,18 +349,18 @@ uniform sampler2DArray sTextures;
 // uniform sampler1D sZoneColors;
 // uniform sampler2D sOffsetLookup;
 uniform sampler2DArray sHeightMap;
-uniform isampler2DArray sData;
+//uniform isampler2DArray sData;
 
 uniform int waterIndex;
 const int win = 1 + waterIndex;
 const int wout = 2 - waterIndex;
 
-
+/*
 vec4 terrTexOffset(vec2 pos, ivec2 off, float weight) {
 	int ind = textureOffset(sData, vec3(pos, 0), off).x;
 	return texture(sTextures, vec3(pos * 64, ind)) * weight;
 }
-
+*/
 
 void main(void) {
 	
@@ -405,6 +405,7 @@ void main(void) {
  	
 //  	vec4 tc = texture2D(sBaseTex, texCoord);
 // 	int texIndex = texelFetch(sData, ivec3(t_tile.xy, 0), 0).x;
+	/*
 	int texIndex = texture(sData, vec3(t_tile.xy, 0)).x;
 	vec4 t = texture(sTextures, vec3(texCoord.xy * 64, texIndex));
 
@@ -421,14 +422,16 @@ void main(void) {
 	vec4 t_0n1 = texture(sTextures, vec3(texCoord.xy * 64, ti_0n1));
 	
 	float a = .1;
-
+	
+	
+	 
+	
 	float xpw = smoothstep(1.0-a, 1.0, ftile.x); 
 	float xmw = smoothstep(0.0, a, ftile.x); 
-
-			
+	
 	float ypw = smoothstep(1.0-a, 1.0, ftile.y); 
 	float ymw = smoothstep(0.0, a, ftile.y); 
-	
+*/	 
 	
 // 	vec4 tcx = mix(t_10, t, 1 - smoothstep(1.0-a, 1.0, ftile.x)) * xpw +
 // 		mix(t_n10, t, 1 - smoothstep(0.0, a, ftile.x)) * (1-xmw);
@@ -437,13 +440,13 @@ void main(void) {
 // 	vec4 tcy = mix(t_01, t, 1 - smoothstep(1.0-a, 1.0, ftile.y)) * ypw +
 // 		mix(t_0n1, t, 1 - smoothstep(0.0, a, ftile.y)) * (1-ymw);
 		
-	tc = vec4(0,0,0,0);
+	vec4 tc = vec4(1,0,0,0);
 
 //	tc = min(min(1-ypw, ymw), min(1-xpw, xmw)) * t; // + t_10 * xpw + t_n10 * xmw;
-	tc = min(xmw, ymw) * t; // + t_10 * xpw + t_n10 * xmw;
+///	tc = min(xmw, ymw) * t; // + t_10 * xpw + t_n10 * xmw;
 	
- 	tc += min(/*1-ypw*/99, ymw) * (1-smoothstep(0.0, a, ftile.x)) * t_n10;
- 	tc += min(/*1-xpw*/999, xmw) * (1-smoothstep(0.0, a, ftile.y)) * t_0n1;
+/// 	tc += min(/*1-ypw*/99, ymw) * (1-smoothstep(0.0, a, ftile.x)) * t_n10;
+/// 	tc += min(/*1-xpw*/999, xmw) * (1-smoothstep(0.0, a, ftile.y)) * t_0n1;
 //  	tc += min(1-ypw, ymw) * xmw * t_n10;
 // 	tc += min(1-ypw, ymw) * (((xpw/2) + .1)) * t_10;
 //  	tc += min(1-ypw, ymw) * ((((1-xmw)/2) - .1)) * t_n10;
@@ -474,7 +477,7 @@ void main(void) {
 	vec4 lineColor = vec4(0,0,0,1.0);
 	vec4 tc2 = mix(lineColor, tc, lineFactor.r);
 	
-	/*
+	/*    
 	// water. 
 	float wlevel = texture(sHeightMap, vec3(texCoord.xy, wout), 0).r;
 	// soil.
