@@ -380,7 +380,7 @@ void updateMapTextures(MapInfo* mi) { return;
 	else {
 		glBindTexture(GL_TEXTURE_2D_ARRAY, mi->tex);
 	}
-/*	
+
 	if(!mi->zones) mi->zones = malloc(mi->block->w * mi->block->h);
 	for(int y = 0; y < mi->block->h; y++) {
 		for(int x = 0; x < mi->block->w; x++) {
@@ -400,7 +400,7 @@ void updateMapTextures(MapInfo* mi) { return;
 		GL_RED_INTEGER,  // format
 		GL_UNSIGNED_BYTE, // input type
 		mi->zones);
-	*/
+	
 	printf("sz: %d, %d\n", mi->block->w, mi->block->h);
 /*	
 	int i;
@@ -474,10 +474,10 @@ printf("loading terrain data\n");
 	
 	if(!ml->data.f) ml->data.f = calloc(1, sizeof(float) * ml->w * ml->h);
 
-// 	for(int y = 0; y < ml->h; y++)
-// 	for(int x = 0; x < ml->w; x++) {
-// 		ml->data.f[x + (y * ml->w)] = 0;
-// 	}
+	for(int y = 0; y < ml->h; y++)
+	for(int x = 0; x < ml->w; x++) {
+		ml->data.f[x + (y * ml->w)] = 0;
+	}
 
 
 
@@ -533,11 +533,11 @@ glexit("");
 
 
 static void bindTerrainTextures(MapInfo* mi) {
-	/*
+	
 	glActiveTexture(GL_TEXTURE0 + 19);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, mi->tex);
 	glProgramUniform1i(terrProg->id, glGetUniformLocation(terrProg->id, "sData"), 19);
-*/
+
 	glActiveTexture(GL_TEXTURE0 + 21);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, mi->terrainTex);
 	GLuint hmul = glGetUniformLocation(terrProg->id, "sHeightMap");
@@ -1280,9 +1280,6 @@ void MapInfo_Init(MapInfo* mi) {
 	MapLayer_Fill(MapBlock_GetLayer(mi->block, "water2"), 8.0);
 	MapLayer_Fill(MapBlock_GetLayer(mi->block, "soil"), 0.0);
 	
-	//updateMapTextures(mi);
-	
-	MapGen_initWaterVelTex(mi); 
 	
 	// temp, initializes the patches
 	initTerrain(mi);
@@ -1292,14 +1289,14 @@ void MapInfo_Init(MapInfo* mi) {
 	// gen heightmap
 	MapLayer_GenTerrain(mi->block->terrain);
 	
-	
-	updateTerrainTexture(mi);
-	
-	
+	MapGen_initWaterVelTex(mi); 
+
 	// does nothing atm
 	MapInfo_initLayerTextures(mi);
 	
+	updateTerrainTexture(mi);
 	
+	updateMapTextures(mi);
 	
 	int	x,y,i = 0;
 	for(y = 0; y < 8; y++) {
