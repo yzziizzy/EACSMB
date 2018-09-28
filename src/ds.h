@@ -340,10 +340,15 @@ do { \
 } while(0);
 
 
-// TODO: finish
 #define LIST_INS_AFTER(list, exist, prop, x) \
 do { \
 	typeof((list)->head) __new_link = calloc(1, sizeof(*__new_link)); \
+	__new_link->next = (exist)->next; \
+	__new_link->prev = exist; \
+	(exist)->next = __new_link; \
+	if(__new_link->next) __new_link->next->prev = __new_link; \
+	if((list)->tail == (exist)) (list)->tail = __new_link; \
+	__new_link->prop = x; \
 } while(0);
 
 
