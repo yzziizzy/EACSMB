@@ -409,60 +409,27 @@ void main(void) {
 	int texIndex = texture(sData, vec3(t_tile.xy, 0)).x;
 	vec4 t = texture(sTextures, vec3(texCoord.xy * 64, texIndex));
 
-	int ti_10 = textureOffset(sData, vec3(t_tile.xy, 0), ivec2(1,0)).x;
 	int ti_n10 = textureOffset(sData, vec3(t_tile.xy, 0), ivec2(-1,0)).x;
-	int ti_01 = textureOffset(sData, vec3(t_tile.xy, 0), ivec2(0,1)).x;
 	int ti_0n1 = textureOffset(sData, vec3(t_tile.xy, 0), ivec2(0,-1)).x;
+	int ti_n1n1 = textureOffset(sData, vec3(t_tile.xy, 0), ivec2(-1,-1)).x;
 	
-	//tc = vec4(ftile,0,0);
-	
-	vec4 t_10 = texture(sTextures, vec3(texCoord.xy * 64, ti_10));
 	vec4 t_n10 = texture(sTextures, vec3(texCoord.xy * 64, ti_n10));
-	vec4 t_01 = texture(sTextures, vec3(texCoord.xy * 64, ti_01));
 	vec4 t_0n1 = texture(sTextures, vec3(texCoord.xy * 64, ti_0n1));
+	vec4 t_n1n1 = texture(sTextures, vec3(texCoord.xy * 64, ti_n1n1));
 	
-	float a = .1;
+	float a = .2;
 	
 	
-	 
-	
-	float xpw = smoothstep(1.0-a, 1.0, ftile.x); 
-	float xmw = smoothstep(0.0, a, ftile.x); 
-	
-	float ypw = smoothstep(1.0-a, 1.0, ftile.y); 
+	float xmw = smoothstep(0.0, a, ftile.x); 	
 	float ymw = smoothstep(0.0, a, ftile.y); 
  
 	
-// 	vec4 tcx = mix(t_10, t, 1 - smoothstep(1.0-a, 1.0, ftile.x)) * xpw +
-// 		mix(t_n10, t, 1 - smoothstep(0.0, a, ftile.x)) * (1-xmw);
-// 
-// 	
-// 	vec4 tcy = mix(t_01, t, 1 - smoothstep(1.0-a, 1.0, ftile.y)) * ypw +
-// 		mix(t_0n1, t, 1 - smoothstep(0.0, a, ftile.y)) * (1-ymw);
-		
-// 	tc = vec4(1,0,0,0);
-
-//	tc = min(min(1-ypw, ymw), min(1-xpw, xmw)) * t; // + t_10 * xpw + t_n10 * xmw;
+	// last working set
 	tc = min(xmw, ymw) * t; // + t_10 * xpw + t_n10 * xmw;
+	tc += ymw * (1-smoothstep(0.0, a, ftile.x)) * t_n10;
+ 	tc += xmw * (1-smoothstep(0.0, a, ftile.y)) * t_0n1;
+	tc += (1-smoothstep(0.0, a, max(ftile.y,ftile.x))) * t_n1n1;
 	
-	tc += min(/*1-ypw*/99, ymw) * (1-smoothstep(0.0, a, ftile.x)) * t_n10;
-	tc += min(/*1-xpw*/999, xmw) * (1-smoothstep(0.0, a, ftile.y)) * t_0n1;
-  	//tc += min(1-ypw, ymw) * xmw * t_n10;
-// 	tc += min(1-ypw, ymw) * (((xpw/2) + .1)) * t_10;
-//  	tc += min(1-ypw, ymw) * ((((1-xmw)/2) - .1)) * t_n10;
-// 	tc += min(1-xpw, xmw) * ypw * t_01;
-// 	tc += min(1-xpw, xmw) * (1-ymw) * t_0n1;
-	
-	//tc = mix(
-	//	mix(t_10, t, 1 - smoothstep(1.0-a, 1.0, ftile.x)),
-	//	mix(t_10, t, 1-  smoothstep(0.0, a, ftile.x)),
-	//	smoothstep(0.0, a, ftile.y)
-	//);
-	
-	
-	//tc = vec4(texIndex * 100);
-//  	vec4 tc = vec4(texture(sMap, vec3(texCoord, 1)).rgb * 128, 1.0);
- 	
  	// "in cursor"
  	bool incx = t_tile.x > cursorPos.x && t_tile.x < cursorPos.x + UNIT;
  	bool incy = t_tile.y > cursorPos.y && t_tile.y < cursorPos.y + UNIT;

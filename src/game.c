@@ -135,7 +135,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	gs->sunSpeed = 0;
 	gs->sunTheta = 4;
 	
-	gs->nearClipPlane = 3;
+	gs->nearClipPlane = .5;
 	gs->farClipPlane = 1700;
 
 	
@@ -221,10 +221,10 @@ void initGame(XStuff* xs, GameState* gs) {
 // 	msPerspective(60, 1.0, 01000.0f, 100000.0f, proj);
 // 		msOrtho(0, 1, 0, 1, .01, 100000, proj);
 
-	gs->zoom = -760.0;
+	gs->zoom = -10.0;
 	gs->direction = 0.0f;
-	gs->lookCenter.x = 128;
-	gs->lookCenter.y = 128;
+	gs->lookCenter.x = 428;
+	gs->lookCenter.y = 428;
 	
 	
 	
@@ -467,7 +467,7 @@ static void main_perframe_handler(InputState* is, float frameSpan, GameState* gs
 	// zoom
 	if(is->keyState[52] & IS_KEYDOWN) {
 		gs->zoom += keyZoom;
- 		gs->zoom = fmin(gs->zoom, -10.0);
+ 		gs->zoom = fmin(gs->zoom, -2.0);
 		gs->hasMoved = 1;
 	}
 	if(is->keyState[53] & IS_KEYDOWN) {
@@ -476,7 +476,7 @@ static void main_perframe_handler(InputState* is, float frameSpan, GameState* gs
 	}
 	if(is->clickButton == 4) {
 		gs->zoom += mouseZoom;
- 		gs->zoom = fmin(gs->zoom, -10.0);
+ 		gs->zoom = fmin(gs->zoom, -2.0);
 		gs->hasMoved = 1;
 	}
 	if(is->clickButton == 5) {
@@ -521,7 +521,8 @@ static void main_perframe_handler(InputState* is, float frameSpan, GameState* gs
 		printf("near: %f, far: %f\n", gs->nearClipPlane, gs->farClipPlane);
 	}
 	if(is->keyState[115] & IS_KEYDOWN) {
-		gs->nearClipPlane -= fmax(50 * te, 0.1);
+		gs->nearClipPlane -= 50 * te;
+		gs->nearClipPlane = fmax(gs->nearClipPlane, 0.1);
 		printf("near: %f, far: %f\n", gs->nearClipPlane, gs->farClipPlane);
 	}
 	if(is->keyState[112] & IS_KEYDOWN) {

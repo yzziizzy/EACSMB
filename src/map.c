@@ -350,7 +350,7 @@ void initTerrainBlock(MapBlock* mb, int cx, int cy) {
 
 
 
-void updateMapTextures(MapInfo* mi) { return;
+void updateMapTextures(MapInfo* mi) {
 	if(!mi->tex) {
 		
 		glGenTextures(1, &mi->tex);
