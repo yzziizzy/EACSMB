@@ -34,6 +34,7 @@ eacsmb_SOURCES = main.c \
 	MurmurHash3.c \
 	objloader.c \
 	opensimplex.c \
+	ordered_hash.c \
 	pass.c \
 	path.c \
 	pcBuffer.c \

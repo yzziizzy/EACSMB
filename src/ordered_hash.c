@@ -123,28 +123,45 @@ static int64_t find_bucket(OHashTable* obj, uint64_t hash, char* key) {
 // should always be called with a power of two
 int OHT_resize(OHashTable* obj, int newSize) {
 	struct ordered_hash_bucket* old, *op;
-	size_t oldlen = obj->alloc_size;
-	int64_t i, n, bi;
+	int64_t bi, ci;
+	uint32_t old_tail = obj->tail;
+	int64_t prev = -1;
 	
-	old = op = obj->buckets;
+	old = obj->buckets;
 	
 	obj->alloc_size = newSize;
 	obj->buckets = calloc(1, sizeof(*obj->buckets) * newSize);
 	if(!obj->buckets) return 1;
 	
-	for(i = 0, n = 0; i < oldlen && n < obj->fill; i++) {
-		if(op->key == NULL) continue;
-		
+	
+	ci = obj->head;
+	do {
+		// insert the item
+		op = &old[ci];
 		bi = find_bucket(obj, op->hash, op->key);
+		
 		obj->buckets[bi].value = op->value;
 		obj->buckets[bi].hash = op->hash;
 		obj->buckets[bi].key = op->key;
 		
-		// TODO: fix ordering
+		
+		if(prev == -1) {
+			obj->buckets[bi].prev = 0;
+			obj->head = bi;
+		}
+		else {
+			obj->buckets[prev].next = bi;
+			obj->buckets[bi].prev = prev;
+		}
+		obj->buckets[bi].prev ;
 		
 		
-		n++;
-	}
+		prev = bi;
+		ci = old[ci].next;
+	} while(ci != old_tail);
+	
+	
+	obj->tail = prev;
 	
 	free(old);
 	
@@ -239,7 +256,7 @@ int OHT_delete(OHashTable* obj, char* key) {
 	//   
 	
 	// nothing to delete, bail early
-	if(obj->buckets[bi].key == NULL) return;
+	if(obj->buckets[bi].key == NULL) return 0;
 	
 	//
 	empty_bi = bi;
