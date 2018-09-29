@@ -44,7 +44,7 @@ void erode(MapLayer* input, float strength) {
 
 
 
-void Mapgen_v1(MapLayer* ml) {
+void Mapgen_v1(MapLayer* ml, MapLayer* surface) {
 	
 	int x, y;
 	//FILE* f;
@@ -60,7 +60,7 @@ void Mapgen_v1(MapLayer* ml) {
 	
 	
 	
-	
+	//printf("-------------%d, %d\n", ml->w, ml->h);
 	
 
 	OpenSimplexNoise osn;
@@ -98,14 +98,16 @@ void Mapgen_v1(MapLayer* ml) {
 			ff *= 1.5;
 			//float fff = ff * ff;
 			//ml->data.f[x + (y * ml->w)] = pow(ff, 4); // make it super steep
-			ml->data.f[x + (y * ml->w)] = pow(ff, 2.2);
+			float h = pow(ff, 3.1);
+		//	h = x % 2 ? 0.0 : 50.0;
+			ml->data.f[x + (y * ml->w)] = h;
+// 			printf("%f\n", h);
+			surface->data.uc[x + (y * ml->w)] = h > 30 ? 2 : 0;
 		}
 	}
 	
+	
 	free(data);
-	
-	
-	
 }
 
 

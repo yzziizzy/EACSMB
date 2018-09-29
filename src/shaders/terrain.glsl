@@ -197,22 +197,22 @@ void main() {
 		float f3 = clamp(distance(w2, w3) * lod, 1, 64);
 	
 
-		gl_TessLevelOuter[0] = 4; 
-		gl_TessLevelOuter[1] = 4; 
-		gl_TessLevelOuter[2] = 4; 
-		gl_TessLevelOuter[3] = 4;
-	
-		gl_TessLevelInner[0] = 4;
-		gl_TessLevelInner[1] = 4;
-
-// 		
-// 		gl_TessLevelOuter[0] = f0; 
-// 		gl_TessLevelOuter[1] = f1; 
-// 		gl_TessLevelOuter[2] = f2; 
-// 		gl_TessLevelOuter[3] = f3;
+// 		gl_TessLevelOuter[0] = 4; 
+// 		gl_TessLevelOuter[1] = 4; 
+// 		gl_TessLevelOuter[2] = 4; 
+// 		gl_TessLevelOuter[3] = 4;
 // 	
-// 		gl_TessLevelInner[0] = mix(f1, f2, 0.5);
-// 		gl_TessLevelInner[1] = mix(f2, f3, 0.5);
+// 		gl_TessLevelInner[0] = 4;
+// 		gl_TessLevelInner[1] = 4;
+
+		
+		gl_TessLevelOuter[0] = f0; 
+		gl_TessLevelOuter[1] = f1; 
+		gl_TessLevelOuter[2] = f2; 
+		gl_TessLevelOuter[3] = f3;
+	
+		gl_TessLevelInner[0] = mix(f1, f2, 0.5);
+		gl_TessLevelInner[1] = mix(f2, f3, 0.5);
 		
 	}
 		

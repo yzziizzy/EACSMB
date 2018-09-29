@@ -421,24 +421,51 @@ void updateMapTextures(MapInfo* mi) {
 }
 
 
+
+
+void Map_updateSurfaceTextures(MapInfo* mi) {
+	
+	MapLayer* ml_surface = MapBlock_GetLayer(mi->block, "surface");
+	if(!ml_surface) return; 
+	
+	if(glGenBindTexture(&mi->tex, GL_TEXTURE_2D_ARRAY)) {
+		
+		texParams2D(GL_TEXTURE_2D_ARRAY, GL_NEAREST, GL_CLAMP_TO_EDGE);
+		
+		// squash the data in
+		glPixelStorei(GL_PACK_ALIGNMENT, 1);
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+		
+		glTexStorage3D(GL_TEXTURE_2D_ARRAY,
+			1,  // mips, flat
+			GL_R8UI,
+			ml_surface->w, ml_surface->h,
+			2); // layers
+		
+		glexit("failed to create map textures");
+	}
+	
+	glTexSubImage3D(GL_TEXTURE_2D_ARRAY, // target
+		0,  // mip level, 0 = base, no mipmap,
+		0, 0, 0,// offset
+		ml_surface->w, ml_surface->h, 1,
+		GL_RED_INTEGER,  // format
+		GL_UNSIGNED_BYTE, // input type
+		ml_surface->data.uc);
+	
+	glexit("");
+}
+
+
+
 void updateTerrainTexture(MapInfo* mi) {
 	int x, y, i;
 	MapLayer* ml = mi->block->terrain;
 	
 	
-	if(!mi->terrainTex) {
+	if(glGenBindTexture(&mi->terrainTex, GL_TEXTURE_2D_ARRAY)) {
 		
-		glGenTextures(1, &mi->terrainTex);
-		glBindTexture(GL_TEXTURE_2D_ARRAY, mi->terrainTex);
-		glexit("failed to create map textures b");
-		
-		glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		
-		glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-// 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-		glexit("failed to create map textures a");
+		texParams2D(GL_TEXTURE_2D_ARRAY, GL_NEAREST, GL_CLAMP_TO_EDGE);
 		
 		// squash the data in
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
@@ -451,12 +478,7 @@ void updateTerrainTexture(MapInfo* mi) {
 			4); // layers: terrain, water 1&2, soil
 		
 		glexit("failed to create map textures");
-		printf("created terrain tex\n");
 	}
-	else {
-		glBindTexture(GL_TEXTURE_2D_ARRAY, mi->terrainTex);
-	}
-	glexit("");
 	/*
 	glTexSubImage3D(GL_TEXTURE_2D_ARRAY, // target
 		0,  // mip level, 0 = base, no mipmap,
@@ -472,12 +494,12 @@ void updateTerrainTexture(MapInfo* mi) {
 printf("loading terrain data\n");
 //printf("fix me %s:%d\n", __FILE__, __LINE__);
 	
-	if(!ml->data.f) ml->data.f = calloc(1, sizeof(float) * ml->w * ml->h);
-
-	for(int y = 0; y < ml->h; y++)
-	for(int x = 0; x < ml->w; x++) {
-		ml->data.f[x + (y * ml->w)] = 0;
-	}
+// 	if(!ml->data.f) ml->data.f = calloc(1, sizeof(float) * ml->w * ml->h);
+// 
+// 	for(int y = 0; y < ml->h; y++)
+// 	for(int x = 0; x < ml->w; x++) {
+// 		ml->data.f[x + (y * ml->w)] = 0;
+// 	}
 
 
 
@@ -547,6 +569,10 @@ static void bindTerrainTextures(MapInfo* mi) {
 	glBindTexture(GL_TEXTURE_2D_ARRAY, mi->tm->tex_id);
 	GLuint texul = glGetUniformLocation(terrProg->id, "sTextures");
 	glProgramUniform1i(terrProg->id, texul, 22);
+	
+	
+	//MapBlock_GetLayer(mi->block, "surface");
+	
 	
 	//glActiveTexture(GL_TEXTURE0 + 22);
 	//glBindTexture(GL_TEXTURE_2D, cnoise->tex_id);
@@ -1171,45 +1197,11 @@ MapLayer* MapBlock_GetLayer(MapBlock* mb, char* name) {
 
 
 
-void MapLayer_GenTerrain(MapLayer* ml) {
+void MapLayer_GenTerrain(MapLayer* ml, MapLayer* surface) {
 	int x, y;
 	FILE* f;
 	
-	Mapgen_v1(ml);
-	
-	return;
-
-	OpenSimplexNoise osn;
-	OpenSimplex_init(&osn, 6456, 512, 512);
-	
-	OpenSimplexOctave octs[] = {
-		{2, 1.0},
-		{4, 0.9},
-		{8, 0.7},
-		{16, 0.2},
-		{32, 0.05},
-		{-1, -1}
-	};
-	OpenSimplexParams params = {
-		ml->w, ml->h,
-		1024*512, 1024*512,
-		octs
-	};
-	
-	float* data = OpenSimplex_GenNoise2D(&osn, &params);
-	
-	ml->data.f = malloc(sizeof(*ml->data.f) * ml->w * ml->h);
-	
-	for(y = 0; y < ml->h ; y++) {
-		for(x = 0; x < ml->w ; x++) {
-			float f = data[x + (y * ml->w)];
-			float ff = fabs(1-f);
-			float fff = ff * ff;
-			ml->data.f[x + (y * ml->w)] = fff * 10;
-		}
-	}
-	
-	free(data);
+	Mapgen_v1(ml, surface);
 }
 
 
@@ -1286,17 +1278,17 @@ void MapInfo_Init(MapInfo* mi) {
 	
 	MapInfo_GenMesh(mi);
 	
-	// gen heightmap
-	MapLayer_GenTerrain(mi->block->terrain);
-	
-	MapGen_initWaterVelTex(mi); 
-
 	// does nothing atm
 	MapInfo_initLayerTextures(mi);
 	
+	// gen heightmap
+	MapLayer_GenTerrain(mi->block->terrain, surface);
+	MapGen_initWaterVelTex(mi); 
+	
+	Map_updateSurfaceTextures(mi);
 	updateTerrainTexture(mi);
 	
-	updateMapTextures(mi);
+// 	updateMapTextures(mi);
 	
 	int	x,y,i = 0;
 	for(y = 0; y < 8; y++) {

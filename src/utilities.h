@@ -121,6 +121,8 @@ int query_queue_try_result(QueryQueue* q, uint64_t* time);
 
 char* readFile(char* path, int* srcLen);
 
+int glGenBindTexture(GLuint* tex, GLenum type);
+void texParams2D(GLenum type, GLenum filter, GLenum wrap);
 
 
 typedef struct VAOConfig {

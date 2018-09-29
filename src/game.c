@@ -221,10 +221,10 @@ void initGame(XStuff* xs, GameState* gs) {
 // 	msPerspective(60, 1.0, 01000.0f, 100000.0f, proj);
 // 		msOrtho(0, 1, 0, 1, .01, 100000, proj);
 
-	gs->zoom = -10.0;
+	gs->zoom = -600.0;
 	gs->direction = 0.0f;
-	gs->lookCenter.x = 428;
-	gs->lookCenter.y = 428;
+	gs->lookCenter.x = 128;
+	gs->lookCenter.y = 128;
 	
 	
 	

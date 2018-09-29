@@ -133,6 +133,28 @@ char* readFile(char* path, int* srcLen) {
 }
 
 
+// convenience
+void texParams2D(GLenum type, GLenum filter, GLenum wrap) {
+	glTexParameterf(type, GL_TEXTURE_MIN_FILTER, filter);
+	glTexParameterf(type, GL_TEXTURE_MAG_FILTER, filter == GL_NEAREST ? GL_NEAREST : GL_LINEAR);
+	glTexParameterf(type, GL_TEXTURE_WRAP_S, wrap);
+	glTexParameterf(type, GL_TEXTURE_WRAP_T, wrap);
+	glexit("");
+}
+
+// returns 1 if the tex was created
+int glGenBindTexture(GLuint* tex, GLenum type) {
+	int new = 0;
+	if(!*tex) {
+		glGenTextures(1, tex);
+		new = 1;
+	}
+	glBindTexture(GL_TEXTURE_2D_ARRAY, *tex);
+	
+	return new;
+}
+
+
 static int attrib_type_size(GLenum t) {
 	switch(t) {
 		case GL_DOUBLE: 

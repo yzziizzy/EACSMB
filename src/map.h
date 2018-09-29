@@ -235,13 +235,14 @@ void saveMapBlock(FILE* f, MapBlock* mb);
 MapBlock* loadMapBlock(FILE* f);
 
 void MapInfo_initLayerTextures(MapInfo*mi);
+void Map_updateSurfaceTextures(MapInfo* mi);
 
 
 void MapLayer_Fill(MapLayer* ml, float value);
 void MapLayer_FillUChar(MapLayer* ml, unsigned char value);
 int MapBlock_AddLayer(MapBlock* mb, char* name, int scale, char type);
 MapLayer* MapBlock_GetLayer(MapBlock* mb, char* name);
-void MapLayer_GenTerrain(MapLayer* ml);
+void MapLayer_GenTerrain(MapLayer* ml, MapLayer* surface);
 MapLayer* MapLayer_Alloc(Vector2i size, float scale);
 void MapLayer_init(MapLayer* ml, Vector2i size, float scale);
 void MapInfo_Init(MapInfo* mi);
@@ -264,7 +265,7 @@ float Map_getTerrainHeight(MapInfo* mi, Vector2i p);
 float Map_getTerrainHeightf(MapInfo* mi, Vector2 p);
 float Map_getTerrainHeight3f(MapInfo* mi, Vector p);
 
-void Mapgen_v1(MapLayer* ml);
+void Mapgen_v1(MapLayer* ml, MapLayer* surface);
 void MapGen_water(MapInfo* mb, ShaderProgram* prog);
 void MapGen_erode(MapInfo* mb, ShaderProgram* prog);
 
