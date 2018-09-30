@@ -127,7 +127,7 @@ void* ComponentManager_get(ComponentManager* cm, uint32_t eid) {
 
 
 static inline void checkGrow(ComponentManager* cm, int increase) {
-	if(cm->compLen + increase > cm->compAlloc) grow(cm);
+	if(cm->compLen + increase > cm->compAlloc / cm->compElemSz) grow(cm);
 }
 
 
@@ -141,6 +141,8 @@ static void grow(ComponentManager* cm) {
 	
 	cm->compArray = p;
 	cm->compAlloc = newAlloc;
+	
+	printf("growing component manager: %d \n", newAlloc);
 }
 
 

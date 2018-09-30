@@ -13,6 +13,8 @@
 // temp?
 #include "building.h"
 
+#include "perlin.h"
+
 
 
 
@@ -181,15 +183,36 @@ void World_init(World* w) {
 	
 	/// hacks
 	
-	for(int i = 0; i < 0; i++) {
+	for(int i = 0; i < 50; i++) {
 		Vector v = {
-			.x = 10, //frand(0, 500),
-			.y = 10, //frand(0, 500),
+			.x = frand(0, 500),
+			.y = frand(0, 500),
 			.z = 30,
 		};
 		
 		//World_spawnAt_Item(w, "tree", &v);
-		World_spawnAt_DynamicMesh(w,  4, &v);
+		//World_spawnAt_DynamicMesh(w,  4, &v);
+	}
+	
+	for(int y = 0; y < 512; y+=2) {
+		for(int x = 0; x < 512; x+=2) {
+			Vector v = {
+				.x = x + frand(-2, 2),
+				.y = y + frand(-2, 2),
+				.z = 30,
+			};
+			
+			float f = fabs(PerlinNoise_2D((0 + x) / 512.0, (0 + y) / 512.0, .2, 6));
+			
+			//printf("f = %f\n", f);
+// 			if(f < -0.01) continue; 
+// 			if(frandNorm() < .5) continue;
+			if(f / frandNorm() < 1.8) continue;
+			
+			World_spawnAt_Item(w, "tree", &v);
+			
+			
+		}
 	}
 	
 	CustomDecal* cd = pcalloc(cd); 
@@ -348,7 +371,7 @@ int World_spawnAt_DynamicMesh(World* w, int dmIndex, Vector* location) {
 	};
 	CES_addComponentName(&w->gs->ces, "rotation", eid, &r);
 	
-	float av = frand(-2, 2);
+	float av = 0;//frand(-2, 2);
 	CES_addComponentName(&w->gs->ces, "angularVelocity", eid, &av);
 	
 	C_PathFollow pf = {
