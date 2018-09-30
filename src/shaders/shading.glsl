@@ -72,6 +72,8 @@ void main() {
 		// --------------------------------
 		// pos is in world coordinates now
 		
+		vec3 pos_vw = (vec4(pos, 1) * mWorldView).xyz;
+		
 		//vec3 pos_vw = (vec4(pos, 1) * mWorldView).xyz;
 		
 		
@@ -79,11 +81,13 @@ void main() {
 		// world space
 // 		vec3 viewpos = (inverse(mViewProj * mWorldView) * vec4(0,0,0,1)).xyz;
 		vec3 viewpos = (invVP * vec4(0,0,0,1)).xyz;
-		//vec3 viewpos_v = (inverse(mWorldView) * vec4(0,0,0,1)).xyz;
+		
+		vec3 viewpos_v = (inverse(mWorldView) * vec4(0,0,0,1)).xyz;
 		
 		//vec3 viewdir = normalize(viewpos - pos);
 		// world space
 		vec3 viewdir = normalize((invVP * vec4(0,0,1,1)).xyz);
+		vec3 viewdir_v = normalize((inverse(mViewProj) * vec4(0,0,1,1)).xyz);
 		
 		//normal = (mWorldView * vec4(normal, 1)).xyz;
 		
@@ -92,11 +96,18 @@ void main() {
 		
 		// world space
 		vec3 sundir = normalize((vec4(sunNormal, 1)).xyz); //normalize(vec3(3,3,3));
-		//vec3 sundir_v = mWorldView * vec4(normalize(sunNormal), 1)).xyz; //normalize(vec3(3,3,3));
+		vec3 sundir_v = normalize((mWorldView * vec4(normalize(sunNormal), 1)).xyz); //normalize(vec3(3,3,3));
+		
+		
+		pos = pos_vw;
+		viewpos = viewpos_v;
+		viewdir = viewdir_v;
+		sundir = sundir_v;
+		
 		
 		float lambertian = max(dot(sundir, normal), 0.0);
 		
-		vec3 sunRefl = reflect(sundir, normal);
+		vec3 sunRefl = reflect(sundir, -normal);
 		vec3 posToCam = normalize(viewpos - pos); 
 		
 		float specAngle = max(dot(posToCam, sunRefl), 0.0);
@@ -113,7 +124,7 @@ void main() {
 		if(length(normal) < 1.01) { // things with normals get directional lighting
 			colorOut = vec3(
 				ambient  
-				 + (((lambertian * .7) + light) * diffuseColor)
+				+ (((lambertian * .7) + light) * diffuseColor)
 				+ (specular * specColor)
 			);
 		}

@@ -36,7 +36,7 @@ void main() {
 //	pos += vec4(i_pos_scale_in.xyz, 0);
 	
 	gl_Position = (mViewProj * mWorldView * i_mat_in) * (pos);// * i_scale_in;
-	vs_norm = v_norm_in; // normalize(vec4(1,1,1,0));
+	vs_norm = (vec4(v_norm_in, 1.0) * i_mat_in).xyz; // normalize(vec4(1,1,1,0));
 	vs_tex = v_tex_in;
 	vs_alpha = 1.0;//i_alpha_in.x;
 	vs_tex_indices = i_tex_in;
@@ -58,6 +58,10 @@ flat in ivec2 vs_tex_indices;
 // fragment shader
 uniform sampler2DArray sTexture;
 
+
+uniform mat4 mWorldView;
+uniform mat4 mViewProj;
+
 layout(location = 0) out vec4 out_Color;
 layout(location = 1) out vec4 out_Normal;
 
@@ -69,7 +73,8 @@ void main(void) {
 	if(tex.a < 0.1) discard;
 	
 	out_Color = tex * vec4(1,1,1, vs_alpha);//vs_norm;
-	//vec4 norm = normalize(mWorldView * vec4(vs_norm.xzy, 1));
+// 	vec4 norm = normalize(mModelWorld * vec4(vs_norm.xzy, 1));
+// 	out_Normal = vec4((norm.xyz * .5) + .5, 1);
 	out_Normal = vec4((vs_norm.xyz * .5) + .5, 1);
 }
 

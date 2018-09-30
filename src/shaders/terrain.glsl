@@ -351,6 +351,9 @@ uniform sampler2DArray sTextures;
 uniform sampler2DArray sHeightMap;
 uniform isampler2DArray sData;
 
+uniform mat4 mWorldView;
+uniform mat4 mViewProj;
+
 uniform int waterIndex;
 const int win = 1 + waterIndex;
 const int wout = 2 - waterIndex;
@@ -453,7 +456,10 @@ void main(void) {
 	
 //	out_Selection = vec4(floor(t_tile.x) / 256, floor(t_tile.y) / 256, ps_InstanceID, 1);
 //	out_Normal = vec4(normalize(vec3((te_normal.x + 1) / 2, (te_normal.z + 1) / 2, (te_normal.y + 1) / 2)), 1);
-	out_Normal = vec4(te_normal.xyz * .5 + .5, 1.0);
+	
+	// normals need to be in view space
+	vec3 norm = (te_normal * inverse(mWorldView)).xzy;
+	out_Normal = vec4(norm * .5 + .5, 1.0);
 //	out_Normal = vec4(normalize(vec3(0,1,0)),1);
 	
 	/*
