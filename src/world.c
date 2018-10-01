@@ -183,16 +183,16 @@ void World_init(World* w) {
 	
 	/// hacks
 	
-	for(int i = 0; i < 50; i++) {
-		Vector v = {
-			.x = frand(0, 500),
-			.y = frand(0, 500),
-			.z = 30,
-		};
-		
-		//World_spawnAt_Item(w, "tree", &v);
-		//World_spawnAt_DynamicMesh(w,  4, &v);
-	}
+// 	for(int i = 0; i < 50; i++) {
+// 		Vector v = {
+// 			.x = frand(0, 500),
+// 			.y = frand(0, 500),
+// 			.z = 30,
+// 		};
+// 		
+// 		//World_spawnAt_Item(w, "tree", &v);
+// 		//World_spawnAt_DynamicMesh(w,  4, &v);
+// 	}
 	
 	for(int y = 0; y < 512; y+=2) {
 		for(int x = 0; x < 512; x+=2) {
@@ -248,7 +248,7 @@ void World_init(World* w) {
 	
 	
 	
-	World_spawnAt_CustomDecal(w, 0, 50, &(Vector2){100, 100}, &(Vector2){300, 300});
+	World_spawnAt_CustomDecal(w, 0, 1, &(Vector2){100, 100}, &(Vector2){300, 300});
 
 	
 }

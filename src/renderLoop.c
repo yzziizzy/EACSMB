@@ -356,9 +356,9 @@ void renderFrame(XStuff* xs, GameState* gs, InputState* is, PassFrameParams* pfp
 	// draw terrain
 // 	drawTerrainBlock(&gs->map, msGetTop(&gs->model), msGetTop(&gs->view), msGetTop(&gs->proj), &gs->cursorPos);
 	//drawTerrain(&gs->scene.map, &gs->perViewUB, &gs->cursorPos, &gs->screen.wh);
-	query_queue_start(&gs->queries.terrain);
-	World_drawTerrain(gs->world, pfp);
-	query_queue_stop(&gs->queries.terrain);
+// 	query_queue_start(&gs->queries.terrain);
+// 	World_drawTerrain(gs->world, pfp);
+// 	query_queue_stop(&gs->queries.terrain);
 	//renderMarker(gs, 0,0);
 
 	query_queue_start(&gs->queries.solids);
@@ -498,25 +498,39 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	glBindFramebuffer(GL_FRAMEBUFFER, gs->gbuf.fb);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
-	// clear color buffer for actual rendering
-	//glClear(GL_COLOR_BUFFER_BIT);
 	glDepthFunc(GL_LEQUAL);
 	
-	renderFrame(xs, gs, is, &pfp);
-	//query_queue_stop(&gs->queries.draw);
+	// terrain
+	query_queue_start(&gs->queries.terrain);
+	World_drawTerrain(gs->world, &pfp);
+	query_queue_stop(&gs->queries.terrain);
+	
+	
 	
 	// decals
 	glBindFramebuffer(GL_FRAMEBUFFER, gs->decalbuf.fb);
-	
 	glDepthMask(GL_FALSE); // disable depth writes for decals
 	
 	// hack
 	gs->world->dm->dtex = gs->depthTexBuffer;
 	gs->world->cdm->dtex = gs->depthTexBuffer;
-
 	
 	renderDecals(xs, gs, is, &pfp);
+	
+	
+	// back to normal gbuf for solids
+	glBindFramebuffer(GL_FRAMEBUFFER, gs->gbuf.fb);
+	glDepthFunc(GL_LEQUAL);
+	
+	query_queue_start(&gs->queries.solids);
+	World_drawSolids(gs->world, &pfp);
+	query_queue_stop(&gs->queries.solids);
+	
+	
+	//renderFrame(xs, gs, is, &pfp);
+	//query_queue_stop(&gs->queries.draw);
+	
+
 	
 	
 	query_queue_start(&gs->queries.emitters);
