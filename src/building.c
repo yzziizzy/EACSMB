@@ -46,21 +46,26 @@ void Building_extrudeOutline(Building* b, BuildingOutline* o) {
 		Vector2* prev = &LIST_PREV_LOOP(&o->points, p)->point;
 		Vector2* next = &LIST_NEXT_LOOP(&o->points, p)->point;
 		
+	//	Vector norm;
+	//	vSub2()
+	//	vCross(&(Vector){} &norm)
+		
 		// TODO: fix normals
 		VEC_PUSH(&b->vertices, ((Vertex_PNT){ 
 			p: {p->point.x, p->point.y, o->h_offset},
-			n: {0,0,0},
+			n: {1,0,0},
 			t: {u: tdist, v: 0},
 		}));
 		
 		// two vertices for hard creases
 		VEC_PUSH(&b->vertices, ((Vertex_PNT){ 
 			p: {next->x, next->y, o->h_offset},
-			n: {0,0,0},
+			n: {1,0,0},
 			t: {u: tdist, v: 0},
 		}));
 		
-		tdist += vDist2(&p, next);
+		tdist += vDist2(&p->point, next) / 50; // HACK: voodoo
+		//printf("tdist - %f\n", tdist);
 		i++;
 	}
 	
@@ -79,7 +84,7 @@ void Building_extrudeOutline(Building* b, BuildingOutline* o) {
 		VEC_PUSH(&b->vertices, ((Vertex_PNT){ 
 			p: {p1->p.x, p1->p.y, o->h_offset + height},
 			n: p1->n,
-			t: {u: p1->t.u, v: 1},
+			t: {u: p1->t.u, v: 1.0},
 		}));
 		
 // 	VEC_EACH(&b->vertices, i2, v) {
@@ -315,7 +320,7 @@ DynamicMesh* Building_CreateDynamicMesh(Building* b) {
 		dm->vertices[i] = (DynamicMeshVertex){
 			v:  v->p,
 			n:  v->n,
-			t: {v->t.u * 65536, v->t.v * 65536 },
+			t: {v->t.u * 65535, v->t.v * 65535 },
 		};
 		
 // 		printf("[%.2f, %.2f, %.2f] %d,%d \n", 

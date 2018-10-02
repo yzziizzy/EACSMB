@@ -72,7 +72,9 @@ void main(void) {
 	
 	if(tex.a < 0.1) discard;
 	
-	out_Color = tex * vec4(1,1,1, vs_alpha);//vs_norm;
+	out_Color = vec4(vs_tex, 0,1);//vs_norm;
+	//out_Color = tex * vec4(1,1,1, vs_alpha);//vs_norm;
+	
 // 	vec4 norm = normalize(mModelWorld * vec4(vs_norm.xzy, 1));
 // 	out_Normal = vec4((norm.xyz * .5) + .5, 1);
 	out_Normal = vec4((vs_norm.xyz * .5) + .5, 1);

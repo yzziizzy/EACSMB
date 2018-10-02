@@ -349,31 +349,6 @@ void selectionPass(XStuff* xs, GameState* gs, InputState* is) {
 
 
 
-void renderFrame(XStuff* xs, GameState* gs, InputState* is, PassFrameParams* pfp) {
-	
-
-	
-	// draw terrain
-// 	drawTerrainBlock(&gs->map, msGetTop(&gs->model), msGetTop(&gs->view), msGetTop(&gs->proj), &gs->cursorPos);
-	//drawTerrain(&gs->scene.map, &gs->perViewUB, &gs->cursorPos, &gs->screen.wh);
-// 	query_queue_start(&gs->queries.terrain);
-// 	World_drawTerrain(gs->world, pfp);
-// 	query_queue_stop(&gs->queries.terrain);
-	//renderMarker(gs, 0,0);
-
-	query_queue_start(&gs->queries.solids);
-	World_drawSolids(gs->world, pfp);
-	query_queue_stop(&gs->queries.solids);
-	
-	//drawStaticMesh(gs->world->testmesh.sm, msGetTop(&gs->view), msGetTop(&gs->proj));
-	
-/*
-	gui_RenderAll(gs);
-	*/
-
-}
-
-
 void renderDecals(XStuff* xs, GameState* gs, InputState* is, PassFrameParams* pfp) {
 	/*
 	glActiveTexture(GL_TEXTURE0 + 8);
@@ -414,7 +389,7 @@ void SetUpPDP(GameState* gs, PassDrawParams* pdp) {
 	
 	pdp->eyeVec = gs->eyeDir;
 	pdp->eyePos = gs->eyePos;
-	pdp->targetSize = (Vector2i){800, 800};	
+	pdp->targetSize = (Vector2i){800, 800};
 	pdp->timeSeconds = (float)(long)gs->frameTime;
 	pdp->timeFractional = gs->frameTime - pdp->timeSeconds;
 	
@@ -520,6 +495,7 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	// back to normal gbuf for solids
 	glBindFramebuffer(GL_FRAMEBUFFER, gs->gbuf.fb);
+	glDepthMask(GL_TRUE); // turn depth writes back on
 	glDepthFunc(GL_LEQUAL);
 	
 	query_queue_start(&gs->queries.solids);
