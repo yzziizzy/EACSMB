@@ -29,6 +29,7 @@ out vec2 vs_tex;
 out float vs_alpha;
 flat out ivec2 vs_tex_indices;
 
+
 void main() {
 	vec4 pos = vec4(v_pos_in, 1.0);
 //	pos *= rotationMatrix(i_dir_rot_in.xyz, i_dir_rot_in.w);
@@ -36,7 +37,16 @@ void main() {
 //	pos += vec4(i_pos_scale_in.xyz, 0);
 	
 	gl_Position = (mViewProj * mWorldView * i_mat_in) * (pos);// * i_scale_in;
-	vs_norm = (vec4(v_norm_in, 1.0) * i_mat_in).xyz; // normalize(vec4(1,1,1,0));
+
+	// erase translation from the matrix.
+	mat4 norm_mat = i_mat_in;
+	norm_mat[3][0] = 0;
+	norm_mat[3][1] = 0;
+	norm_mat[3][2] = 0;
+	
+// 	vs_norm = normalize((i_mat_in * vec4(v_norm_in, 1.0)).xyz);
+	vs_norm = normalize((norm_mat * vec4(v_norm_in, 1.0)).xyz);
+
 	vs_tex = v_tex_in;
 	vs_alpha = 1.0;//i_alpha_in.x;
 	vs_tex_indices = i_tex_in;
@@ -72,11 +82,7 @@ void main(void) {
 	
 	if(tex.a < 0.1) discard;
 	
-	out_Color = vec4(vs_tex, 0,1);//vs_norm;
-	//out_Color = tex * vec4(1,1,1, vs_alpha);//vs_norm;
-	
-// 	vec4 norm = normalize(mModelWorld * vec4(vs_norm.xzy, 1));
-// 	out_Normal = vec4((norm.xyz * .5) + .5, 1);
-	out_Normal = vec4((vs_norm.xyz * .5) + .5, 1);
+	out_Color = vec4(tex.rgb, 1);//vs_norm;
+ 	out_Normal = vec4((vs_norm.xyz * .5) + .5, 1);
 }
 

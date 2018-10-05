@@ -304,7 +304,7 @@ void main(void){
 	float sx = (xp1 - xm1);
 	float sy = (yp1 - ym1);
 
-	te_normal = vec4(normalize(vec3(sx, sy, 1.0)), 1);
+	te_normal = vec4(normalize(vec3(-sx, sy, 1.0)), 1);
 	//te_normal = vec4(normalize(vec3(0,0,1)), 1.0);
 
 	tmp.z = t; // .01 *  sin(gl_TessCoord.y*12) + .01 *sin(gl_TessCoord.x*12);
@@ -455,12 +455,9 @@ void main(void) {
 	*/
 	
 //	out_Selection = vec4(floor(t_tile.x) / 256, floor(t_tile.y) / 256, ps_InstanceID, 1);
-//	out_Normal = vec4(normalize(vec3((te_normal.x + 1) / 2, (te_normal.z + 1) / 2, (te_normal.y + 1) / 2)), 1);
 	
-	// normals need to be in view space
-	vec3 norm = (te_normal * inverse(mWorldView)).xzy;
-	out_Normal = vec4(norm * .5 + .5, 1.0);
-//	out_Normal = vec4(normalize(vec3(0,1,0)),1);
+	// normals need to be in world space
+	out_Normal = vec4((te_normal.xyz * .5) + .5, 1.0);
 	
 	/*
 	if(wlevel > 4.7) {

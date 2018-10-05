@@ -133,7 +133,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	
 	gs->debugMode = 0;
 	gs->sunSpeed = 0;
-	gs->sunTheta = 4;
+	gs->sunTheta = 3.9;
 	
 	gs->nearClipPlane = .5;
 	gs->farClipPlane = 1700;
@@ -532,6 +532,17 @@ static void main_perframe_handler(InputState* is, float frameSpan, GameState* gs
 	if(is->keyState[117] & IS_KEYDOWN) {
 		gs->farClipPlane -= 250 * te;
 		printf("near: %f, far: %f\n", gs->nearClipPlane, gs->farClipPlane);
+	}
+
+	if(is->keyState[24] & IS_KEYDOWN) {
+		gs->sunTheta -= 1 * te;
+		gs->sunTheta = fmod(gs->sunTheta, F_2PI);
+		printf("sunTheta: %f\n", gs->sunTheta);
+	}
+	if(is->keyState[25] & IS_KEYDOWN) {
+		gs->sunTheta += 1 * te;
+		gs->sunTheta = fmod(gs->sunTheta, F_2PI);
+		printf("sunTheta: %f\n", gs->sunTheta);
 	}
 	
 }

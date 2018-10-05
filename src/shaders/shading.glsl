@@ -50,7 +50,7 @@ out vec4 FragColor;
 
 void main() {
 	vec2 tex = gl_FragCoord.xy / resolution.xy;
-	vec3 normal = texture(sNormals, tex).xyz * 2 - 1;
+	vec3 normal = (texture(sNormals, tex).xyz * 2.0) - 1.0;
 	
 	if(debugMode == 0) {
 		// normal rendering
@@ -87,7 +87,6 @@ void main() {
 		//vec3 viewdir = normalize(viewpos - pos);
 		// world space
 		vec3 viewdir = normalize((invVP * vec4(0,0,1,1)).xyz);
-		vec3 viewdir_v = normalize((inverse(mViewProj) * vec4(0,0,1,1)).xyz);
 		
 		//normal = (mWorldView * vec4(normal, 1)).xyz;
 		
@@ -95,14 +94,7 @@ void main() {
 		normal *= -1;
 		
 		// world space
-		vec3 sundir = normalize((vec4(sunNormal, 1)).xyz); //normalize(vec3(3,3,3));
-		vec3 sundir_v = normalize((mWorldView * vec4(normalize(sunNormal), 1)).xyz); //normalize(vec3(3,3,3));
-		
-		
-		pos = pos_vw;
-		viewpos = viewpos_v;
-		viewdir = viewdir_v;
-		sundir = sundir_v;
+		vec3 sundir = sunNormal;
 		
 		
 		float lambertian = max(dot(sundir, normal), 0.0);
@@ -111,10 +103,10 @@ void main() {
 		vec3 posToCam = normalize(viewpos - pos); 
 		
 		float specAngle = max(dot(posToCam, sunRefl), 0.0);
-		float specular = pow(specAngle, 8);
+		float specular = pow(specAngle, 32);
 
 		vec3 diffuseColor = texture(sDiffuse, tex).rgb;
-		vec3 specColor = vec3(1,1,1) * .5;//normalize(vec3(1,1,1));
+		vec3 specColor = vec3(1,1,1) * .1;//normalize(vec3(1,1,1));
 
 		vec3 ambient = vec3(0.1,0.1,0.1);
 		
@@ -136,16 +128,23 @@ void main() {
 		FragColor = vec4(pow(colorOut, vec3(1.1)), 1.0);
 		
 		
-		//FragColor = vec4(sundir * .5 + .5, 1.0);
-		
+	//	FragColor = vec4(sundir * .5 + .5, 1.0);
+	//	FragColor = vec4(lambertian * diffuseColor, 1.0);
+//		FragColor = vec4(vec3(dot(normalize(-sundir), normalize(normal))), 1.0);
+//		
 	}
 	else if(debugMode == 1) {
 		// diffuse
 		FragColor = vec4(texture(sDiffuse, tex).rgb,  1.0);
+		
+		vec3 sundir_v2 = normalize((mWorldView * vec4(sunNormal, 1)).xyz); //normalize(vec3(3,3,3));
+		FragColor = vec4(sundir_v2,  1.0);
+		
 	}
 	else if(debugMode == 2) {
 		// normals
-		FragColor = vec4(abs(texture(sNormals, tex).rgb * 2 - 1),  1.0);
+ 		FragColor = vec4(abs(texture(sNormals, tex).rgb * 2 - 1),  1.0);
+	//	FragColor = vec4(texture(sNormals, tex).rgb,  1.0);
 	}
 	else if(debugMode == 3) {
 		// depth
@@ -160,7 +159,7 @@ void main() {
 	}
 	else if(debugMode == 4) {
 		// selection buffer
-		FragColor = vec4(texture(sSelection, tex).rgb,  1.0);
+		FragColor = vec4(texture(sSelection, tex).rgb * 2 - 1,  1.0);
 	}
 	else if(debugMode == 5) {
 		// lighting buffer
