@@ -490,8 +490,10 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	gs->world->dm->dtex = gs->depthTexBuffer;
 	gs->world->cdm->dtex = gs->depthTexBuffer;
 	
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	renderDecals(xs, gs, is, &pfp);
-	
+	glDisable(GL_BLEND);
 	
 	// back to normal gbuf for solids
 	glBindFramebuffer(GL_FRAMEBUFFER, gs->gbuf.fb);
