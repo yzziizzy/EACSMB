@@ -46,21 +46,23 @@ void Building_extrudeOutline(Building* b, BuildingOutline* o) {
 		Vector2* prev = &LIST_PREV_LOOP(&o->points, p)->point;
 		Vector2* next = &LIST_NEXT_LOOP(&o->points, p)->point;
 		
-	//	Vector norm;
-	//	vSub2()
-	//	vCross(&(Vector){} &norm)
+		Vector norm, side;
+		
+		vSub(&(Vector){p->point.x, p->point.y, 0}, &(Vector){next->x, next->y, 0}, &side);
+		vCross(&(Vector){0,0,1}, &side, &norm);
+		
 		
 		// TODO: fix normals
 		VEC_PUSH(&b->vertices, ((Vertex_PNT){ 
 			p: {p->point.x, p->point.y, o->h_offset},
-			n: {1,0,0},
+			n: norm,
 			t: {u: tdist, v: 0},
 		}));
 		
 		// two vertices for hard creases
 		VEC_PUSH(&b->vertices, ((Vertex_PNT){ 
 			p: {next->x, next->y, o->h_offset},
-			n: {1,0,0},
+			n: norm,
 			t: {u: tdist, v: 0},
 		}));
 		
