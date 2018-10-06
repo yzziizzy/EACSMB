@@ -158,6 +158,7 @@ void World_init(World* w) {
 
 	// terrain pass
 	w->terrainPass = Map_CreateRenderPass(&w->map);
+	w->terrainSelectionPass = Map_CreateSelectionPass(&w->map);
 	
 	// solids pass
 	w->solidsPass = DynamicMeshManager_CreateRenderPass(w->dmm);

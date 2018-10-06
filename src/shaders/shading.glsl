@@ -136,10 +136,6 @@ void main() {
 	else if(debugMode == 1) {
 		// diffuse
 		FragColor = vec4(texture(sDiffuse, tex).rgb,  1.0);
-		
-		vec3 sundir_v2 = normalize((mWorldView * vec4(sunNormal, 1)).xyz); //normalize(vec3(3,3,3));
-		FragColor = vec4(sundir_v2,  1.0);
-		
 	}
 	else if(debugMode == 2) {
 		// normals
@@ -159,7 +155,7 @@ void main() {
 	}
 	else if(debugMode == 4) {
 		// selection buffer
-		FragColor = vec4(texture(sSelection, tex).rgb * 2 - 1,  1.0);
+		FragColor = vec4(texture(sSelection, tex).rgb,  1.0);
 	}
 	else if(debugMode == 5) {
 		// lighting buffer

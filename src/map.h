@@ -257,11 +257,13 @@ void Map_readConfigFile(MapInfo* map, char* path);
 
 RenderPass* Map_CreateRenderPass(MapInfo* m); 
 PassDrawable* Map_CreateDrawable(MapInfo* m);
+RenderPass* Map_CreateSelectionPass(MapInfo* m); 
 
 
 
 
-float Map_getTerrainHeight(MapInfo* mi, Vector2i p);
+float Map_getTerrainHeight(MapInfo* mi, Vector2i p);RenderPass* Map_CreateRenderPass(MapInfo* m); 
+
 float Map_getTerrainHeightf(MapInfo* mi, Vector2 p);
 float Map_getTerrainHeight3f(MapInfo* mi, Vector p);
 

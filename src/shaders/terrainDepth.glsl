@@ -4,9 +4,14 @@
 
 #version 430 core
 
-layout (location = 0) in vec3 pos_in;
+layout(std140) uniform; 
+
+// per vertex
+layout (location = 0) in vec2 pos_in;
 layout (location = 1) in vec2 tex_in;
-layout (location = 2) in vec2 tile_in;
+
+// per instance
+layout (location = 2) in vec2 block_in;
 
 uniform sampler2D sOffsetLookup;
 
@@ -18,12 +23,12 @@ out vec2 vs_tileOffset;
 
 void main() {
 	vs_tex = tex_in;
-	vs_tile = tile_in;
+	vs_tile = tex_in;
 	vs_InstanceID = gl_InstanceID;
 
-	vs_rawTileOffset = texelFetch(sOffsetLookup, ivec2(gl_InstanceID, 0), 0).rg; 
-	vs_tileOffset = vs_rawTileOffset * 255* 255;
-	gl_Position = vec4(pos_in.x + vs_tileOffset.r, pos_in.y + vs_tileOffset.g, pos_in.z, 1.0);
+// 	vs_rawTileOffset = texelFetch(sOffsetLookup, ivec2(gl_InstanceID, 0), 0).rg; 
+// 	vs_tileOffset = vs_rawTileOffset * 255* 255;
+	gl_Position = vec4(pos_in.x + block_in.x, pos_in.y + block_in.x, 0, 1.0);
 }
 
 
@@ -32,14 +37,15 @@ void main() {
 
 #version 430 core
 
+layout(std140) uniform; 
 
 layout (vertices = 4) out;
 
 
-uniform perViewData {
-	mat4 mView;
-	mat4 mProj;
-};
+uniform sampler2DArray sHeightMap;
+
+uniform mat4 mWorldView;
+uniform mat4 mViewProj;
 
 
 in vec2 vs_tex[];
@@ -82,16 +88,26 @@ bool insideQuad(vec2 t1, vec2 t2, vec2 t3, vec2 t4, vec2 p) {
 void main() {
  
 	if(gl_InvocationID == 0) {
-		mat4 mvp = mProj * mView;
-		vec4 w0 = mvp * gl_in[0].gl_Position;
-		vec4 w1 = mvp * gl_in[1].gl_Position;
-		vec4 w2 = mvp * gl_in[2].gl_Position;
-		vec4 w3 = mvp * gl_in[3].gl_Position;
+		mat4 mvp = mViewProj * mWorldView;
+
+		vec4 w0, w1, w2, w3;
+		
+		// this makes culling better, but still not completely correct
+		w0.z = texture(sHeightMap, vec3(vs_tile[0].xy, 0),0).r;
+		w1.z = texture(sHeightMap, vec3(vs_tile[1].xy, 0),0).r;
+		w2.z = texture(sHeightMap, vec3(vs_tile[2].xy, 0),0).r;
+		w3.z = texture(sHeightMap, vec3(vs_tile[3].xy, 0),0).r;
+
+		w0 = mvp * gl_in[0].gl_Position;
+		w1 = mvp * gl_in[1].gl_Position;
+		w2 = mvp * gl_in[2].gl_Position;
+		w3 = mvp * gl_in[3].gl_Position;
 		
 		w0 /= w0.w;
 		w1 /= w1.w;
 		w2 /= w2.w;
 		w3 /= w3.w;
+		
 		
 		// cull patches outside the view frustum
 		// TODO: sample height map and adjust corners
@@ -114,7 +130,7 @@ void main() {
 		}
 
 		
-		float lod = 128;
+		float lod = 256;
 
 		float f0 = clamp(distance(w1, w2) * lod, 1, 64);
 		float f1 = clamp(distance(w0, w1) * lod, 1, 64);
@@ -154,11 +170,13 @@ in int te_InstanceID[];
 uniform sampler2DArray sHeightMap;
 
 
-uniform perViewData {
-	mat4 mView;
-	mat4 mProj;
-};
+uniform mat4 mWorldView;
+uniform mat4 mViewProj;
 
+
+
+
+uniform vec2 winSize;
 
 
 out vec3 t_tile;
@@ -181,12 +199,14 @@ void main(void){
 	vec2 tltmp = mix(tlp1, tlp2, gl_TessCoord.y);
 	
 	
-	float t = texture(sHeightMap, vec3(ttmp.xy, te_InstanceID[0]), 0).r;
+	vec3 terrCoords = vec3(ttmp.xy, 0);
+	
+	float t = texture(sHeightMap, terrCoords, 0).r;
 	
 	tmp.z = t; //* .05; // .01 *  sin(gl_TessCoord.y*12) + .01 *sin(gl_TessCoord.x*12);
 
-	gl_Position = (mProj * mView) * tmp;
-	t_tile =  vec3(tltmp.xy, 1); 
+	gl_Position = (mViewProj * mWorldView) * tmp;
+	t_tile = vec3(tltmp.xy, 1); 
 	ps_InstanceID = te_InstanceID[0];
 }
 
@@ -207,8 +227,10 @@ layout(location = 0) out vec4 out_Selection;
 
 
 void main(void) {
+	ivec2 tile = ivec2(floor(t_tile.xy * 4));
+	vec2 ftile = fract(t_tile.xy * 4);
 	
-	out_Selection = vec4(floor(t_tile.x)/255, floor(t_tile.y)/255, float(ps_InstanceID)/256.0, 1);
+	out_Selection = vec4(ftile.x, ftile.y, float(ps_InstanceID)/256.0, 1);
 //	out_Selection = vec4(1 , 1,1 , 1);
 //	out_Selection = vec4(10 , 10,10 , 10);
 //	out_Selection = vec4(0.5,0.5,0.5,0.5);

@@ -89,10 +89,12 @@ typedef struct World {
 	DecalManager* dm;
 	CustomDecalManager* cdm;
 	
-	RenderPass* terrainPass; // temp hack
+	RenderPass* terrainPass; // temp hackMap_CreateDrawable(m);
 	RenderPass* solidsPass; // temp hack
 	RenderPass* lightingPass; // temp hack
 	RenderPass* decalPass; // temp hack
+	
+	RenderPass* terrainSelectionPass; // temp hack
 	
 	TextureManager* mapTexMan;
 	TextureManager* meshTexMan;

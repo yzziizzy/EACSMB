@@ -826,7 +826,10 @@ void getTileFromScreenCoords(GameState* gs, Vector2 scoord, Vector2i* tile) {
 		uint32_t in;
 	} u;
 	
-	if(!gs->selectionData) return;
+	if(!gs->selectionData) {
+		printf("!!! Cannot look up tile coordinates: no selection data.\n");
+		return;
+	}
 	
 	int w = (int)gs->screen.wh.x;
 	int h = (int)gs->screen.wh.y;
@@ -841,9 +844,9 @@ void getTileFromScreenCoords(GameState* gs, Vector2 scoord, Vector2i* tile) {
 	gs->cursorTilePos.z = u.rgb[2];
 	
 	struct sGL_RG8* off = &gs->world->map.offsetData[(int)gs->cursorTilePos.z]; 
-	//printf("*tile offset: %u - %d - %d,%d,%d - %f,%f\n", j, u.rgb[2], (int)gs->cursorTilePos.z, off->x, off->y,
-	//	scoord.x, scoord.y
-	//);
+	printf("*tile offset: %u - %d - %d,%d,%d - %f,%f\n", j, u.rgb[2], (int)gs->cursorTilePos.z, off->x, off->y,
+		scoord.x, scoord.y
+	);
 	
 	tile->x = (off->x * 256.0) + gs->cursorTilePos.x;
 	tile->y = (off->y * 256.0) + gs->cursorTilePos.y;

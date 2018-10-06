@@ -296,7 +296,7 @@ void shadingPass(GameState* gs, PassFrameParams* pfp) {
 }
 
 
-void selectionPass(XStuff* xs, GameState* gs, InputState* is) {
+void selectionPass(XStuff* xs, GameState* gs, InputState* is, PassFrameParams* pfp) {
 
 	glexit("");
 	gs->lastSelectionFrame = gs->frameCount; 
@@ -309,10 +309,26 @@ void selectionPass(XStuff* xs, GameState* gs, InputState* is) {
 	glBindFramebuffer(GL_FRAMEBUFFER, gs->selectionbuf.fb);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
-	depthPrepass(xs, gs, is);
+	
+	//depthPrepass(xs, gs, is);
+	
+	
+	RenderPass_preFrameAll(gs->world->terrainSelectionPass, pfp);
+	RenderPass_renderAll(gs->world->terrainSelectionPass, pfp->dp);
+	RenderPass_postFrameAll(gs->world->terrainSelectionPass);
+	
+	
+	
+	
 	
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, gs->selectionbuf.fb);
+	
+	
+	
+	// done drawing. initiate async pixel transfer
+	
+	
 	
 	//glEnable(GL_DEPTH_TEST);
 	glReadBuffer(GL_COLOR_ATTACHMENT0);
@@ -459,11 +475,10 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	
 	if(gs->hasMoved && gs->lastSelectionFrame < gs->frameCount - 8 && !gs->selectionPassDisabled) {
-		//printf("doing selection pass %d\n", gs->frameCount);
+		printf("doing selection pass %d\n", gs->frameCount);
 		gs->hasMoved = 0;
 		
-		// HACK: disabled for map 
-		//selectionPass(xs, gs, is);
+		selectionPass(xs, gs, is, &pfp);
 	}
 	
 	// update world state

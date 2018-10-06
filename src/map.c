@@ -953,6 +953,24 @@ PassDrawable* Map_CreateDrawable(MapInfo* m) {
 
 
 
+RenderPass* Map_CreateSelectionPass(MapInfo* m) {
+	
+	RenderPass* rp;
+	PassDrawable* pd;
+
+	pd = MultiDrawIndirect_CreateDrawable(m->blockPatch, terrDepthProg);
+
+	rp = calloc(1, sizeof(*rp));
+	RenderPass_init(rp);
+	RenderPass_addDrawable(rp, pd);
+	//rp->fboIndex = LIGHTING;
+	
+	return rp;
+}
+
+
+
+
 
 float Map_getTerrainHeight(MapInfo* mi, Vector2i p) {
 	MapLayer* ml = mi->block->terrain;
@@ -972,7 +990,7 @@ float Map_getTerrainHeight3f(MapInfo* mi, Vector p) {
 float Map_getTerrainHeightf(MapInfo* mi, Vector2 p) {
 	MapLayer* ml = mi->block->terrain;
 	
-	if(p.x >= ml->w || p.x < 0 || p.y >= ml->h || p.y < 0) return 0.0f;
+	if(!isfinite(p.x) || !isfinite(p.y) || p.x >= ml->w || p.x < 0 || p.y >= ml->h || p.y < 0) return 0.0f;
 	
 	float cc = ml->data.f[(int)(ceil(p.x) + (ceil(p.y)) * ml->w)];
 	float cf = ml->data.f[(int)(ceil(p.x) + (floor(p.y)) * ml->w)];
