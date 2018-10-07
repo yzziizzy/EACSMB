@@ -406,7 +406,7 @@ void main(void) {
 	//out_Color = vec4(t_tile.x, t_tile.y,1 ,1.0);
 	
  	
-	vec4 tc = texture2D(sBaseTex, texCoord);
+	vec4 tc;// = texture2D(sBaseTex, texCoord);
 // 	int texIndex = texelFetch(sData, ivec3(t_tile.xy, 0), 0).x;
 	
 	int texIndex = texture(sData, vec3(t_tile.xy, 0)).x;
@@ -423,7 +423,7 @@ void main(void) {
 	float a = .2;
 	
 	
-	float xmw = smoothstep(0.0, a, ftile.x); 	
+	float xmw = smoothstep(0.0, a, ftile.x);
 	float ymw = smoothstep(0.0, a, ftile.y); 
  
 	
@@ -468,8 +468,9 @@ void main(void) {
 	}
 	*/
 	
-	out_Color =  (zoneColor * .2 + tc2) * cursorIntensity;// * lineFactor; //(1.0, 0, .5, .6);
+// 	out_Color =  (zoneColor * .2 + tc2) * cursorIntensity;// * lineFactor; //(1.0, 0, .5, .6);
 //	out_Color = vec4(wlevel, wlevel / 200, wlevel / 4000, 1);;
 // 	out_Color = vec4(slevel, slevel / 200, slevel / 4000, 1);;
+	out_Color = tc2; //vec4(1,0,1,1);
 }
 

@@ -890,7 +890,7 @@ void Map_readConfigFile(MapInfo* mi, char* path) {
 
 
 static void uniformSetup(MapInfo* mi, GLuint progID) {
-	glPatchParameteri(GL_PATCH_VERTICES, 4);	
+	glPatchParameteri(GL_PATCH_VERTICES, 4);
 	
 	//	glUniform3f(glGetUniformLocation(terrProg->id, "cursorPos"), m->cursorPos.x, m->cursorPos.y, m->cursorPos.z);
 //	glUniform2f(winsize_ul, pdp->targetSize.x, pdp->targetSize.y);
@@ -910,8 +910,9 @@ static void instanceSetup(MapInfo* mi, TerrainPatchInstance* vmem, MDIDrawInfo**
 	int i, j;
 	int x, y;
 	
+	
 	for(j = 0; j < diCount; j++) {
-		di[j]->numToDraw = 4;
+		di[j]->numToDraw = 1;
 			
 		for(i = 0; i < 1; i++) { // each instance
 			vmem[i].offx = i * 256; // multiplier should be mb->w

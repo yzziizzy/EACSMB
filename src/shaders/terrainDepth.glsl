@@ -13,10 +13,10 @@ layout (location = 1) in vec2 tex_in;
 // per instance
 layout (location = 2) in vec2 block_in;
 
-uniform sampler2D sOffsetLookup;
 
 out vec2 vs_tex;
 out vec2 vs_tile;
+out vec2 vs_block;
 out int vs_InstanceID;
 out vec2 vs_rawTileOffset;
 out vec2 vs_tileOffset;
@@ -24,10 +24,9 @@ out vec2 vs_tileOffset;
 void main() {
 	vs_tex = tex_in;
 	vs_tile = tex_in;
+	vs_block = block_in;
 	vs_InstanceID = gl_InstanceID;
 
-// 	vs_rawTileOffset = texelFetch(sOffsetLookup, ivec2(gl_InstanceID, 0), 0).rg; 
-// 	vs_tileOffset = vs_rawTileOffset * 255* 255;
 	gl_Position = vec4(pos_in.x + block_in.x, pos_in.y + block_in.x, 0, 1.0);
 }
 
@@ -50,10 +49,12 @@ uniform mat4 mViewProj;
 
 in vec2 vs_tex[];
 in vec2 vs_tile[];
+in vec2 vs_block[];
 in int vs_InstanceID[];
 
 out vec2 te_tex[];
 out vec2 te_tile[];;
+out vec2 te_block[];;
 out int te_InstanceID[];
 
 
@@ -148,6 +149,7 @@ void main() {
 	}
 	
 	te_tile[gl_InvocationID] = vs_tile[gl_InvocationID];
+	te_block[gl_InvocationID] = vs_block[gl_InvocationID];
 	te_tex[gl_InvocationID] = vs_tex[gl_InvocationID];
 	te_InstanceID[gl_InvocationID] = vs_InstanceID[gl_InvocationID];
 	gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
@@ -164,6 +166,7 @@ layout (quads, equal_spacing, ccw) in;
 
 in vec2 te_tile[];
 in vec2 te_tex[];
+in vec2 te_block[];
 in int te_InstanceID[];
 
 
@@ -180,6 +183,7 @@ uniform vec2 winSize;
 
 
 out vec3 t_tile;
+out vec2 ps_block;
 flat out int ps_InstanceID;
 
 
@@ -208,6 +212,7 @@ void main(void){
 	gl_Position = (mViewProj * mWorldView) * tmp;
 	t_tile = vec3(tltmp.xy, 1); 
 	ps_InstanceID = te_InstanceID[0];
+	ps_block = te_block[0];
 }
 
 
@@ -220,6 +225,7 @@ void main(void){
 
 
 in vec3 t_tile;
+in vec2 ps_block;
 flat in int ps_InstanceID;
 
 layout(location = 0) out vec4 out_Selection;
@@ -227,10 +233,12 @@ layout(location = 0) out vec4 out_Selection;
 
 
 void main(void) {
-	ivec2 tile = ivec2(floor(t_tile.xy * 4));
-	vec2 ftile = fract(t_tile.xy * 4);
+	int sideLen = 4;
 	
-	out_Selection = vec4(ftile.x, ftile.y, float(ps_InstanceID)/256.0, 1);
+	ivec2 tile = ivec2(floor(t_tile.xy * sideLen));
+	vec2 ftile = fract(t_tile.xy * sideLen);
+	
+	out_Selection = vec4(ftile.x, ftile.y, ps_block.x + (ps_block.y * sideLen), 1);
 //	out_Selection = vec4(1 , 1,1 , 1);
 //	out_Selection = vec4(10 , 10,10 , 10);
 //	out_Selection = vec4(0.5,0.5,0.5,0.5);
