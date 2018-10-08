@@ -841,15 +841,18 @@ void getTileFromScreenCoords(GameState* gs, Vector2 scoord, Vector2i* tile) {
 	
 	gs->cursorTilePos.x = u.rgb[0];
 	gs->cursorTilePos.y = u.rgb[1];
-	gs->cursorTilePos.z = u.rgb[2];
+	//gs->cursorTilePos.z = u.rgb[2];
 	
-	struct sGL_RG8* off = &gs->world->map.offsetData[(int)gs->cursorTilePos.z]; 
-	printf("*tile offset: %u - %d - %d,%d,%d - %f,%f\n", j, u.rgb[2], (int)gs->cursorTilePos.z, off->x, off->y,
-		scoord.x, scoord.y
-	);
+//	struct sGL_RG8* off = &gs->world->map.offsetData[(int)gs->cursorTilePos.z]; 
+	printf("*tile offset: %u - %d,%d, %d,%d \n", j, u.rgb[0],u.rgb[1],u.rgb[2],u.rgb[3]);
 	
-	tile->x = (off->x * 256.0) + gs->cursorTilePos.x;
-	tile->y = (off->y * 256.0) + gs->cursorTilePos.y;
+	int bx = u.rgb[2] / 4; 
+	int by = u.rgb[2] % 4; 
+	
+	//bx = by = 0;
+	
+	tile->x = (bx * 256.0) + gs->cursorTilePos.x;
+	tile->y = (by * 256.0) + gs->cursorTilePos.y;
 
 }
 

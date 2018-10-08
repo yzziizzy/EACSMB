@@ -16,7 +16,7 @@ layout (location = 2) in vec2 block_in;
 
 out vec2 vs_tex;
 out vec2 vs_tile;
-out vec2 vs_block;
+flat out vec2 vs_block;
 out int vs_InstanceID;
 out vec2 vs_rawTileOffset;
 out vec2 vs_tileOffset;
@@ -25,6 +25,7 @@ void main() {
 	vs_tex = tex_in;
 	vs_tile = tex_in;
 	vs_block = block_in;
+	//vs_block = vec2(1, 1);
 	vs_InstanceID = gl_InstanceID;
 
 	gl_Position = vec4(pos_in.x + block_in.x, pos_in.y + block_in.x, 0, 1.0);
@@ -49,12 +50,12 @@ uniform mat4 mViewProj;
 
 in vec2 vs_tex[];
 in vec2 vs_tile[];
-in vec2 vs_block[];
+flat in vec2 vs_block[];
 in int vs_InstanceID[];
 
 out vec2 te_tex[];
 out vec2 te_tile[];;
-out vec2 te_block[];;
+flat out vec2 te_block[];;
 out int te_InstanceID[];
 
 
@@ -166,7 +167,7 @@ layout (quads, equal_spacing, ccw) in;
 
 in vec2 te_tile[];
 in vec2 te_tex[];
-in vec2 te_block[];
+flat in vec2 te_block[];
 in int te_InstanceID[];
 
 
@@ -183,7 +184,7 @@ uniform vec2 winSize;
 
 
 out vec3 t_tile;
-out vec2 ps_block;
+flat out vec2 ps_block;
 flat out int ps_InstanceID;
 
 
@@ -225,7 +226,7 @@ void main(void){
 
 
 in vec3 t_tile;
-in vec2 ps_block;
+flat in vec2 ps_block;
 flat in int ps_InstanceID;
 
 layout(location = 0) out vec4 out_Selection;
@@ -238,7 +239,8 @@ void main(void) {
 	ivec2 tile = ivec2(floor(t_tile.xy * sideLen));
 	vec2 ftile = fract(t_tile.xy * sideLen);
 	
-	out_Selection = vec4(ftile.x, ftile.y, ps_block.x + (ps_block.y * sideLen), 1);
+// 	out_Selection = vec4(ftile.x / 2.0, ftile.y / 2.0, (ps_block.x + (ps_block.y * sideLen))/256.0, 1);
+	out_Selection = vec4(ftile.x / 2.0, ftile.y / 2.0, (ps_block.x * 128) / 256.0, 1);
 //	out_Selection = vec4(1 , 1,1 , 1);
 //	out_Selection = vec4(10 , 10,10 , 10);
 //	out_Selection = vec4(0.5,0.5,0.5,0.5);

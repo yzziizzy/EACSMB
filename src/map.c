@@ -912,9 +912,9 @@ static void instanceSetup(MapInfo* mi, TerrainPatchInstance* vmem, MDIDrawInfo**
 	
 	
 	for(j = 0; j < diCount; j++) {
-		di[j]->numToDraw = 1;
+		di[j]->numToDraw = 4;
 			
-		for(i = 0; i < 1; i++) { // each instance
+		for(i = 0; i < 4; i++) { // each instance
 			vmem[i].offx = i * 256; // multiplier should be mb->w
 			vmem[i].offy = i * 256;
 		}
