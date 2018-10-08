@@ -825,7 +825,7 @@ void getTileFromScreenCoords(GameState* gs, Vector2 scoord, Vector2i* tile) {
 	
 //	struct sGL_RG8* off = &gs->world->map.offsetData[(int)gs->cursorTilePos.z]; 
 	
-	int by = u.rgb[2] / 2; 
+	int by = u.rgb[2] / 2; // set 2 to the size of the map / 256
 	int bx = u.rgb[2] % 2; 
 	
 	//bx = by = 0;

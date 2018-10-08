@@ -96,6 +96,7 @@ void main() {
 		// world space
 		vec3 sundir = sunNormal;
 		
+		vec3 sunColor = vec3(1, .9, .8);
 		
 		float lambertian = max(dot(sundir, normal), 0.0);
 		
@@ -106,7 +107,7 @@ void main() {
 		float specular = pow(specAngle, 32);
 
 		vec3 diffuseColor = texture(sDiffuse, tex).rgb;
-		vec3 specColor = vec3(1,1,1) * .5;//normalize(vec3(1,1,1));
+		vec3 specColor = vec3(1,.9,.8) * .1;//normalize(vec3(1,1,1));
 
 		vec3 ambient = vec3(0.1,0.1,0.1);
 		
@@ -116,7 +117,7 @@ void main() {
 		if(length(normal) < 1.01) { // things with normals get directional lighting
 			colorOut = vec3(
 				ambient  
-				+ (((lambertian * .7) + light) * diffuseColor)
+				+ (((lambertian * sunColor * .7) + light) * diffuseColor)
 				+ (specular * specColor)
 			);
 		}
