@@ -133,7 +133,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	
 	gs->debugMode = 0;
 	gs->sunSpeed = 0;
-	gs->sunTheta = 3.9;
+	gs->sunTheta = 2.2;
 	
 	gs->nearClipPlane = .5;
 	gs->farClipPlane = 1700;
@@ -736,26 +736,6 @@ void setUpView(GameState* gs) {
 }
 
 
-// actually the selection pass
-void depthPrepass(XStuff* xs, GameState* gs, InputState* is) {
-	
-	// draw UI
-	//renderUIPicking(xs, gs);
-	
-	
-	
-	//updateView(xs, gs, is);
-	
-
-	// draw terrain
-// 	drawTerrainBlockDepth(&gs->map, msGetTop(&gs->model), msGetTop(&gs->view), msGetTop(&gs->proj));
-	drawTerrainDepth(&gs->world->map, &gs->perViewUB, &gs->screen.wh);
-	
-	//msPop(&gs->view);
-	//msPop(&gs->proj);
-	
-}
-
 
 void updateView(XStuff* xs, GameState* gs, InputState* is) {
 		
@@ -844,16 +824,16 @@ void getTileFromScreenCoords(GameState* gs, Vector2 scoord, Vector2i* tile) {
 	//gs->cursorTilePos.z = u.rgb[2];
 	
 //	struct sGL_RG8* off = &gs->world->map.offsetData[(int)gs->cursorTilePos.z]; 
-	printf("*tile offset: %u - %d,%d, %d,%d \n", j, u.rgb[0],u.rgb[1],u.rgb[2],u.rgb[3]);
 	
-	int bx = u.rgb[2] / 4; 
-	int by = u.rgb[2] % 4; 
+	int by = u.rgb[2] / 2; 
+	int bx = u.rgb[2] % 2; 
 	
 	//bx = by = 0;
 	
 	tile->x = (bx * 256.0) + gs->cursorTilePos.x;
 	tile->y = (by * 256.0) + gs->cursorTilePos.y;
 
+//	printf("*tile offset: %u - %d,%d, %d,%d %.3f,%.3f\n", j, u.rgb[0],u.rgb[1],u.rgb[2],u.rgb[3], tile->x, tile->y);
 }
 
 

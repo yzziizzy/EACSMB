@@ -22,13 +22,13 @@ out vec2 vs_rawTileOffset;
 out vec2 vs_tileOffset;
 
 void main() {
-	vs_tex = tex_in;
-	vs_tile = tex_in;
+	vs_tex = (tex_in / 2) + ((block_in) * .5);
+	vs_tile = (tex_in / 2) + ((block_in) * .5);
 	vs_block = block_in;
 	//vs_block = vec2(1, 1);
 	vs_InstanceID = gl_InstanceID;
 
-	gl_Position = vec4(pos_in.x + block_in.x, pos_in.y + block_in.x, 0, 1.0);
+	gl_Position = vec4(pos_in.x + block_in.x * 256.0, pos_in.y + block_in.y * 256.0, 0, 1.0);
 }
 
 
@@ -234,13 +234,13 @@ layout(location = 0) out vec4 out_Selection;
 
 
 void main(void) {
-	int sideLen = 4;
+	int sideLen = 2;
 	
 	ivec2 tile = ivec2(floor(t_tile.xy * sideLen));
 	vec2 ftile = fract(t_tile.xy * sideLen);
 	
-// 	out_Selection = vec4(ftile.x / 2.0, ftile.y / 2.0, (ps_block.x + (ps_block.y * sideLen))/256.0, 1);
-	out_Selection = vec4(ftile.x / 2.0, ftile.y / 2.0, (ps_block.x * 128) / 256.0, 1);
+	out_Selection = vec4(ftile.x, ftile.y, (ps_block.x + (ps_block.y * sideLen))/256.0, 1);
+// 	out_Selection = vec4(ftile.x / 2.0, ftile.y / 2.0, (ps_block.x * 128) / 256.0, 1);
 //	out_Selection = vec4(1 , 1,1 , 1);
 //	out_Selection = vec4(10 , 10,10 , 10);
 //	out_Selection = vec4(0.5,0.5,0.5,0.5);

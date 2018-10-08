@@ -23,15 +23,15 @@ out vec2 vs_rawTileOffset;
 out vec2 vs_tileOffset;
 
 void main() {
-	vs_tex = tex_in;
-	vs_tile = tex_in; //vec2(0,0);//tile_in;
+	vs_tex = (tex_in / 2) + ((block_in) * .5);
+	vs_tile = (tex_in / 2) + ((block_in) * .5); //vec2(0,0);//tile_in;
 	vs_InstanceID = gl_InstanceID;
 	//vs_rawTileOffset = texelFetch(sOffsetLookup, ivec2(gl_InstanceID, 0), 0).rg; 
 	//vs_tileOffset = vs_rawTileOffset * 255* 255;
 	
 	
 	//gl_Position = vec4(pos_in.x + vs_tileOffset.r, pos_in.y + vs_tileOffset.g, pos_in.z, 1.0);
-	gl_Position = vec4(pos_in.x + block_in.x, pos_in.y + block_in.x, 0, 1.0);
+	gl_Position = vec4(pos_in.x + block_in.x * 256.0, pos_in.y + block_in.y * 256.0, 0, 1.0);
 }
 
 

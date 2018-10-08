@@ -79,19 +79,19 @@ void main() {
 		
 		
 		// world space
-// 		vec3 viewpos = (inverse(mViewProj * mWorldView) * vec4(0,0,0,1)).xyz;
-		vec3 viewpos = (invVP * vec4(0,0,0,1)).xyz;
+		vec3 viewpos = (inverse(mViewProj * mWorldView) * vec4(0,0,0,1)).xyz;
+// 		vec3 viewpos = (invVP * vec4(0,0,0,1)).xyz;
 		
-		vec3 viewpos_v = (inverse(mWorldView) * vec4(0,0,0,1)).xyz;
+// 		vec3 viewpos_v = (inverse(mWorldView) * vec4(0,0,0,1)).xyz;
 		
 		//vec3 viewdir = normalize(viewpos - pos);
 		// world space
-		vec3 viewdir = normalize((invVP * vec4(0,0,1,1)).xyz);
+		vec3 viewdir = normalize((inverse(mViewProj * mWorldView) * vec4(0,0,-1,1)).xyz);
 		
 		//normal = (mWorldView * vec4(normal, 1)).xyz;
 		
 		// voodoo: specular is inverted from diffuse otherwise. something is wrong
-		normal *= -1;
+		//normal *= -1;
 		
 		// world space
 		vec3 sundir = sunNormal;
@@ -99,14 +99,14 @@ void main() {
 		
 		float lambertian = max(dot(sundir, normal), 0.0);
 		
-		vec3 sunRefl = reflect(sundir, -normal);
+		vec3 sunRefl = reflect(-sundir, normal);
 		vec3 posToCam = normalize(viewpos - pos); 
 		
 		float specAngle = max(dot(posToCam, sunRefl), 0.0);
 		float specular = pow(specAngle, 32);
 
 		vec3 diffuseColor = texture(sDiffuse, tex).rgb;
-		vec3 specColor = vec3(1,1,1) * .1;//normalize(vec3(1,1,1));
+		vec3 specColor = vec3(1,1,1) * .5;//normalize(vec3(1,1,1));
 
 		vec3 ambient = vec3(0.1,0.1,0.1);
 		

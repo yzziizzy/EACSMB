@@ -913,10 +913,14 @@ static void instanceSetup(MapInfo* mi, TerrainPatchInstance* vmem, MDIDrawInfo**
 	
 	for(j = 0; j < diCount; j++) {
 		di[j]->numToDraw = 4;
-			
-		for(i = 0; i < 4; i++) { // each instance
-			vmem[i].offx = i * 256; // multiplier should be mb->w
-			vmem[i].offy = i * 256;
+		
+		i = 0;
+		for(y = 0; y < 2; y++) { // each instance
+			for(x = 0; x < 2; x++) { // each instance
+				vmem[i].offx = x; // multiplier should be mb->w
+				vmem[i].offy = y;
+				i++;
+			}
 		}
 		
 		di++;
@@ -1361,13 +1365,13 @@ void MapInfo_GenMesh(MapInfo* mi) {
 		exit(3);
 	};
 	
-	MapBlock* mb = mi->block;
+	//MapBlock* mb = mi->block;
 	
 	
 	
 	Vector2i totalPatches = {
-		ceil(mb->w / MaxTessGenLevel), //wholePatches + (fracPatchSize > 0 ? 1 : 0);
-		ceil(mb->h / MaxTessGenLevel)
+		ceil(256.0 / MaxTessGenLevel), //wholePatches + (fracPatchSize > 0 ? 1 : 0);
+		ceil(256.0 / MaxTessGenLevel)
 	};
 	
 	int patchCnt = (totalPatches.x * totalPatches.y);
@@ -1387,29 +1391,29 @@ void MapInfo_GenMesh(MapInfo* mi) {
 			
 			pv->x = ((ix + 0) * patchSide);
 			pv->y = ((iy + 0) * patchSide);
-			pv->u = pv->x / mb->w;
-			pv->v = pv->y / mb->h;
+			pv->u = pv->x / 256.0;//mb->w;
+			pv->v = pv->y / 256.0;//mb->h;
 			//printf("x:%f  y:%f  u:%f  v:%f \n", pv->x, pv->y, pv->u, pv->v);
 			pv++;
 			
 			pv->x = ((ix + 0) * patchSide);
 			pv->y = ((iy + 1) * patchSide);
-			pv->u = pv->x / mb->w;
-			pv->v = pv->y / mb->h;
+			pv->u = pv->x / 256.0;//mb->w;
+			pv->v = pv->y / 256.0;//mb->h;
 			//printf("x:%f  y:%f  u:%f  v:%f \n", pv->x, pv->y, pv->u, pv->v);
 			pv++;	
 			
 			pv->x = ((ix + 1) * patchSide);
 			pv->y = ((iy + 1) * patchSide);
-			pv->u = pv->x / mb->w;
-			pv->v = pv->y / mb->h;
+			pv->u = pv->x / 256.0;//mb->w;
+			pv->v = pv->y / 256.0;//mb->h;
 			//printf("x:%f  y:%f  u:%f  v:%f \n", pv->x, pv->y, pv->u, pv->v);
 			pv++;	
 			
 			pv->x = ((ix + 1) * patchSide);
 			pv->y = ((iy + 0) * patchSide);
-			pv->u = pv->x / mb->w;
-			pv->v = pv->y / mb->h;
+			pv->u = pv->x / 256.0;//mb->w;
+			pv->v = pv->y / 256.0;//mb->h;
 			//printf("x:%f  y:%f  u:%f  v:%f \n", pv->x, pv->y, pv->u, pv->v);
 			pv++;	
 			
