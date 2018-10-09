@@ -150,19 +150,20 @@ void guiImageRender(GUIImage* im, GameState* gs, PassFrameParams* pfp) {
 		im->header.size.y 
 	);
 	glUniform4f(z_alpha__ul, -.1, 1, 0, 0); // BUG z is a big messed up; -.1 works but .1 doesn't.
-	
+		glexit("");
 	glProgramUniform1i(imageProg->id, texIndex_ul, im->texIndex);
 	if(im->texIndex == -1) {
 		glProgramUniform1i(imageProg->id, sCustomTexture_ul, 30);
 	}
 	glProgramUniform1i(imageProg->id, sTexture_ul, 31);
-	
+		glexit("");
 	//glActiveTexture(GL_TEXTURE0 + 31);
 	//glBindTexture(GL_TEXTURE_2D_ARRAY, image_textures->tex_id);
 	
 	glActiveTexture(GL_TEXTURE0 + 30);
+		glexit("");
 	glBindTexture(GL_TEXTURE_2D, im->customTexID);
-	
+		glexit("");
 	//glUniform3f(color_ul, gw->color.x, gw->color.y, gw->color.z); // BUG z is a big messed up; -.1 works but .1 doesn't.
 
 	glBindVertexArray(vaoImage);

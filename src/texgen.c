@@ -100,7 +100,7 @@ static void gen_chanmux(struct tg_context* context, struct TG_chanmux* opts) {
 	if(opts->r_i > -1) { 
 		memcpy(
 			ft->bmps[0]->data,
-			VEC_ITEM(&context->stack, depth - opts->r_i)->bmps[opts->a_c]->data, 
+			VEC_ITEM(&context->stack, depth - opts->r_i)->bmps[opts->r_c]->data, 
 			context->w * context->h * sizeof(float)
 		);
 	}
@@ -133,6 +133,43 @@ static void gen_chanmux(struct tg_context* context, struct TG_chanmux* opts) {
 	
 	tg_context_push(context, ft);
 }
+
+// squares in a grid
+static void gen_squares(struct tg_context* context, struct TG_squares* opts) {
+	int x, y;
+	float grid = opts->grid;
+	float size = opts->size;
+	Vector4 color = opts->color;
+	Vector4 bg = opts->background;
+	
+	FloatTex* ft = FloatTex_fromContext(context);
+	
+	int stripe = grid + size;
+	
+	
+	for(y = 0; y < ft->h; y++) {
+		for(x = 0; x < ft->w; x++) {
+			Vector4* c = &bg;
+			
+			if(
+				(y % stripe) > grid
+				&& (x % stripe) > grid
+			) { // inside square
+				c = &color;
+			}
+			
+			switch(ft->channels) {
+				case 4: ft->bmps[3]->data[y * ft->w + x] = c->w;
+				case 3: ft->bmps[2]->data[y * ft->w + x] = c->z;
+				case 2: ft->bmps[1]->data[y * ft->w + x] = c->y;
+				case 1: ft->bmps[0]->data[y * ft->w + x] = c->x;
+			}
+		}
+	}
+	
+	tg_context_push(context, ft);
+}
+
 
 // changes the context
 static void gen_context(struct tg_context* context, struct TG_context* opts) {
@@ -384,6 +421,63 @@ static void gen_lerp(BitmapRGBA8* a, BitmapRGBA8* b, int channel_a, int channel_
 
 */
 
+static int hexDigit(char c) {
+	if(c >= '0' && c <= '9') {
+		return c - '0';
+	}
+	else if(c >= 'a' && c <= 'f') {
+		return 10 + (c - 'a');
+	}
+	else if(c >= 'A' && c <= 'F') {
+		return 10 + (c - 'A');
+	}
+	return 0;
+}
+
+static double nibbleHexNorm(char* s) {
+	if(s[0] == '\0' || s[1] == '\0') return 0.0;
+	double d = (hexDigit(s[0]) * 16.0) + hexDigit(s[1]);
+	return d / 256.0;
+}
+
+static Vector4 sexp_argAsColor(sexp* x, int argn) {
+	int i;
+	union {
+		Vector4 c;
+		float f[4];
+	} u;
+	
+	u.c.x = 0.0;
+	u.c.y = 0.0;
+	u.c.z = 0.0;
+	u.c.w = 1.0; // default alpha is 1.0 
+
+	if(VEC_LEN(&x->args) < argn) return u.c;
+	sexp* arg = VEC_ITEM(&x->args, argn);
+	
+	if(arg->type == 0) { // it's an s-expression
+		for(i = 0; i < VEC_LEN(&arg->args); i++) { 
+			u.f[i] = sexp_argAsDouble(arg, i);
+		}
+	}
+	else { // it's a literal
+		// throw away any leading BS
+		char* s = arg->str;
+		char* e = arg->str + strlen(arg->str);
+		if(s[0] == '#') s++;
+		if(s[0] == '0' && (s[1] == 'x' || s[1] == 'X')) s += 2;
+		
+		for(i = 0; i < 4 && s < e; i++) {
+			u.f[i] = nibbleHexNorm(s);
+			s += 2;
+		}
+	}
+	
+	printf("color: %f,%f,%f,%f\n", u.c.x, u.c.y, u.c.z, u.c.w);
+	
+	return u.c;
+}
+
 
 static TexGenOp* op_from_sexp(sexp* sex) {
 	TexGenOp* op;
@@ -418,6 +512,13 @@ static TexGenOp* op_from_sexp(sexp* sex) {
 	else if(strcaseeq(name, "get")) {
 		op->type = TEXGEN_TYPE_get;
 		op->get.name = strdup(sexp_argAsStr(sex, 1));
+	}
+	else if(strcaseeq(name, "squares")) {
+		op->type = TEXGEN_TYPE_squares;
+		op->squares.grid = sexp_argAsDouble(sex, 1);
+		op->squares.size = sexp_argAsDouble(sex, 2);
+		op->squares.background = sexp_argAsColor(sex, 3);
+		op->squares.color = sexp_argAsColor(sex, 4);
 	}
 	else if(strcaseeq(name, "blend")) {
 		op->type = TEXGEN_TYPE_blend;
@@ -549,10 +650,11 @@ static void temptest(GUITexBuilderControl* bc) {
 	char* prog = "" \
 		"(seq " \
 		"	(sinewave 3.0 .25)" \
-		"	(worley boxed 4 8 70)" \
-		"	(perlin .5 6 16 16 100 100)" \
-		"	(blend 1 2 .5)" \
-		//"	(chanmux 0 0  0 0  0 0  0 0)" 
+		//"	(worley boxed 4 8 70)" \
+		//"	(perlin .5 6 16 16 100 100)" \
+		//"	(blend 1 2 .5)" 
+		//"	(chanmux 0 0  1 0  2 0  -1 0)" 
+		"	(squares 10 20 #003300 (.2 .4 .1))" \
 		"" \
 		")" \
 	;
@@ -932,7 +1034,7 @@ GUITexBuilderControl* guiTexBuilderControlNew(Vector2 pos, Vector2 size, int zIn
 		-1
 	);
 	guiRegisterObject(bc->im, &bc->header);
-	bc->im->customTexID = 17;
+	//bc->im->customTexID = 17;
 	
 	guiAddClient(bc->bg, bc->im);
 	Vector2 bgsz = guiRecalcClientSize(bc->bg);

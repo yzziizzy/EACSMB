@@ -31,6 +31,7 @@ typedef VEC(struct TexGenOp*) tgop_vec;
 	TEXGEN_TYPE_MEMBER(perlin) \
 	TEXGEN_TYPE_MEMBER(worley) \
 	TEXGEN_TYPE_MEMBER(rotate) \
+	TEXGEN_TYPE_MEMBER(squares) \
 	TEXGEN_TYPE_MEMBER(chanmux) \
 	TEXGEN_TYPE_MEMBER(gradient) \
 	TEXGEN_TYPE_MEMBER(blend)
@@ -137,9 +138,9 @@ typedef struct tg_context {
 
 #define TG_REFL_STRUCT_NAME gradient
 #define XLIST \
-	X(int, index, 0, 99999, 0) \ 
-	X(int, channel, 0, 99999, 0) \ 
-	X(Vector4, color1, 0, 4, 0) \ 
+	X(int, index, 0, 99999, 0) \
+	X(int, channel, 0, 99999, 0) \
+	X(Vector4, color1, 0, 4, 0) \
 	X(Vector4, color2, 0, 4, 0) 
 #include "tg_reflect.h"
 #undef XLIST
@@ -151,6 +152,16 @@ typedef struct tg_context {
 	X(int, a_index, 0, 9999, 0) \
 	X(int, b_index, 0, 9999, 0) \
 	X(float, t, 0.0, 1.0, 0.5) 
+#include "tg_reflect.h"
+#undef XLIST
+
+// squares in a grid
+#define TG_REFL_STRUCT_NAME squares
+#define XLIST \
+	X(float, grid, 0.0, 9999, 10) \
+	X(float, size, 0.0, 9999, 5) \
+	X(Vector4, background, 0, 4, 0) \
+	X(Vector4, color, 0, 4, 0) 
 #include "tg_reflect.h"
 #undef XLIST
 
