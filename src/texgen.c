@@ -144,16 +144,19 @@ static void gen_squares(struct tg_context* context, struct TG_squares* opts) {
 	
 	FloatTex* ft = FloatTex_fromContext(context);
 	
-	int stripe = grid + size;
+	float stripe = (ft->w / grid);
+	float ratio = (stripe * size) / 2;
 	
 	
 	for(y = 0; y < ft->h; y++) {
 		for(x = 0; x < ft->w; x++) {
 			Vector4* c = &bg;
 			
+			float yy = fmod(y, stripe);
+			float xx = fmod(x, stripe);
 			if(
-				(y % stripe) > grid
-				&& (x % stripe) > grid
+				(yy > ratio && yy < stripe - ratio)
+				&& (xx > ratio && xx < stripe - ratio)
 			) { // inside square
 				c = &color;
 			}
@@ -170,6 +173,93 @@ static void gen_squares(struct tg_context* context, struct TG_squares* opts) {
 	tg_context_push(context, ft);
 }
 
+
+// checkerboard
+static void gen_checkers(struct tg_context* context, struct TG_checkers* opts) {
+	int x, y;
+	float grid = opts->grid;
+	Vector4 color = opts->color;
+	Vector4 bg = opts->background;
+	
+	FloatTex* ft = FloatTex_fromContext(context);
+	
+	float stripe = (ft->w / grid);
+	float half = stripe / 2;
+	
+	for(y = 0; y < ft->h; y++) {
+		for(x = 0; x < ft->w; x++) {
+			Vector4* c = &bg;
+			
+			float yy = fmod(y, stripe);
+			float xx = fmod(x, stripe);
+			if((yy > half) ^ (xx > half)) { // inside square
+				c = &color;
+			}
+			
+			switch(ft->channels) {
+				case 4: ft->bmps[3]->data[y * ft->w + x] = c->w;
+				case 3: ft->bmps[2]->data[y * ft->w + x] = c->z;
+				case 2: ft->bmps[1]->data[y * ft->w + x] = c->y;
+				case 1: ft->bmps[0]->data[y * ft->w + x] = c->x;
+			}
+		}
+	}
+	
+	tg_context_push(context, ft);
+}
+
+
+
+
+
+static float FloatTex_sampleGrayscale(FloatTex* ft, int x, int y) {
+	float t = 0;
+	int n = 0;
+	
+// 	x = iclamp(x, 0, ft->w);
+// 	y = iclamp(y, 0, ft->h);
+	x = x % ft->w;
+	y = y % ft->h;
+	
+	switch(ft->channels) {
+		case 4: t += ft->bmps[3]->data[y * ft->w + x]; n++;
+		case 3: t += ft->bmps[2]->data[y * ft->w + x]; n++;
+		case 2: t += ft->bmps[1]->data[y * ft->w + x]; n++;
+		case 1: t += ft->bmps[0]->data[y * ft->w + x]; n++;
+	}
+	
+	return t / n;
+}
+
+
+// generate a normal map based on pixel brightness
+static void gen_normal_map(struct tg_context* context, struct TG_normal_map* opts) {
+	int x, y;
+	
+	FloatTex* ft = FloatTex_fromContext(context);
+	
+	int depth = VEC_LEN(&context->stack) - 1;
+	FloatTex* src = VEC_ITEM(&context->stack, iclamp(depth - opts->index, 0, depth));
+	
+	
+	for(y = 0; y < ft->h; y++) {
+		for(x = 0; x < ft->w; x++) {
+			
+			float d_x = FloatTex_sampleGrayscale(src, x + 1, y) - FloatTex_sampleGrayscale(src, x - 1, y);
+			float d_y = FloatTex_sampleGrayscale(src, x, y + 1) - FloatTex_sampleGrayscale(src, x, y - 1);
+			
+			Vector norm = {-d_x, -d_y, 1.0};
+			vNorm(&norm, &norm);
+			
+			ft->bmps[0]->data[y * ft->w + x] = norm.x * .5 +.5;
+			ft->bmps[1]->data[y * ft->w + x] = norm.y * .5 +.5;
+			ft->bmps[2]->data[y * ft->w + x] = norm.z * .5 +.5;
+			ft->bmps[3]->data[y * ft->w + x] = 1.0;
+		}
+	}
+	
+	tg_context_push(context, ft);
+}
 
 // changes the context
 static void gen_context(struct tg_context* context, struct TG_context* opts) {
@@ -520,6 +610,16 @@ static TexGenOp* op_from_sexp(sexp* sex) {
 		op->squares.background = sexp_argAsColor(sex, 3);
 		op->squares.color = sexp_argAsColor(sex, 4);
 	}
+	else if(strcaseeq(name, "normal_map")) {
+		op->type = TEXGEN_TYPE_normal_map;
+		op->normal_map.index = sexp_argAsInt(sex, 1);
+	}
+	else if(strcaseeq(name, "checkers")) {
+		op->type = TEXGEN_TYPE_checkers;
+		op->checkers.grid = sexp_argAsDouble(sex, 1);
+		op->checkers.background = sexp_argAsColor(sex, 2);
+		op->checkers.color = sexp_argAsColor(sex, 3);
+	}
 	else if(strcaseeq(name, "blend")) {
 		op->type = TEXGEN_TYPE_blend;
 		op->blend.a_index = sexp_argAsInt(sex, 1);
@@ -649,12 +749,14 @@ static void temptest(GUITexBuilderControl* bc) {
 	
 	char* prog = "" \
 		"(seq " \
-		"	(sinewave 3.0 .25)" \
-		//"	(worley boxed 4 8 70)" \
-		//"	(perlin .5 6 16 16 100 100)" \
+ 		"	(sinewave 30.0 .25)" \
+//		"	(worley boxed 4 8 70)" 
+		"	(perlin .5 6 16 16 100 100)" \
 		//"	(blend 1 2 .5)" 
 		//"	(chanmux 0 0  1 0  2 0  -1 0)" 
-		"	(squares 10 20 #003300 (.2 .4 .1))" \
+// 		"	(squares 10 .5 #003300 (.2 .4 .1))" 
+//  		"	(checkers 10 #663300 (.5 .4 .1))" 
+		"	(normal_map 0)" \
 		"" \
 		")" \
 	;

@@ -609,7 +609,7 @@ static void main_key_handler(InputEvent* ev, GameState* gs) {
 	// texture builder
 	if(ev->character == 't') {
 		printf("t\n");
-		texbuilder = guiTexBuilderControlNew((Vector2){.1,.2}, (Vector2){.8,.8}, 0);
+		texbuilder = guiTexBuilderControlNew((Vector2){.15,.1}, (Vector2){.82,.82}, 0);
 		guiRegisterObject(texbuilder, NULL);
 		guiResize(&texbuilder->header, (Vector2){.79, .79});
 		

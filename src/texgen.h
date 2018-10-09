@@ -32,6 +32,8 @@ typedef VEC(struct TexGenOp*) tgop_vec;
 	TEXGEN_TYPE_MEMBER(worley) \
 	TEXGEN_TYPE_MEMBER(rotate) \
 	TEXGEN_TYPE_MEMBER(squares) \
+	TEXGEN_TYPE_MEMBER(checkers) \
+	TEXGEN_TYPE_MEMBER(normal_map) \
 	TEXGEN_TYPE_MEMBER(chanmux) \
 	TEXGEN_TYPE_MEMBER(gradient) \
 	TEXGEN_TYPE_MEMBER(blend)
@@ -81,7 +83,6 @@ typedef struct tg_context {
 	char primaryChannel;
 	
 	VEC(FloatTex*) stack;
-	
 	HashTable(FloatTex*)* storage;
 	
 } tg_context;
@@ -98,6 +99,12 @@ typedef struct tg_context {
 #define XLIST \
 	X(float, period, 0.00001, 9999999.0, 2.0) \
 	X(float, phase, 0.0, 1.0, .25) 
+#include "tg_reflect.h"
+#undef XLIST
+
+#define TG_REFL_STRUCT_NAME normal_map
+#define XLIST \
+	X(int, index, 0, 99999, 0) 
 #include "tg_reflect.h"
 #undef XLIST
 
@@ -130,12 +137,6 @@ typedef struct tg_context {
 #include "tg_reflect.h"
 #undef XLIST
 
-#define TG_REFL_STRUCT_NAME bumpmap
-#define XLIST \
-	X(int, ignore, 0, 4, 0) 
-#include "tg_reflect.h"
-#undef XLIST
-
 #define TG_REFL_STRUCT_NAME gradient
 #define XLIST \
 	X(int, index, 0, 99999, 0) \
@@ -160,6 +161,15 @@ typedef struct tg_context {
 #define XLIST \
 	X(float, grid, 0.0, 9999, 10) \
 	X(float, size, 0.0, 9999, 5) \
+	X(Vector4, background, 0, 4, 0) \
+	X(Vector4, color, 0, 4, 0) 
+#include "tg_reflect.h"
+#undef XLIST
+
+// checkerboard
+#define TG_REFL_STRUCT_NAME checkers
+#define XLIST \
+	X(float, grid, 0.0, 9999, 10) \
 	X(Vector4, background, 0, 4, 0) \
 	X(Vector4, color, 0, 4, 0) 
 #include "tg_reflect.h"
