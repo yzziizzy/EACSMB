@@ -97,8 +97,6 @@ typedef struct DynamicMeshManager {
 	
 	VEC(DynamicMesh*) meshes;
 	HashTable(int) lookup;
-	int totalVertices;
-	int totalIndices;
 	int totalInstances;
 	
 	int maxInstances;
@@ -106,17 +104,6 @@ typedef struct DynamicMeshManager {
 	Matrix* matBuf;
 	size_t matBufAlloc;
 	CES* ces; // hack for now to get the component managers
-	
-	
-	//VEC(StaticMeshInstance*) instances;
-	
-	PCBuffer indirectCmds;
-	PCBuffer instVB;
-	
-	// data for persistently mapped instance vbo
-	GLuint instVBO;
-	GLuint geomVBO;
-	GLuint geomIBO;
 	
 	TextureManager* tm;
 	MultiDrawIndirect* mdi;

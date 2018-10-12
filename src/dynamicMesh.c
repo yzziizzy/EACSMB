@@ -311,8 +311,8 @@ int dynamicMeshManager_addMesh(DynamicMeshManager* mm, char* name, DynamicMesh* 
 	
 	
 	VEC_PUSH(&mm->meshes, sm);
-	mm->totalVertices += sm->vertexCnt;
-	mm->totalIndices += sm->indexCnt;
+	//mm->totalVertices += sm->vertexCnt;
+	//mm->totalIndices += sm->indexCnt;
 	index = VEC_LEN(&mm->meshes);
 	
 	HT_set(&mm->lookup, name, index -1);
