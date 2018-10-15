@@ -78,6 +78,7 @@ typedef struct GUIHeader {
 #include "ui/simpleWindow.h"
 #include "ui/image.h"
 #include "ui/edit.h"
+#include "ui/columnLayout.h"
 
 
 union GUIObject {
@@ -87,6 +88,7 @@ union GUIObject {
 	GUIWindow window;
 	GUISimpleWindow simpleWindow;
 	GUIImage image;
+	GUIColumnLayout columnLayout;
 };
 
 

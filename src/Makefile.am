@@ -52,8 +52,9 @@ eacsmb_SOURCES = main.c \
 	text/text.c \
 	texgen.c \
 	texture.c \
-	ui/image.c \
+	ui/columnLayout.c \
 	ui/edit.c \
+	ui/image.c \
 	ui/simpleWindow.c \
 	ui/text.c \
 	ui/window.c \

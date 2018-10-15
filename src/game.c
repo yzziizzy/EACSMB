@@ -67,6 +67,8 @@ GUIText* gtSelectionDisabled;
 GUISimpleWindow* gswTest;
 GUIImage* giTest;
 
+GUIColumnLayout* gclTest;
+
 GUIEdit* geditTest;
 
 GUIRenderTarget* grtTest;
@@ -271,16 +273,18 @@ void initGame(XStuff* xs, GameState* gs) {
 	giTest = guiImageNew((Vector2){.1,.2}, (Vector2){.8,.8}, 0, 0);
 	
 	
-	//guiRegisterObject(gswTest, NULL);
-	//guiRegisterObject(gt, NULL);
-	guiRegisterObject(gt_terrain, NULL);
-	guiRegisterObject(gt_solids, NULL);
-	//guiRegisterObject(gt_selection, NULL);
-	guiRegisterObject(gt_decals, NULL);
-	guiRegisterObject(gt_emitters, NULL);
-	guiRegisterObject(gt_lighting, NULL);
-	guiRegisterObject(gt_shading, NULL);
-	guiRegisterObject(gt_gui, NULL);
+	gclTest = guiColumnLayoutNew((Vector2){.01,.01}, .02, 0);
+	
+	guiRegisterObject(gclTest, NULL);
+	guiRegisterObject(gt_terrain, gclTest);
+	guiRegisterObject(gt_solids, gclTest);
+	guiRegisterObject(gt_decals, gclTest);
+	guiRegisterObject(gt_emitters, gclTest);
+	guiRegisterObject(gt_lighting, gclTest);
+	guiRegisterObject(gt_shading, gclTest);
+	guiRegisterObject(gt_gui, gclTest);
+
+
 	
 	guiRegisterObject(gtRenderMode, NULL);
 	guiRegisterObject(gtSelectionDisabled, NULL);
