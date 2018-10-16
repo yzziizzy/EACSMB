@@ -168,7 +168,7 @@ float guiTextGetTextWidth(GUIText* gt, int numChars) {
 
 void guiTextSetValue(GUIText* gt, char* newval) {
 	unsigned int colors[] = {
-		0x88FF88FF, INT_MAX
+		0xddddddFF, INT_MAX
 	};
 	
 	if(0 != strcmp(newval, gt->current)) {
