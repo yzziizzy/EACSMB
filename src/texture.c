@@ -717,8 +717,8 @@ int TextureManager_loadAll(TextureManager* tm, Vector2i targetRes) {
 		
 		if(te->path[0] == '$') {
 			// texgen
-
 			bmp = TexGen_Generate(te->path + 1, targetRes);
+			
 		}
 		else {
 			// load from file

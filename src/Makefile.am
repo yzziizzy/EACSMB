@@ -28,9 +28,10 @@ eacsmb_SOURCES = main.c \
 	json_gl.c \
 	lighting.c \
 	log.c \
+	mdi.c \
 	map.c \
 	mapgen.c \
-	mdi.c \
+	marker.c \
 	MurmurHash3.c \
 	objloader.c \
 	opensimplex.c \

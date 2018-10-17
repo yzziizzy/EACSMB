@@ -12,6 +12,7 @@
 #include "decalsCustom.h"
 #include "staticMesh.h"
 #include "dynamicMesh.h"
+#include "marker.h"
 #include "waterPlane.h"
 #include "pass.h"
 #include "shadowMap.h"
@@ -84,6 +85,7 @@ typedef struct World {
 	
 	MeshManager* smm;
 	DynamicMeshManager* dmm;
+	MarkerManager* mm;
 	Emitter* emitters;
 	LightManager* lm;
 	DecalManager* dm;
@@ -91,6 +93,7 @@ typedef struct World {
 	
 	RenderPass* terrainPass; // temp hackMap_CreateDrawable(m);
 	RenderPass* solidsPass; // temp hack
+	RenderPass* transparentsPass; // temp hack
 	RenderPass* lightingPass; // temp hack
 	RenderPass* decalPass; // temp hack
 	
@@ -135,6 +138,9 @@ typedef struct World {
 
 void World_drawTerrain(World* w, PassFrameParams* pfp);
 void World_drawSolids(World* w, PassFrameParams* pfp);
+void World_preTransparents(World* w, PassFrameParams* pfp);
+void World_drawTransparents(World* w, PassFrameParams* pfp);
+void World_postTransparents(World* w);
 void World_drawDecals(World* w, PassFrameParams* pfp);
 
 int World_spawnAt_Item(World* w, char* itemName, Vector* location);

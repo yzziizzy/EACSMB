@@ -43,7 +43,8 @@ void World_init(World* w) {
 	w->smm = meshManager_alloc();
 	w->dm = DecalManager_alloc(1024*50);
 	w->cdm = CustomDecalManager_alloc(1024*50);
-	
+	w->mm = MarkerManager_alloc(128);
+	MarkerManager_addMesh(w->mm, "marker", 20); 
 
 	
 	w->sunShadow = ShadowMap_alloc();
@@ -56,6 +57,7 @@ void World_init(World* w) {
 	
 	w->map.tm = w->mapTexMan;
 	w->dmm->tm = w->meshTexMan;
+	w->mm->tm = w->meshTexMan;
 	w->dm->tm = w->decalTexMan;
 	w->cdm->tm = w->decalTexMan;
 	
@@ -134,6 +136,7 @@ void World_init(World* w) {
 	
 	meshManager_updateGeometry(w->smm);
 	dynamicMeshManager_updateGeometry(w->dmm);
+	MarkerManager_updateGeometry(w->mm);
 	
 
 	DynamicMeshInstance inst = {
@@ -164,6 +167,9 @@ void World_init(World* w) {
 	w->solidsPass = DynamicMeshManager_CreateRenderPass(w->dmm);
 	RenderPass_addDrawable(w->solidsPass, Emitter_CreateDrawable(w->emitters));
 
+	// transparents pass
+	w->transparentsPass = MarkerManager_CreateRenderPass(w->mm);
+	
 
 	// decals pass
 	w->decalPass = DecalManager_CreateRenderPass(w->dm);
@@ -612,6 +618,20 @@ void World_drawSolids(World* w, PassFrameParams* pfp) {
 	
 }
 
+
+void World_preTransparents(World* w, PassFrameParams* pfp) {
+	RenderPass_preFrameAll(w->transparentsPass, pfp);
+}
+
+void World_drawTransparents(World* w, PassFrameParams* pfp) {
+	
+	RenderPass_renderAll(w->transparentsPass, pfp->dp);
+	
+}
+
+void World_postTransparents(World* w) {
+	RenderPass_postFrameAll(w->transparentsPass);
+}
 
 
 void World_drawDecals(World* w, PassFrameParams* pfp) {

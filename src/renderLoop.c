@@ -469,6 +469,9 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	RenderAllPrePasses(&pfp);
 	
 	
+	glEnable(GL_CULL_FACE);
+	glFrontFace(GL_CW); // this is backwards, i think, because of the scaling inversion for z-up
+	
 	
 	//ShadowMap_Render(gs->world->sunShadow, &pdp, &gs->sunNormal);
 	
@@ -507,8 +510,10 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//glCullFace(GL_FRONT);
 	renderDecals(xs, gs, is, &pfp);
 	glDisable(GL_BLEND);
+	//glCullFace(GL_BACK);
 	
 	// back to normal gbuf for solids
 	glBindFramebuffer(GL_FRAMEBUFFER, gs->gbuf.fb);
@@ -518,6 +523,30 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	query_queue_start(&gs->queries.solids);
 	World_drawSolids(gs->world, &pfp);
 	query_queue_stop(&gs->queries.solids);
+	
+	
+	// transparency and effects
+	
+// 	query_queue_start(&gs->queries.solids);
+	glEnable(GL_BLEND);
+	glDepthMask(GL_FALSE); // turn depth writes off
+	
+	World_preTransparents(gs->world, &pfp);
+	
+	// draw backfaces
+	glCullFace(GL_FRONT);
+	World_drawTransparents(gs->world, &pfp);
+// 	
+	// draw frontfaces
+	glCullFace(GL_BACK);
+	World_drawTransparents(gs->world, &pfp);
+	
+	World_postTransparents(gs->world);
+	
+	glDepthMask(GL_TRUE); // turn depth writes back on
+	glDisable(GL_BLEND);
+	
+	//query_queue_stop(&gs->queries.solids);
 	
 	
 	//renderFrame(xs, gs, is, &pfp);
