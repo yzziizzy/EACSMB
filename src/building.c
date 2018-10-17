@@ -110,12 +110,12 @@ void Building_extrudeOutline(Building* b, BuildingOutline* o) {
 	int q = 0;
 	for(i = 0; i <= plen; i+=2) {
 		VEC_PUSH(&b->indices, base_vertex + i);
-		VEC_PUSH(&b->indices, base_vertex + i + 1);
 		VEC_PUSH(&b->indices, base_vertex + plen2 + i);
+		VEC_PUSH(&b->indices, base_vertex + i + 1);
 		
 		VEC_PUSH(&b->indices, base_vertex + i + 1);
-		VEC_PUSH(&b->indices, base_vertex + plen2 + i + 1);
 		VEC_PUSH(&b->indices, base_vertex + plen2 + i);
+		VEC_PUSH(&b->indices, base_vertex + plen2 + i + 1);
 		q+=6;
 	}
 	
@@ -132,12 +132,12 @@ void Building_extrudeOutline(Building* b, BuildingOutline* o) {
 	// stitch up the end to the beginning
 	if(1 /*o->closed*/) { // only closed loops are allowed atm
 		VEC_PUSH(&b->indices, base_vertex + i);
-		VEC_PUSH(&b->indices, base_vertex);
 		VEC_PUSH(&b->indices, base_vertex + plen2 + i);
+		VEC_PUSH(&b->indices, base_vertex);
 		
 		VEC_PUSH(&b->indices, base_vertex);
-		VEC_PUSH(&b->indices, base_vertex + plen2);
 		VEC_PUSH(&b->indices, base_vertex + plen2 + i);
+		VEC_PUSH(&b->indices, base_vertex + plen2);
 		q+=6;
 	}
 	
@@ -254,8 +254,8 @@ void Building_capOutline(Building* building, BuildingOutline* o) {
 		}));
 		
 		VEC_PUSH(&building->indices, base_vertex + 0);
-		VEC_PUSH(&building->indices, base_vertex + 1);
 		VEC_PUSH(&building->indices, base_vertex + 2);
+		VEC_PUSH(&building->indices, base_vertex + 1);
 		
 	
 		// clip out the middle vertex
@@ -426,6 +426,11 @@ void BuildingOutline_bevelCorner(BuildingOutline* o, Vector2_Link* l, int divisi
 	Vector2_Link* prior = LIST_PREV_LOOP(&o->points, l);
 	Vector2 p0 = l->point;
 	
+	// starting point
+	Vector2 p1 = {};
+	
+	// ending point
+	Vector2 p2 = {};
 	
 	
 	
@@ -439,6 +444,7 @@ void BuildingOutline_bevelCorner(BuildingOutline* o, Vector2_Link* l, int divisi
 		};
 		
 		
+		LIST_INS_AFTER(&o->points, prior, point, pn);
 		
 	}
 	
