@@ -84,6 +84,9 @@ static inline void* ComponentManager_nextEnt(ComponentManager* cm, int* index, u
 
 
 
+
+
+
 uint32_t newEID();
 	
 	
@@ -106,8 +109,6 @@ typedef struct C_PathFollow {
 	float speed;
 	float distTravelled;
 } C_PathFollow;
-
-
 
 
 

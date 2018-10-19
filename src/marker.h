@@ -31,18 +31,27 @@ typedef struct MarkerVertex {
 
 
 
+typedef struct MarkerInstanceShader {
+	Vector pos; 
+	float radius;
+} MarkerInstanceShader;
+
+
 typedef struct MarkerInstance {
 	Vector pos; 
 	float radius;
 	
-	
+	double spawnTime;
+	double deathTime;
 } MarkerInstance;
 
 
 
 typedef struct Marker {
+	Vector pos;
 	
-	
+	int texIndex;
+	char* texName;
 } Marker;
 
 

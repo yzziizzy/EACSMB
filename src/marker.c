@@ -18,7 +18,7 @@
 #include "pass.h"
 
 
-// #include "c_json/json.h"
+#include "c_json/json.h"
 
 
 
@@ -28,10 +28,6 @@
 static void uniformSetup(MarkerManager* mm, GLuint progID);
 static void instanceSetup(MarkerManager* mm, MarkerInstance* vmem, MDIDrawInfo** di, int diCount, PassFrameParams* pfp);
 
-
-
-
-// VAO
 
 
 static ShaderProgram* prog;
@@ -139,6 +135,45 @@ void MarkerManager_updateGeometry(MarkerManager* mm) {
 
 
 
+void MarkerManager_readConfigFile(MarkerManager* mm, char* configPath) {
+	
+		int ret;
+	struct json_obj* o;
+	void* iter;
+	char* key, *texName, *tmp;
+	struct json_value* v, *tc;
+	json_file_t* jsf;
+	
+	jsf = json_load_path(configPath);
+	
+	iter = NULL;
+	
+	while(json_obj_next(jsf->root, &iter, &key, &tc)) {
+		json_value_t* val;
+		char* name;
+		
+		name = strdup(key);
+		
+		
+		ret = json_obj_get_key(tc, "texture", &val);
+		if(!ret) {
+			json_as_string(val, &path);
+			
+			dm->texIndex = TextureManager_reservePath(mm->tm, path);
+			printf("dmm: %d %s\n", dm->texIndex, path);
+		}
+		
+		MarkerManager_addMesh(mm, m);
+		
+	}
+}
+
+
+
+
+
+
+
 
 static void instanceSetup(MarkerManager* mm, MarkerInstance* vmem, MDIDrawInfo** di, int diCount, PassFrameParams* pfp) {
 	int i, j;
@@ -150,9 +185,7 @@ static void instanceSetup(MarkerManager* mm, MarkerInstance* vmem, MDIDrawInfo**
 		
 		i = 0;
 		for(i = 0; i < 1; i++) { // each instance
-			vmem->pos.x = 10; // multiplier should be mb->w
-			vmem->pos.y = 10; // multiplier should be mb->w
-			vmem->pos.z = 10; // multiplier should be mb->w
+			vmem->pos = (Vector){10,10,10};
 			vmem->radius = 2.0;
 			
 			vmem++;

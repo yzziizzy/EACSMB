@@ -115,13 +115,21 @@ void initGame(XStuff* xs, GameState* gs) {
 	CES_init(&gs->ces);
 	
 	CES_addComponentManager(&gs->ces, ComponentManager_alloc("position", sizeof(Vector), 1024*8));
-	CES_addComponentManager(&gs->ces, ComponentManager_alloc("meshIndex", sizeof(uint16_t), 1024*8));
 	CES_addComponentManager(&gs->ces, ComponentManager_alloc("rotation", sizeof(C_Rotation), 1024*8));
+	CES_addComponentManager(&gs->ces, ComponentManager_alloc("meshIndex", sizeof(uint16_t), 1024*8));
 	
 	// about axis of rotation
 	CES_addComponentManager(&gs->ces, ComponentManager_alloc("angularVelocity", sizeof(float), 1024*8));
 	
 	CES_addComponentManager(&gs->ces, ComponentManager_alloc("pathFollow", sizeof(C_PathFollow), 1024*8));
+	
+	
+	
+	/*
+	
+	height auto-update flag
+	
+	*/
 	
 	waterProg = loadCombinedProgram("mg_water");
 	erodeProg = loadCombinedProgram("mg_erode");
