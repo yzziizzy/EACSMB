@@ -193,6 +193,7 @@ void initRenderLoop(GameState* gs) {
 	query_queue_init(&gs->queries.selection);
 	query_queue_init(&gs->queries.decals);
 	query_queue_init(&gs->queries.emitters);
+	query_queue_init(&gs->queries.effects);
 	query_queue_init(&gs->queries.lighting);
 	query_queue_init(&gs->queries.shading);
 	query_queue_init(&gs->queries.gui);
@@ -527,7 +528,7 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	// transparency and effects
 	
-// 	query_queue_start(&gs->queries.solids);
+ 	query_queue_start(&gs->queries.effects);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDepthMask(GL_FALSE); // turn depth writes off
@@ -546,8 +547,7 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	glDepthMask(GL_TRUE); // turn depth writes back on
 	glDisable(GL_BLEND);
-	
-	//query_queue_stop(&gs->queries.solids);
+	query_queue_stop(&gs->queries.effects);
 	
 	
 	//renderFrame(xs, gs, is, &pfp);

@@ -59,6 +59,7 @@ GUIText* gt_solids;
 GUIText* gt_selection;
 GUIText* gt_decals;
 GUIText* gt_emitters;
+GUIText* gt_effects;
 GUIText* gt_lighting;
 GUIText* gt_shading;
 GUIText* gt_gui;
@@ -264,6 +265,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	gt_selection = guiTextNew("gui!", (Vector2){0.010,0.28}, 3.0f, "Arial");
 	gt_decals = guiTextNew("gui!", (Vector2){0.010,0.08}, 3.0f, "Arial");
 	gt_emitters = guiTextNew("gui!", (Vector2){0.010,0.10}, 3.0f, "Arial");
+	gt_effects = guiTextNew("gui!", (Vector2){0.010,0.10}, 3.0f, "Arial");
 	gt_lighting = guiTextNew("gui!", (Vector2){0.010,0.12}, 3.0f, "Arial");
 	gt_shading = guiTextNew("gui!", (Vector2){0.010,0.14}, 3.0f, "Arial");
 	gt_gui = guiTextNew("gui!", (Vector2){0.010,0.16}, 3.0f, "Arial");
@@ -288,6 +290,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	guiRegisterObject(gt_solids, gclTest);
 	guiRegisterObject(gt_decals, gclTest);
 	guiRegisterObject(gt_emitters, gclTest);
+	guiRegisterObject(gt_effects, gclTest);
 	guiRegisterObject(gt_lighting, gclTest);
 	guiRegisterObject(gt_shading, gclTest);
 	guiRegisterObject(gt_gui, gclTest);
@@ -380,6 +383,7 @@ void preFrame(GameState* gs) {
 		query_update_gui(solids);
 		query_update_gui(selection);
 		query_update_gui(decals);
+		query_update_gui(effects);
 		query_update_gui(emitters);
 		query_update_gui(shading);
 		query_update_gui(lighting);

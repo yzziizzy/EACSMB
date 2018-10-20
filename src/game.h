@@ -140,6 +140,7 @@ typedef struct GameState {
 		QueryQueue selection; 
 		QueryQueue decals; 
 		QueryQueue emitters; 
+		QueryQueue effects; 
 		QueryQueue lighting; 
 		QueryQueue shading; 
 		QueryQueue gui; 
