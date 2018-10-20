@@ -12,6 +12,7 @@ layout (location = 1) in vec2 v_tex_in;
 
 // per instance
 layout (location = 2) in vec4 i_center_radius_in;
+layout (location = 3) in ivec2 i_texIndex_in;
 
 
 
@@ -23,6 +24,7 @@ uniform mat4 mWorldView;
 uniform mat4 mViewProj;
 
 out vec2 vs_tex;
+flat out int vs_texIndex;
 
 
 void main() {
@@ -38,6 +40,7 @@ void main() {
 	
 	gl_Position = (mViewProj * mWorldView) * pos;
 	vs_tex = v_tex_in;
+	vs_texIndex = int(i_texIndex_in.x);
 }
 
 
@@ -55,12 +58,12 @@ layout(location = 1) out vec4 out_Normal;
 
 
 in vec2 vs_tex;
+flat in int vs_texIndex;
 
 void main(void) {
 	
-	float texIndex = 2.0;
 	
-	vec4 t = texture(sTextures, vec3(vs_tex, texIndex));
+	vec4 t = texture(sTextures, vec3(vs_tex, vs_texIndex));
 	
 	
 	out_Color = t;

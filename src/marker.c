@@ -26,7 +26,7 @@
 
 
 static void uniformSetup(MarkerManager* mm, GLuint progID);
-static void instanceSetup(MarkerManager* mm, MarkerInstance* vmem, MDIDrawInfo** di, int diCount, PassFrameParams* pfp);
+static void instanceSetup(MarkerManager* mm, MarkerInstanceShader* vmem, MDIDrawInfo** di, int diCount, PassFrameParams* pfp);
 
 
 
@@ -52,7 +52,7 @@ MarkerManager* MarkerManager_alloc(int maxInstances) {
 		
 		// per instance 
 		{1, 4, GL_FLOAT, 1, GL_FALSE}, // position and radius
-	// 	{1, 2, GL_UNSIGNED_SHORT, 1, GL_FALSE}, // texture indices
+	 	{1, 2, GL_UNSIGNED_SHORT, 1, GL_FALSE}, // texture indices
 		
 		{0, 0, 0}
 	};
@@ -73,7 +73,7 @@ MarkerManager* MarkerManager_alloc(int maxInstances) {
 
 
 // returns the index if the mesh
-int MarkerManager_addMesh(MarkerManager* mm, char* name, int segments) {
+int MarkerManager_addMesh(MarkerManager* mm, Marker* m, char* name, int segments) {
 	int j, i, index;
 	
 	
@@ -120,8 +120,8 @@ int MarkerManager_addMesh(MarkerManager* mm, char* name, int segments) {
 	
 	MultiDrawIndirect_addMesh(mm->mdi, di);
 	
-//	VEC_PUSH(&mm->meshes, sm);
-//	index = VEC_LEN(&mm->meshes);
+	VEC_PUSH(&mm->meshes, m);
+	index = VEC_LEN(&mm->meshes);
 	
 	HT_set(&mm->lookup, name, index -1);
 	
@@ -137,7 +137,7 @@ void MarkerManager_updateGeometry(MarkerManager* mm) {
 
 void MarkerManager_readConfigFile(MarkerManager* mm, char* configPath) {
 	
-		int ret;
+	int ret;
 	struct json_obj* o;
 	void* iter;
 	char* key, *texName, *tmp;
@@ -150,7 +150,10 @@ void MarkerManager_readConfigFile(MarkerManager* mm, char* configPath) {
 	
 	while(json_obj_next(jsf->root, &iter, &key, &tc)) {
 		json_value_t* val;
-		char* name;
+		char* name, *path;
+		Marker* m;
+		
+		pcalloc(m);
 		
 		name = strdup(key);
 		
@@ -159,12 +162,11 @@ void MarkerManager_readConfigFile(MarkerManager* mm, char* configPath) {
 		if(!ret) {
 			json_as_string(val, &path);
 			
-			dm->texIndex = TextureManager_reservePath(mm->tm, path);
-			printf("dmm: %d %s\n", dm->texIndex, path);
+			m->texIndex = TextureManager_reservePath(mm->tm, path);
+			//printf("-----mm: %d %s\n", m->texIndex, path);
 		}
 		
-		MarkerManager_addMesh(mm, m);
-		
+		MarkerManager_addMesh(mm, m, name, 24);
 	}
 }
 
@@ -175,18 +177,21 @@ void MarkerManager_readConfigFile(MarkerManager* mm, char* configPath) {
 
 
 
-static void instanceSetup(MarkerManager* mm, MarkerInstance* vmem, MDIDrawInfo** di, int diCount, PassFrameParams* pfp) {
+static void instanceSetup(MarkerManager* mm, MarkerInstanceShader* vmem, MDIDrawInfo** di, int diCount, PassFrameParams* pfp) {
 	int i, j;
 	int x, y;
 	
-	diCount = 1;
+	//diCount = 1;
 	for(j = 0; j < diCount; j++) {
-		di[j]->numToDraw = 5;
+		Marker* m = VEC_ITEM(&mm->meshes, j);
+		di[j]->numToDraw = 1;
 		
 		i = 0;
 		for(i = 0; i < 1; i++) { // each instance
 			vmem->pos = (Vector){10,10,10};
 			vmem->radius = 2.0;
+			
+			vmem->texIndex = m->texIndex;
 			
 			vmem++;
 		}

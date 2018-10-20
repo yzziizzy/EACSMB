@@ -44,7 +44,7 @@ void World_init(World* w) {
 	w->dm = DecalManager_alloc(1024*50);
 	w->cdm = CustomDecalManager_alloc(1024*50);
 	w->mm = MarkerManager_alloc(128);
-	MarkerManager_addMesh(w->mm, "marker", 20); 
+//	MarkerManager_addMesh(w->mm, "marker", 20); 
 
 	
 	w->sunShadow = ShadowMap_alloc();
@@ -57,7 +57,7 @@ void World_init(World* w) {
 	
 	w->map.tm = w->mapTexMan;
 	w->dmm->tm = w->meshTexMan;
-	w->mm->tm = w->meshTexMan;
+	w->mm->tm = w->decalTexMan;
 	w->dm->tm = w->decalTexMan;
 	w->cdm->tm = w->decalTexMan;
 	
@@ -65,6 +65,7 @@ void World_init(World* w) {
 	meshManager_readConfigFile(w->smm, "assets/config/models.json");
 	dynamicMeshManager_readConfigFile(w->dmm, "assets/config/models.json");
 	DecalManager_readConfigFile(w->dm, "assets/config/decals.json");
+	MarkerManager_readConfigFile(w->mm, "assets/config/markers.json");
 	
 	w->emitters = makeEmitter();
 	

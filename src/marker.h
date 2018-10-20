@@ -34,6 +34,8 @@ typedef struct MarkerVertex {
 typedef struct MarkerInstanceShader {
 	Vector pos; 
 	float radius;
+	
+	unsigned short texIndex, unused[3];
 } MarkerInstanceShader;
 
 
@@ -75,14 +77,14 @@ typedef struct MarkerManager {
 
 
 MarkerManager* MarkerManager_alloc(int maxInstances);
-int MarkerManager_addMesh(MarkerManager* mm, char* name, int segments);
+int MarkerManager_addMesh(MarkerManager* mm, Marker* m, char* name, int segments);
 void MarkerManager_updateGeometry(MarkerManager* mm);
 
 RenderPass* MarkerManager_CreateRenderPass(MarkerManager* m);
 PassDrawable* MarkerManager_CreateDrawable(MarkerManager* m);
 
 
-
+void MarkerManager_readConfigFile(MarkerManager* mm, char* configPath); 
 
 
 #endif // __EACSMB_marker_h__
