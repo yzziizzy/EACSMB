@@ -354,6 +354,8 @@ uniform isampler2DArray sData;
 uniform mat4 mWorldView;
 uniform mat4 mViewProj;
 
+uniform ivec2 aSurfaces[16];
+
 uniform int waterIndex;
 const int win = 1 + waterIndex;
 const int wout = 2 - waterIndex;
@@ -406,19 +408,29 @@ void main(void) {
 	//out_Color = vec4(t_tile.x, t_tile.y,1 ,1.0);
 	
  	
-	vec4 tc;// = texture2D(sBaseTex, texCoord);
+	vec4 tc, nc;// = texture2D(sBaseTex, texCoord);
 // 	int texIndex = texelFetch(sData, ivec3(t_tile.xy, 0), 0).x;
 	
-	int texIndex = texture(sData, vec3(t_tile.xy, 0)).x;
+	int surfIndex = texture(sData, vec3(t_tile.xy, 0)).x;
+	int texIndex = aSurfaces[surfIndex].x;
+	int normIndex = aSurfaces[surfIndex].y;
+	
 	vec4 t = texture(sTextures, vec3(texCoord.xy * 64, texIndex));
+	vec4 n = texture(sTextures, vec3(texCoord.xy * 64, normIndex));
 
-	int ti_n10 = textureOffset(sData, vec3(t_tile.xy, 0), ivec2(-1,0)).x;
-	int ti_0n1 = textureOffset(sData, vec3(t_tile.xy, 0), ivec2(0,-1)).x;
-	int ti_n1n1 = textureOffset(sData, vec3(t_tile.xy, 0), ivec2(-1,-1)).x;
+	int ti_n10 = aSurfaces[textureOffset(sData, vec3(t_tile.xy, 0), ivec2(-1,0)).x].x;
+	int ti_0n1 = aSurfaces[textureOffset(sData, vec3(t_tile.xy, 0), ivec2(0,-1)).x].x;
+	int ti_n1n1 = aSurfaces[textureOffset(sData, vec3(t_tile.xy, 0), ivec2(-1,-1)).x].x;
+	int ni_n10 = aSurfaces[textureOffset(sData, vec3(t_tile.xy, 0), ivec2(-1,0)).x].y;
+	int ni_0n1 = aSurfaces[textureOffset(sData, vec3(t_tile.xy, 0), ivec2(0,-1)).x].y;
+	int ni_n1n1 = aSurfaces[textureOffset(sData, vec3(t_tile.xy, 0), ivec2(-1,-1)).x].y;
 	
 	vec4 t_n10 = texture(sTextures, vec3(texCoord.xy * 64, ti_n10));
 	vec4 t_0n1 = texture(sTextures, vec3(texCoord.xy * 64, ti_0n1));
 	vec4 t_n1n1 = texture(sTextures, vec3(texCoord.xy * 64, ti_n1n1));
+	vec4 n_n10 = texture(sTextures, vec3(texCoord.xy * 64, ni_n10));
+	vec4 n_0n1 = texture(sTextures, vec3(texCoord.xy * 64, ni_0n1));
+	vec4 n_n1n1 = texture(sTextures, vec3(texCoord.xy * 64, ni_n1n1));
 	
 	float a = .2;
 	
@@ -432,6 +444,11 @@ void main(void) {
 	tc += ymw * (1-smoothstep(0.0, a, ftile.x)) * t_n10;
  	tc += xmw * (1-smoothstep(0.0, a, ftile.y)) * t_0n1;
 	tc += (1-smoothstep(0.0, a, max(ftile.y,ftile.x))) * t_n1n1;
+	
+	nc = min(xmw, ymw) * n; // + t_10 * xpw + t_n10 * xmw;
+	nc += ymw * (1-smoothstep(0.0, a, ftile.x)) * n_n10;
+ 	nc += xmw * (1-smoothstep(0.0, a, ftile.y)) * n_0n1;
+	nc += (1-smoothstep(0.0, a, max(ftile.y,ftile.x))) * n_n1n1;
 	
  	// "in cursor"
  	bool incx = t_tile.x > cursorPos.x && t_tile.x < cursorPos.x + UNIT;
@@ -457,7 +474,9 @@ void main(void) {
 //	out_Selection = vec4(floor(t_tile.x) / 256, floor(t_tile.y) / 256, ps_InstanceID, 1);
 	
 	// normals need to be in world space
-	out_Normal = vec4((te_normal.xyz * .5) + .5, 1.0);
+	vec4 out_norm = normalize(te_normal + (.25 * nc));
+// 	vec4 out_norm = normalize(nc);
+	out_Normal = vec4((out_norm.xyz * .5) + .5, 1.0);
 	
 	/*
 	if(wlevel > 4.7) {

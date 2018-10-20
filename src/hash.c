@@ -67,7 +67,7 @@ void HT_destroy(HashTable* obj, int free_values_too) {
 	}
 	
 	if(obj->buckets) free(obj->buckets);
-	free(obj);
+//	free(obj); owner has to clean up
 }
 
 

@@ -725,10 +725,10 @@ BitmapRGBA8* TexGen_Generate(char* source, Vector2i size) {
 	BitmapRGBA8* bmp = FloatTex_ToRGBA8(ft);
 	
 	HT_destroy(&storage, 0);
-	FloatTex_free(ft);
 	
 	VEC_EACH(&context.stack, i, f) {
 		FloatTex_free(f);
+		free(f);
 	}
 	
 	VEC_FREE(&context.stack);
@@ -899,15 +899,21 @@ FloatTex* FloatTex_alloc(int width, int height, int channels) {
 }
 
 void FloatBitmap_free(FloatBitmap* bmp) {
-	free(bmp->data);
-	free(bmp);
+	if(bmp->data) free(bmp->data);
+	bmp->data = NULL;
+//	free(bmp);
 }
 void FloatTex_free(FloatTex* ft) {
 	FloatBitmap_free(ft->bmps[0]);
 	FloatBitmap_free(ft->bmps[1]);
 	FloatBitmap_free(ft->bmps[2]);
 	FloatBitmap_free(ft->bmps[3]);
-	free(ft);
+	free(ft->bmps[0]);
+	free(ft->bmps[1]);
+	free(ft->bmps[2]);
+	free(ft->bmps[3]);
+	
+//	free(ft);
 }
 
 FloatTex* FloatTex_similar(FloatTex* orig) {

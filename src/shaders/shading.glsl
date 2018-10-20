@@ -113,6 +113,7 @@ void main() {
 		
 		vec3 light = texture(sLighting, tex).rgb;
 		
+		
 		vec3 colorOut;
 		if(length(normal) < 1.01) { // things with normals get directional lighting
 			colorOut = vec3(

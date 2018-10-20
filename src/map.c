@@ -874,14 +874,44 @@ void Map_readConfigFile(MapInfo* mi, char* path) {
 	iter = NULL;
 	while(json_obj_next(tex_o, &iter, &key, &tc)) {
 		char* path;
+		MapSurfaceType* st = pcalloc(st); 
 		
-		texName = strdup(key);
-		json_as_string(tc, &path);
+		st->name = strdup(key);
+		st->diffuse = -1;
+		st->normal = -1;
+		VEC_PUSH(&mi->surfaceTypes, st);
 		
-		TextureManager_reservePath(mi->tm, path);
+		if(tc->type == JSON_TYPE_OBJ) {
+			json_obj_get_key(tc, "diffuse", &v);
+			if(v->type == JSON_TYPE_STRING) {
+				json_as_string(v, &path);
+				st->diffuse = TextureManager_reservePath(mi->tm, path);
+			}
+			else {
+				fprintf(stderr, "!!! Terrain type '%s' missing diffuse texture.\n", key);
+			}
+			
+			json_obj_get_key(tc, "normal", &v);
+			if(v->type == JSON_TYPE_STRING) {
+				json_as_string(v, &path);
+				st->normal = TextureManager_reservePath(mi->tm, path);
+			}
+		}
+		else {
+			
+			json_as_string(tc, &path);
+			
+			st->diffuse = TextureManager_reservePath(mi->tm, path);
+		}
+		
+		
 	}
 	
-	
+	// fill in uniform block
+	VEC_EACH(&mi->surfaceTypes, i, st) {
+		mi->surfaceUniforms[i].diffuse = st->diffuse; 
+		mi->surfaceUniforms[i].normal = st->normal; 
+	}
 	
 	
 }
@@ -900,6 +930,9 @@ static void uniformSetup(MapInfo* mi, GLuint progID) {
 	static int waterIndex = 0;
 	waterIndex = (waterIndex + 1) % 2;
 	glUniform1i(glGetUniformLocation(progID, "waterIndex"), waterIndex);
+	
+	// TODO: move elsewhere, no need to set every frame
+	glUniform2iv(glGetUniformLocation(progID, "aSurfaces"), 16, mi->surfaceUniforms);
 	
 	bindTerrainTextures(mi);
 }

@@ -1,7 +1,14 @@
 {
 	types: {
-		grass: "assets/textures/grass_texture-256.png",
-		dirt: "assets/textures/dirt_texture-256.png",
+		/* grass: "assets/textures/grass_texture-256.png", */
+		grass: {
+			diffuse: "assets/textures/grass_texture-256.png", 
+			normal: "$(seq (perlin .6 7 16 16 100 100) (normal_map 0))",
+		},
+		dirt: {
+			diffuse: "assets/textures/dirt_texture-256.png",
+			normal: "$(seq (perlin .6 7 16 16 100 100) (normal_map 0))",
+		},
 		fract: "assets/textures/snowfractal-256.png",
 	},
 	

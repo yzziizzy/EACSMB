@@ -151,6 +151,14 @@ typedef struct MapRenderComponent {
 } MapRenderComponent;
 
 
+
+typedef struct MapSurfaceType {
+	char* name;
+	int diffuse, normal; // specular
+} MapSurfaceType;
+
+
+
 typedef struct MapInfo {
 	
 	// will be replaced by expandable structures later
@@ -163,7 +171,10 @@ typedef struct MapInfo {
 	
 	MultiDrawIndirect* blockPatch;
 
-	
+	VEC(MapSurfaceType*) surfaceTypes;
+	struct {
+		int diffuse, normal;
+	} surfaceUniforms[16];
 // 	MapBlockTreeLeaf* root;
 	
 	int scale; // how many terrain tiles are along an edge of one game tile. SC3k would be 1.
