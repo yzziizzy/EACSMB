@@ -418,9 +418,6 @@ GLuint RenderPipeline_getOutputTexture(RenderPipeline* rp) {
 
 
 
-
-
-
 void RegisterPrePass(pass_callback cb, void* data, char* name) {
 	
 	struct pass_info* pi;

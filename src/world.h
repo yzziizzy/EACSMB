@@ -28,6 +28,7 @@ enum ItemTypes {
 	ITEM_TYPE_LIGHT,
 	ITEM_TYPE_DECAL,
 	ITEM_TYPE_CUSTOMDECAL,
+	ITEM_TYPE_MARKER,
 };
 
 
@@ -72,6 +73,7 @@ static const uint32_t ITEM_BASE_IDS[] = {
 	[ITEM_TYPE_LIGHT] =       1200000000,
 	[ITEM_TYPE_DECAL] =       1300000000,
 	[ITEM_TYPE_CUSTOMDECAL] = 1400000000,
+	[ITEM_TYPE_MARKER] =      1500000000,
 };
 
 static inline uint32_t itemBaseID(enum ItemTypes e) {
@@ -151,6 +153,7 @@ int World_spawnAt_Decal(World* w, int index, Vector* location);
 int World_spawnAt_CustomDecal(World* w, int texIndex, float width, const Vector2* p1, const Vector2* p2);
 void World_spawnAt_Road(World* w, Vector2* start,  Vector2* stop);
 int World_spawnAt_Emitter(World* w, int emitterIndex, Vector* location);
+int World_spawnAt_Marker(World* w, int markerIndex, Vector* location);
 
 
 void loadItemConfig(World* w, char* path);

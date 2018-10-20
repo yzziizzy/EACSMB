@@ -10,6 +10,11 @@
 				type: "decal",
 				name: "splotch",
 				position: [0,0,0],
+			},
+			{
+				type: "marker",
+				name: "cursor",
+				position: [0,0,0],
 			}
 	/*		{
 				type: "light",

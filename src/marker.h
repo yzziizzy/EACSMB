@@ -35,7 +35,7 @@ typedef struct MarkerInstanceShader {
 	Vector pos; 
 	float radius;
 	
-	unsigned short texIndex, unused[3];
+	unsigned short texIndex, divisor;
 } MarkerInstanceShader;
 
 
@@ -50,7 +50,7 @@ typedef struct MarkerInstance {
 
 
 typedef struct Marker {
-	Vector pos;
+	VEC(MarkerInstance) instances;
 	
 	int texIndex;
 	char* texName;
@@ -78,7 +78,9 @@ typedef struct MarkerManager {
 
 MarkerManager* MarkerManager_alloc(int maxInstances);
 int MarkerManager_addMesh(MarkerManager* mm, Marker* m, char* name, int segments);
+void MarkerManager_addInstance(MarkerManager* mm, int index, MarkerInstance* inst);
 void MarkerManager_updateGeometry(MarkerManager* mm);
+int MarkerManager_lookupName(MarkerManager* mm, char* name);
 
 RenderPass* MarkerManager_CreateRenderPass(MarkerManager* m);
 PassDrawable* MarkerManager_CreateDrawable(MarkerManager* m);

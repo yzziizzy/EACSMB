@@ -24,6 +24,9 @@ int partTypeLookup(char* name) {
 	else if(0 == strcmp("decal", name)) {
 		return ITEM_TYPE_DECAL;
 	}
+	else if(0 == strcmp("marker", name)) {
+		return ITEM_TYPE_MARKER;
+	}
 	else {
 		printf("Unknown part type: %s\n", name);
 		return ITEM_TYPE_UNKNOWN;
@@ -53,6 +56,10 @@ ItemPart* findPart(World* w, char* typeName, char* name, ItemPart* part) {
 
 		case ITEM_TYPE_DECAL:
 			part->index = DecalManager_lookupName(w->dm, name);
+			break;
+			
+		case ITEM_TYPE_MARKER:
+			part->index = MarkerManager_lookupName(w->mm, name);
 			break;
 			
 			

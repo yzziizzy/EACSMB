@@ -25,7 +25,7 @@ uniform mat4 mViewProj;
 
 out vec2 vs_tex;
 flat out int vs_texIndex;
-
+flat out float vs_divisor;
 
 void main() {
 	
@@ -41,6 +41,7 @@ void main() {
 	gl_Position = (mViewProj * mWorldView) * pos;
 	vs_tex = v_tex_in;
 	vs_texIndex = int(i_texIndex_in.x);
+	vs_divisor = i_texIndex_in.y;
 }
 
 
@@ -52,6 +53,7 @@ void main() {
 
 
 uniform sampler2DArray sTextures;
+uniform float timeFractional;
 
 layout(location = 0) out vec4 out_Color;
 layout(location = 1) out vec4 out_Normal;
@@ -59,14 +61,22 @@ layout(location = 1) out vec4 out_Normal;
 
 in vec2 vs_tex;
 flat in int vs_texIndex;
+flat in float vs_divisor;
+
+
 
 void main(void) {
 	
+	vec2 tex = vec2(vs_tex.x * vs_divisor + timeFractional, vs_tex.y); 
+	vec2 tex2 = vec2(vs_tex.x * vs_divisor + (1 - timeFractional), vs_tex.y); 
 	
-	vec4 t = texture(sTextures, vec3(vs_tex, vs_texIndex));
+	vec4 t = texture(sTextures, vec3(tex, vs_texIndex));
+	vec4 t2 = texture(sTextures, vec3(tex2, vs_texIndex));
 	
+	vec4 t3 = (t + t2) / 2;
 	
-	out_Color = t;
+	if(t3.a < 0.01) discard;
 	
+	out_Color = t3;
 }
 

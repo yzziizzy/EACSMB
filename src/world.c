@@ -43,7 +43,7 @@ void World_init(World* w) {
 	w->smm = meshManager_alloc();
 	w->dm = DecalManager_alloc(1024*50);
 	w->cdm = CustomDecalManager_alloc(1024*50);
-	w->mm = MarkerManager_alloc(128);
+	w->mm = MarkerManager_alloc(1024*50);
 //	MarkerManager_addMesh(w->mm, "marker", 20); 
 
 	
@@ -307,6 +307,12 @@ static int spawnPart(World* w, ItemPart* part, Vector* center) {
 
 		case ITEM_TYPE_DECAL:
 			return World_spawnAt_Decal(w, part->index, &loc);
+			
+// 		case ITEM_TYPE_CUSTOMDECAL:
+// 			return World_spawnAt_CustomDecal(w, part->index, &loc);
+
+		case ITEM_TYPE_MARKER:
+			return World_spawnAt_Marker(w, part->index, &loc);
 	
 		default:
 			printf("unknown part item type: %d\n", part->type);
@@ -446,6 +452,28 @@ int World_spawnAt_Emitter(World* w, int emitterIndex, Vector* location) {
 	
 	emitterAddInstance(w->emitters, &inst);
 	emitter_update_vbo(w->emitters);
+	
+	
+}
+
+int World_spawnAt_Marker(World* w, int markerIndex, Vector* location) {
+	MarkerInstance dmi;
+	float h;
+	
+	Vector2i loci;
+	//printf("dynamic mesh spawn");
+	loci.x = location->x;
+	loci.y = location->y;
+	
+	// look up the height there.
+	//getTerrainHeight(&w->map, &loci, 1, &h);
+	h = Map_getTerrainHeight(&w->map, loci);
+	
+	MarkerInstance inst;
+	inst.pos = (Vector){location->x, location->y, h};
+	inst.radius = 12;
+	
+	MarkerManager_addInstance(w->mm, markerIndex, &inst); 
 	
 	
 }

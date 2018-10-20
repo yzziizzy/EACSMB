@@ -85,12 +85,12 @@ int MarkerManager_addMesh(MarkerManager* mm, Marker* m, char* name, int segments
 	for(i = 0; i <= segments; i++) {
 		vertices[i].v = (Vector){cos(i * dt), sin(i * dt), 0};
 		vertices[i].t.u = (i * ds) * 65535;
-		vertices[i].t.v = 0;
+		vertices[i].t.v = 65535;
 	} 
 	for(i = 0; i <= segments; i++) {
 		vertices[segments + 1 + i].v = (Vector){cos(i * dt), sin(i * dt), 1.0};
 		vertices[segments + 1 + i].t.u = (i * ds) * 65535;
-		vertices[segments + 1 + i].t.v = 65535;
+		vertices[segments + 1 + i].t.v = 0;
 	} 
 	
 	
@@ -129,10 +129,32 @@ int MarkerManager_addMesh(MarkerManager* mm, Marker* m, char* name, int segments
 }
 
 
+void MarkerManager_addInstance(MarkerManager* mm, int index, MarkerInstance* inst) {
+	Marker* m;
+	
+	m = VEC_ITEM(&mm->meshes, index);
+	VEC_PUSH(&m->instances, *inst);
+}
+
+
 void MarkerManager_updateGeometry(MarkerManager* mm) {
 	MultiDrawIndirect_updateGeometry(mm->mdi);
 }
 
+
+
+// returns the index of the instance
+int MarkerManager_lookupName(MarkerManager* mm, char* name) {
+	
+	int64_t index;
+	
+	if(!HT_get(&mm->lookup, name, &index)) {
+		printf("marker found: %s -> %d\n", name, index);
+		return index;
+	}
+	printf("marker not found: %s\n", name);
+	return -1;
+}
 
 
 void MarkerManager_readConfigFile(MarkerManager* mm, char* configPath) {
@@ -184,14 +206,14 @@ static void instanceSetup(MarkerManager* mm, MarkerInstanceShader* vmem, MDIDraw
 	//diCount = 1;
 	for(j = 0; j < diCount; j++) {
 		Marker* m = VEC_ITEM(&mm->meshes, j);
-		di[j]->numToDraw = 1;
+		di[j]->numToDraw = VEC_LEN(&m->instances);
 		
-		i = 0;
-		for(i = 0; i < 1; i++) { // each instance
-			vmem->pos = (Vector){10,10,10};
+		VEC_EACH(&m->instances, i, inst) {
+			vmem->pos = inst.pos;//(Vector){10,10,10};
 			vmem->radius = 2.0;
 			
 			vmem->texIndex = m->texIndex;
+			vmem->divisor = 5;
 			
 			vmem++;
 		}

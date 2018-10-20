@@ -478,7 +478,7 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	
 	if(gs->hasMoved && gs->lastSelectionFrame < gs->frameCount - 8 && !gs->selectionPassDisabled) {
-		printf("doing selection pass %d\n", gs->frameCount);
+		//printf("doing selection pass %d\n", gs->frameCount);
 		gs->hasMoved = 0;
 		
 		selectionPass(xs, gs, is, &pfp);
@@ -529,6 +529,7 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 // 	query_queue_start(&gs->queries.solids);
 	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDepthMask(GL_FALSE); // turn depth writes off
 	
 	World_preTransparents(gs->world, &pfp);
