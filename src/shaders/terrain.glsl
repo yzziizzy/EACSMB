@@ -155,15 +155,20 @@ void main() {
 		vec4 w0, w1, w2, w3;
 		
 		// this makes culling better, but still not completely correct
+		w0 = gl_in[0].gl_Position;
+		w1 = gl_in[1].gl_Position;
+		w2 = gl_in[2].gl_Position;
+		w3 = gl_in[3].gl_Position;
+		
 		w0.z = texture(sHeightMap, vec3(vs_tile[0].xy, 0),0).r;
 		w1.z = texture(sHeightMap, vec3(vs_tile[1].xy, 0),0).r;
 		w2.z = texture(sHeightMap, vec3(vs_tile[2].xy, 0),0).r;
 		w3.z = texture(sHeightMap, vec3(vs_tile[3].xy, 0),0).r;
 
-		w0 = mvp * gl_in[0].gl_Position;
-		w1 = mvp * gl_in[1].gl_Position;
-		w2 = mvp * gl_in[2].gl_Position;
-		w3 = mvp * gl_in[3].gl_Position;
+		w0 = mvp * w0;
+		w1 = mvp * w1; 
+		w2 = mvp * w2; 
+		w3 = mvp * w3;
 		
 		w0 /= w0.w;
 		w1 /= w1.w;
@@ -171,12 +176,14 @@ void main() {
 		w3 /= w3.w;
 		
 		// cull patches outside the view frustum
-		if((!inBox(w0) && !inBox(w1) && !inBox(w2) && !inBox(w3))
-			&& !insideQuad(w0.xz, w1.xz, w2.xz, w3.xz, vec2(1,1)) 
-			&& !insideQuad(w0.xz, w1.xz, w2.xz, w3.xz, vec2(-1,1)) 
-			&& !insideQuad(w0.xz, w1.xz, w2.xz, w3.xz, vec2(1,-1)) 
-			&& !insideQuad(w0.xz, w1.xz, w2.xz, w3.xz, vec2(-1,-1)) 
-		) {
+		bool box = (!inBox(w0) && !inBox(w1) && !inBox(w2) && !inBox(w3));
+		bool quad = 
+			   !insideQuad(w0.xy, w1.xy, w2.xy, w3.xy, vec2(1.01,1.01)) 
+			&& !insideQuad(w0.xy, w1.xy, w2.xy, w3.xy, vec2(-1.01,1.01)) 
+			&& !insideQuad(w0.xy, w1.xy, w2.xy, w3.xy, vec2(1.01,-1.01)) 
+			&& !insideQuad(w0.xy, w1.xy, w2.xy, w3.xy, vec2(-1.01,-1.01)); 
+		
+		if(quad && box) {
 			
 			// discard the patch entirely
 			gl_TessLevelOuter[0] = 0; 
