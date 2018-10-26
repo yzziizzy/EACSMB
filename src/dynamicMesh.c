@@ -373,9 +373,10 @@ static void instanceSetup(DynamicMeshManager* dmm, DynamicMeshInstShader* vmem, 
 	
 	int instIndex = 0;
 	
-	int cindex = -1;
-	int pindex = -1;
-	int rindex = -1;
+	CompManIter cindex, pindex, rindex;
+	ComponentManager_start(meshComp, &cindex);
+	ComponentManager_start(posComp, &pindex);
+	ComponentManager_start(rotComp, &rindex);
 	uint32_t eid;
 	uint16_t* meshIndex;
 	while(meshIndex = ComponentManager_next(meshComp, &cindex, &eid)) {

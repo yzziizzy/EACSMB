@@ -3,6 +3,7 @@
 bin_PROGRAMS = eacsmb
 
 eacsmb_SOURCES = main.c \
+	btree.c \
 	builder/render.c \
 	builder/core.c \
 	builder/builder.c \
