@@ -941,13 +941,14 @@ void checkResize(XStuff* xs, GameState* gs) {
 // temp hack
 void runSystems(GameState* gs, InputState* is) {
 	
-	
+	CompManIter avindex, rindex;
 	// angular rotation
 	ComponentManager* avComp = CES_getCompManager(&gs->ces, "angularVelocity");
 	ComponentManager* rotComp = CES_getCompManager(&gs->ces, "rotation");
+
+	ComponentManager_start(avComp, &avindex);
+	ComponentManager_start(rotComp, &rindex);
 	
-	int avindex = -1;
-	int rindex = -1;
 	uint32_t eid;
 	float* av;
 	while(av = ComponentManager_next(avComp, &avindex, &eid)) {

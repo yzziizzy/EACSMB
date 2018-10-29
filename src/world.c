@@ -201,7 +201,7 @@ void World_init(World* w) {
 // 		//World_spawnAt_Item(w, "tree", &v);
 // 		//World_spawnAt_DynamicMesh(w,  4, &v);
 // 	}
-	
+	int nn = 0;
 	for(int y = 0; y < 512; y+=2) {
 		for(int x = 0; x < 512; x+=2) {
 			Vector v = {
@@ -212,19 +212,24 @@ void World_init(World* w) {
 			
 			float f = fabs(PerlinNoise_2D((0 + x) / 512.0, (0 + y) / 512.0, .2, 6));
 			
+			//if(nn > 1600) goto DONE;
 			//printf("f = %f\n", f);
 // 			if(f < -0.01) continue; 
 // 			if(frandNorm() < .5) continue;
 			if(f / frandNorm() < 1.8) continue;
 			
 			World_spawnAt_Item(w, "tree", &v);
-			
+			nn++;
 			
 		}
 	}
 	
-	CustomDecal* cd = pcalloc(cd); 
+	CustomDecal* cd;
+	DONE:
+	
+	cd = pcalloc(cd); 
 	cd->thickness = 9.0f;
+	
 	
 	CustomDecalManager_AddDecal(w->cdm, "test", cd);
 	

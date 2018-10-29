@@ -13,7 +13,7 @@ typedef void* bpt_val_t;
 
 typedef struct BPTNode {
 	unsigned int type: 1; // 0 is leaf, 1 is internal node
-	unsigned int fill: 31;
+	unsigned int fill: 31; // fill is the number of *keys* 
 	struct BPTNode* parent;
 
 // effective structure:

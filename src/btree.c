@@ -145,9 +145,69 @@ static void bpt_free_node(BPlusTree* tree, BPTNode* n, int free_data) {
 
 
 
+void print_node(BPlusTree* tree, BPTNode* n) { return;
+	int i;
+	
+	printf("contents [%d] of node %p (parent %p)\n", n->fill, n, n->parent);
+	
+	for(i = 0; i < n->fill; i++) {
+		bpt_key_t k = bpt_get_node_key(tree, n, i);
+		BPTNode* p = bpt_get_node_ptr(tree, n, i);
+		if(!bpt_is_leaf(p)) {
+			printf("> %d: %p\n", k, p);
+		}
+		else {
+			printf("> [LEAF] %d: %p\n", k, p);
+		}
+	}
+	
+	BPTNode* p = bpt_get_node_ptr(tree, n, n->fill);
+// 	printf("> -: %p\n", p);
+	if(!bpt_is_leaf(p)) {
+		printf("> -: %p\n", p);
+	}
+	else {
+		printf("> [LEAF] -: %p\n", p);
+	}
+		
+	printf(">----------------------\n");
+}
+void print_leaf(BPlusTree* tree, BPTNode* n) { return;
+	int i;
+	
+	printf("contents [%d] of leaf %p\n> ", n->fill, n);
+	
+	for(i = 0; i < n->fill; i++) {
+		bpt_key_t k = bpt_get_leaf_key(tree, n, i);
+		printf("%d ", k);
+	}
+	
+	printf(" -> %p\n>----------------------\n", *bpt_get_leaf_next_ptr(tree, n));
+}
+
+
+void _print_structure(BPlusTree* tree, BPTNode* n) {
+	if(bpt_is_leaf(n)) return;
+	
+	print_node(tree, n);
+	
+	int i;
+	for(i = 0; i < n->fill + 1; i++) {
+// 		bpt_key_t k = bpt_get_node_key(tree, n, i);
+		BPTNode* p = bpt_get_node_ptr(tree, n, i);
+		_print_structure(tree, p);
+	}
+} 
+
+void print_structure(BPlusTree* tree) {  return;
+	printf("\nROOT: ");
+	_print_structure(tree, tree->root);
+	printf("\n");
+}
+
 
 /////////// internal operations //////////////////
-static BPTNode* bpt_split_node(BPlusTree* tree, BPTNode* left);
+static BPTNode* bpt_split_node(BPlusTree* tree, BPTNode* left, bpt_key_t* middle_key);
 
 
 
@@ -194,12 +254,18 @@ static int bpt_find_key_index(BPlusTree* tree, BPTNode* n, bpt_key_t key, BPTNod
 static void bpt_make_room_node(BPlusTree* tree, BPTNode* n, int index) {
 	void* src, *dest;
 	size_t size;
+//	print_structure(tree);
+//	if(index > n->fill + 1) return;
 	
 	src = bpt_get_node_index(tree, n, index);
 	dest = bpt_get_node_index(tree, n, index + 1);
 	
 	// TODO: double check for odd pairing off-by-one
-	size = (n->fill - index) * (tree->keySz + sizeof(BPTNode*));
+	size = ((n->fill - index + 1) * (tree->keySz + sizeof(BPTNode*))) + sizeof(BPTNode*);
+	
+	printf("make_room_node: index: %d, size: %d\n", index, size);
+	
+	if(size <= 0) return;
 	
 	memmove(dest, src, size);
 }
@@ -213,7 +279,7 @@ static void bpt_make_room_leaf(BPlusTree* tree, BPTNode* n, int index) {
 	
 	// TODO: double check
 	size = ((n->fill - index) * (tree->keySz + tree->valSz)) + sizeof(BPTNode*);
-	
+	//printf("make_room_leaf: %d\n", size);
 	memmove(dest, src, size);
 }
 
@@ -222,6 +288,9 @@ static inline void bpt_put_val_leaf(BPlusTree* tree, BPTNode* n, int index, bpt_
 	bpt_key_t* k = bpt_get_leaf_key_p(tree, n, index);
 	*k = key;
 	memcpy(p, val, tree->valSz);
+	
+	//printf("  key %d inserted into %p\n", key, n);
+	//print_leaf(tree, n);
 }
 
 
@@ -248,13 +317,33 @@ static void bpt_insert_node(BPlusTree* tree, BPTNode* n, bpt_key_t key, BPTNode*
 	
 	// check if we are adding a new root node
 	if(n == NULL) {
-		printf("insert node - new root node\n");
-		n = bpt_node_alloc(tree);
-		tree->root = n;
-		child->parent = n;
+// 		printf("insert node - new root node\n");
+// 		n = bpt_node_alloc(tree);
+// 		tree->root = n;
+// 		child->parent = n;
 		
 		// the left and right pointers both need to be updated 
 		
+// 		BPTNode* new_root;
+// 		
+// 		
+// 		new_root = bpt_node_alloc(tree);
+// 		BPTNode** p = bpt_get_node_ptr_p(tree, new_root, 0);
+// 		*p = n;
+// 		p = bpt_get_node_ptr_p(tree, new_root, 1);
+// 		*p = right;
+// 		tree->root = new_root;
+// 		n->parent = new_root;
+// 		new_root->fill = 1;
+// 
+// 		printf("insert node - new root node (at leaf) %p\n", new_root);
+// 		
+// 		bpt_key_t lowest_r = bpt_get_leaf_key(tree, right, 0);
+// 		bpt_key_t* kp = bpt_get_node_key_p(tree, new_root, 0);
+// 		*kp = lowest_r;
+// 		
+		
+		printf("!!! inserting into null node\n");
 	}
 
 	//bpt_key_t lowest_r = bpt_get_leaf_key(tree, right, 0);
@@ -262,15 +351,42 @@ static void bpt_insert_node(BPlusTree* tree, BPTNode* n, bpt_key_t key, BPTNode*
 	
 	if(bpt_is_full(tree, n)) {
 		// split node
-		printf("splitting node\n");
-		BPTNode* right = bpt_split_node(tree, n);
-		// TODO: finish
+		printf("splitting node %p\n", n);
+		
+		bpt_key_t middle_key;
+		BPTNode* right = bpt_split_node(tree, n, &middle_key);
+		
+		
+		BPTNode* new_root;
+		if(n == tree->root) {
+			
+			
+			new_root = bpt_node_alloc(tree);
+			
+			printf("new rood node (at node) %p\n", new_root);
+			
+			BPTNode** p = bpt_get_node_ptr_p(tree, new_root, 0);
+			*p = n;
+			p = bpt_get_node_ptr_p(tree, new_root, 1);
+			*p = right;
+			tree->root = new_root;
+			n->parent = new_root;
+			right->parent = new_root;
+		}
+		
+	//	bpt_key_t lower_r_key = bpt_get_node_key(tree, right, 0);
+		bpt_insert_node(tree, n->parent, middle_key, right);
+		
+		print_structure(tree);
+		return; 
 	}
+
+	printf("inserting key %d into non-full node %p\n", key, n);
 	
 // 	// the node has room. the overall insertion process ends here
 	
 	// find the spot
-	index = n->fill;
+	index = n->fill + 1;
 	for(i = 0; i < n->fill; i++) {
 		bpt_key_t k = bpt_get_node_key(tree, n, i);
 		if(k > key) {
@@ -281,11 +397,13 @@ static void bpt_insert_node(BPlusTree* tree, BPTNode* n, bpt_key_t key, BPTNode*
 	
 	// insert the key and pointer
 	bpt_make_room_node(tree, n, index); // TODO: this fn needs to move one extra ptr too
-	bpt_key_t* k = bpt_get_node_key_p(tree, n, index);
+	bpt_key_t* k = bpt_get_node_key_p(tree, n, index - 1); // TODO: move OBO hack to the right place
 	BPTNode** p = bpt_get_node_ptr_p(tree, n, index);
 	*k = key;
 	*p = child;
 	n->fill++;
+	
+	print_structure(tree);
 }
 
 // sets the children's parent pointer to the parent.
@@ -294,14 +412,14 @@ static void bpt_update_children_parent(BPlusTree* tree, BPTNode* parent) {
 	int i;
 	
 	// careful of off-by-one. there are more pointers than keys 
-	for(i = 0; i <= parent->fill; i++) {
+	for(i = 0; i < parent->fill; i++) {
 		BPTNode* child = bpt_get_node_ptr(tree, parent, i);
 		child->parent = parent;
 	}
 }
 
 // returns the new right node
-static BPTNode* bpt_split_node(BPlusTree* tree, BPTNode* left) {
+static BPTNode* bpt_split_node(BPlusTree* tree, BPTNode* left, bpt_key_t* middle_key) {
 	BPTNode* right;
 	
 	right = bpt_node_alloc(tree);
@@ -314,24 +432,32 @@ static BPTNode* bpt_split_node(BPlusTree* tree, BPTNode* left) {
 	int rindex = index + 1;
 	
 	// keep the middle key
-	bpt_key_t middle_key = bpt_get_node_key(tree, left, index + 1);
+	*middle_key = bpt_get_node_key(tree, left, index);
 	
-	// the left stays normal. the right is coppied
+	
+	printf(" node split: tl:%d, tr: %d, rindex:%d mk:%d \n", toleft, toright, rindex, middle_key);
+	
+	// the left stays normal. the right is copied
+	left->fill = toleft;
 	right->fill = toright;
 	right->parent = left->parent;
 	
 	// TODO: double check
 	
+	print_structure(tree);
+	
 	// copy the rightmost data to the new node
-	memcpy(bpt_get_pairs(tree, right), bpt_get_node_index(tree, left, toleft + 1), toright * (tree->keySz + sizeof(BPTNode*)));
+	memcpy(bpt_get_pairs(tree, right), bpt_get_node_index(tree, left, toleft + 1), (toright + 1) * (tree->keySz + sizeof(BPTNode*)));
 	
 	// update right's children's parent node pointer
 	bpt_update_children_parent(tree, right);
 	
+	print_structure(tree);
+	
 	// insert the middle key into the parent node
 	// check if it's the root and update the tree
-	bpt_insert_node(tree, left->parent, middle_key, right);
-	
+// 	bpt_insert_node(tree, left->parent, middle_key, right);
+// 	
 	return right;
 }
 
@@ -341,28 +467,44 @@ static BPTNode* bpt_split_leaf(BPlusTree* tree, BPTNode* left, bpt_key_t hint_ke
 	
 	BPTNode* right;
 	
+	
+	BPTNode** lptr = bpt_get_leaf_next_ptr(tree, left);
+	BPTNode* rightright = *lptr;
+	
 	right = bpt_leaf_alloc(tree);
+	
+	printf("splitting leaf %p into %p\n", left, right);
+	
 	
 	int toleft = left->fill / 2;
 	int toright = left->fill - toleft;
 	// TODO: shift the odd extra difference based on hint_key
 	
 	// the left stays normal. the right is coppied
-	right->fill = toright;
+	left->fill = toleft + 1;
+	right->fill = toright - 1;
 	right->parent = left->parent;
 	
+	printf(" leaf split data: tr:%d, tl:%d\n", toleft, toright);
 	// TODO: double check
 	
 	// copy the rightmost data to the new node
-	memcpy(bpt_get_pairs(tree, right), bpt_get_leaf_index(tree, left, toleft + 1), toright * tree->pairSz);
+	memcpy(bpt_get_pairs(tree, right), bpt_get_leaf_index(tree, left, toleft + 1), (toright + 1) * tree->pairSz);
 	
+	
+	//print_leaf(tree, left);
+	//print_leaf(tree, right);
 	// fix the linked list
 	// the previous node still points to the left node
-	BPTNode** lptr = bpt_get_leaf_next_ptr(tree, left);
-	BPTNode* rightright = *lptr;
+	lptr = bpt_get_leaf_next_ptr(tree, left);
 	BPTNode** rptr = bpt_get_leaf_next_ptr(tree, right);
 	*rptr = rightright;
 	*lptr = right;
+	
+	
+	
+//	print_leaf(tree, left);
+//	print_leaf(tree, right);
 	
 	return right;
 }
@@ -401,7 +543,9 @@ void bpt_free(BPlusTree* tree, int free_data) {
 
 void bpt_insert(BPlusTree* tree, bpt_key_t key, void* val) { 
 	int index, i2;
-	BPTNode* node, *nn, *right;
+	BPTNode* node, *nn, *right, *new_root;
+	
+	//printf("inserting key: %d\n", key);
 	
 	// find key location
 	index = bpt_find_key_index(tree, tree->root, key, &node);
@@ -411,6 +555,7 @@ void bpt_insert(BPlusTree* tree, bpt_key_t key, void* val) {
 		bpt_make_room_leaf(tree, node, index);
 		bpt_put_val_leaf(tree, node, index, key, val);
 		node->fill++;
+		//print_leaf(tree, node);
 		/*
 		A new lowest value will never be inserted into a leaf that's under an internal node.
 		The only case where this can happen is if the leaf is the root node, where updating
@@ -428,16 +573,40 @@ void bpt_insert(BPlusTree* tree, bpt_key_t key, void* val) {
 		i2 = bpt_find_key_index_leaf(tree, nn, key, &nn);
 		bpt_make_room_leaf(tree, nn, i2);
 		bpt_put_val_leaf(tree, nn, i2, key, val);
+		nn->fill++;
 		
-		// update parent node
-		if(nn->parent == NULL) {
+		print_leaf(tree, nn);
+		print_structure(tree);
+		
+		// handle splitting the root node
+		if(node->parent == NULL) {
 			// insert a new root node
+			
+			new_root = bpt_node_alloc(tree);
+			BPTNode** p = bpt_get_node_ptr_p(tree, new_root, 0);
+			*p = node;
+			p = bpt_get_node_ptr_p(tree, new_root, 1);
+			*p = right;
+			tree->root = new_root;
+			node->parent = new_root;
+			right->parent = new_root;
+			new_root->fill = 1;
+
+			printf("insert node - new root node (at leaf) %p\n", new_root);
+			
+			bpt_key_t lowest_r = bpt_get_leaf_key(tree, right, 0);
+			bpt_key_t* kp = bpt_get_node_key_p(tree, new_root, 0);
+			*kp = lowest_r;
+		//	bpt_insert_node(tree, new_root, lowest_r, right);
 			// TODO: fix left and right nodes here
 		}
 		else {
 			bpt_key_t lowest_r = bpt_get_leaf_key(tree, right, 0);
 			bpt_insert_node(tree, nn->parent, lowest_r, right);
 		}
+		
+		print_structure(tree);
+		//bpt_insert(tree, key, val);
 	}
 	
 	tree->size++;
@@ -485,7 +654,7 @@ int bpt_delete(BPlusTree* tree, bpt_key_t key) {
 // returns true if a key is found, 0 if there's no more data
 int bpt_first(BPlusTree* tree, BPTNode** node, int* iter, bpt_key_t* key, void** val) { 
 	BPTNode* n = tree->root;
-	
+//	printf("tree size %d\n", tree->size);
 	if(tree->size == 0) return 0;
 	
 	// walk down the left side
@@ -499,6 +668,8 @@ int bpt_first(BPlusTree* tree, BPTNode** node, int* iter, bpt_key_t* key, void**
 	*val = bpt_get_leaf_val_p(tree, n, 0);
 	*((int*)iter) = 0;
 	
+	//printf(" fisrt %d %p %p \n", *key, n, node);
+	
 	return 1;
 }
 
@@ -508,11 +679,16 @@ int bpt_next(BPlusTree* tree, BPTNode** node, int* iter, bpt_key_t* key, void** 
 	int index = *iter;
 	BPTNode* n = *node;
 	
-	index++;
+	if(!n) return 0;
 	
+	index++;
+	//
+	//	printf("%d %d %p \n", index, n->fill, n);
 	if(index >= tree->L) {
 		n = *bpt_get_leaf_next_ptr(tree, n);
 		if(n == NULL) return 0;
+		
+	//	printf("-\n");
 		
 		*node = n;
 		index = 0;
@@ -521,6 +697,8 @@ int bpt_next(BPlusTree* tree, BPTNode** node, int* iter, bpt_key_t* key, void** 
 	*key = bpt_get_leaf_key(tree, n, index);
 	*val = bpt_get_leaf_val_p(tree, n, index);
 	*iter = index;
+	
+//	printf("%d ", *key);
 	
 	return 1;
 }
