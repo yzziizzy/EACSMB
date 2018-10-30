@@ -172,16 +172,16 @@ void print_node(BPlusTree* tree, BPTNode* n) { return;
 		
 	printf(">----------------------\n");
 }
-void print_leaf(BPlusTree* tree, BPTNode* n) { return;
+void print_leaf(BPlusTree* tree, BPTNode* n) { 
 	int i;
 	
 	printf("contents [%d] of leaf %p\n> ", n->fill, n);
-	
+	/*
 	for(i = 0; i < n->fill; i++) {
 		bpt_key_t k = bpt_get_leaf_key(tree, n, i);
 		printf("%d ", k);
 	}
-	
+	*/
 	printf(" -> %p\n>----------------------\n", *bpt_get_leaf_next_ptr(tree, n));
 }
 
@@ -711,30 +711,43 @@ int bpt_seek(BPlusTree* tree, BPTNode** node, int* iter, bpt_key_t searchKey, bp
 	BPTNode* n = *node;
 	bpt_key_t k;
 	
+		printf("index: %d\n", index);
+	index = index == -1 ? 0 : index + 1;
+	
+	printf("index: %d\n", index);
 	while(1) {
-		index++;
+		
 		
 		// hop to next leaf
 		if(index >= tree->L) {
+			if(n == NULL) {
+				printf("key seek fialed 2\n\n");
+				return 0;
+			}
 			n = *bpt_get_leaf_next_ptr(tree, n);
-			if(n == NULL) return 0;
-			
+			printf("next node \n");
 			*node = n;
 			index = 0;
 		}
 		
 		k = bpt_get_leaf_key(tree, n, index); 
-		if(k >= key) {
-			if(k == key) break;
+		print_leaf(tree, n);
+		printf("> %d %d %d\n", k, *key, index);
+		if(k >= *key) {
+			if(k == *key) break;
+			
+			printf("key seek failed\n\n");
 			return 0;
+			
 		}
 		
+		index++;
 	}
 	
 	*key = k;
 	*val = bpt_get_leaf_val_p(tree, n, index);
 	*iter = index;
-	
+	printf("found key\n\n");
 	return 1;
 }
 

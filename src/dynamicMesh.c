@@ -382,6 +382,7 @@ static void instanceSetup(DynamicMeshManager* dmm, DynamicMeshInstShader* vmem, 
 	while(meshIndex = ComponentManager_next(meshComp, &cindex, &eid)) {
 		//printf("eid %d %d %d\n", eid, cindex, pindex);
 		Vector* pos;
+		printf("seeking in mesh man\n");
 		if(!(pos = ComponentManager_nextEnt(posComp, &pindex, eid))) {
 			 printf("continued\n");
 			 continue;

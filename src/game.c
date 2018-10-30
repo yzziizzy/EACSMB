@@ -115,17 +115,17 @@ void initGame(XStuff* xs, GameState* gs) {
 	
 	CES_init(&gs->ces);
 	
-	CES_addComponentManager(&gs->ces, ComponentManager_alloc("position", sizeof(Vector), 1024*8, 0));
-	CES_addComponentManager(&gs->ces, ComponentManager_alloc("rotation", sizeof(C_Rotation), 1024*8, 0));
-	CES_addComponentManager(&gs->ces, ComponentManager_alloc("meshIndex", sizeof(uint16_t), 1024*8, 0));
+	CES_addComponentManager(&gs->ces, ComponentManager_alloc("position", sizeof(Vector), 1024*8, 1));
+	CES_addComponentManager(&gs->ces, ComponentManager_alloc("rotation", sizeof(C_Rotation), 1024*8, 1));
+	CES_addComponentManager(&gs->ces, ComponentManager_alloc("meshIndex", sizeof(uint16_t), 1024*8, 1));
 	
 	// about axis of rotation
 	CES_addComponentManager(&gs->ces, ComponentManager_alloc("angularVelocity", sizeof(float), 1024*8, 1));
 	
-	CES_addComponentManager(&gs->ces, ComponentManager_alloc("pathFollow", sizeof(C_PathFollow), 1024*8, 0));
+	CES_addComponentManager(&gs->ces, ComponentManager_alloc("pathFollow", sizeof(C_PathFollow), 1024*8, 1));
 	
 	
-	CES_addComponentManager(&gs->ces, ComponentManager_alloc("hp", sizeof(float), 1024*8, 0));
+	CES_addComponentManager(&gs->ces, ComponentManager_alloc("hp", sizeof(float), 1024*8, 1));
 	
 	
 	
@@ -963,26 +963,39 @@ void runSystems(GameState* gs, InputState* is) {
 		
 	// --------------------------------
 	
+	
+// 	CompManIter /*pindex,*/ findex;
+	
 	ComponentManager* posComp = CES_getCompManager(&gs->ces, "position");
 	ComponentManager* pathComp = CES_getCompManager(&gs->ces, "pathFollow");
 	
-	int findex = -1;
-	int pindex = -1;
+	CompManIter pindex, findex;
+	
+	
+	ComponentManager_start(pathComp, &findex);
+	ComponentManager_start(posComp, &pindex);
+	//pindex.index = -1;
+	
 	eid = 0;
 	C_PathFollow* pf;
-	while(pf = ComponentManager_next(pathComp, &findex, &eid)) {
-		//printf("eid %d %d %d\n", eid, cindex, pindex);
+	while(pf = ComponentManager_next(pathComp, &findex, &eid)) { 
+	//	break;
+		printf("eid %d \n", eid);
 		Vector* pos;
+		break;
 		if(!(pos = ComponentManager_nextEnt(posComp, &pindex, eid))) {
+			printf("m\n");
 			 continue;
 		}
-		
+		/*
+		printf("%f,%f,%f\n", pos->x, pos->y, pos->z);
 		pf->distTravelled += pf->speed * gs->frameSpan;
 		Vector2 p2 = Path_GetPos(pf->path, pf->distTravelled);
 		
 		pos->x = p2.x;
 		pos->y = p2.y;
 		pos->z = Map_getTerrainHeightf(&gs->world->map, p2); 
+		//*/
 	}
 	
 }

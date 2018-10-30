@@ -101,7 +101,7 @@ int ComponentManager_init(ComponentManager* cm, char* name, size_t compSize, int
 	else if(backend == 1) { // b+ tree
 		cm->bptree.keySz = sizeof(uint32_t);
 		cm->bptree.valSz = compSize;
-		bpt_init(&cm->bptree, 4, 5); // these numbers should be more like 32, 4096
+		bpt_init(&cm->bptree, 32, 16); // these numbers should be more like 32, 4096
 	}
 	
 	
@@ -196,7 +196,7 @@ void* ComponentManager_nextEnt(ComponentManager* cm, CompManIter* iter, uint32_t
 			
 			e = VEC_ITEM(&cm->entIDs, iter->index);
 			
-			if(e == matchingEnt) return cm->compArray + cm->compElemSz * iter->index;
+			if(e == matchingEnt) return cm->compArray + (cm->compElemSz * iter->index);
 			if(e > matchingEnt) return NULL;
 		}
 	}
@@ -205,7 +205,14 @@ void* ComponentManager_nextEnt(ComponentManager* cm, CompManIter* iter, uint32_t
 		int ret;
 		uint32_t eid;
 		
+		
+// 		if(iter->bpt.index == -1) {
+// 			ret = bpt_first(&cm->bptree, &iter->bpt.n, &iter->bpt.index, &eid, &val);
+// 		}
+// 		
 		ret = bpt_seek(&cm->bptree, &iter->bpt.n, &iter->bpt.index, matchingEnt, &eid, &val);
+		
+		
 		
 		return ret ? val : NULL;
 	}
