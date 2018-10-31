@@ -212,7 +212,7 @@ void World_init(World* w) {
 			
 			float f = fabs(PerlinNoise_2D((0 + x) / 512.0, (0 + y) / 512.0, .2, 6));
 			
-			if(nn > 1) goto DONE;
+			if(nn > 45) goto DONE;
 			//printf("f = %f\n", f);
 // 			if(f < -0.01) continue; 
 // 			if(frandNorm() < .5) continue;
@@ -223,6 +223,8 @@ void World_init(World* w) {
 			
 		}
 	}
+	
+	
 	
 	CustomDecal* cd;
 	DONE:
@@ -381,8 +383,9 @@ int World_spawnAt_DynamicMesh(World* w, int dmIndex, Vector* location) {
 	
 	uint16_t dmindex16 = dmIndex;
 	uint32_t eid = newEID();
-	CES_addComponentName(&w->gs->ces, "position", eid, &dmi.pos);
 	CES_addComponentName(&w->gs->ces, "meshIndex", eid, &dmindex16);
+
+	CES_addComponentName(&w->gs->ces, "position", eid, &dmi.pos);
 	
 	C_Rotation r = {
 		{0, 0, 1},
@@ -399,6 +402,8 @@ int World_spawnAt_DynamicMesh(World* w, int dmIndex, Vector* location) {
 		.speed = frand(5, 100)
 	};
 //	CES_addComponentName(&w->gs->ces, "pathFollow", eid, &pf);
+	
+	
 }
 
 int World_spawnAt_StaticMesh(World* w, int smIndex, Vector* location) {

@@ -115,17 +115,18 @@ void initGame(XStuff* xs, GameState* gs) {
 	
 	CES_init(&gs->ces);
 	
-	CES_addComponentManager(&gs->ces, ComponentManager_alloc("position", sizeof(Vector), 1024*8, 1));
-	CES_addComponentManager(&gs->ces, ComponentManager_alloc("rotation", sizeof(C_Rotation), 1024*8, 1));
 	CES_addComponentManager(&gs->ces, ComponentManager_alloc("meshIndex", sizeof(uint16_t), 1024*8, 1));
+
+	CES_addComponentManager(&gs->ces, ComponentManager_alloc("position", sizeof(Vector), 1024*8, 0));
+	CES_addComponentManager(&gs->ces, ComponentManager_alloc("rotation", sizeof(C_Rotation), 1024*8, 0));
 	
 	// about axis of rotation
-	CES_addComponentManager(&gs->ces, ComponentManager_alloc("angularVelocity", sizeof(float), 1024*8, 1));
+	CES_addComponentManager(&gs->ces, ComponentManager_alloc("angularVelocity", sizeof(float), 1024*8, 0));
 	
-	CES_addComponentManager(&gs->ces, ComponentManager_alloc("pathFollow", sizeof(C_PathFollow), 1024*8, 1));
+	CES_addComponentManager(&gs->ces, ComponentManager_alloc("pathFollow", sizeof(C_PathFollow), 1024*8, 0));
 	
 	
-	CES_addComponentManager(&gs->ces, ComponentManager_alloc("hp", sizeof(float), 1024*8, 1));
+	CES_addComponentManager(&gs->ces, ComponentManager_alloc("hp", sizeof(float), 1024*8, 0));
 	
 	
 	
@@ -946,8 +947,11 @@ void runSystems(GameState* gs, InputState* is) {
 	ComponentManager* avComp = CES_getCompManager(&gs->ces, "angularVelocity");
 	ComponentManager* rotComp = CES_getCompManager(&gs->ces, "rotation");
 
+	printf("####1\n");
 	ComponentManager_start(avComp, &avindex);
+	printf("####2\n");
 	ComponentManager_start(rotComp, &rindex);
+	printf("####3\n");
 	
 	uint32_t eid;
 	float* av;
@@ -960,7 +964,7 @@ void runSystems(GameState* gs, InputState* is) {
 		
 		rot->theta = fmod(rot->theta + (gs->frameSpan * *av), F_2PI);
 	}
-		
+	
 	// --------------------------------
 	
 	

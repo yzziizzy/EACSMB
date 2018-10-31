@@ -49,8 +49,8 @@ typedef struct BPlusTree {
 } BPlusTree;
 
 
-
-
+// temp
+void print_structure(BPlusTree* tree) ;
 
 
 
