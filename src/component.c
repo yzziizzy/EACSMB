@@ -209,7 +209,7 @@ void* ComponentManager_nextEnt(ComponentManager* cm, CompManIter* iter, uint32_t
 // 		if(iter->bpt.index == -1) {
 // 			ret = bpt_first(&cm->bptree, &iter->bpt.n, &iter->bpt.index, &eid, &val);
 // 		}
-		printf("eid in nextEnt: %d\n", matchingEnt);
+	//	printf("eid in nextEnt: %d\n", matchingEnt);
 		ret = bpt_seek(&cm->bptree, &iter->bpt.n, &iter->bpt.index, matchingEnt, &eid, &val);
 		
 		

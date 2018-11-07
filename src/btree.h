@@ -55,7 +55,7 @@ void print_structure(BPlusTree* tree) ;
 
 
 
-BPlusTree* bpt_alloc(unsigned short N, unsigned short L);
+BPlusTree* bpt_alloc(unsigned short N, unsigned short L, size_t valSz);
 void bpt_init(BPlusTree* tree, unsigned short N, unsigned short L);
 void bpt_free(BPlusTree* tree, int free_data);
 

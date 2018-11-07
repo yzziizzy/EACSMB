@@ -382,9 +382,9 @@ static void instanceSetup(DynamicMeshManager* dmm, DynamicMeshInstShader* vmem, 
 	while(meshIndex = ComponentManager_next(meshComp, &cindex, &eid)) {
 		//printf("eid %d %d %d\n", eid, cindex, pindex);
 		Vector* pos;
-		printf("\nseeking in mesh man for %d\n", eid);
+		//printf("\nseeking in mesh man for %d\n", eid);
 		if(!(pos = ComponentManager_nextEnt(posComp, &pindex, eid))) {
-			 printf("continued\n");
+		//	 printf("continued\n");
 			 continue;
 		}
 		
@@ -400,7 +400,7 @@ static void instanceSetup(DynamicMeshManager* dmm, DynamicMeshInstShader* vmem, 
 		mTransv(pos, &m);
 		
 		C_Rotation* rot;
-		printf("\nseeking 2 in mesh man for %d\n", eid);
+	//	printf("\nseeking 2 in mesh man for %d\n", eid);
 		if(rot = ComponentManager_nextEnt(rotComp, &rindex, eid)) {
 			mRotv(&rot->axis, rot->theta, &m); 
 		}
