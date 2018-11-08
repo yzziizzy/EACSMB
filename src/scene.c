@@ -21,6 +21,11 @@
 
 
 
+// for easy pooling later
+SceneItemInfo* SceneItemInfo_alloc() {
+	return calloc(1, sizeof(SceneItemInfo)); 
+}
+
 /*
 
 static void unpack_fbo(json_value_t* p, char* key, FBOTexConfig* cfg) {

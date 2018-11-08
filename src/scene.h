@@ -3,26 +3,22 @@
 
 #include "pass.h"
 
-/*
-typedef struct Renderable {
+
+typedef struct SceneItemInfo {
 	AABB aabb;
-
-	int type;
-	void* data;
 	
-} Renderable;
-
-typedef struct RenderableList {
-	Renderable* r;
-	struct RenderableList* next;
-} RenderableList;
+	uint32_t selectable : 1;
+	
+	uint32_t eid;
+	void* data;
+} SceneItemInfo;
 
 
 typedef struct QuadTreeNode {
 	AABB2 aabb;
 	int itemCount;
 	int level;
-	RenderableList* items;
+	VEC(SceneItemInfo*) items;
 	
 	struct QuadTreeNode* parent;
 	struct QuadTreeNode* kids[2][2];
@@ -39,7 +35,7 @@ typedef struct QuadTree {
 	
 	QuadTreeNode* root;
 } QuadTree;
-*/
+
 
 
 

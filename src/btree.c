@@ -104,12 +104,12 @@ static inline size_t bpt_leaf_data_size(BPlusTree* tree) {
 }
 
 static BPTNode* bpt_node_alloc(BPlusTree* tree) { 
-	BPTNode* n = calloc(1, sizeof(*n) + bpt_node_data_size(tree) + 600); // TODO: voodoo
+	BPTNode* n = calloc(1, sizeof(*n) + bpt_node_data_size(tree) + 60); // TODO: voodoo
 	n->type = 1;
 	return n;
 }
 static BPTNode* bpt_leaf_alloc(BPlusTree* tree) { 
-	BPTNode* n = calloc(1, sizeof(*n) + bpt_leaf_data_size(tree) + 500); // TODO: voodoo
+	BPTNode* n = calloc(1, sizeof(*n) + bpt_leaf_data_size(tree) + 50); // TODO: voodoo
 	n->type = 0;
 	return n;
 }
@@ -187,10 +187,10 @@ void _print_leaf(BPlusTree* tree, BPTNode* n, int indent) {
 	printf("-> %p %p\n%*s>----------------------\n", pp, *pp, indent, " ");
 }
 
-void print_leaf(BPlusTree* tree, BPTNode* n) {
+void print_leaf(BPlusTree* tree, BPTNode* n) { return;
 	_print_leaf(tree, n, 0);
 }
-void print_node(BPlusTree* tree, BPTNode* n) {
+void print_node(BPlusTree* tree, BPTNode* n) { return;
 	_print_node(tree, n, 0);
 }
 
@@ -392,20 +392,20 @@ static void bpt_insert_key_into_node(BPlusTree* tree, BPTNode* n, bpt_key_t key,
 	}
 	else {
 		// split node
-		printf("splitting node %p\n", n);
+	//	printf("splitting node %p\n", n);
 		
-		printf("F: "); print_deep_structure(tree);
+	//	printf("F: "); print_deep_structure(tree);
 		
 		bpt_key_t middle_key;
 		BPTNode* right = bpt_split_node(tree, n, &middle_key);
 		
 		
-		printf("G: "); print_deep_structure(tree);
+	//	printf("G: "); print_deep_structure(tree);
 		
 		
 		// splitting the root node
 		if(n->parent == NULL) {
-			printf("new root node (at node), middle key %d\n", middle_key);
+	//		printf("new root node (at node), middle key %d\n", middle_key);
 			new_root = bpt_node_alloc(tree);
 			
 			// put in the two pointers
@@ -479,7 +479,7 @@ static BPTNode* bpt_split_node(BPlusTree* tree, BPTNode* left, bpt_key_t* middle
 	*middle_key = bpt_get_node_key(tree, left, index);
 	
 	
-	printf(" node split: tl:%d, tr: %d, rindex:%d mk:%d \n", toleft, toright, rindex, *middle_key);
+//	printf(" node split: tl:%d, tr: %d, rindex:%d mk:%d \n", toleft, toright, rindex, *middle_key);
 	
 	// the left stays normal. the right is copied
 	left->fill = toleft - 1; // middle key is excluded
@@ -500,9 +500,9 @@ static BPTNode* bpt_split_node(BPlusTree* tree, BPTNode* left, bpt_key_t* middle
 	);
 	
 	
-	printf("Left:");
+//	printf("Left:");
 	print_node(tree, left);
-	printf("Right:");
+//	printf("Right:");
 	print_node(tree, right);
 	
 	
@@ -531,7 +531,7 @@ static BPTNode* bpt_split_leaf(BPlusTree* tree, BPTNode* left, bpt_key_t hint_ke
 	
 	right = bpt_leaf_alloc(tree);
 	
-	printf("splitting leaf %p into %p\n", left, right);
+	//printf("splitting leaf %p into %p\n", left, right);
 	
 	
 	int toleft = left->fill / 2;
@@ -543,7 +543,7 @@ static BPTNode* bpt_split_leaf(BPlusTree* tree, BPTNode* left, bpt_key_t hint_ke
 	right->fill = toright;
 	right->parent = left->parent;
 	
-	printf(" leaf split data: tr:%d, tl:%d, parent: %p\n", toleft, toright, left->parent);
+	//printf(" leaf split data: tr:%d, tl:%d, parent: %p\n", toleft, toright, left->parent);
 	// TODO: double check
 	
 	// copy the rightmost data to the new node
@@ -618,7 +618,7 @@ void bpt_insert(BPlusTree* tree, bpt_key_t key, void* val) {
 	int index, i2;
 	BPTNode* node, *nn, *right, *new_root;
 	
-	printf("\n\n@@@@@@@@@@@@@@@@@@@@@\ninserting key: %d\n", key);
+	//printf("\n\n@@@@@@@@@@@@@@@@@@@@@\ninserting key: %d\n", key);
 	print_structure(tree);
 	// find key location
 	//index = bpt_find_key_index(tree, tree->root, key, &node);
@@ -637,14 +637,14 @@ void bpt_insert(BPlusTree* tree, bpt_key_t key, void* val) {
 	}
 	else {
 		// split leaf and grow tree
-		printf("split leaf %d\n", node->fill);
+	//	printf("split leaf %d\n", node->fill);
 		
 		right = bpt_split_leaf(tree, node, key);
 		
 		// splitting a solo leaf root node
 		if(node->parent == NULL) {
 			
-			printf("new root at leaf, splitting on %d\n", bpt_get_leaf_key(tree, right, 0));
+		//	printf("new root at leaf, splitting on %d\n", bpt_get_leaf_key(tree, right, 0));
 			new_root = bpt_node_alloc(tree);
 			
 			// put in the two pointers
@@ -676,7 +676,7 @@ void bpt_insert(BPlusTree* tree, bpt_key_t key, void* val) {
 		bpt_insert_key_into_node(tree, node->parent, lowest_r, right);
 		right->parent = node->parent;
 		
-		printf("Pre re-insert: \n");
+	//	printf("Pre re-insert: \n");
 		print_deep_structure(tree);
 		
 		// recurse for the original insertion

@@ -33,5 +33,11 @@
 		texture: "assets/textures/conifer.png",
 		scale: 0.5,
 		rotDegX: -90,
+	},
+	pipe: {
+		mesh: "assets/models/pipe.obj",
+		texture: "assets/textures/colornoise.png",
+		scale: 0.5,
+		rotDegX: -90,
 	}
 } 

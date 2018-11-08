@@ -122,10 +122,6 @@ typedef struct World {
 	VEC(ItemInstance*) itemInstances;
 	VEC(PartInstance*) partInstances;
 	
-	VEC(uint32_t) itemOrientKeys;
-	
-	VEC(struct OrientData) staticOrients[2];
-	
 
 	PipeSegment testmesh;
 	

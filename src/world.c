@@ -212,7 +212,7 @@ void World_init(World* w) {
 			
 			float f = fabs(PerlinNoise_2D((0 + x) / 512.0, (0 + y) / 512.0, .2, 6));
 			
-			if(nn > 4005) goto DONE;
+			//if(nn > 4005) goto DONE;
 			//printf("f = %f\n", f);
 // 			if(f < -0.01) continue; 
 // 			if(frandNorm() < .5) continue;

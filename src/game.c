@@ -120,6 +120,8 @@ void initGame(XStuff* xs, GameState* gs) {
 	CES_addComponentManager(&gs->ces, ComponentManager_alloc("position", sizeof(Vector), 1024*8, 1));
 	CES_addComponentManager(&gs->ces, ComponentManager_alloc("rotation", sizeof(C_Rotation), 1024*8, 1));
 	
+	CES_addComponentManager(&gs->ces, ComponentManager_alloc("mapHeightUpdate", sizeof(uint8_t), 1024*8, 1));
+	
 	// about axis of rotation
 	CES_addComponentManager(&gs->ces, ComponentManager_alloc("angularVelocity", sizeof(float), 1024*8, 1));
 	
@@ -130,9 +132,14 @@ void initGame(XStuff* xs, GameState* gs) {
 	
 	
 	
+	
 	/*
 	
 	height auto-update flag
+	
+	money, debt
+	food consumption
+	gratification deferment
 	
 	*/
 	
@@ -1001,6 +1008,26 @@ void runSystems(GameState* gs, InputState* is) {
 		pos->z = Map_getTerrainHeightf(&gs->world->map, p2); 
 		//*/
 	}
+	
+	
+	/*
+	ComponentManager* mhuComp = CES_getCompManager(&gs->ces, "mapHeightUpdate");
+	CompManIter hindex;
+	ComponentManager_start(mhuComp, &hindex);
+	ComponentManager_start(posComp, &pindex);
+	
+	eid = 0;
+	uint8_t* up;
+	while(up = ComponentManager_next(mhuComp, &hindex, &eid)) { 
+		Vector* pos;
+		if(!*up) continue;
+		if(!(pos = ComponentManager_nextEnt(posComp, &pindex, eid))) {
+			 continue;
+		}
+		
+		//pos->z = Map_getTerrainHeight3f(&gs->world->map, *pos); 
+	}
+	*/
 	
 }
 
