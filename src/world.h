@@ -22,6 +22,7 @@ struct GameState;
 
 enum ItemTypes {
 	ITEM_TYPE_UNKNOWN = 0,
+	ITEM_TYPE_ITEM, // for parsing
 	ITEM_TYPE_STATICMESH,
 	ITEM_TYPE_DYNAMICMESH,
 	ITEM_TYPE_EMITTER,
@@ -32,10 +33,17 @@ enum ItemTypes {
 };
 
 
-typedef struct {
-	int type;
+typedef struct { // information about the part itself
+	enum ItemTypes type;
 	int index;
-	Vector offset;
+	char* name;
+} Part;
+
+
+typedef struct { // info about how the part relates to the item
+	enum ItemTypes type;
+	int index;
+	Vector offset; // rotation, scale, etc
 	//void* data;
 } ItemPart;
 
@@ -50,11 +58,15 @@ typedef struct {
 typedef struct {
 	ItemPart* part;
 	int parentItemInst;
+	uint32_t eid;
 } PartInstance;
 
 typedef struct {
 	Item* item;
 	Vector pos;
+	
+	uint32_t eid;
+	
 	PartInstance parts[];
 } ItemInstance;
 
@@ -118,6 +130,9 @@ typedef struct World {
 	
 	VEC(Item*) items;
 	HashTable(int) itemLookup;
+
+	VEC(Part) part;
+	HashTable(int) partLookup;
 	
 	VEC(ItemInstance*) itemInstances;
 	VEC(PartInstance*) partInstances;
@@ -140,6 +155,10 @@ void World_preTransparents(World* w, PassFrameParams* pfp);
 void World_drawTransparents(World* w, PassFrameParams* pfp);
 void World_postTransparents(World* w);
 void World_drawDecals(World* w, PassFrameParams* pfp);
+
+
+int World_lookUp_Item(World* w, char* name);
+int World_lookUp_SubItem(World* w, enum ItemType type, char* name);
 
 int World_spawnAt_Item(World* w, char* itemName, Vector* location);
 int World_spawnAt_DynamicMesh(World* w, int dmIndex, Vector* location);

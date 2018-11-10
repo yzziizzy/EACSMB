@@ -27,6 +27,9 @@ int partTypeLookup(char* name) {
 	else if(0 == strcmp("marker", name)) {
 		return ITEM_TYPE_MARKER;
 	}
+	else if(0 == strcmp("item", name)) {
+		return ITEM_TYPE_ITEM;
+	}
 	else {
 		printf("Unknown part type: %s\n", name);
 		return ITEM_TYPE_UNKNOWN;
@@ -158,21 +161,231 @@ void loadItemConfig(World* w, char* path) {
 }
 
 
+///////////////// new universal code /////////////////
+
+
+
+static int add_part(World* w, Part p)
+	int pi = VEC_LEN(&w->parts);
+	VEC_PUSH(&w->parts, p);
+	if(HT_set(&w->partLookup, p.name, pi)) {
+		fprintf(stderr, "failed to register part '%s'\n", p.name);
+	}
+
+	return pi;
+}
+
+
+
+
+// returns part index
+static int loadConfig_DynamicMesh(World* w, json_value_t* jo);
+static int loadConfig_Emitter(World* w, json_value_t* jo);
+static int loadConfig_Light(World* w, json_value_t* jo);
+static int loadConfig_Decal(World* w, json_value_t* jo);
+static int loadConfig_CustomDecal(World* w, json_value_t* jo);
+static int loadConfig_Marker(World* w, json_value_t* jo);
+
+
+typedef int (loaderFn*)(World*, json_value_t*);
+
+static const loaderFn loaderFns[] = {
+	[ITEM_TYPE_UNKNOWN] =     NULL,
+	[ITEM_TYPE_STATICMESH] =  NULL, // obsolete, for now
+	[ITEM_TYPE_DYNAMICMESH] = loadConfig_DynamicMesh,
+	[ITEM_TYPE_EMITTER] =     loadConfig_Emitter,
+	[ITEM_TYPE_LIGHT] =       loadConfig_Light,
+	[ITEM_TYPE_DECAL] =       loadConfig_Decal,
+	[ITEM_TYPE_CUSTOMDECAL] = loadConfig_CustomDecal,
+	[ITEM_TYPE_MARKER] =      loadConfig_Marker,
+};
+
+
+
+
+void loadItemConfigNew(World* w, json_value_t* jo) {
+	
+	
+	if(jo->type == JSON_TYPE_ARRAY) {
+		struct json_array_node* link;
+		
+		link = jo->v.arr->head;
+		while(link) {
+			loaderFn fn;
+			enum ItemType type;
+			char* tname;
+			
+			if(link->value->type != JSON_TYPE_OBJ) {
+				printf("invalid item format\n");
+				
+				link = link->next;
+				continue;
+			}
+			
+			// sniff the type
+			ret = json_obj_get_key(link->value, "_type", &val);
+			json_as_string(val, &tname);
+			
+			type = partTypeLookup(tname);
+		
+			
+			fn = loaderFns[type];
+			if(fn) {
+				fn(w, link->value);
+			}
+			else {
+				printf("failed to parse item/part definition\n");
+			}
+			
+			link = link->next;
+		}
+		
+		
+	}
+	
+	
+	
+}
+
+
+
+
+
+// returns part index
+static int loadConfig_DynamicMesh(World* w, json_value_t* jo) {
+	
+	json_value_t* val;
+	char* path;
+	DynamicMesh* dm;
+	
+	OBJContents obj;
+	
+	ret = json_obj_get_key(jo, "mesh", &val);
+	json_as_string(val, &path);
+	
+	loadOBJFile(path, 0, &obj);
+	dm = DynamicMeshFromOBJ(&obj);
+	dm->name = strdup(key);
+	
+	
+	ret = json_obj_get_key(jo, "texture", &val);
+	if(!ret) {
+		json_as_string(val, &path);
+		
+		dm->texIndex = TextureManager_reservePath(w->dmm->tm, path);
+		printf("dmm: %d %s\n", dm->texIndex, path);
+	}
+
+#define grab_json_val(str, field, def) \
+	dm->field = def; \
+	if(!json_obj_get_key(jo, str, &val)) { \
+		json_as_float(val, &dm->field); \
+	}
+
+	grab_json_val("scale", defaultScale, 1.0)
+	grab_json_val("rotDegX", defaultRotX, 0.0)
+	grab_json_val("rotDegY", defaultRotY, 0.0)
+	grab_json_val("rotDegZ", defaultRotZ, 0.0)
+	
+	// radians are not easy to edit in a config file, so it's in degrees
+	dm->defaultRotX *= F_PI / 180.0;  
+	dm->defaultRotY *= F_PI / 180.0;  
+	dm->defaultRotZ *= F_PI / 180.0;  
+	
+
+	int ind = dynamicMeshManager_addMesh(w->dmm, dm->name, dm);
+	printf("DM added mesh %d: %s \n", ind, dm->name);
+	
+	
+	return add_part(w, (Part){ITEM_TYPE_DYNAMICMESH, ind, name});
+}
 
 
 
 
 
 
+// returns part index
+static int loadConfig_Emitter(World* w, json_value_t* jo) {
+
+}
 
 
+// returns part index
+static int loadConfig_Light(World* w, json_value_t* jo) {
+	
+	
+}
 
 
+// returns part index
+static int loadConfig_Decal(World* w, json_value_t* jo) {
+// 	int ret;
+// 	struct json_obj* o;
+// 	void* iter;
+// 	char* key, *texName, *tmp;
+// 	struct json_value* v, *tc;
+// 	json_file_t* jsf;
+	
+	
 
 
+	json_value_t* val;
+	char* path;
+	Decal* d;
+	
+	//OBJContents obj;
+	
+	//ret = json_obj_get_key(tc, "mesh", &val);
+	//json_as_string(val, &path);
+	
+	//loadOBJFile(path, 0, &obj);
+	//d = DynamicMeshFromOBJ(&obj);
+	pcalloc(d);
+	d->name = strdup(key);
+	
+	
+	ret = json_obj_get_key(jo, "texture", &val);
+	if(!ret) {
+		json_as_string(val, &path);
+		
+		d->texIndex = TextureManager_reservePath(w->dmm->tm, path);
+		printf("dm: %d %s\n", d->texIndex, path);
+	}
+
+#define grab_json_val(str, field, def) \
+	d->field = def; \
+	if(!json_obj_get_key(jo, str, &val)) { \
+		json_as_float(val, &d->field); \
+	}
+
+	grab_json_val("scale", size, 1.0)
+	
+
+	int ind = DecalManager_AddDecal(w->dmm, d->name, d);
+	printf("DM added decal %d: %s \n", ind, d->name);
+	
+	
+	// save name
+	char* name = json_obj_key_as_string(jo, "_name");
+	json_as_string(val, &name);
+	
+	return add_part(w, (Part){ITEM_TYPE_DECAL, ind, name});
+}
 
 
+// returns part index
+static int loadConfig_CustomDecal(World* w, json_value_t* jo) {
+	
+	
+}
 
+
+// returns part index
+static int loadConfig_Marker(World* w, json_value_t* jo) {
+	
+	
+}
 
 
 
