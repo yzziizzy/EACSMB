@@ -165,7 +165,11 @@ void loadItemConfig(World* w, char* path) {
 
 
 
-static int add_part(World* w, Part p)
+static int add_part(World* w, Part p) {
+	
+	// TODO: check for name collisions
+	
+	
 	int pi = VEC_LEN(&w->parts);
 	VEC_PUSH(&w->parts, p);
 	if(HT_set(&w->partLookup, p.name, pi)) {
@@ -187,7 +191,7 @@ static int loadConfig_CustomDecal(World* w, json_value_t* jo);
 static int loadConfig_Marker(World* w, json_value_t* jo);
 
 
-typedef int (loaderFn*)(World*, json_value_t*);
+typedef int (*loaderFn)(World*, json_value_t*);
 
 static const loaderFn loaderFns[] = {
 	[ITEM_TYPE_UNKNOWN] =     NULL,
@@ -203,7 +207,15 @@ static const loaderFn loaderFns[] = {
 
 
 
-void loadItemConfigNew(World* w, json_value_t* jo) {
+void World_loadItemConfigFileNew(World* w, char* path) {
+	json_file_t* jsf;
+		
+	jsf = json_load_path(path);
+	World_loadItemConfigNew(w, jsf->root);
+}
+
+
+void World_loadItemConfigNew(World* w, json_value_t* jo) {
 	
 	
 	if(jo->type == JSON_TYPE_ARRAY) {
@@ -212,8 +224,9 @@ void loadItemConfigNew(World* w, json_value_t* jo) {
 		link = jo->v.arr->head;
 		while(link) {
 			loaderFn fn;
-			enum ItemType type;
+			enum ItemTypes type;
 			char* tname;
+			json_value_t* val;
 			
 			if(link->value->type != JSON_TYPE_OBJ) {
 				printf("invalid item format\n");
@@ -223,7 +236,7 @@ void loadItemConfigNew(World* w, json_value_t* jo) {
 			}
 			
 			// sniff the type
-			ret = json_obj_get_key(link->value, "_type", &val);
+			int ret = json_obj_get_key(link->value, "_type", &val);
 			json_as_string(val, &tname);
 			
 			type = partTypeLookup(tname);
@@ -242,8 +255,9 @@ void loadItemConfigNew(World* w, json_value_t* jo) {
 		
 		
 	}
-	
-	
+	else if(jo->type == JSON_TYPE_OBJ) {
+		
+	}
 	
 }
 
@@ -260,12 +274,15 @@ static int loadConfig_DynamicMesh(World* w, json_value_t* jo) {
 	
 	OBJContents obj;
 	
-	ret = json_obj_get_key(jo, "mesh", &val);
+	char* name = json_obj_key_as_string(jo, "_name");
+	
+	int ret = json_obj_get_key(jo, "mesh", &val);
 	json_as_string(val, &path);
 	
+	// TODO: fix
 	loadOBJFile(path, 0, &obj);
 	dm = DynamicMeshFromOBJ(&obj);
-	dm->name = strdup(key);
+	dm->name = name;
 	
 	
 	ret = json_obj_get_key(jo, "texture", &val);
@@ -342,10 +359,10 @@ static int loadConfig_Decal(World* w, json_value_t* jo) {
 	//loadOBJFile(path, 0, &obj);
 	//d = DynamicMeshFromOBJ(&obj);
 	pcalloc(d);
-	d->name = strdup(key);
+	//d->name = strdup(key);
 	
 	
-	ret = json_obj_get_key(jo, "texture", &val);
+	int ret = json_obj_get_key(jo, "texture", &val);
 	if(!ret) {
 		json_as_string(val, &path);
 		

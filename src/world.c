@@ -61,6 +61,9 @@ void World_init(World* w) {
 	w->dm->tm = w->decalTexMan;
 	w->cdm->tm = w->decalTexMan;
 	
+	
+	World_loadItemConfigFileNew(w, "assets/config/combined_config.json");
+	
 	Map_readConfigFile(&w->map, "assets/config/terrain.json");
 	meshManager_readConfigFile(w->smm, "assets/config/models.json");
 	dynamicMeshManager_readConfigFile(w->dmm, "assets/config/models.json");
@@ -689,15 +692,15 @@ void World_drawDecals(World* w, PassFrameParams* pfp) {
 int World_lookUp_Item(World* w, char* name) {
 	int64_t index;
 	
-	if(HT_get(&w->itemLookup, itemName, &index)) {
-		fprintf(stderr, "!!! item not found: '%s'\n", itemName);
+	if(HT_get(&w->itemLookup, name, &index)) {
+		fprintf(stderr, "!!! item not found: '%s'\n", name);
 		return -1;
 	}
 	
 	return index;
 }
 
-int World_lookUp_Part(World* w, enum ItemType type, char* name) {
+int World_lookUp_Part(World* w, enum ItemTypes type, char* name) {
 	
 }
 

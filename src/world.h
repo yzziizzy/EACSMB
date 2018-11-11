@@ -131,7 +131,7 @@ typedef struct World {
 	VEC(Item*) items;
 	HashTable(int) itemLookup;
 
-	VEC(Part) part;
+	VEC(Part) parts;
 	HashTable(int) partLookup;
 	
 	VEC(ItemInstance*) itemInstances;
@@ -147,7 +147,8 @@ typedef struct World {
 
 
 
-
+void World_loadItemConfigFileNew(World* w, char* path);
+void World_loadItemConfigNew(World* w, json_value_t* jo);
 
 void World_drawTerrain(World* w, PassFrameParams* pfp);
 void World_drawSolids(World* w, PassFrameParams* pfp);
