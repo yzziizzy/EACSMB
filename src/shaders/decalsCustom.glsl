@@ -6,14 +6,14 @@
 
 // per vertex
 layout (location = 0) in vec3 v_pos_in;
-layout (location = 1) in vec2 v_tex_in;
+layout (location = 1) in ivec2 v_tex_in;
 
 // per instance
 layout (location = 2) in vec4 vi_pos1_thickness_in;
 layout (location = 3) in vec4 vi_pos2_alpha_in;
 layout (location = 4) in vec4 vi_pos3_tex12_in;
 layout (location = 5) in vec4 vi_pos4_tex34_in;
-layout (location = 6) in vec2 vi_tex_tile_in;
+layout (location = 6) in ivec2 vi_tex_tile_in;
 
 uniform mat4 mWorldView;
 uniform mat4 mViewProj;
@@ -84,6 +84,7 @@ void main() {
 	ym_xd = distance(pos1.xy, pos3.xy); 
 	
 	texOffset = vec2(vi_pos3_tex12_in.w, vi_pos4_tex34_in.w);
+	texIndex = vi_tex_tile_in.x;
 }
 
 
@@ -211,5 +212,7 @@ void main(void) {
 	//out_Color = vec4(mod(otc.x , 1), mod(otc.y, 1) ,0 , 1); //vs_norm;
 	out_Color = vec4(texture(sTexture, vec3(otc, texIndex)).rgb , 1); //vs_norm;
 	out_Normal = vec4(1,0,0,0);
+	
+	//out_Color = vec4(1,0,1,1);
 }
 
