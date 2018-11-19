@@ -10,7 +10,8 @@ Current state:
 
 # Installing (ubuntu)
 
-* `https://github.com/yzziizzy/c3dlas` linked as `src/c3dlas`
+* `https://github.com/yzziizzy/c3dlas` symlinked as `src/c3dlas`
+* `https://github.com/yzziizzy/c_json` symlinked as `src/c_json`
 
 * `sudo apt-get install libx11-dev libglew-dev libfreetype6-dev libfontconfig1-dev libpng-dev`
 
