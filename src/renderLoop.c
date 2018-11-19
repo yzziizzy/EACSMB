@@ -511,10 +511,11 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	//glCullFace(GL_FRONT);
+	glCullFace(GL_FRONT);
+	glDepthFunc(GL_GREATER); // 
 	renderDecals(xs, gs, is, &pfp);
 	glDisable(GL_BLEND);
-	//glCullFace(GL_BACK);
+	glCullFace(GL_BACK);
 	
 	// back to normal gbuf for solids
 	glBindFramebuffer(GL_FRAMEBUFFER, gs->gbuf.fb);

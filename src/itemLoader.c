@@ -24,6 +24,9 @@ int partTypeLookup(char* name) {
 	else if(0 == strcmp("decal", name)) {
 		return ITEM_TYPE_DECAL;
 	}
+	else if(0 == strcmp("customDecal", name)) {
+		return ITEM_TYPE_CUSTOMDECAL;
+	}
 	else if(0 == strcmp("marker", name)) {
 		return ITEM_TYPE_MARKER;
 	}
@@ -464,7 +467,7 @@ static int loadConfig_Decal(World* w, json_value_t* jo) {
 	//loadOBJFile(path, 0, &obj);
 	//d = DynamicMeshFromOBJ(&obj);
 	pcalloc(d);
-	//d->name = strdup(key);
+	d->name = strdup(json_obj_get_string(jo, "_name"));
 	
 	
 	printf("loadconfig_decal\n");
@@ -473,7 +476,7 @@ static int loadConfig_Decal(World* w, json_value_t* jo) {
 	if(!ret) {
 		json_as_string(val, &path);
 		
-		d->texIndex = TextureManager_reservePath(w->dmm->tm, path);
+		d->texIndex = TextureManager_reservePath(w->dm->tm, path);
 		printf("dm: %d %s\n", d->texIndex, path);
 	}
 
@@ -485,16 +488,11 @@ static int loadConfig_Decal(World* w, json_value_t* jo) {
 
 	grab_json_val("scale", size, 1.0)
 	
-
-	int ind = DecalManager_AddDecal(w->dmm, d->name, d);
+	int ind = DecalManager_AddDecal(w->dm, d->name, d);
 	printf("DM added decal %d: %s \n", ind, d->name);
 	
 	
-	// save name
-	char* name = json_obj_key_as_string(jo, "_name");
-	json_as_string(val, &name);
-	
-	return add_part(w, (Part){ITEM_TYPE_DECAL, ind, name});
+	return add_part(w, (Part){ITEM_TYPE_DECAL, ind, d->name});
 }
 
 

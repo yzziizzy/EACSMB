@@ -103,10 +103,10 @@ void main(void) {
 	float hsize = size / 2;
 	vec2 tc = ((pos.xy - vs_pos.xy) + hsize) / size;
 	
-	//out_Color = vec4(npos.xy, 1, 1.0);
+	//out_Color = vec4(pos.xy, 1, 1.0);
 	
 	
-    if(dist > hsize) {
+	if(dist > hsize) {
 		//out_Color = vec4(1,0,dist / 5,1);
 		discard; // commented for debug
 	}

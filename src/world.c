@@ -179,8 +179,6 @@ void World_init(World* w) {
 
 	// decals pass
 	w->decalPass = DecalManager_CreateRenderPass(w->dm);
-	
-	
 	RenderPass_addDrawable(w->decalPass, CustomDecalManager_CreateDrawable(w->cdm));
 	
 	
@@ -533,6 +531,11 @@ int World_spawnAt_Decal(World* w, int index, Vector* location) {
 	DecalInstance di;
 	
 	di.pos = groundloc;
+	di.size = 3.0f;
+	di.rot = 0.0f;
+	di.alpha = 0.50f;
+	di.texIndex = 1;
+	di.tileInfo = 0;
 	
 	DecalManager_AddInstance(w->dm, index, &di);
 	
@@ -557,7 +560,7 @@ int World_spawnAt_CustomDecal(World* w, int texIndex, float width, const Vector2
 	//getTerrainHeight(&w->map, &loci, 1, &h);
 	//groundloc = (Vector){p2->x, p2->y, h};
 
-	//printf("spawning decal %f,%f,%f\n", groundloc.x, groundloc.y, groundloc.z);
+	//printf("spawning custom decal %f,%f,%f\n", groundloc.x, groundloc.y, groundloc.z);
 
 	Vector2 n;
 	float hw = width / 2;
