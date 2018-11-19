@@ -511,16 +511,20 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	
+	// only draw backfaces that are behind existing geometry
 	glCullFace(GL_FRONT);
-	glDepthFunc(GL_GREATER); // 
+	glDepthFunc(GL_GREATER);
+	
 	renderDecals(xs, gs, is, &pfp);
+	
 	glDisable(GL_BLEND);
 	glCullFace(GL_BACK);
 	
 	// back to normal gbuf for solids
 	glBindFramebuffer(GL_FRAMEBUFFER, gs->gbuf.fb);
 	glDepthMask(GL_TRUE); // turn depth writes back on
-	glDepthFunc(GL_LEQUAL);
+	glDepthFunc(GL_LEQUAL); // normal depth function
 	
 	query_queue_start(&gs->queries.solids);
 	World_drawSolids(gs->world, &pfp);

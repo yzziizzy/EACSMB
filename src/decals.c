@@ -32,28 +32,25 @@ static void postFrame(DecalManager* dm);
 
 
 
-
+static VAOConfig vaoConfig[] = {
+	// per vertex
+	{0, 3, GL_FLOAT, 0, GL_FALSE}, // position
+	{0, 2, GL_UNSIGNED_SHORT, 0, GL_TRUE}, // tex
+	
+	// per instance 
+	{1, 4, GL_FLOAT, 1, GL_FALSE}, // pos, size
+	{1, 4, GL_FLOAT, 1, GL_FALSE}, // rot, alpha, unused1/2
+	{1, 2, GL_UNSIGNED_SHORT, 1, GL_FALSE}, // tex index and tiling info
+	
+	{0, 0, 0}
+};
 
 void initDecals() {
 	
 	PassDrawable* pd;
 	
 	// VAO
-	VAOConfig opts[] = {
-		// per vertex
-		{0, 3, GL_FLOAT, 0, GL_FALSE}, // position
-		{0, 2, GL_UNSIGNED_SHORT, 0, GL_TRUE}, // tex
-		
-		// per instance 
-		{1, 4, GL_FLOAT, 1, GL_FALSE}, // pos, size
-		{1, 4, GL_FLOAT, 1, GL_FALSE}, // rot, alpha, unused1/2
-		{1, 2, GL_SHORT, 1, GL_TRUE}, // tex index and tiling info
-		
-		{0, 0, 0}
-	};
-	
-	vao = makeVAO(opts);
-
+	vao = makeVAO(vaoConfig);
 	glexit("decals vao");
 	
 	// shader
@@ -114,13 +111,7 @@ void initDecals() {
 	glGenBuffers(1, &geomVBO);
 	
 	glBindBuffer(GL_ARRAY_BUFFER, geomVBO);
-	
-
-	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 1*3*4 + 4, 0);
-	glVertexAttribPointer(1, 2, GL_UNSIGNED_SHORT, GL_TRUE, 1*3*4 + 4, 1*3*4);
-
+	updateVAO(0, vaoConfig);
 	glBufferStorage(GL_ARRAY_BUFFER, sizeof(box_vertices), NULL, GL_MAP_WRITE_BIT | GL_DYNAMIC_STORAGE_BIT);
 	glexit("");
 	
@@ -213,25 +204,11 @@ DecalManager*  DecalManager_alloc(int maxInstances) {
 	
 	glBindVertexArray(vao);
 	
+	int stride = calcVAOStride(1, vaoConfig);
 	
 	// per-instance attributes
-	PCBuffer_startInit(&dm->instVB, dm->maxInstances * sizeof(Matrix), GL_ARRAY_BUFFER);
-
-	// position matrix 	
-	glEnableVertexAttribArray(2);
-	glEnableVertexAttribArray(3);
-	glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 4*4*2 + 2*2, 0);
-	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 4*4*2 + 2*2, 1*4*4);
-	
-	glVertexAttribDivisor(2, 1);
-	glVertexAttribDivisor(3, 1);
-	
-	// texture indices
-	glEnableVertexAttribArray(4);
-	glVertexAttribIPointer(4, 2, GL_UNSIGNED_SHORT, 4*4*2 + 2*2, 2*4*4);
-	glVertexAttribDivisor(4, 1);
-	
-	
+	PCBuffer_startInit(&dm->instVB, dm->maxInstances * stride, GL_ARRAY_BUFFER);
+	updateVAO(1, vaoConfig); 
 	PCBuffer_finishInit(&dm->instVB);
 	
 	
@@ -250,7 +227,7 @@ DecalManager*  DecalManager_alloc(int maxInstances) {
 
 
 
-
+/*
 void DecalManager_readConfigFile(DecalManager* dm, char* configPath) {
 	int ret;
 	struct json_obj* o;
@@ -306,13 +283,14 @@ void DecalManager_readConfigFile(DecalManager* dm, char* configPath) {
 		
 	}
 	
-}
+}*/
 
 
 // returns the index of the instance
 int DecalManager_AddInstance(DecalManager* dm, int index, const DecalInstance* di) {
 	
 	Decal* d; 
+	DecalInstance* ldi; 
 	
 	if(index >= VEC_LEN(&dm->decals)) {
 		fprintf(stderr, "decal manager addInstance out of bounds: %d, %d\n", (int)VEC_LEN(&dm->decals), index);
@@ -321,15 +299,16 @@ int DecalManager_AddInstance(DecalManager* dm, int index, const DecalInstance* d
 	
 	dm->totalInstances++;
 	
-	//printf("adding instance: %d ", meshIndex);
 	d = VEC_ITEM(&dm->decals, index);
 	
 	VEC_PUSH(&d->instances, *di);
-	VEC_TAIL(&d->instances).size = d->size;
-	//VEC_PUSH(&d->instances[1], *di);
-	//VEC_INC(&d->instMatrices);
+	ldi = &VEC_TAIL(&d->instances);
 	
-	//printf("add instance: %d", mm->totalInstances, VEC_LEN(&msh->instances[0]));
+	ldi->size = d->size;
+	ldi->texIndex = d->texIndex;
+	
+	//printf("adding instance: %f %d %d %s \n", d->size, d->texIndex, index, d->name);
+	
 	
 	return VEC_LEN(&d->instances);
 }
@@ -390,7 +369,8 @@ void DecalManager_updateMatrices(DecalManager* dm, PassFrameParams* pfp) {
 			float dist = vDist(&di->pos, &pfp->dp->eyePos);
 				
 		//	printf("d %f -- ", d);
-		//	printf("%f, %f, %f -- ", di->pos.x, di->pos.y, di->pos.z);
+		//	printf("al: %f, ti: %d  -- \n", di->alpha, di->texIndex, di->pos.z);
+		//	printf("%f, %f, %f -- \n", di->pos.x, di->pos.y, di->pos.z);
 		//	printf("%f, %f, %f\n", pfp->dp->eyePos.x, pfp->dp->eyePos.y, pfp->dp->eyePos.z);
 			
 			if(dist > 500) continue;
@@ -438,10 +418,10 @@ static void preFrame(PassFrameParams* pfp, DecalManager* dm) {
 		cmds[decal_index].baseInstance = (dm->maxInstances * ((dm->instVB.nextRegion) % PC_BUFFER_DEPTH)) + instance_offset; 
 		// number of instances
 		cmds[decal_index].instanceCount = d->numToDraw; //VEC_LEN(&dm->instances[0]); 
-	//printf("instances %d %d %d %d  \n", mesh_index, dm->indexCnt, VEC_LEN(&dm->instances[0]), instance_offset );
+		//printf("instances %d %d %d \n", decal_index, instance_offset, d->numToDraw );
 		cmds[decal_index].baseVertex = 0;
 		
-		index_offset += 36;//dm->indexCnt;// * sizeof(DynamicMeshVertex);//dm->indexCnt;
+		//index_offset += 36; // just one geometry for decals
 		instance_offset += VEC_LEN(&d->instances);
 	}
 }
@@ -490,7 +470,7 @@ glexit("");
 	PCBuffer_bind(&dm->indirectCmds);
 	
 	// there's just one mesh for decals atm
- 	glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_SHORT, 0, 1,/*VEC_LEN(&dm->decals),*/ 0);
+ 	glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_SHORT, 0, VEC_LEN(&dm->decals), 0);
 	glexit("multidrawelementsindirect");
 	
 }

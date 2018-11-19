@@ -126,12 +126,12 @@ void initGame(XStuff* xs, GameState* gs) {
 	CES_addComponentManager(&gs->ces, ComponentManager_alloc("angularVelocity", sizeof(float), 1024*8, 1));
 	
 	CES_addComponentManager(&gs->ces, ComponentManager_alloc("pathFollow", sizeof(C_PathFollow), 1024*8, 1));
-	 
 	
-	CES_addComponentManager(&gs->ces, ComponentManager_alloc("hp", sizeof(float), 1024*8, 1));
+	json_file_t* j_ces_conf = json_load_path("assets/config/CES.json");
+	ComponentManager_loadConfig(&gs->ces, j_ces_conf->root);
 	
-	
-	
+	json_free(j_ces_conf->root);
+	free(j_ces_conf);
 	
 	/*
 	

@@ -8,6 +8,8 @@
 
 #include "btree.h"
 
+#include "c_json/json.h"
+
 
 
 typedef union {
@@ -65,6 +67,9 @@ int CES_addComponent(CES* ces, int compID, uint32_t eid, void* value);
 int CES_addComponentName(CES* ces, char* name, uint32_t eid, void* value);
 
 ComponentManager* CES_getCompManager(CES* ces, char* name);
+
+void ComponentManager_loadConfig(CES* ces, json_value_t* root);
+
 
 
 ComponentManager* ComponentManager_alloc(char* name, size_t compSize, int initialAlloc, int backend);

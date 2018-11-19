@@ -1,0 +1,14 @@
+{
+	
+	components: [
+		// builtin: position, rotation, scale
+		{name: "savings", type: "float" },
+		{name: "income", type: "float" },
+		{name: "expense", type: "float" },
+		
+		
+	]
+	
+	
+	
+}

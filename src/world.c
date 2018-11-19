@@ -215,7 +215,7 @@ void World_init(World* w) {
 			
 			float f = fabs(PerlinNoise_2D((0 + x) / 512.0, (0 + y) / 512.0, .2, 6));
 			
-			//if(nn > 4005) goto DONE;
+			//if(nn > 4) goto DONE;
 			//printf("f = %f\n", f);
 // 			if(f < -0.01) continue; 
 // 			if(frandNorm() < .5) continue;
@@ -346,7 +346,7 @@ int World_spawnAt_Item(World* w, char* itemName, Vector* location) {
 	inst = allocItemInstance(item);
 	
 	for(i = 0; i < item->numParts; i++) {
-		printf("trying to spawn %d : %d, %s\n", item->parts[i].index, i, itemName);
+	//	printf("trying to spawn %d : %d, %s\n", item->parts[i].index, i, itemName);
 		spawnPart(w, &item->parts[i], location);
 		
 	}
@@ -534,8 +534,10 @@ int World_spawnAt_Decal(World* w, int index, Vector* location) {
 	di.size = 3.0f;
 	di.rot = 0.0f;
 	di.alpha = 0.50f;
-	di.texIndex = 1;
-	di.tileInfo = 0;
+//	di.texIndex = 3;
+//	di.tileInfo = 0;
+	
+	di.lerp1 = .15;
 	
 	DecalManager_AddInstance(w->dm, index, &di);
 	
@@ -565,7 +567,7 @@ int World_spawnAt_CustomDecal(World* w, int texIndex, float width, const Vector2
 	Vector2 n;
 	float hw = width / 2;
 	
-	Vector2 p12;	
+	Vector2 p12;
 	vSub2(p2, p1, &p12);
 	
 	n = (Vector2){p12.y, -p12.x};

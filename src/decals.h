@@ -30,7 +30,7 @@ typedef struct DecalInstance {
 	
 	float rot;
 	float alpha;
-	float unused1, unused2;
+	float lerp1, unused;
 	
 	unsigned short texIndex;
 	unsigned short tileInfo; // 0 = clamp to transparent, 1 = tilex, 2 = tiley, 3 = tile both

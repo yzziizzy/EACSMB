@@ -10,8 +10,8 @@ layout (location = 1) in vec2 v_tex_in;
 
 // per instance
 layout (location = 2) in vec4 v_pos_size_in;
-layout (location = 3) in vec4 v_rot_alpha_in;
-layout (location = 4) in vec2 v_tex_tile_in;
+layout (location = 3) in vec4 v_rot_alpha_lerp_in;
+layout (location = 4) in ivec2 v_tex_tile_in;
 
 uniform mat4 mWorldView;
 uniform mat4 mViewProj;
@@ -23,6 +23,7 @@ flat out vec3 vs_pos;
 flat out float size;
 flat out float rotation;
 flat out float alpha;
+flat out vec2 lerps;
 flat out int texIndex;
 flat out int tileInfo;
 
@@ -31,10 +32,11 @@ flat out int tileInfo;
 void main() {
 	vs_pos = v_pos_size_in.xyz;
 	size = v_pos_size_in.w;
-	rotation = v_rot_alpha_in.x;
-	alpha = v_rot_alpha_in.y;
-	texIndex = int(v_tex_tile_in.x);
-	tileInfo = int(v_tex_tile_in.y);
+	rotation = v_rot_alpha_lerp_in.x;
+	lerps = v_rot_alpha_lerp_in.zw;
+	alpha = v_rot_alpha_lerp_in.y;
+	texIndex = v_tex_tile_in.x;
+	tileInfo = v_tex_tile_in.y;
 
 	gl_Position = (mViewProj * mWorldView) * vec4((v_pos_in * size) + v_pos_size_in.xyz, 1.0);
 	vs_tex = v_tex_in.xy;
@@ -55,6 +57,7 @@ flat in vec3 vs_pos; // center of the decal
 flat in float size;
 flat in float rotation;
 flat in float alpha;
+flat in vec2 lerps;
 flat in int texIndex;
 flat in int tileInfo;
 
@@ -112,7 +115,8 @@ void main(void) {
 	}
     else {
 		//out_Color = vec4(0,1,1 , 1); //vs_norm;
-		out_Color = vec4(texture(sTexture, vec3(tc,0)).rgb , 1); //vs_norm;
+		//float blend = clamp((hsize - dist) + lerps.x, 0, 1);
+		out_Color = vec4(texture(sTexture, vec3(tc, texIndex)).rgb, 1); //vs_norm;
 		out_Normal = vec4(1,0,0,0);
 	}
 	

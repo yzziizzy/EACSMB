@@ -73,6 +73,12 @@
 		scale: 3.0,
 	},
 	{
+		_type: "decal", _name: "dirt_road",
+		
+		texture: "assets/textures/dirt_road-256.png",
+		scale: 3.0,
+	},
+	{
 		_type: "light",
 		_name: "point",
 	},
@@ -89,7 +95,7 @@
 			},
 			{
 				type: "decal",
-				name: "splotch",
+				name: "dirt_road",
 				position: [0,0,0],
 			},
 		],
@@ -98,6 +104,10 @@
 	{
 		_type: "item",
 		_name: "gazebbq",
+		
+		components: {
+			savings: 12.0,
+		},
 		
 		parts: [
 			{

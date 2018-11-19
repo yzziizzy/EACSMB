@@ -221,6 +221,90 @@ void* ComponentManager_nextEnt(ComponentManager* cm, CompManIter* iter, uint32_t
 
 
 
+static int typeSizeLookup(char* type) {
+	if(0 == strcmp("float", type)) {
+		return sizeof(float);
+	}
+	else if(0 == strcmp("int", type)) {
+		return 4;
+	}
+	else if(0 == strcmp("short", type)) {
+		return 2;
+	}
+	else if(0 == strcmp("byte", type)) {
+		return 1;
+	}
+	else if(0 == strcmp("char", type)) {
+		return 1;
+	}
+	else if(0 == strcmp("long", type)) {
+		return 8;
+	}
+	else if(0 == strcmp("double", type)) {
+		return 8;
+	}
+	else if(0 == strcmp("pointer", type)) {
+		return sizeof(void*);
+	}
+
+	else {
+		printf("Unknown component type: %s\n", type);
+		return -1;
+	}
+}
+
+
+
+
+void ComponentManager_loadConfig(CES* ces, json_value_t* root) {
+	
+	json_value_t* jcomps;
+	struct json_array_node* link;
+	
+	json_obj_get_key(root, "components", &jcomps);
+	
+	
+	if(jcomps->type != JSON_TYPE_ARRAY) {
+		printf("component config list not found\n");
+		return;
+	}
+	
+	
+	link = jcomps->v.arr->head;
+	while(link) {
+		json_value_t* j_comp;
+		json_value_t* v;
+		char* name;
+		int typeSize;
+		
+		ComponentManager* cm;
+		
+		
+		if(link->value->type != JSON_TYPE_OBJ) {
+			printf("invalid component format\n");
+			goto CONTINUE;
+		}
+		j_comp = link->value;
+		
+		name = json_obj_get_string(j_comp, "name");
+		typeSize = typeSizeLookup(json_obj_get_string(j_comp, "type"));
+		if(typeSize < 0) {
+			printf("invalid component size\n");
+			goto CONTINUE;
+		}
+		
+		printf("adding component %s with size %d\n", name, typeSize);
+		cm = ComponentManager_alloc(name, typeSize, 1024*8, 1);
+		
+		CES_addComponentManager(ces, cm);
+		
+		
+		
+	CONTINUE:
+		link = link->next;
+	}
+	
+}
 
 
 
