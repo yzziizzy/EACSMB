@@ -43,6 +43,7 @@ typedef struct { // information about the part itself
 typedef struct { // info about how the part relates to the item
 	enum ItemTypes type;
 	int index;
+	int partIndex;
 	Vector offset; // rotation, scale, etc
 	//void* data;
 } ItemPart;

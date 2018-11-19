@@ -209,7 +209,7 @@ void Building_capOutline(Building* building, BuildingOutline* o) {
 // 			printf(" [%.2f,%.2f] [%.2f,%.2f] [%.2f,%.2f]\n", 
 // 				a->x,a->y, b->x,b->y, c->x,c->y
 // 			);
-			printf(" - area skip %f %ul\n", area, l);
+		//	printf(" - area skip %f %ul\n", area, l);
 			goto CONTINUE;
 		}
 		
@@ -219,12 +219,12 @@ void Building_capOutline(Building* building, BuildingOutline* o) {
 		do {
 			if(lp != bl && lp != bl->next && lp != l) {
 				if(triPointInside2(&lp->point, a, b, c)) {
-					printf("point inside");
+			//		printf("point inside");
 					goto CONTINUE;
 				}
-				else printf("outside\n");
+			//	else printf("outside\n");
 			}
-			else printf("in tri\n");
+			//else printf("in tri\n");
 			
 			lp = lp->next;
 		} while(lp->next);
@@ -266,7 +266,7 @@ void Building_capOutline(Building* building, BuildingOutline* o) {
 		// this purposefully rotates around the polygon on success to avoid creating fans 
 		// fans have a tendency to create slender or degenerate triangles
 		l = l->next ? l->next : list.head;
-		printf(" - %d %d continue %ul\n", ii++, list.length, l);
+	//	printf(" - %d %d continue %ul\n", ii++, list.length, l);
 	}
 	
 	if(list.length != 2) {

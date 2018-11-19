@@ -1,0 +1,122 @@
+[
+	{
+		_type: "dynamicMesh",
+		_name: "fence",
+		
+		mesh: "assets/models/picketfence.obj",
+		texture: "assets/textures/snowfractal-256.png",
+		scale: 0.5,
+	},
+	{
+		_type: "dynamicMesh",
+		_name: "gazebo",
+		
+		mesh: "assets/models/gazebo.obj",
+		texture: "assets/textures/colornoise.png",
+		scale: 1,
+	},
+	{
+		_type: "dynamicMesh",
+		_name: "house",
+		
+		mesh: "assets/models/house1.obj",
+		texture: "assets/textures/zap-256.png",
+		scale: 3.5,
+		rotDegZ: 90,
+	},
+	{
+		_type: "dynamicMesh",
+		_name: "conifer",
+		
+		mesh: "assets/models/conifer.obj",
+		texture: "assets/textures/conifer.png",
+		scale: 0.5,
+		rotDegX: -90,
+	},
+	{
+		_type: "dynamicMesh",
+		_name: "pipe",
+		
+		mesh: "assets/models/pipe.obj",
+		texture: "assets/textures/colornoise.png",
+		scale: 0.5,
+		rotDegX: -90,
+	},
+	{
+		_type: "light",
+		_name: "point",
+	},
+
+	{
+		_type: "item",
+		_name: "tree",
+		
+		parts: [
+			{
+				type: "dynamicMesh",
+				name: "conifer",
+				position: [0,0,0],
+			},
+			{
+				type: "decal",
+				name: "splotch",
+				position: [0,0,0],
+			},
+		],
+	},
+	
+	{
+		_type: "item",
+		_name: "gazebbq",
+		
+		parts: [
+			{
+				type: "dynamicMesh",
+				name: "conifer",
+				position: [3,3,0]
+			},
+			{
+				type: "dynamicMesh",
+				name: "fence",
+				position: [-3,3,0]
+			},
+			{
+				type: "light",
+				name: "point",
+				position: [3, 0, 1],
+				intensity: 3.0,
+			},
+			{
+				type: "dynamicMesh",
+				name: "gazebo",
+				position: [3,-3,0]
+			},
+			{
+				type: "dynamicMesh",
+				name: "house",
+				position: [-3,-3,0]
+			},
+			{
+				type: "emitter",
+				name: "dust",
+				position: [0,0,4]
+			}
+		]
+	},
+	
+]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

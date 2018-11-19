@@ -67,6 +67,11 @@ void MultiDrawIndirect_updateGeometry(MultiDrawIndirect* mdi) {
 	int i;
 	size_t offset;
 	
+	if(mdi->totalVertices == 0) {
+		printf("no geometry found in MDI:updateGeometry\n");
+		return;
+	}
+	
 	glBindVertexArray(mdi->vao);
 	
 	// vertex buffer

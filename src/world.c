@@ -23,6 +23,7 @@ void World_init(World* w) {
 	VEC_INIT(&w->itemInstances);
 	VEC_INIT(&w->partInstances);
 	VEC_INIT(&w->items);
+	VEC_INIT(&w->parts);
 	
 	
 	w->lm = calloc(1, sizeof(*w->lm));
@@ -31,6 +32,7 @@ void World_init(World* w) {
 	// not static //w->lm->dtex = w->gs->depthTexBuffer;
 	
 	HT_init(&w->itemLookup, 4);
+	HT_init(&w->partLookup, 4);
 	
 	//initMap(&w->map);
 	MapInfo_Init(&w->map);
@@ -66,13 +68,13 @@ void World_init(World* w) {
 	
 	Map_readConfigFile(&w->map, "assets/config/terrain.json");
 	meshManager_readConfigFile(w->smm, "assets/config/models.json");
-	dynamicMeshManager_readConfigFile(w->dmm, "assets/config/models.json");
-	DecalManager_readConfigFile(w->dm, "assets/config/decals.json");
-	MarkerManager_readConfigFile(w->mm, "assets/config/markers.json");
+//	dynamicMeshManager_readConfigFile(w->dmm, "assets/config/models.json");
+//	DecalManager_readConfigFile(w->dm, "assets/config/decals.json");
+//	MarkerManager_readConfigFile(w->mm, "assets/config/markers.json");
 	
 	w->emitters = makeEmitter();
 	
-	loadItemConfig(w, "assets/config/items.json");
+//	loadItemConfig(w, "assets/config/items.json");
 	
 	
 	
@@ -325,7 +327,7 @@ static int spawnPart(World* w, ItemPart* part, Vector* center) {
 			return World_spawnAt_Marker(w, part->index, &loc);
 	
 		default:
-			printf("unknown part item type: %d\n", part->type);
+			printf("unknown part item type: %d, %d\n", part->type, part->index);
 	}
 }
 
@@ -346,7 +348,7 @@ int World_spawnAt_Item(World* w, char* itemName, Vector* location) {
 	inst = allocItemInstance(item);
 	
 	for(i = 0; i < item->numParts; i++) {
-		//printf("trying to spawn %d : %d\n", item->parts[i].index, i);
+		printf("trying to spawn %d : %d, %s\n", item->parts[i].index, i, itemName);
 		spawnPart(w, &item->parts[i], location);
 		
 	}
