@@ -71,10 +71,6 @@ typedef struct DynamicMesh {
 		
 	int texIndex; // index to texture array
 	
-	// not used now
-	GLuint vbo;
-	GLuint ibo;
-	GLuint texID;
 	
 	// rendering info
 	int curFrameIndex;
