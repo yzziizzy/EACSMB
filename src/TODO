@@ -1,6 +1,6 @@
 BUGS:
 ------------------
-fix lighting algorithm
+fix lighting algorithm - partially done!
 
 fix tex scaling algorithm
 
@@ -46,14 +46,14 @@ building generator
 	pedestals
 	courtyards
 	fences and walls
-	
+
 
 decal mesh generation
 	triangle clipping
 	terrain area stats
 
 switch to getopt lib
-	
+
 json saving
 
 clean up text rendering function
@@ -65,8 +65,6 @@ rebuild eye/view code
 proper terrain scaling (mostly done)
 
 implement real lighting - DONE!
-
-dummy textures
 
 texture generation from noise
 
@@ -87,7 +85,7 @@ fancy thin coverage-to-alpha wires
 
 prevent zooming through the terrain
 
-trees
+generated trees
 
 mouse pointer cursors
 
@@ -109,6 +107,11 @@ check all lib fn return values
 memory cleanup in json lib
 json utils:
 	object unpacker to string/string vector map
+
+
+
+
+
 
 IDEAS:
 --------------------
