@@ -226,66 +226,6 @@ DecalManager*  DecalManager_alloc(int maxInstances) {
 
 
 
-
-/*
-void DecalManager_readConfigFile(DecalManager* dm, char* configPath) {
-	int ret;
-	struct json_obj* o;
-	void* iter;
-	char* key, *texName, *tmp;
-	struct json_value* v, *tc;
-	json_file_t* jsf;
-	
-	
-	jsf = json_load_path(configPath);
-	
-	json_value_t* tex;
-	json_obj_get_key(jsf->root, "textures", &tex);
-	
-	
-	iter = NULL;
-	
-	while(json_obj_next(jsf->root, &iter, &key, &tc)) {
-		json_value_t* val;
-		char* path;
-		Decal* d;
-		
-		//OBJContents obj;
-		
-		//ret = json_obj_get_key(tc, "mesh", &val);
-		//json_as_string(val, &path);
-		
-		//loadOBJFile(path, 0, &obj);
-		//d = DynamicMeshFromOBJ(&obj);
-		pcalloc(d);
-		d->name = strdup(key);
-		
-		
-		ret = json_obj_get_key(tc, "texture", &val);
-		if(!ret) {
-			json_as_string(val, &path);
-			
-			d->texIndex = TextureManager_reservePath(dm->tm, path);
-			printf("dm: %d %s\n", d->texIndex, path);
-		}
-
-#define grab_json_val(str, field, def) \
-		d->field = def; \
-		if(!json_obj_get_key(tc, str, &val)) { \
-			json_as_float(val, &d->field); \
-		}
-
-		grab_json_val("scale", size, 1.0)
-		
-
-		int ind = DecalManager_AddDecal(dm, d->name, d);
-		printf("DM added decal %d: %s \n", ind, d->name);
-		
-	}
-	
-}*/
-
-
 // returns the index of the instance
 int DecalManager_AddInstance(DecalManager* dm, int index, const DecalInstance* di) {
 	

@@ -8,7 +8,7 @@
 #include "json_gl.h"
 
 
-int partTypeLookup(char* name) {
+static int partTypeLookup(char* name) {
 	if(0 == strcmp("staticMesh", name)) {
 		return ITEM_TYPE_STATICMESH;
 	}
@@ -41,7 +41,7 @@ int partTypeLookup(char* name) {
 
 
 
-ItemPart* findPart(World* w, char* name, ItemPart* ip) {
+static ItemPart* findPart(World* w, char* name, ItemPart* ip) {
 	
 	int64_t index;
 	
@@ -58,96 +58,6 @@ ItemPart* findPart(World* w, char* name, ItemPart* ip) {
 
 	return ip;
 }
-
-
-
-
-
-
-void loadItemConfig(World* w, char* path) {
-	
-	void* item_iter;
-	char* itemName;
-	json_value_t* j_item, *j_parts;
-	json_file_t* jsf;
-	
-	jsf = json_load_path("assets/config/items.json");
-	
-	json_value_t* tex;
-	json_obj_get_key(jsf->root, "textures", &tex);
-	
-	
-	item_iter = NULL;
-	while(json_obj_next(jsf->root, &item_iter, &itemName, &j_item)) {
-		Item* item;
-		int len, i;
-		json_array_node_t* j_part_node;
-		
-		item = calloc(1, sizeof(*item));
-		item->name = strdup(itemName);
-		
-		printf("-item '%s'\n", itemName);
-		
-		json_obj_get_key(j_item, "parts", &j_parts);
-		
-		len = json_array_length(j_parts);
-		item->numParts = len;
-		item->parts = calloc(1, len * sizeof(*item->parts));
-		
-		// collect up all the parts
-		j_part_node = j_parts->v.arr->head;
-		for(i = 0; i < len && j_part_node; i++) {
-			json_value_t* v, *j_part;
-			char* type, *name;
-			
-			j_part = j_part_node->value;
-			
-			json_obj_get_key(j_part, "type", &v);
-			json_as_string(v, &type);
-			
-			if(0 == strcmp("light", type)) {
-				item->parts[i].type = ITEM_TYPE_LIGHT;
-				
-				json_obj_get_key(j_part, "position", &v);
-				json_as_vector(v, 3, &item->parts[i].offset);
-				
-				//json_obj_get_key(j_part, "lightType", &v);
-				//json_as_string(v, &lightType);
-				float intensity;
-				json_obj_get_key(j_part, "intensity", &v);
-				json_as_float(v, &intensity);
-				
-			}
-			else {
-				json_obj_get_key(j_part, "name", &v);
-				json_as_string(v, &name);
-				
-				printf("  `-found part '%s'\n", name);
-				
-		//		findPart(w, type, name, &item->parts[i]); 
-				printf("    `-type: %d\n", item->parts[i].type);
-				printf("    `-model num: %d\n", item->parts[i].index);
-				
-				json_obj_get_key(j_part, "position", &v);
-				json_as_vector(v, 3, &item->parts[i].offset);
-			}
-			
-			j_part_node = j_part_node->next;
-		}
-
-		// add item to the list
-		VEC_PUSH(&w->items, item);
-		if(HT_set(&w->itemLookup, item->name, VEC_LEN(&w->items) - 1)) {
- 			fprintf(stderr, "failed to register item '%s'\n", item->name);
- 		}
-	}
-	
-	
-}
-
-
-///////////////// new universal code /////////////////
-
 
 
 static int add_part(World* w, Part p) {
@@ -514,13 +424,14 @@ static int loadConfig_CustomDecal(World* w, json_value_t* jo) {
 	//d = DynamicMeshFromOBJ(&obj);
 	pcalloc(d);
 
-	
+		// save name
+	d->name = strdup(json_obj_get_string(jo, "_name"));
 	
 	int ret = json_obj_get_key(jo, "texture", &val);
 	if(!ret) {
 		json_as_string(val, &path);
 		
-		d->texIndex = TextureManager_reservePath(w->dmm->tm, path);
+		d->texIndex = TextureManager_reservePath(w->cdm->tm, path);
 		printf("cdm: %d %s\n", d->texIndex, path);
 	}
 
@@ -533,15 +444,13 @@ static int loadConfig_CustomDecal(World* w, json_value_t* jo) {
 	//grab_json_val("thickness", thickness, 1.0)
 	
 
-	int ind = CustomDecalManager_AddDecal(w->dmm, d->name, d);
+	int ind = CustomDecalManager_AddDecal(w->cdm, d->name, d);
 	printf("CDM added decal %d: %s \n", ind, d->name);
 	
 	
-	// save name
-	char* name = json_obj_key_as_string(jo, "_name");
-	json_as_string(val, &name);
+
 	
-	return add_part(w, (Part){ITEM_TYPE_CUSTOMDECAL, ind, name});
+	return add_part(w, (Part){ITEM_TYPE_CUSTOMDECAL, ind, d->name});
 }
 
 

@@ -10,7 +10,7 @@
 #include "lighting.h"
 #include "decals.h"
 #include "decalsCustom.h"
-#include "staticMesh.h"
+// #include "staticMesh.h"
 #include "dynamicMesh.h"
 #include "marker.h"
 #include "waterPlane.h"
@@ -52,6 +52,9 @@ typedef struct {
 	char* name;
 	int numParts;
 	ItemPart* parts;
+	
+	
+	
 } Item;
 
 
@@ -67,6 +70,7 @@ typedef struct {
 	Vector pos;
 	
 	uint32_t eid;
+	int numParts;
 	
 	PartInstance parts[];
 } ItemInstance;
@@ -98,7 +102,7 @@ static inline uint32_t itemBaseID(enum ItemTypes e) {
 typedef struct World {
 	struct GameState* gs; // pointer to parent
 	
-	MeshManager* smm;
+	//MeshManager* smm; // OBSOLETE: use DynamicMeshManager
 	DynamicMeshManager* dmm;
 	MarkerManager* mm;
 	Emitter* emitters;
@@ -164,7 +168,7 @@ int World_lookUp_SubItem(World* w, enum ItemType type, char* name);
 
 int World_spawnAt_Item(World* w, char* itemName, Vector* location);
 int World_spawnAt_DynamicMesh(World* w, int dmIndex, Vector* location);
-int World_spawnAt_StaticMesh(World* w, int smIndex, Vector* location);
+// int World_spawnAt_StaticMesh(World* w, int smIndex, Vector* location);
 int World_spawnAt_Light(World* w, int lightIndex, Vector* location); 
 int World_spawnAt_Decal(World* w, int index, Vector* location);
 int World_spawnAt_CustomDecal(World* w, int texIndex, float width, const Vector2* p1, const Vector2* p2);

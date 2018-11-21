@@ -42,7 +42,6 @@ void World_init(World* w) {
 	w->decalTexMan = TextureManager_alloc();
 	
 	w->dmm = dynamicMeshManager_alloc(1024*50);
-	w->smm = meshManager_alloc();
 	w->dm = DecalManager_alloc(1024*50);
 	w->cdm = CustomDecalManager_alloc(1024*50);
 	w->mm = MarkerManager_alloc(1024*50);
@@ -67,10 +66,6 @@ void World_init(World* w) {
 	World_loadItemConfigFileNew(w, "assets/config/combined_config.json");
 	
 	Map_readConfigFile(&w->map, "assets/config/terrain.json");
-	meshManager_readConfigFile(w->smm, "assets/config/models.json");
-//	dynamicMeshManager_readConfigFile(w->dmm, "assets/config/models.json");
-//	DecalManager_readConfigFile(w->dm, "assets/config/decals.json");
-//	MarkerManager_readConfigFile(w->mm, "assets/config/markers.json");
 	
 	w->emitters = makeEmitter();
 	
@@ -140,7 +135,7 @@ void World_init(World* w) {
 	
 	// -----------------------------------
 	
-	meshManager_updateGeometry(w->smm);
+//	meshManager_updateGeometry(w->smm);
 	dynamicMeshManager_updateGeometry(w->dmm);
 	MarkerManager_updateGeometry(w->mm);
 	
@@ -307,7 +302,8 @@ static int spawnPart(World* w, ItemPart* part, Vector* center) {
 			return World_spawnAt_DynamicMesh(w, part->index, &loc);
 		
 		case ITEM_TYPE_STATICMESH:
-			return World_spawnAt_StaticMesh(w, part->index, &loc);
+			printf("!!! StaticMeshManager is obsolete. use DynamicMeshManager.\n");
+			return -1;
 		
 		case ITEM_TYPE_EMITTER:
 			return World_spawnAt_Emitter(w, part->index, &loc);
@@ -318,8 +314,8 @@ static int spawnPart(World* w, ItemPart* part, Vector* center) {
 		case ITEM_TYPE_DECAL:
 			return World_spawnAt_Decal(w, part->index, &loc);
 			
-// 		case ITEM_TYPE_CUSTOMDECAL:
-// 			return World_spawnAt_CustomDecal(w, part->index, &loc);
+//		case ITEM_TYPE_CUSTOMDECAL: // TODO figure out spawning info
+//			return World_spawnAt_CustomDecal(w, part->index, &loc);
 
 		case ITEM_TYPE_MARKER:
 			return World_spawnAt_Marker(w, part->index, &loc);
@@ -409,38 +405,6 @@ int World_spawnAt_DynamicMesh(World* w, int dmIndex, Vector* location) {
 	
 }
 
-int World_spawnAt_StaticMesh(World* w, int smIndex, Vector* location) {
-	StaticMeshInstance smi;
-	float h;
-	
-	Vector2i loci;
-	
-	//printf("static mesh spawn");
-	loci.x = location->x;
-	loci.y = location->y;
-	
-	// look up the height there.
-	//getTerrainHeight(&w->map, &loci, 1, &h);
-	h = Map_getTerrainHeight(&w->map, loci);
-	
-	//printf("map h at [%.1f, %.1f]: %.4f\n", location->x, location->y, h);
-	
-	// spawn instance
-	smi.pos.x = location->x;
-	smi.pos.y = location->y;
-	smi.pos.z = h + .5; // HACK +.5z for gazebo origin offset
-	
-	smi.scale = 1;
-	
-	smi.dir = (Vector){1, 0, 0};
-	smi.rot = F_PI / 2.0;
-	
-	smi.alpha = 1.0;
-	
-	meshManager_addInstance(w->smm, smIndex, &smi);
-	meshManager_updateInstances(w->smm);
-	
-}
 
 int World_spawnAt_Emitter(World* w, int emitterIndex, Vector* location) {
 	float h;

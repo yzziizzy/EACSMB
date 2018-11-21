@@ -84,7 +84,6 @@ int CustomDecalManager_AddDecal(CustomDecalManager* dm, char* name, CustomDecal*
 void CustomDecalManager_updateMatrices(CustomDecalManager* dm, PassFrameParams* pfp);
 int CustomDecalManager_lookupName(CustomDecalManager* dm, char* name);
 int CustomDecalManager_AddInstance(CustomDecalManager* dm, int index, const CustomDecalInstance* di);
-void CustomDecalManager_readConfigFile(CustomDecalManager* dm, char* configPath);
 CustomDecalManager* CustomDecalManager_alloc(int maxInstances); 
 void initCustomDecals(); 
 

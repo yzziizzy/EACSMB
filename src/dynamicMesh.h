@@ -121,7 +121,6 @@ int dynamicMeshManager_addMesh(DynamicMeshManager* mm, char* name, DynamicMesh* 
 int dynamicMeshManager_lookupName(DynamicMeshManager* mm, char* name);
 int dynamicMeshManager_addInstance(DynamicMeshManager* mm, int meshIndex, const DynamicMeshInstance* smi);
 int dynamicMeshManager_addTexture(DynamicMeshManager* mm, char* path);
-void dynamicMeshManager_readConfigFile(DynamicMeshManager* mm, char* configPath);
 DynamicMeshManager* dynamicMeshManager_alloc();
 DynamicMesh* DynamicMeshFromOBJ(OBJContents* obj);
 void DynamicMesh_updateBuffers(DynamicMesh* sm);

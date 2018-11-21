@@ -79,7 +79,6 @@ int DecalManager_AddDecal(DecalManager* dm, char* name, Decal* d);
 void DecalManager_updateMatrices(DecalManager* dm, PassFrameParams* pfp);
 int DecalManager_lookupName(DecalManager* dm, char* name);
 int DecalManager_AddInstance(DecalManager* dm, int index, const DecalInstance* di);
-void DecalManager_readConfigFile(DecalManager* dm, char* configPath);
 DecalManager* DecalManager_alloc(int maxInstances); 
 void initDecals(); 
 
