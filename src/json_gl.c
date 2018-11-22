@@ -100,6 +100,7 @@ static float key_as_float(json_value_t* obj, char* key, float def) {
 	return f;
 }
 
+// probably broken
 int json_as_vector(struct json_value* v, int max_len, float* out) {
 	int i;
 	float f;
@@ -123,7 +124,7 @@ int json_as_vector(struct json_value* v, int max_len, float* out) {
 			an = an->next;
 		}
 		
-		switch(i < max_len - 1) out[i++] = 0.0f;
+		while(i < max_len - 1) out[i++] = 0.0f;
 		if(max_len == 4 && i == 3) out[3] = 1.0f;
 	}
 	else if(v->type == JSON_TYPE_DOUBLE) {
@@ -131,10 +132,65 @@ int json_as_vector(struct json_value* v, int max_len, float* out) {
 		json_as_float(v, &f);
 		for(i = 0; i < max_len; i++) out[i] = f;
 	}
+	
+	return 0;
 }
 
 
+
+static int get_minmax(struct json_value* v, struct json_value** min, struct json_value** max) {
+		
+	if(v == NULL) return 99;
+	
+	// find the right objects
+	if(v->type == JSON_TYPE_OBJ) {
+		if(json_obj_get_key(v, "min", min)) return 1;
+		if(json_obj_get_key(v, "max", max)) return 2;
+	}
+	else if(v->type == JSON_TYPE_ARRAY) {
+		if(v->v.arr->length < 2) {
+			fprintf(stderr, "json_get_minmax: array input with less than 2 children\n");
+			return 3;
+		}
+		*min = v->v.arr->head->value;
+		*max = v->v.arr->head->next->value;
+	}
+	
+	return 0;
+}
+
+
+int json_vector3_minmax(struct json_value* v, Vector* min, Vector* max) {
+	int ret;
+	struct json_value* j_min, *j_max;
+	
+	if(ret = get_minmax(v, &j_min, &j_max)) return ret;
+		
+	// grab the values
+	json_as_vector(j_min, 3, (float*)min);
+	json_as_vector(j_max, 3, (float*)max);
+	
+	return 0;
+}
+
+int json_double_minmax(struct json_value* v, double* min, double* max) {
+	int ret;
+	struct json_value* j_min, *j_max;
+	
+	if(ret = get_minmax(v, &j_min, &j_max)) return ret;
+		
+	// grab the values
+	json_as_double(j_min, min);
+	json_as_double(j_max, max);
+	
+	return 0;
+}
+
+
+
+
 int json_as_type_gl(struct json_value* v, enum json_type_gl t, void* out) {
+	printf("!!! %s.%d: %s not implemented!\n", __FILE__, __LINE__, __func__);
 	switch(t) {
 		
 	

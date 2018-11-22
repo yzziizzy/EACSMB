@@ -40,11 +40,13 @@ void World_init(World* w) {
 	w->mapTexMan = TextureManager_alloc();
 	w->meshTexMan = TextureManager_alloc();
 	w->decalTexMan = TextureManager_alloc();
+	w->emitterTexMan = TextureManager_alloc();
 	
 	w->dmm = dynamicMeshManager_alloc(1024*50);
 	w->dm = DecalManager_alloc(1024*50);
 	w->cdm = CustomDecalManager_alloc(1024*50);
 	w->mm = MarkerManager_alloc(1024*50);
+	w->em = EmitterManager_alloc(1024*50);
 //	MarkerManager_addMesh(w->mm, "marker", 20); 
 
 	
@@ -61,13 +63,14 @@ void World_init(World* w) {
 	w->mm->tm = w->decalTexMan;
 	w->dm->tm = w->decalTexMan;
 	w->cdm->tm = w->decalTexMan;
+	w->em->tm = w->emitterTexMan;
 	
 	
 	World_loadItemConfigFileNew(w, "assets/config/combined_config.json");
 	
 	Map_readConfigFile(&w->map, "assets/config/terrain.json");
 	
-	w->emitters = makeEmitter();
+//	w->emitters = makeEmitter();
 	
 //	loadItemConfig(w, "assets/config/items.json");
 	
@@ -138,6 +141,7 @@ void World_init(World* w) {
 //	meshManager_updateGeometry(w->smm);
 	dynamicMeshManager_updateGeometry(w->dmm);
 	MarkerManager_updateGeometry(w->mm);
+	EmitterManager_updateGeometry(w->em);
 	
 
 	DynamicMeshInstance inst = {
@@ -158,6 +162,7 @@ void World_init(World* w) {
 	TextureManager_loadAll(w->mapTexMan, (Vector2i){256, 256}); 
 	TextureManager_loadAll(w->meshTexMan, (Vector2i){256, 256}); 
 	TextureManager_loadAll(w->decalTexMan, (Vector2i){256, 256}); 
+	TextureManager_loadAll(w->emitterTexMan, (Vector2i){256, 256}); 
 
 
 	// terrain pass
@@ -166,10 +171,13 @@ void World_init(World* w) {
 	
 	// solids pass
 	w->solidsPass = DynamicMeshManager_CreateRenderPass(w->dmm);
-	RenderPass_addDrawable(w->solidsPass, Emitter_CreateDrawable(w->emitters));
+// 	RenderPass_addDrawable(w->solidsPass, Emitter_CreateDrawable(w->emitters));
 
 	// transparents pass
 	w->transparentsPass = MarkerManager_CreateRenderPass(w->mm);
+	
+	// emitters TODO: put in the right pass
+	w->emitterPass = EmitterManager_CreateRenderPass(w->em);
 	
 
 	// decals pass
@@ -426,9 +434,11 @@ int World_spawnAt_Emitter(World* w, int emitterIndex, Vector* location) {
 		.start_time = 0,
 		.lifespan = 1<<15
 	};
+	emitterIndex = 0;
+	EmitterManager_addInstance(w->em, emitterIndex, &inst); 
 	
-	emitterAddInstance(w->emitters, &inst);
-	emitter_update_vbo(w->emitters);
+// 	emitterAddInstance(w->emitters, &inst);
+// 	emitter_update_vbo(w->emitters);
 	
 	
 }
@@ -623,6 +633,14 @@ void World_drawSolids(World* w, PassFrameParams* pfp) {
 	RenderPass_renderAll(w->solidsPass, pfp->dp);
 	RenderPass_postFrameAll(w->solidsPass);
 	
+	
+		// TODO: move tot he right spot
+	RenderPass_preFrameAll(w->emitterPass, pfp);
+	RenderPass_renderAll(w->emitterPass, pfp->dp);
+	RenderPass_postFrameAll(w->emitterPass);
+	
+	
+	
 	//glBlendFuncSeparatei(1, GL_SRC_COLOR, GL_ZERO, GL_SRC_ALPHA, GL_ZERO);
 	//glBlendFuncSeparatei(1, GL_ONE, GL_ZERO, GL_SRC_ALPHA,  GL_ONE_MINUS_DST_COLOR);
 	//glBlendFuncSeparatei(1, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
@@ -656,6 +674,7 @@ void World_drawDecals(World* w, PassFrameParams* pfp) {
 	RenderPass_renderAll(w->decalPass, pfp->dp);
 	RenderPass_postFrameAll(w->decalPass);
 	
+
 }
 
 

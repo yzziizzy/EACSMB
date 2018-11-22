@@ -79,6 +79,26 @@
 		scale: 3.0,
 	},
 	{
+		_type: "emitter", _name: "dust",
+		
+		particleCount: 100,
+		randomSeed: 567447,
+		
+		//                   min               max
+		startPosition: [[-10.5, -10.5, 0], [10.5, 10.5, 1]],
+		offset: [0, 1],
+		startVelocity: [[0, 0, 0.05], [0, 0, 0.05]],
+		spawnDelay: [0, 6],
+		startAcceleration: [[-0.03, -0.03, 0.05], [0.03, 0.03, 0.05]],
+		lifetime: [7, 7],
+		size: [2, 6],
+		spin: [-1, 1],
+		growthRate: [0, 0.4],
+		randomness: [0, 1],
+		fadeIn: [1, 2],
+		fadeOut: [3, 4],
+	},
+	{
 		_type: "light",
 		_name: "point",
 	},

@@ -76,7 +76,7 @@ GUIRenderTarget* grtTest;
 GUIBuilderControl* gbcTest;
 GUITexBuilderControl* texbuilder;
 Texture* cnoise;
-Emitter* dust;
+// Emitter* dust;
 
 
 
@@ -258,7 +258,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	initLighting();
 	//initRoads();
 	initWaterPlane();
-	initEmitters();
+// 	initEmitters();
 	initDecals();
 	initCustomDecals();
 	

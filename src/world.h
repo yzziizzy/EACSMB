@@ -105,7 +105,7 @@ typedef struct World {
 	//MeshManager* smm; // OBSOLETE: use DynamicMeshManager
 	DynamicMeshManager* dmm;
 	MarkerManager* mm;
-	Emitter* emitters;
+	EmitterManager* em;
 	LightManager* lm;
 	DecalManager* dm;
 	CustomDecalManager* cdm;
@@ -115,12 +115,14 @@ typedef struct World {
 	RenderPass* transparentsPass; // temp hack
 	RenderPass* lightingPass; // temp hack
 	RenderPass* decalPass; // temp hack
+	RenderPass* emitterPass; // temp hack
 	
 	RenderPass* terrainSelectionPass; // temp hack
 	
 	TextureManager* mapTexMan;
 	TextureManager* meshTexMan;
 	TextureManager* decalTexMan;
+	TextureManager* emitterTexMan;
 	
 	// old bezier roads
 	//RoadBlock* roads;

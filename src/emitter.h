@@ -5,8 +5,12 @@
 #include "common_math.h"
 
 #include "ds.h"
+#include "hash.h"
 
+#include "texture.h"
+#include "pcBuffer.h"
 #include "pass.h"
+#include "mdi.h"
 
 
 
@@ -39,29 +43,54 @@ typedef struct EmitterSprite {
 	
 } EmitterSprite;
 
+
+
 typedef struct Emitter {
 	int particleNum;
 	int instanceNum;
 	GLuint points_vbo; // just to annoy you
 	GLuint instance_vbo;
 	
-	VEC(EmitterSprite) sprite;
+	VEC(EmitterSprite) sprites;
 	VEC(EmitterInstance) instances;
 	
 } Emitter;
 
 
+typedef struct EmitterManager {
+	
+	VEC(Emitter*) emitters;
+	HashTable(int) lookup;
+	
+	TextureManager* tm;
+	MultiDrawIndirect* mdi;
+	
+} EmitterManager;
 
 
 
 
-void emitter_update_vbo(Emitter* e); 
-void emitterAddInstance(Emitter* e, EmitterInstance* ei); 
-Emitter* makeEmitter(); 
-void initEmitters();
+// void emitter_update_vbo(Emitter* e); 
+// void emitterAddInstance(Emitter* e, EmitterInstance* ei); 
+// Emitter* makeEmitter(); 
+// void initEmitters();
 
 
-PassDrawable* Emitter_CreateDrawable(Emitter* e);
-RenderPass* Emitter_CreateRenderPass(Emitter* e);
+
+
+
+
+EmitterManager* EmitterManager_alloc(int maxInstances);
+int EmitterManager_addEmitter(EmitterManager* em, Emitter* e, char* name);
+void EmitterManager_addInstance(EmitterManager* em, int index, EmitterInstance* inst);
+void EmitterManager_updateGeometry(EmitterManager* em);
+int EmitterManager_lookupName(EmitterManager* em, char* name);
+
+
+
+PassDrawable* EmitterManager_CreateDrawable(EmitterManager* em);
+RenderPass* EmitterManager_CreateRenderPass(EmitterManager* em);
+
+
 
 #endif // __EACSMB_EMITTER_H__

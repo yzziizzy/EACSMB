@@ -19,9 +19,22 @@
 #include "emitter.h"
 
 
+
+
+static void uniformSetup(EmitterManager* em, GLuint progID);
+static void instanceSetup(EmitterManager* em, EmitterInstance* vmem, MDIDrawInfo** di, int diCount, PassFrameParams* pfp);
+
+static ShaderProgram* prog;
+
+
+
+
+
+
+
 static GLuint vao;
 // static GLuint points_vbo, vbo1, vbo2;
-static ShaderProgram* prog;
+
 
 static GLuint model_ul, view_ul, proj_ul, timeS_ul, timeMS_ul;
 static GLuint tex_ul;
@@ -33,6 +46,177 @@ static GLuint frame_ubo;
 static int next_ubo_region = 0;
 static GLuint ubo_fences[3];
 static float* ubo_ptr; 
+
+
+
+
+
+
+EmitterManager* EmitterManager_alloc(int maxInstances) {
+	
+	EmitterManager* em = pcalloc(em);
+	
+	//em->maxInstances = maxInstances;
+	VEC_INIT(&em->emitters);
+	HT_init(&em->lookup, 4);
+	
+	static VAOConfig vaoopts[] = {
+		// per particle attributes
+		{0, 4, GL_FLOAT, 0, GL_FALSE}, // start position & offset
+		{0, 4, GL_FLOAT, 0, GL_FALSE}, // start velocity & spawn delay
+		{0, 4, GL_FLOAT, 0, GL_FALSE}, // start acceleration & lifetime
+		{0, 4, GL_FLOAT, 0, GL_FALSE}, // size, angular momentum, growth rate, randomness
+		{0, 4, GL_FLOAT, 0, GL_FALSE}, // fade-in, fade-out, unallocated
+		
+		// per emitter attributes
+		{1, 4, GL_FLOAT, 1, GL_FALSE}, // position & scale
+		{1, 4, GL_FLOAT, 1, GL_FALSE}, // start time, life span
+		
+		{0, 0, 0}
+	};
+
+	
+	
+	em->mdi = MultiDrawIndirect_alloc(vaoopts, maxInstances);
+	em->mdi->isIndexed = 0;
+	em->mdi->primMode = GL_POINTS;
+	em->mdi->uniformSetup = (void*)uniformSetup;
+	em->mdi->instanceSetup = (void*)instanceSetup;
+	em->mdi->data = em;
+	
+	return em;
+}
+
+
+
+int EmitterManager_addEmitter(EmitterManager* em, Emitter* e, char* name) {
+	
+	int index;
+	MDIDrawInfo* di;
+	
+	
+	// TODO: fill in emitter info
+	
+	
+	di = pcalloc(di);
+	
+	*di = (MDIDrawInfo){
+		.vertices = VEC_DATA(&e->sprites),
+		.vertexCount = VEC_LEN(&e->sprites),
+	};
+	
+	MultiDrawIndirect_addMesh(em->mdi, di);
+	
+	VEC_PUSH(&em->emitters, e);
+	index = VEC_LEN(&em->emitters);
+	
+	HT_set(&em->lookup, name, index - 1);
+}
+
+
+void EmitterManager_addInstance(EmitterManager* em, int index, EmitterInstance* inst) {
+	Emitter* e;
+	
+	e = VEC_ITEM(&em->emitters, index);
+	VEC_PUSH(&e->instances, *inst);
+}
+
+
+
+void EmitterManager_updateGeometry(EmitterManager* em) {
+	MultiDrawIndirect_updateGeometry(em->mdi);
+}
+
+
+
+// returns the index of the emitter
+int EmitterManager_lookupName(EmitterManager* em, char* name) {
+	
+	int64_t index;
+	
+	if(!HT_get(&em->lookup, name, &index)) {
+		printf("emitter found: %s -> %d\n", name, index);
+		return index;
+	}
+	printf("emitter not found: %s\n", name);
+	return -1;
+}
+
+
+
+
+
+
+
+static void instanceSetup(EmitterManager* em, EmitterInstance* vmem, MDIDrawInfo** di, int diCount, PassFrameParams* pfp) {
+	int j;
+	
+	//diCount = 1;
+	for(j = 0; j < diCount; j++) {
+		Emitter* e = VEC_ITEM(&em->emitters, j);
+		di[j]->numToDraw = VEC_LEN(&e->instances);
+		
+		VEC_EACH(&e->instances, i, inst) {
+			*vmem = inst;
+			vmem++;
+		}
+		
+	//	printf("emitter numtodraw: %d\n", di[j]->numToDraw);
+		di++;
+	}
+}
+
+static void uniformSetup(EmitterManager* em, GLuint progID) {
+	// matrices and uniforms
+	GLuint tex_ul;
+
+// 	glActiveTexture(GL_TEXTURE0 + 8);
+// 	glBindTexture(GL_TEXTURE_2D_ARRAY, dmm->tm->tex_id);
+	
+// 	tex_ul = glGetUniformLocation(progID, "sTexture");
+// 	glProgramUniform1i(progID, tex_ul, 8);
+	glexit("");
+}
+
+
+
+
+
+
+
+RenderPass* EmitterManager_CreateRenderPass(EmitterManager* em) {
+	
+	RenderPass* rp;
+	PassDrawable* pd;
+
+	pd = EmitterManager_CreateDrawable(em);
+
+	rp = calloc(1, sizeof(*rp));
+	RenderPass_init(rp);
+	RenderPass_addDrawable(rp, pd);
+	//rp->fboIndex = LIGHTING;
+	
+	return rp;
+}
+
+
+PassDrawable* EmitterManager_CreateDrawable(EmitterManager* em) {
+	
+	if(!prog) {
+		prog = loadCombinedProgram("emitter");
+		glexit("");
+	}
+	
+	return MultiDrawIndirect_CreateDrawable(em->mdi, prog);
+}
+
+
+
+
+
+
+
+/////////////// old ////////////////////////////
 
 
 
@@ -147,12 +331,12 @@ Emitter* makeEmitter() {
 	e = calloc(1, sizeof(Emitter));
 	
 	e->particleNum = 100;
-	VEC_INIT(&e->sprite);
+	VEC_INIT(&e->sprites);
 	VEC_INIT(&e->instances);
 	
 	for(i = 0; i < e->particleNum; i++) {
-		VEC_INC(&e->sprite);
-		s = &VEC_ITEM(&e->sprite, i);
+		VEC_INC(&e->sprites);
+		s = &VEC_ITEM(&e->sprites, i);
 		
 		s->start_pos.x = frand(-.5, .5); 
 		s->start_pos.y = frand(-.5, .5); 
@@ -202,7 +386,7 @@ Emitter* makeEmitter() {
 	glEnableVertexAttribArray(4);
 	glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 4*4*5, 4*4*4);
 
-	glBufferData(GL_ARRAY_BUFFER, VEC_LEN(&e->sprite) * sizeof(*VEC_DATA(&e->sprite)), VEC_DATA(&e->sprite), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, VEC_LEN(&e->sprites) * sizeof(*VEC_DATA(&e->sprites)), VEC_DATA(&e->sprites), GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
@@ -314,7 +498,7 @@ static void draw(Emitter* e, GLuint progID, PassDrawParams* pdp) {
 	glexit("emitter vbo");
 
 	//printf("num, inst: %d, %d\n", e->particleNum, e->instanceNum);                         
-	glDrawArraysInstanced(GL_POINTS, 0, VEC_LEN(&e->sprite), VEC_LEN(&e->instances));
+	glDrawArraysInstanced(GL_POINTS, 0, VEC_LEN(&e->sprites), VEC_LEN(&e->instances));
 	glexit("emitter draw");
 	
 	setUBOFence();
@@ -328,7 +512,7 @@ static void postFrame(Emitter* e) {
 
 
 
-
+/*
 RenderPass* Emitter_CreateRenderPass(Emitter* e) {
 	
 	RenderPass* rp;
@@ -357,3 +541,4 @@ PassDrawable* Emitter_CreateDrawable(Emitter* e) {
 	
 	return pd;
 }
+*/

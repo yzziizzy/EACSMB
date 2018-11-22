@@ -335,6 +335,117 @@ static int loadConfig_Emitter(World* w, json_value_t* jo) {
 	
 	printf("loadconfig_Emitter\n");
 	
+	
+	json_value_t* v;
+	char* name, *path;
+	Emitter* e;
+	EmitterSprite* s;
+	int i;
+	
+	pcalloc(e);
+
+	e->particleNum = json_obj_get_int(jo, "particleCount", 0);
+	
+	
+	Vector startPos[2];
+	Vector startVel[2];
+	Vector startAcc[2];
+	double offset[2];
+	double spawnDelay[2];
+	double lifetime[2];
+	double size[2];
+	double spin[2];
+	double growthRate[2];
+	double randomness[2];
+	double fadeIn[2];
+	double fadeOut[2];
+	
+	json_obj_get_key(jo, "startPosition", &v);
+	json_vector3_minmax(v, &startPos[0], &startPos[1]);
+	
+	json_obj_get_key(jo, "startVelocity", &v);
+	json_vector3_minmax(v, &startVel[0], &startVel[1]);
+	
+	json_obj_get_key(jo, "startAcceleration", &v);
+	json_vector3_minmax(v, &startAcc[0], &startAcc[1]);
+	
+	json_obj_get_key(jo, "offset", &v); 
+	json_double_minmax(v, &offset[0], &offset[1]);
+	json_obj_get_key(jo, "spawnDelay", &v); json_double_minmax(v, &spawnDelay[0], &spawnDelay[1]);
+	json_obj_get_key(jo, "lifetime", &v); json_double_minmax(v, &lifetime[0], &lifetime[1]);
+	json_obj_get_key(jo, "size", &v); json_double_minmax(v, &size[0], &size[1]);
+	json_obj_get_key(jo, "spin", &v); json_double_minmax(v, &spin[0], &spin[1]);
+	json_obj_get_key(jo, "growthRate", &v); json_double_minmax(v, &growthRate[0], &growthRate[1]);
+	json_obj_get_key(jo, "randomness", &v); json_double_minmax(v, &randomness[0], &randomness[1]);
+	json_obj_get_key(jo, "fadeIn", &v); json_double_minmax(v, &fadeIn[0], &fadeIn[1]);
+	json_obj_get_key(jo, "fadeOut", &v); json_double_minmax(v, &fadeOut[0], &fadeOut[1]);
+	
+	printf(" - size %f %f\n", size[0], size[1]);
+	
+	VEC_INIT(&e->sprites);
+	VEC_INIT(&e->instances);
+	
+	for(i = 0; i < e->particleNum; i++) {
+		VEC_INC(&e->sprites);
+		s = &VEC_ITEM(&e->sprites, i);
+		
+		s->start_pos.x = frand(startPos[0].x, startPos[1].x); 
+		s->start_pos.y = frand(startPos[0].y, startPos[1].y); 
+		s->start_pos.z = frand(startPos[0].z, startPos[1].z); 
+		
+		s->offset = frand(offset[0], offset[1]);
+		
+		s->start_vel.x = frand(startVel[0].x, startVel[1].x);
+		s->start_vel.y = frand(startVel[0].y, startVel[1].y);
+		s->start_vel.z = frand(startVel[0].z, startVel[1].z);
+		
+		s->spawn_delay = frand(spawnDelay[0], spawnDelay[1]);
+		
+		s->start_acc.x = frand(startAcc[0].x, startAcc[1].x);
+		s->start_acc.y = frand(startAcc[0].y, startAcc[1].y);
+		s->start_acc.z = frand(startAcc[0].z, startAcc[1].z);
+		
+		s->lifetime = frand(lifetime[0], lifetime[1]);
+		
+		s->size = frand(size[0], size[1]);
+		s->spin = frand(spin[0], spin[1]);
+		s->growth_rate = frand(growthRate[0], growthRate[1]);
+		s->randomness = frand(randomness[0], randomness[1]);
+		
+		s->fade_in = frand(fadeIn[0], fadeIn[1]);
+		s->fade_out = frand(fadeOut[0], fadeOut[1]);
+		
+		printf("fade %f %f\n", s->fade_in, s->fade_out);
+		printf("size %f, offset %f\n", s->size, s->offset);
+		
+	}
+	
+	
+	// hack
+	TextureManager_reservePath(w->em->tm, "./assets/textures/terrible_smoke.png");
+	
+	
+	int ind;
+	
+	/*
+	int ret = json_obj_get_key(jo, "texture", &val);
+	if(!ret) {
+		json_as_string(val, &path);
+		
+		m->texIndex = TextureManager_reservePath(w->mm->tm, path);
+		//printf("-----mm: %d %s\n", m->texIndex, path);
+	}
+	*/
+
+		// save name
+	name = strdup(json_obj_get_string(jo, "_name"));
+
+	
+	ind = EmitterManager_addEmitter(w->em, e, name);
+
+	
+	
+	return add_part(w, (Part){ITEM_TYPE_EMITTER, ind, name});
 }
 
 

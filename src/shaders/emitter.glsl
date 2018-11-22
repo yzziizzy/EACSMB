@@ -19,13 +19,13 @@ layout (location = 6) in vec4 starttime_lifespan_in;
 
 
 
-uniform mat4 mView;
-uniform mat4 mProj;
+uniform mat4 mWorldView;
+uniform mat4 mViewProj;
 
-uniform globalTimer {
-	float timeSeconds;
-	float timeFractional;
-};
+
+float timeSeconds;
+float timeFractional;
+
 
 
 
@@ -56,6 +56,7 @@ void main() {
 	float t_loop = mod(time + start_offset, lifetime + spawn_delay);
 	
 	float t = t_loop - spawn_delay;
+	
 	if(t < 0) {
 		vertex.opacity = 0;
 		vertex.size = 0;
@@ -65,7 +66,7 @@ void main() {
 	
 	vec3 sim = t*t*start_acc_lifetime_in.xyz + t*start_vel_spawndelay_in.xyz;
 	
-	gl_Position = mView * vec4(spritePos + instancePos + sim, 1.0);
+	gl_Position = mWorldView * vec4(spritePos + instancePos + sim, 1.0);
 	vs_VertexID = gl_VertexID;
 	
 	vertex.size = size_spin_growth_random_in.x + size_spin_growth_random_in.z * t;
@@ -93,8 +94,8 @@ layout (points) in;
 layout (triangle_strip, max_vertices = 4) out;
 
 
-uniform mat4 mView;
-uniform mat4 mProj;
+uniform mat4 mWorldView;
+uniform mat4 mViewProj;
 
 flat in int vs_VertexID[];
 
@@ -112,7 +113,7 @@ in Vertex {
 void main() {
 	if(vertex[0].opacity == 0.0) return;
 
-	mat4 mViewProj = mProj * mView;
+	//mat4 mWorldProj = mViewProj * mWorldView;
 
 	float size = vertex[0].size;
 	float spin = vertex[0].spin;
@@ -127,25 +128,25 @@ void main() {
 	gs_color = vec3(vs_VertexID[0] * .001, 1,0);
 	gs_tex = vec3(0,0,0);
 	gs_opacity = vertex[0].opacity;
-	gl_Position = mProj * vec4(center.xy + vec2(-right, -up) * rot, center.zw);
+	gl_Position = mViewProj * vec4(center.xy + vec2(-right, -up) * rot, center.zw);
 	EmitVertex();
 
 	gs_color = vec3(vs_VertexID[0] * .001, 1,1);
 	gs_tex = vec3(0,1,0);
 	gs_opacity = vertex[0].opacity;
-	gl_Position = mProj * vec4(center.xy + vec2(-right, up) * rot, center.zw);
+	gl_Position = mViewProj * vec4(center.xy + vec2(-right, up) * rot, center.zw);
 	EmitVertex();
 
 	gs_color = vec3(vs_VertexID[0] * .001, 0,1);
 	gs_tex = vec3(1,0,0);
 	gs_opacity = vertex[0].opacity;
-	gl_Position = mProj * vec4(center.xy + vec2(right, -up) * rot, center.zw);
+	gl_Position = mViewProj * vec4(center.xy + vec2(right, -up) * rot, center.zw);
 	EmitVertex();
 
 	gs_color = vec3(vs_VertexID[0] * .001, 0,0);
 	gs_tex = vec3(1,1,0);
 	gs_opacity = vertex[0].opacity;
-	gl_Position = mProj * vec4(center.xy + vec2(right, up) * rot, center.zw);
+	gl_Position = mViewProj * vec4(center.xy + vec2(right, up) * rot, center.zw);
 	EmitVertex();
 
 	EndPrimitive(); 
@@ -159,8 +160,8 @@ void main() {
 
 
 
-uniform mat4 mView;
-uniform mat4 mProj;
+uniform mat4 mWorldView;
+uniform mat4 mViewProj;
 
 layout(location = 0) out vec4 out_Color;
 layout(location = 1) out vec4 out_Normal;
@@ -174,7 +175,8 @@ in float gs_opacity;
 void main(void) {
     
 	out_Color = texture(textures, gs_tex.xy) * vec4(1.0, 1.0, 1.0, gs_opacity); //vs_norm;
-//	out_Color = vec4(1.0, 1.0, 1.0, gs_opacity); //vs_norm;
+// 	out_Color = vec4(1.0, 1.0, 1.0, gs_opacity); //vs_norm;
+	out_Color = vec4(1.0, 0.0, 0.0, 1.0); //vs_norm;
 	out_Normal = vec4(0,0,0,0);
 	
 }

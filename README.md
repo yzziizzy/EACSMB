@@ -37,9 +37,10 @@ the desired values.
 # Controls (for now)
 
 * a/s to rotate.
-* Mouse scroll or z/x to zoom.
-* Right click or the arrow keys to move.
-
+* z/x to zoom.
+* Arrow keys to move.
+* q/w to change the sun angle
+* click to spawn a model
 
 Licensed under Affero GPL v3.0 until I get a stronger copyleft license for games.
 
