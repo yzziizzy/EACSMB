@@ -169,12 +169,13 @@ static void instanceSetup(EmitterManager* em, EmitterInstance* vmem, MDIDrawInfo
 static void uniformSetup(EmitterManager* em, GLuint progID) {
 	// matrices and uniforms
 	GLuint tex_ul;
-
-// 	glActiveTexture(GL_TEXTURE0 + 8);
-// 	glBindTexture(GL_TEXTURE_2D_ARRAY, dmm->tm->tex_id);
 	
-// 	tex_ul = glGetUniformLocation(progID, "sTexture");
-// 	glProgramUniform1i(progID, tex_ul, 8);
+
+	glActiveTexture(GL_TEXTURE0 + 24);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, em->tm->tex_id);
+	
+	tex_ul = glGetUniformLocation(progID, "textures");
+	glProgramUniform1i(progID, tex_ul, 24);
 	glexit("");
 }
 

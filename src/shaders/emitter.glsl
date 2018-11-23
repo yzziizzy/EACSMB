@@ -23,8 +23,8 @@ uniform mat4 mWorldView;
 uniform mat4 mViewProj;
 
 
-float timeSeconds;
-float timeFractional;
+uniform float timeSeconds;
+uniform float timeFractional;
 
 
 
@@ -56,6 +56,7 @@ void main() {
 	float t_loop = mod(time + start_offset, lifetime + spawn_delay);
 	
 	float t = t_loop - spawn_delay;
+	
 	
 	if(t < 0) {
 		vertex.opacity = 0;
@@ -166,7 +167,7 @@ uniform mat4 mViewProj;
 layout(location = 0) out vec4 out_Color;
 layout(location = 1) out vec4 out_Normal;
 
-uniform sampler2D textures;
+uniform sampler2DArray textures;
 
 in vec3 gs_color;
 in vec3 gs_tex;
@@ -174,9 +175,9 @@ in float gs_opacity;
 
 void main(void) {
     
-	out_Color = texture(textures, gs_tex.xy) * vec4(1.0, 1.0, 1.0, gs_opacity); //vs_norm;
+	out_Color = texture(textures, vec3(gs_tex.xy, 0)) * vec4(1.0, 1.0, 1.0, gs_opacity); //vs_norm;
 // 	out_Color = vec4(1.0, 1.0, 1.0, gs_opacity); //vs_norm;
-	out_Color = vec4(1.0, 0.0, 0.0, 1.0); //vs_norm;
+	//out_Color = vec4(1.0, 0.0, 0.0, 1.0); //vs_norm;
 	out_Normal = vec4(0,0,0,0);
 	
 }

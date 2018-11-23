@@ -634,13 +634,6 @@ void World_drawSolids(World* w, PassFrameParams* pfp) {
 	RenderPass_postFrameAll(w->solidsPass);
 	
 	
-		// TODO: move tot he right spot
-	RenderPass_preFrameAll(w->emitterPass, pfp);
-	RenderPass_renderAll(w->emitterPass, pfp->dp);
-	RenderPass_postFrameAll(w->emitterPass);
-	
-	
-	
 	//glBlendFuncSeparatei(1, GL_SRC_COLOR, GL_ZERO, GL_SRC_ALPHA, GL_ZERO);
 	//glBlendFuncSeparatei(1, GL_ONE, GL_ZERO, GL_SRC_ALPHA,  GL_ONE_MINUS_DST_COLOR);
 	//glBlendFuncSeparatei(1, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
