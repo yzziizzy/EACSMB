@@ -380,7 +380,6 @@ static int loadConfig_Emitter(World* w, json_value_t* jo) {
 	json_obj_get_key(jo, "fadeIn", &v); json_double_minmax(v, &fadeIn[0], &fadeIn[1]);
 	json_obj_get_key(jo, "fadeOut", &v); json_double_minmax(v, &fadeOut[0], &fadeOut[1]);
 	
-	printf(" - size %f %f\n", size[0], size[1]);
 	
 	VEC_INIT(&e->sprites);
 	VEC_INIT(&e->instances);
@@ -414,10 +413,6 @@ static int loadConfig_Emitter(World* w, json_value_t* jo) {
 		
 		s->fade_in = frand(fadeIn[0], fadeIn[1]);
 		s->fade_out = frand(fadeOut[0], fadeOut[1]);
-		
-		printf("fade %f %f\n", s->fade_in, s->fade_out);
-		printf("size %f, offset %f\n", s->size, s->offset);
-		
 	}
 	
 	

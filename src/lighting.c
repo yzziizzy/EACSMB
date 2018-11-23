@@ -110,27 +110,29 @@ void LightManager_Init(LightManager* lm) {
 	TRIS = 3 * 20;
 	unsigned short icos_indices[] = {
 		// top two triangles
-		0, 1, 2, 
+		0, 2, 1, 
 		0, 1, 3,
 		
 		// neighbors of those top two triangles
 		// signs are shared in x and y
 		2, 0, 4,
-		2, 1, 6,
-		3, 0, 5,
+		2, 6, 1,
+		3, 5, 0,
 		3, 1, 7,
 		
 		// standing triangle end caps
-		0, 4, 5,
+		0, 5, 4,
 		1, 6, 7,
 		
 		// sideways triangles
 		// all y values share sign
 		3, 9, 5,
-		3, 9, 7,
-		2, 8, 4,
+		3, 7, 9,
+		2, 4, 8,
 		2, 8, 6,
-		
+	
+		// ---- triangles are correctly wound above here, below is random
+	
 		// inverted triangle end caps
 		10, 5, 6,
 		11, 7, 8,
@@ -144,7 +146,7 @@ void LightManager_Init(LightManager* lm) {
 		
 		// bottom two triangles
 		10, 8, 11, 
-		11, 10, 9
+		11, 10, 9 
 	};
 	
 	lm->maxInstances = 1024 * 50;

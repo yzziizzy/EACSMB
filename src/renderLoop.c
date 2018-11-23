@@ -406,7 +406,7 @@ void SetUpPDP(GameState* gs, PassDrawParams* pdp) {
 	
 	pdp->eyeVec = gs->eyeDir;
 	pdp->eyePos = gs->eyePos;
-	pdp->targetSize = (Vector2i){800, 800};
+	pdp->targetSize = (Vector2i){gs->screen.wh.x, gs->screen.wh.y};
 	pdp->timeSeconds = (float)(long)gs->frameTime;
 	pdp->timeFractional = gs->frameTime - pdp->timeSeconds;
 	

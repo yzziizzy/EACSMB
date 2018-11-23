@@ -75,6 +75,8 @@ uniform vec2 screenSize;
 uniform mat4 mWorldView;
 uniform mat4 mViewProj;
 
+uniform ivec2 targetSize;
+
 layout(location = 0) out vec4 out_Light;
 
 
@@ -89,7 +91,7 @@ in float vs_exponent;
 
 void main(void) {
 	
-	vec2 screenCoord = gl_FragCoord.xy / vec2(800,800);//screenSize;
+	vec2 screenCoord = gl_FragCoord.xy / targetSize;//screenSize;
 	
 	float depth = texture(sDepth, screenCoord).r;
 	if (depth > 0.99999) {
@@ -113,6 +115,8 @@ void main(void) {
 	
 	//att = att * 30;
 	//float linear = max(0.0, 1.0 - (distance(pos, vs_center) / vs_radius));
+	
+	vec3 dir = normalize(pos - vs_center);
 	
 	out_Light = vec4(att, att, att, 1.0);
 // 	out_Light = vec4(.2, 1.0, .8, 1.0);

@@ -63,7 +63,7 @@ flat in int tileInfo;
 
 
 // fragment shader
-uniform vec2 screenSize;
+uniform ivec2 targetSize;
 
 uniform sampler2D sDepth;
 uniform sampler2DArray sTexture;
@@ -87,7 +87,7 @@ void main(void) {
 	
 	
 	
-	vec2 screenCoord = gl_FragCoord.xy / vec2(800,800);//screenSize;
+	vec2 screenCoord = gl_FragCoord.xy / targetSize;// vec2(800,800);//screenSize;
 	
 	float depth = texture(sDepth, screenCoord).r;
 	if (depth > 0.99999) {
