@@ -70,9 +70,6 @@ void World_init(World* w) {
 	
 	Map_readConfigFile(&w->map, "assets/config/terrain.json");
 	
-//	w->emitters = makeEmitter();
-	
-//	loadItemConfig(w, "assets/config/items.json");
 	
 	
 	
@@ -138,7 +135,6 @@ void World_init(World* w) {
 	
 	// -----------------------------------
 	
-//	meshManager_updateGeometry(w->smm);
 	dynamicMeshManager_updateGeometry(w->dmm);
 	MarkerManager_updateGeometry(w->mm);
 	EmitterManager_updateGeometry(w->em);
@@ -171,7 +167,6 @@ void World_init(World* w) {
 	
 	// solids pass
 	w->solidsPass = DynamicMeshManager_CreateRenderPass(w->dmm);
-// 	RenderPass_addDrawable(w->solidsPass, Emitter_CreateDrawable(w->emitters));
 
 	// transparents pass
 	w->transparentsPass = MarkerManager_CreateRenderPass(w->mm);
@@ -436,11 +431,7 @@ int World_spawnAt_Emitter(World* w, int emitterIndex, Vector* location) {
 	};
 	emitterIndex = 0;
 	EmitterManager_addInstance(w->em, emitterIndex, &inst); 
-	
-// 	emitterAddInstance(w->emitters, &inst);
-// 	emitter_update_vbo(w->emitters);
-	
-	
+
 }
 
 int World_spawnAt_Marker(World* w, int markerIndex, Vector* location) {

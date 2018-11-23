@@ -69,17 +69,6 @@ typedef struct EmitterManager {
 
 
 
-
-// void emitter_update_vbo(Emitter* e); 
-// void emitterAddInstance(Emitter* e, EmitterInstance* ei); 
-// Emitter* makeEmitter(); 
-// void initEmitters();
-
-
-
-
-
-
 EmitterManager* EmitterManager_alloc(int maxInstances);
 int EmitterManager_addEmitter(EmitterManager* em, Emitter* e, char* name);
 void EmitterManager_addInstance(EmitterManager* em, int index, EmitterInstance* inst);
