@@ -94,7 +94,6 @@ void SoundManager_readConfigJSON(SoundManager* sm, json_value_t* jo);
 
 
 void SoundManager_tick(SoundManager* sm, double newGlobalTime);
-void SoundManager_outputTick(SoundManager* sm);
 
 
 SoundClip* SoundClip_fromWAV(char* path);

@@ -121,7 +121,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	gs->sound = SoundManager_alloc();
 	SoundManager_readConfigFile(gs->sound, "assets/config/sound.json");
 	SoundManager_start(gs->sound);
-	
+	/*
 	SoundClip* sc = SoundClip_fromWAV("./assets/sounds/ohno.wav");
 	SoundManager_addClip(gs->sound, sc, "ohno");
 	SoundInstance* si = calloc(1, sizeof(*si));
@@ -130,6 +130,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	si->globalStartTime = 3.0;
 	si->volume = 0.8;
 	SoundManager_addInstance(gs->sound, si);
+	*/
 #endif
 	
 	

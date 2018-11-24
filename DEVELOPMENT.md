@@ -123,7 +123,55 @@ Working but few operations. Prefixing the config texture path with "$" indicates
 config. See `texgen.[ch]`
 
 
+# TODO
+
+## Bugs
+* Terrain culling in the tessellation shader sometimes has false positives (blank areas on the screen).
+* Specular lighting algorithm is broken. (shading.glsl)
+* segfault when custom decal start/end points are the same.
+* Calculate correct shader error message line numbers.
+* Texture splatting on terrain is bad.
+
+## Graphics
+* Cache low-resolution pre-baked terrain textures for blocks in the distance.
+* Animated meshes.
+* Normal Mapping on meshes and decals.
+* Shadow Maps.
+* Screen Space Reflections
+* SSAO (Screen Space Ambient Occlusion)
+* Emitters need animated 3D textures.
+* Texture scaling algorithm is broken (TextureManager)
+* Point lights using geom-shader billboards for small/distance rendering.
+* Ray-marched volumetric clouds and fog.
+* Custom mouse pointer support. 
+* Configurable decal render order (road markings on top of roads on top of leaves).
+* HDR lighting and bloom.
+* Falling rain and snow.
+* Mipmapping in decals.
 
 
+## Sound
+* Finish API.
+* Integrate with main itemLoader config.
+* Integer WAV support.
+* Finish/fix the SoundClip rate resampler.
+* Implement the mixer, with auto-ranging volume on overflow.
+* Make sound/ALSA support optional in makefile.
+* OGG/Vorbis support. (optional)
+* libav/ffmpeg support. (optional)
+* PulseAudio support. (optional)
+* JACK support. (optional)
+* Put sound in its own thread.
 
-
+## Core
+* Water and fluid dynamics are a broken mess right now.
+* B+ tree leaves become heavily lopsided when filled with an increasing integer sequence. (half full leaves) 
+* B+ tree does not have a delete operation.
+* CES system lacks a delete operation.
+* Figure out the proper API for adding and spawning CustomDecals in the CES system.
+* CLI options parsing for custom config files.
+* #include support in shaders.
+* Prevent zooming through the terrain.
+* Tree and bush generation algorithm.
+* JSON saving.
+* Proper logging utility.
