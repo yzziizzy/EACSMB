@@ -119,7 +119,9 @@ void query_queue_stop(QueryQueue* q);
 int query_queue_try_result(QueryQueue* q, uint64_t* time);
 
 
+// TODO BUG: fix prepending a \n everywhere
 char* readFile(char* path, int* srcLen);
+char* readFileRaw(char* path, int* srcLen);
 
 int glGenBindTexture(GLuint* tex, GLenum type);
 void texParams2D(GLenum type, GLenum filter, GLenum wrap);

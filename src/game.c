@@ -42,6 +42,8 @@
 #include "builder/render.h"
 #include "texgen.h"
 
+
+
 #include "sexp.h"
 
 
@@ -112,6 +114,25 @@ void initGame(XStuff* xs, GameState* gs) {
 	json_gl_init_lookup();
 	
 	glerr("left over error on game init");
+	
+	
+	
+#ifndef DISABLE_SOUND
+	gs->sound = SoundManager_alloc();
+	SoundManager_readConfigFile(gs->sound, "assets/config/sound.json");
+	SoundManager_start(gs->sound);
+	
+	SoundClip* sc = SoundClip_fromWAV("./assets/sounds/ohno.wav");
+	SoundManager_addClip(gs->sound, sc, "ohno");
+	SoundInstance* si = calloc(1, sizeof(*si));
+	si->clip = sc;
+	si->flags = SOUNDFLAG_LOOP;
+	si->globalStartTime = 3.0;
+	si->volume = 0.8;
+	SoundManager_addInstance(gs->sound, si);
+#endif
+	
+	
 	
 	CES_init(&gs->ces);
 	

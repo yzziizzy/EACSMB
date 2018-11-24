@@ -15,6 +15,10 @@
 
 #include "component.h"
 
+#ifndef DISABLE_SOUND
+	#include "sound.h"
+#endif
+
 
 typedef struct GameScreen {
 	
@@ -165,6 +169,10 @@ typedef struct GameState {
 	
 	
 	CES ces;
+	
+#ifndef DISABLE_SOUND
+	SoundManager* sound;
+#endif
 	
 } GameState;
 

@@ -102,6 +102,7 @@ int tryQueryTimer(GLuint id, uint64_t* time) {
 
 
 
+// TODO BUG: fix prepending a \n everywhere
 char* readFile(char* path, int* srcLen) {
 	
 	int fsize;
@@ -131,6 +132,38 @@ char* readFile(char* path, int* srcLen) {
 	
 	return contents;
 }
+
+
+
+char* readFileRaw(char* path, int* srcLen) {
+	int fsize;
+	char* contents;
+	FILE* f;
+	
+	
+	f = fopen(path, "rb");
+	if(!f) {
+		fprintf(stderr, "Could not open file \"%s\"\n", path);
+		return NULL;
+	}
+	
+	fseek(f, 0, SEEK_END);
+	fsize = ftell(f);
+	rewind(f);
+	
+	contents = (char*)malloc(fsize + 1);
+	
+	fread(contents, sizeof(char), fsize, f);
+	contents[fsize] = 0;
+	
+	fclose(f);
+	
+	if(srcLen) *srcLen = fsize + 1;
+	
+	return contents;
+}
+
+
 
 
 // convenience

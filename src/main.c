@@ -32,6 +32,12 @@
 #include "game.h"
 
 
+#ifndef DISABLE_SOUND
+	#include "sound.h"
+#endif
+
+
+
 static XStuff xs;
 static GameState game;
 static InputState input;
@@ -86,9 +92,13 @@ int main(int argc, char* argv[]) {
 		}
 		
 		if(xs.ready) {
+			#ifndef DISABLE_SOUND
+				SoundManager_tick(game.sound, game.frameTime);
+			#endif
+		
+			
 			gameLoop(&xs, &game, &input);
 		}
-		
 		
 		if(game.frameSpan < 1.0/60.0) {
 			// shitty estimation based on my machine's heuristics, needs improvement

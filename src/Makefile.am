@@ -49,6 +49,7 @@ eacsmb_SOURCES = main.c \
 	shader.c \
 	shadowMap.c \
 	sim.c \
+	sound.c \
 	staticMesh.c \
 	text/fcfg.c \
 	text/text.c \
@@ -69,7 +70,8 @@ eacsmb_SOURCES = main.c \
 eacsmb_LDADD =  \
 	-lm \
 	-lX11 -lfreetype -lfontconfig -lpng \
-	-lGL -lGLU -lGLEW
+	-lGL -lGLU -lGLEW \
+	-lasound
 	 
 AM_CFLAGS = "-I/usr/include/freetype2" -std=gnu11 -g -DLINUX \
 	-Wno-unused-result \
