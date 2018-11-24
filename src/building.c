@@ -35,6 +35,13 @@ void Building_extrudeOutline(Building* b, BuildingOutline* o) {
 	int plen2 = plen * 2;
 	int base_vertex = VEC_LEN(&b->vertices);
 	
+	// calculate the perimeter
+	float perimeter = 0;
+	LIST_LOOP(&o->points, p) {
+		Vector2* next = &LIST_NEXT_LOOP(&o->points, p)->point;
+		perimeter += vDist2(&p->point, next);
+	}
+		
 	// add two layers of the outline, offset by the height
 	float tdist = 0;
 	
@@ -49,7 +56,7 @@ void Building_extrudeOutline(Building* b, BuildingOutline* o) {
 		Vector norm, side;
 		
 		vSub(&(Vector){p->point.x, p->point.y, 0}, &(Vector){next->x, next->y, 0}, &side);
-		vCross(&(Vector){0,0,1}, &side, &norm);
+		vCross(&(Vector){0,0,-1}, &side, &norm);
 		
 		
 		// TODO: fix normals
@@ -59,6 +66,7 @@ void Building_extrudeOutline(Building* b, BuildingOutline* o) {
 			t: {u: tdist, v: 0},
 		}));
 		
+		tdist += vDist2(&p->point, next) / perimeter; // HACK: voodoo
 		// two vertices for hard creases
 		VEC_PUSH(&b->vertices, ((Vertex_PNT){ 
 			p: {next->x, next->y, o->h_offset},
@@ -66,7 +74,7 @@ void Building_extrudeOutline(Building* b, BuildingOutline* o) {
 			t: {u: tdist, v: 0},
 		}));
 		
-		tdist += vDist2(&p->point, next) / 50; // HACK: voodoo
+		//tdist += vDist2(&p->point, next); // HACK: voodoo
 		//printf("tdist - %f\n", tdist);
 		i++;
 	}
@@ -75,20 +83,25 @@ void Building_extrudeOutline(Building* b, BuildingOutline* o) {
 // 	VEC_EACH(&b->vertices, i, v) {
 // 		printf(")-%d [%.2f,%.2f,%.2f]\n",  i, v.p.x,v.p.y,v.p.z);
 // 	}
-// 		
+// 	printf("%%%%%%%%%%%%%%%\n");
 	
 	// duplicate the vertices vertically
 	for(i = 0; i < plen2; i++) {
 		Vertex_PNT* p1 = &VEC_ITEM(&b->vertices, base_vertex + i);
 	//	Vertex_PNT* p2 = &VEC_ITEM(&b->vertices, i + 1);
 		
-// 		printf("adding vertex [%.2f,%.2f,%.2f]\n", p1->p.x,p1->p.y,p1->p.z);
-		VEC_PUSH(&b->vertices, ((Vertex_PNT){ 
+//  		printf("adding vertex [%.2f,%.2f,%.2f]\n", p1->p.x,p1->p.y,p1->p.z);
+// 		printf("p.x: %f\n", p1->p.x);
+		Vertex_PNT pnt = { 
 			p: {p1->p.x, p1->p.y, o->h_offset + height},
 			n: p1->n,
 			t: {u: p1->t.u, v: 1.0},
-		}));
+		};
 		
+		
+		VEC_PUSH(&b->vertices, pnt);
+// 		printf("p.x: %f\n", p1->p.x);
+// 		printf("----------------------\n");
 // 	VEC_EACH(&b->vertices, i2, v) {
 // 		printf("%d-%d [%.2f,%.2f,%.2f]\n", i, i2, v.p.x,v.p.y,v.p.z);
 // 	}
