@@ -109,7 +109,7 @@ void main() {
 		vec3 diffuseColor = texture(sDiffuse, tex).rgb;
 		vec3 specColor = vec3(1,.9,.8) * .1;//normalize(vec3(1,1,1));
 
-		vec3 ambient = vec3(0.1,0.1,0.1);
+		vec3 ambient = vec3(0.16,0.18,0.2);
 		
 		vec3 light = texture(sLighting, tex).rgb;
 		
@@ -117,8 +117,7 @@ void main() {
 		vec3 colorOut;
 		if(length(normal) < 1.01) { // things with normals get directional lighting
 			colorOut = vec3(
-				ambient  
-				+ (((lambertian * sunColor * .7) + light) * diffuseColor)
+				(((lambertian * sunColor * 1.1) + light + ambient) * diffuseColor)
 				+ (specular * specColor)
 			);
 		}
