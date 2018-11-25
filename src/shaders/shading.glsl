@@ -90,12 +90,28 @@ void main() {
 		vec3 l_pos = vec3(l_pos4.xyz / l_pos4.w);
 		//l_pos /= 1024;
 		l_pos = l_pos * 0.5 + 0.5;
-		float l_closest = linearizeDepth(texture(sShadow, l_pos.xy).r, shadowClipPlanes);
-		float l_current = linearizeDepth(l_pos.z, shadowClipPlanes);
+	//	float l_closest = texture(sShadow, l_pos.xy).r;
+		float l_current = l_pos.z;
 		//vec4 light_pos = inverse(mWorldLight) * vec4(0,0,0,1);
 		//light_pos = vec4(light_pos.xyz / light_pos.w, 1);
 		
-		float shadow_factor = l_current - l_closest;
+		float bias = 0.0002;
+		float shadow_factor = 0.0;
+		
+		// PCF
+		vec2 texelSz = 1.0 / textureSize(sShadow, 0);
+		for(int x = -2; x <= 2; x++) {
+			for(int y = -2; y <= 2; y++) {
+				float sf = texture(sShadow, l_pos.xy + (vec2(x, y) * texelSz)).r;
+				shadow_factor += l_current - bias > sf ? 1 : 0;
+			}
+		}
+		
+		shadow_factor = smoothstep(0, 1, shadow_factor / 25);
+		
+		if(l_pos.x > 1 || l_pos.y > 1 || l_pos.x < 0 || l_pos.y < 0) {
+			shadow_factor = 0;
+		}
 		// ^^^ shadow stuff ^^^^^^^^^^^
 		
 		
@@ -125,12 +141,15 @@ void main() {
 		
 		vec3 sunColor;
 		
-		if(shadow_factor < 0.005) {
-			sunColor = vec3(1, .9, .8);
-		}
-		else {
-			sunColor = vec3(0,0,0);
-		}
+		//if(shadow_factor > 0 ) {
+// 		if(l_current < l_closest + bias) {
+			sunColor = vec3(1, .9, .8) * (1 - shadow_factor);
+	//	}
+		//else {
+	//		sunColor = vec3(0,0,0);
+		//}
+		
+// 		sunColor = shadow_factor * vec3(1,.9,.8);
 		
 		float lambertian = max(dot(sundir, normal), 0.0);
 		

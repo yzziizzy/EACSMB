@@ -51,7 +51,7 @@ void World_init(World* w) {
 
 	
 	w->sunShadow = ShadowMap_alloc();
-	w->sunShadow->size = (Vector2i){2048, 2048};
+	w->sunShadow->size = (Vector2i){1024, 1024};
 	ShadowMap_SetupFBOs(w->sunShadow);
 
 	

@@ -123,7 +123,7 @@ void ShadowMap_Render(ShadowMap* sm, PassFrameParams* cameraPFP, Vector* lightPo
 	
 	float zoom = (fabs(sin(fmod(time, 6.28))) * 20) + 10;
 	float lrot = -3.14/3; //fmod(time / 3, 6.28);
-	zoom = -300;
+	zoom = -150;
 	
 	mTrans3f(0, -1, zoom, &m_wv);
 	mRot3f(1, 0, 0, F_PI / 3, &m_wv);
