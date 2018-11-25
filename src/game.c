@@ -134,21 +134,29 @@ void initGame(XStuff* xs, GameState* gs) {
 #endif
 	
 	
+	struct { 
+		char* name;
+		size_t size;
+	} defaultComponents[] = {
+		{"meshIndex", sizeof(uint16_t)},
+		{"position", sizeof(Vector)},
+		{"rotation", sizeof(C_Rotation)},
+		{"mapHeightUpdate", sizeof(uint8_t)},
+		{"angularVelocity", sizeof(float)},
+		{"pathFollow", sizeof(C_PathFollow)},
+		{0, 0},
+	};
+	
 	
 	CES_init(&gs->ces);
 	
-	CES_addComponentManager(&gs->ces, ComponentManager_alloc("meshIndex", sizeof(uint16_t), 1024*8, 1));
+	for(int i = 0; defaultComponents[i].name != NULL; i++) {
+		CES_addComponentManager(&gs->ces, 
+			ComponentManager_alloc(defaultComponents[i].name, defaultComponents[i].size, 1024*8, 1)
+		);
+	}
+	
 
-	CES_addComponentManager(&gs->ces, ComponentManager_alloc("position", sizeof(Vector), 1024*8, 1));
-	CES_addComponentManager(&gs->ces, ComponentManager_alloc("rotation", sizeof(C_Rotation), 1024*8, 1));
-	
-	CES_addComponentManager(&gs->ces, ComponentManager_alloc("mapHeightUpdate", sizeof(uint8_t), 1024*8, 1));
-	
-	// about axis of rotation
-	CES_addComponentManager(&gs->ces, ComponentManager_alloc("angularVelocity", sizeof(float), 1024*8, 1));
-	
-	CES_addComponentManager(&gs->ces, ComponentManager_alloc("pathFollow", sizeof(C_PathFollow), 1024*8, 1));
-	
 	json_file_t* j_ces_conf = json_load_path("assets/config/CES.json");
 	ComponentManager_loadConfig(&gs->ces, j_ces_conf->root);
 	

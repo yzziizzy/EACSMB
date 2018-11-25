@@ -50,6 +50,7 @@ typedef struct GPUResources {
 
 GLuint* initFBOTextures(int w, int h, FBOTexConfig* cfg);
 void destroyFBOTextures(GLuint* texids);
+Framebuffer* allocFBO();
 void initFBO(Framebuffer* fb, FBOConfig* cfg);
 void destroyFBO(Framebuffer* fb);
 

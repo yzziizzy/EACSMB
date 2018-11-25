@@ -406,6 +406,27 @@ static void instanceSetup(DynamicMeshManager* dmm, DynamicMeshInstShader* vmem, 
 
 
 
+RenderPass* DynamicMeshManager_CreateShadowPass(DynamicMeshManager* m) {
+	
+	RenderPass* rp;
+	PassDrawable* pd;
+	
+	static ShaderProgram* prog = NULL;
+	if(!prog) {
+		prog = loadCombinedProgram("dynamicMeshInstanced_shadow");
+	}
+
+	pd = MultiDrawIndirect_CreateDrawable(m->mdi, prog);
+
+	rp = calloc(1, sizeof(*rp));
+	RenderPass_init(rp);
+	RenderPass_addDrawable(rp, pd);
+	//rp->fboIndex = LIGHTING;
+	
+	return rp;
+}
+
+
 RenderPass* DynamicMeshManager_CreateRenderPass(DynamicMeshManager* m) {
 	
 	RenderPass* rp;

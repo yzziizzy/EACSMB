@@ -21,9 +21,16 @@ ShadowMap* ShadowMap_alloc() {
 }
 
 void ShadowMap_init(ShadowMap* sm) {
+	pcalloc(sm->rpipe);
 	
+	RenderPipeline_init(sm->rpipe);
 	
 }
+
+void ShadowMap_addPass(ShadowMap* sm, RenderPass* pass) {
+	VEC_PUSH(&sm->rpipe->passes, pass);
+}
+
 
 
 void ShadowMap_SetupFBOs(ShadowMap* sm) {	

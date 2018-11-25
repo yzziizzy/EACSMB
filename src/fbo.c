@@ -99,7 +99,6 @@ void initFBO(Framebuffer* fb, FBOConfig* cfg) {
 		GLenum att = cfg[i].attachment;
 		
 		glFramebufferTexture2D(GL_FRAMEBUFFER, att, GL_TEXTURE_2D, cfg[i].texture, 0);
-	
 		if(att != GL_DEPTH_ATTACHMENT && att != GL_STENCIL_ATTACHMENT) {
 			DrawBuffers[dblen++] = att;
 		}

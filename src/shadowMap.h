@@ -25,7 +25,7 @@ void ShadowMap_init(ShadowMap* sm);
 void ShadowMap_SetupFBOs(ShadowMap* sm);
 void ShadowMap_Render(ShadowMap* sm, PassDrawParams* cameraPDP, Vector* lightPos);
 
-
+void ShadowMap_addPass(ShadowMap* sm, RenderPass* pass);
 
 
 

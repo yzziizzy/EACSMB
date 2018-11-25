@@ -25,12 +25,12 @@ and technique than others. Don't use an old one as a template to make a new one 
 # General Approach
 
 EACSMB is exclusively targeted at modern systems. Use the most performant techniques only. Do not use
-old OpenGL API's for compatibility reasons. The minimum target GL version is 4.5 right now. In the
+old OpenGL API's for compatibility reasons. The target GL version is 4.5 right now. In the
 future it may be moved to 4.6+ or Vulkan after drivers stabilize and support proliferates. GCC is the
 only target compiler. Linux is the only target kernel for now. 
 
 Minimum external dependency is a primary design goal. Do not pull in more 3rd-party libraries, 
-espectially bloated ones with dependencies themselves. 
+especially bloated ones with dependencies themselves. 
 
 ## Quick guide to making a new renderable
 Use DynamicMeshManager as the example.
@@ -175,3 +175,5 @@ config. See `texgen.[ch]`
 * Tree and bush generation algorithm.
 * JSON saving.
 * Proper logging utility.
+* More features in building generator.
+* Track GPU memory usage as much as possible.

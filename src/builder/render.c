@@ -194,6 +194,49 @@ GUIBuilderControl* guiBuilderControlNew(Vector2 pos, Vector2 size, int zIndex) {
 	RenderPipeline_init(rpipe);
 	bc->rpipe = rpipe;
 	
+	
+	///-------------
+	
+	enum {
+		DIFFUSE = 0,
+		NORMAL,
+		LIGHTING,
+		DEPTH,
+		OUTPUT,
+		DEPTH2
+	};
+
+	FBOTexConfig texcfg[] = {
+		{ GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE }, // diffuse
+		{ GL_RGB, GL_RGB, GL_UNSIGNED_BYTE }, // normals
+		{ GL_RGB16F, GL_RGB, GL_HALF_FLOAT }, // lighting
+		{ GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_FLOAT }, // depth
+		{ GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE }, // output
+		{ GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_FLOAT }, // depth2
+		{ 0, 0, 0}
+	};
+		
+	RenderPipelineFBOConfig gbuf[] = {
+		{GL_COLOR_ATTACHMENT0, DIFFUSE },
+		{GL_COLOR_ATTACHMENT1, NORMAL },
+		{GL_COLOR_ATTACHMENT2, LIGHTING },
+		{GL_DEPTH_ATTACHMENT, DEPTH },
+		{0, -1}
+	};
+	
+	RenderPipelineFBOConfig hbuf[] = {
+		{GL_COLOR_ATTACHMENT0, OUTPUT },
+		{GL_DEPTH_ATTACHMENT, DEPTH2 },
+		{0, -1}
+	};
+	
+	RenderPipeline_setFBOTexConfig(rpipe, texcfg);
+	RenderPipeline_setFBOConfig(rpipe, gbuf, "gbuffer");
+	RenderPipeline_setFBOConfig(rpipe, hbuf, "shading");
+	
+	///-------------
+	
+	
 	RenderPass* pass;
 	
 	// geometry pass
@@ -219,7 +262,7 @@ GUIBuilderControl* guiBuilderControlNew(Vector2 pos, Vector2 size, int zIndex) {
 	//meshManager_addInstance(bc->mm, 0, &smi[0]);
 	//meshManager_updateInstances(bc->mm);
 	
-	PassDrawable* br1 = calloc(1, sizeof(*br1));
+	PassDrawable* br1 = Pass_allocDrawable("builder dmm");
 	br1->draw = geom_pass_render;
 	br1->data = bc->mm;
 	br1->prog = loadCombinedProgram("dynamicMeshInstanced");

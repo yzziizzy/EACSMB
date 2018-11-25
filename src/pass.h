@@ -82,19 +82,19 @@ typedef struct PassDrawable {
 	GLuint depthUL;
 	
 	// forward matrices
-	GLuint ul_mWorldView;
-	GLuint ul_mViewProj;
-	GLuint ul_mWorldProj;
+	GLint ul_mWorldView;
+	GLint ul_mViewProj;
+	GLint ul_mWorldProj;
 	
 	// inverse matrices
-	GLuint ul_mViewWorld;
-	GLuint ul_mProjView;
-	GLuint ul_mProjWorld;
+	GLint ul_mViewWorld;
+	GLint ul_mProjView;
+	GLint ul_mProjWorld;
 	
-	GLuint ul_timeSeconds;
-	GLuint ul_timeFractional;
+	GLint ul_timeSeconds;
+	GLint ul_timeFractional;
 	
-	GLuint ul_targetSize;
+	GLint ul_targetSize;
 	
 	ShaderProgram* prog; 
 	void* data;
@@ -127,6 +127,11 @@ typedef struct RenderPass {
 } RenderPass;
 
 
+typedef struct RenderPipelineFBOConfig {
+	GLenum attachment;
+	int texIndex;
+} RenderPipelineFBOConfig;
+
 
 typedef struct RenderPipeline {
 	
@@ -135,8 +140,11 @@ typedef struct RenderPipeline {
 	Vector4 clearColor;
 	
 	// fbo's
+	FBOTexConfig* fboTexConfig;
 	GLuint* backingTextures;
-	Framebuffer fbos[2];
+	
+	VEC(RenderPipelineFBOConfig*) fboConfig;
+	Framebuffer** fbos;
 	
 	VEC(RenderPass*) passes;
 	
@@ -159,6 +167,8 @@ void RenderPass_postFrameAll(RenderPass* pass);
 
 
 void RenderPipeline_init(RenderPipeline* rp);
+void RenderPipeline_setFBOTexConfig(RenderPipeline* rp, FBOTexConfig* texcfg);
+void RenderPipeline_setFBOConfig(RenderPipeline* rp, RenderPipelineFBOConfig* cfg, char* name);
 void RenderPipeline_rebuildFBOs(RenderPipeline* rp, Vector2i sz);
 void RenderPipeline_destroy(RenderPipeline* rp);
 

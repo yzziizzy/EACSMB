@@ -474,7 +474,9 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	glFrontFace(GL_CW); // this is backwards, i think, because of the scaling inversion for z-up
 	
 	
-	//ShadowMap_Render(gs->world->sunShadow, &pdp, &gs->sunNormal);
+	
+	
+	ShadowMap_Render(gs->world->sunShadow, &pdp, &gs->sunNormal);
 	
 	
 	

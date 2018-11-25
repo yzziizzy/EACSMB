@@ -63,25 +63,25 @@ void initRenderPipeline() {
 
 
 
-static void shading_pass_render(RenderPipeline* rpipe, PassDrawable* pd, PassDrawParams* pdp) {
-	ShaderProgram* prog = pd->prog;
+static void shading_pass_render(RenderPipeline* rpipe, GLuint progID, PassDrawParams* pdp) {
+// 	ShaderProgram* prog = pd->prog;
 	
 //	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "world"), 1, GL_FALSE, world.m);
-	glUniformMatrix4fv(glGetUniformLocation(prog->id, "mViewProj"), 1, GL_FALSE, pdp->mWorldView->m);
-	glUniformMatrix4fv(glGetUniformLocation(prog->id, "mWorldView"), 1, GL_FALSE, pdp->mViewProj->m);
+	glUniformMatrix4fv(glGetUniformLocation(progID, "mViewProj"), 1, GL_FALSE, pdp->mWorldView->m);
+	glUniformMatrix4fv(glGetUniformLocation(progID, "mWorldView"), 1, GL_FALSE, pdp->mViewProj->m);
 	glexit("");
 	
 // 	mInverse(msGetTop(&gs->proj), &projView);
 // 	mInverse(msGetTop(&gs->view), &viewWorld);
 	
-	glUniformMatrix4fv(glGetUniformLocation(prog->id, "mProjView"), 1, GL_FALSE, pdp->mProjView->m);
-	glUniformMatrix4fv(glGetUniformLocation(prog->id, "mViewWorld"), 1, GL_FALSE, pdp->mViewWorld->m);
+	glUniformMatrix4fv(glGetUniformLocation(progID, "mProjView"), 1, GL_FALSE, pdp->mProjView->m);
+	glUniformMatrix4fv(glGetUniformLocation(progID, "mViewWorld"), 1, GL_FALSE, pdp->mViewWorld->m);
 	glexit("");
 	
 // 	glUniform3fv(glGetUniformLocation(shadingProg->id, "sunNormal"), 1, (float*)&gs->sunNormal);
 	
 // 	glUniform2iv(glGetUniformLocation(prog->id, "resolution"), 1, (int*)&rp->fboSize);
-	glUniform2f(glGetUniformLocation(prog->id, "resolution"), rpipe->viewSz.x, rpipe->viewSz.x);
+	glUniform2f(glGetUniformLocation(progID, "resolution"), rpipe->viewSz.x, rpipe->viewSz.x);
 	glexit("");
 	
 	glBindVertexArray(quadVAO);
@@ -105,7 +105,7 @@ void RenderPipeline_addShadingPass(RenderPipeline* rpipe, char* shaderName) {
 	
 	RenderPass_init(pass);
 	
-	PassDrawable* d = calloc(1, sizeof(*d));
+	PassDrawable* d = Pass_allocDrawable("shading");
 	d->draw = shading_pass_render;
 	d->prog = loadCombinedProgram(shaderName);
 	d->data = rpipe;
@@ -121,13 +121,33 @@ void RenderPipeline_addShadingPass(RenderPipeline* rpipe, char* shaderName) {
 
 
 
+// save copies of the fbo configuration so locals can be fed in with ease.
+void RenderPipeline_setFBOConfig(RenderPipeline* rp, RenderPipelineFBOConfig* cfg, char* name) {
+	int i;
+	for(i = 0; cfg[i].texIndex > -1; i++);
+	
+	RenderPipelineFBOConfig* c = calloc(1, (i + 1) * sizeof(*c));
+	memcpy(c, cfg, (i + 1) * sizeof(*c));
+	
+	VEC_PUSH(&rp->fboConfig, c);
+}
 
-
+// save copies of the fbo configuration so locals can be fed in with ease.
+void RenderPipeline_setFBOTexConfig(RenderPipeline* rp, FBOTexConfig* texcfg) {
+	
+	int i;
+	
+	// first copy the backing texture config
+	for(i = 0; texcfg[i].size != 0; i++);
+	rp->fboTexConfig = calloc(1, sizeof(*rp->fboTexConfig) * (i + 1));
+	memcpy(rp->fboTexConfig, texcfg, sizeof(*rp->fboTexConfig) * (i + 1));
+}
 
 
 
 
 void RenderPipeline_rebuildFBOs(RenderPipeline* rp, Vector2i sz) {
+	int i;
 	
 	if(rp->viewSz.x == sz.x && rp->viewSz.x == sz.x && rp->backingTextures) {
 		// same size, already initialized.
@@ -146,59 +166,30 @@ void RenderPipeline_rebuildFBOs(RenderPipeline* rp, Vector2i sz) {
 		destroyFBOTextures(rp->backingTextures);
 		free(rp->backingTextures);
 		
-		destroyFBO(&rp->fbos[0]);
-		destroyFBO(&rp->fbos[1]);
+		VEC_LOOP(&rp->fboConfig, ind) destroyFBO(&VEC_ITEM(&rp->fboConfig, ind));
 	}
 	
-	// diffuse, normal, lighting, depth, output, NULL
-	FBOTexConfig* texcfg = calloc(1, 7 * sizeof(*texcfg)); 
 	
-	texcfg[DIFFUSE].internalType = GL_RGBA;
-	texcfg[DIFFUSE].format = GL_RGBA;
-	texcfg[DIFFUSE].size = GL_UNSIGNED_BYTE;
-	texcfg[NORMAL].internalType = GL_RGB;
-	texcfg[NORMAL].format = GL_RGB;
-	texcfg[NORMAL].size = GL_UNSIGNED_BYTE;
-	texcfg[LIGHTING].internalType = GL_RGB16F;
-	texcfg[LIGHTING].format = GL_RGB;
-	texcfg[LIGHTING].size = GL_HALF_FLOAT;
-	texcfg[DEPTH].internalType = GL_DEPTH_COMPONENT32;
-	texcfg[DEPTH].format = GL_DEPTH_COMPONENT;
-	texcfg[DEPTH].size = GL_FLOAT;
-	texcfg[OUTPUT].internalType = GL_RGBA8;
-	texcfg[OUTPUT].format = GL_RGBA;
-	texcfg[OUTPUT].size = GL_UNSIGNED_BYTE;
-	texcfg[DEPTH2].internalType = GL_DEPTH_COMPONENT32;
-	texcfg[DEPTH2].format = GL_DEPTH_COMPONENT;
-	texcfg[DEPTH2].size = GL_FLOAT;
+	rp->backingTextures = initFBOTextures(rp->viewSz.x, rp->viewSz.y, rp->fboTexConfig);
+	rp->fbos = calloc(1, sizeof(*rp->fbos) * VEC_LEN(&rp->fboConfig));
 	
 	
-	// TODO: clean up old backing textures if existing
+	VEC_EACH(&rp->fboConfig, ind, cfg) {
+		int len;
+		for(len = 0; cfg[len].texIndex > -1; len++);
+		
+		FBOConfig* realCfg = calloc(1, (len + 1) * sizeof(*realCfg));
+		for(i = 0; i < len; i++) {
+			realCfg[i].attachment = cfg[i].attachment;
+			realCfg[i].texture = rp->backingTextures[cfg[i].texIndex];
+		}
 	
-	rp->backingTextures = initFBOTextures(rp->viewSz.x, rp->viewSz.y, texcfg);
+		rp->fbos[ind] = allocFBO();
+		initFBO(rp->fbos[ind], realCfg);
+		
+		free(realCfg);
+	}
 	
-	
-	FBOConfig gbufConf[] = {
-		{GL_COLOR_ATTACHMENT0, rp->backingTextures[DIFFUSE] },
-		{GL_COLOR_ATTACHMENT1, rp->backingTextures[NORMAL] },
-		{GL_COLOR_ATTACHMENT2, rp->backingTextures[LIGHTING] },
-		{GL_DEPTH_ATTACHMENT, rp->backingTextures[DEPTH] },
-		{0,0}
-	};
-	
-	initFBO(&rp->fbos[0], gbufConf);
-	
-	
-	FBOConfig sbufConf[] = {
-		{GL_COLOR_ATTACHMENT0, rp->backingTextures[OUTPUT] },
-		{GL_DEPTH_ATTACHMENT, rp->backingTextures[DEPTH2] },
-		{0,0}
-	};
-
-	initFBO(&rp->fbos[1], sbufConf);
-	
-	printf("output tex: %d \n", rp->backingTextures[OUTPUT]);
-
 }
 
 
@@ -220,8 +211,9 @@ void RenderPipeline_destroy(RenderPipeline* rp) {
 		destroyFBOTextures(rp->backingTextures);
 		free(rp->backingTextures);
 		
-		destroyFBO(&rp->fbos[0]);
-		destroyFBO(&rp->fbos[1]);
+		// TODO: fix
+		destroyFBO(rp->fbos[0]);
+		destroyFBO(rp->fbos[1]);
 	}
 	
 	// TODO: clean up all the children of the pass
@@ -236,7 +228,7 @@ void RenderPipeline_renderAll(RenderPipeline* bp, PassDrawParams* rp) {
 		RenderPass* pass = VEC_ITEM(&bp->passes, i);
 		//ShaderProgram* prog = pass->prog;
 		
-		glBindFramebuffer(GL_FRAMEBUFFER, bp->fbos[pass->fboIndex].fb);
+		glBindFramebuffer(GL_FRAMEBUFFER, bp->fbos[pass->fboIndex]->fb);
 		glDepthFunc(GL_LEQUAL);
 		//printf("fbo bound: %d\n", bp->fbos[pass->fboIndex].fb);
 		
@@ -399,6 +391,16 @@ PassDrawable* Pass_allocDrawable(char* name) {
 	
 	d->name = name;
 	DrawTimer_Init(&d->timer);
+	
+	d->ul_mWorldView = -1;
+	d->ul_mViewProj = -1;
+	d->ul_mWorldProj = -1;
+	d->ul_mViewWorld = -1;
+	d->ul_mProjView = -1;
+	d->ul_mProjWorld = -1;
+	d->ul_timeSeconds = -1;
+	d->ul_timeFractional = -1;
+	d->ul_targetSize = -1;
 	
 	return d;
 }

@@ -124,7 +124,7 @@ void World_init(World* w) {
 // 		printf("~%d [%.2f,%.2f,%.2f]\n", i, v.p.x,v.p.y,v.p.z);
 // 	}
 	
-	Building_capAll(&b); // causes memory corruption
+	Building_capAll(&b); // causes memory corruption -- fixed?
 	
 	
 	int building_ind = dynamicMeshManager_addMesh(w->dmm, "building", Building_CreateDynamicMesh(&b));
@@ -178,6 +178,15 @@ void World_init(World* w) {
 	// decals pass
 	w->decalPass = DecalManager_CreateRenderPass(w->dm);
 	RenderPass_addDrawable(w->decalPass, CustomDecalManager_CreateDrawable(w->cdm));
+	
+	
+	
+	ShadowMap_addPass(w->sunShadow, DynamicMeshManager_CreateShadowPass(w->dmm));
+	
+	
+	
+	
+	
 	
 	
 	w->roads = RoadNetwork_alloc();
