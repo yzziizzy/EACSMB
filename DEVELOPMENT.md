@@ -36,42 +36,42 @@ especially bloated ones with dependencies themselves.
 Use DynamicMeshManager as the example.
 
 1. Basic Blocks
-  * struct with:
-    * An MDI instance
-    * A VEC or list or something to handle each geometry type
-  * A struct for holding geometry data and instance lists containing:
-    * A field for how many instances to draw this frame (numToDraw)
-    * A list of instance data
-  * A struct for holding instance information, and potentially
-    * A struct packed and aligned to std140 rules for copying instance data into video memory 
+	* struct with:
+		* An MDI instance
+		* A VEC or list or something to handle each geometry type
+	* A struct for holding geometry data and instance lists containing:
+		* A field for how many instances to draw this frame (numToDraw)
+		* A list of instance data
+	* A struct for holding instance information, and potentially
+		* A struct packed and aligned to std140 rules for copying instance data into video memory 
 2. Static Variables in the .c file:
-  * A ShaderProgram* 
-  * GLuint's for uniform locations
+	* A ShaderProgram* 
+	* GLuint's for uniform locations
 2. Initialization
-  * initMyNewDrawable() function, called from World_init() containing:
-    * Shader loading
-    * Uniform location caching
+	* initMyNewDrawable() function, called from World_init() containing:
+		* Shader loading
+		* Uniform location caching
 3. Methods
-  * MyNewDrawable_init/alloc() function with:
-    * MDI initialization
-  * PassDrawable* MyNewDrawable_CreateDrawable(MyNewDrawable* o)
-    * usually just calls MDI_CreateDrawable
-  * RenderPass* MyNewDrawable_CreateRenderPass(MyNewDrawable* o)
-    * creates a RenderPass and calls MyNewDrawable_CreateDrawable to add the drawable
+	* MyNewDrawable_init/alloc() function with:
+		* MDI initialization
+	* PassDrawable* MyNewDrawable_CreateDrawable(MyNewDrawable* o)
+		* usually just calls MDI_CreateDrawable
+	* RenderPass* MyNewDrawable_CreateRenderPass(MyNewDrawable* o)
+		* creates a RenderPass and calls MyNewDrawable_CreateDrawable to add the drawable
 4. Important Static Methods 
-  * instanceSetup: called each frame to load data for each instance into video memory. This
-    is where you calculate matrices or perform culling. The specific implementation in DynamicMeshManager
-    is more complex than most use cases will need to be.
-  * uniformSetup: called immediately before drawing to allow custom uniforms to be set. Thi is
-    where you set texture id's. Lots of bad, lazy code can be seen in these functions throughout 
-    the game.
+	* instanceSetup: called each frame to load data for each instance into video memory. This
+		is where you calculate matrices or perform culling. The specific implementation in DynamicMeshManager
+		is more complex than most use cases will need to be.
+	* uniformSetup: called immediately before drawing to allow custom uniforms to be set. Thi is
+		where you set texture id's. Lots of bad, lazy code can be seen in these functions throughout 
+		the game.
 5. Drawing: Determine the appropriate pass or location for a new pass within World_draw*() or 
-  in `drawFrame()` in `renderLoop.c`. Call the correct RenderPass_* functions, or add the drawable to 
-  an existing pass. If adding a new pass, put it in the World struct and initialiaze it appropriately.
+	in `drawFrame()` in `renderLoop.c`. Call the correct RenderPass_* functions, or add the drawable to 
+	an existing pass. If adding a new pass, put it in the World struct and initialiaze it appropriately.
 6. Extras:
-  * TextureManager. Try to share an existing instance with the same or similar format. Don't make a 
-    new one unless an existing one will not work.
-  * Potentially a new ItemType in `world.h` and complimentary loading code in `itemLoader.c` and `world.c`. 
+	* TextureManager. Try to share an existing instance with the same or similar format. Don't make a 
+		new one unless an existing one will not work.
+	* Potentially a new ItemType in `world.h` and complimentary loading code in `itemLoader.c` and `world.c`. 
 
 
 # Common Data Structures
@@ -131,6 +131,8 @@ config. See `texgen.[ch]`
 * segfault when custom decal start/end points are the same.
 * Calculate correct shader error message line numbers.
 * Texture splatting on terrain is bad.
+* Selection pass is laggy but it shouldn't be. It's in the rendering, not the async pixel download.
+* mCopy and the memcpy inside it have src/dst backwards but all usage needs to be fixed too...
 
 ## Graphics
 * Cache low-resolution pre-baked terrain textures for blocks in the distance.
@@ -177,3 +179,45 @@ config. See `texgen.[ch]`
 * Proper logging utility.
 * More features in building generator.
 * Track GPU memory usage as much as possible.
+
+
+
+# Reference
+## Texture unit allocation
+Texture units are (mostly) used for only one texture, reducing rebinding costs. EACSMB assumes there will only be 32 units, the minimum required by modern GL versions.
+
+The first five are the main GBuffer.
+
+
+0. diffuse buffer
+1. normal buffer
+2. depth buffer
+3. selection buffer
+4. lighting buffer
+5. shadow map depth buffer (temp?)
+6.
+7. mesh texture
+8. dynamic mesh texture
+9. decal textures
+10. diffuse alt buffer
+11. normal alt buffer
+12. lighting alt buffer
+13. depth alt buffer
+14.
+15.
+16.
+17.
+18.
+19. terrain integer data (tex indices)
+20. terrain block position lookup
+21. terrain heightmap
+22. terrain diffuse tex array
+23. terrain diffuse tex array (new)
+24. dust sprite (temp)
+25. road texture (temp)
+26.
+27.
+28.
+29.
+30. guiImage
+31. gui icon array

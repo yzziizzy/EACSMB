@@ -51,7 +51,7 @@ void World_init(World* w) {
 
 	
 	w->sunShadow = ShadowMap_alloc();
-	w->sunShadow->size = (Vector2i){1024, 1024};
+	w->sunShadow->size = (Vector2i){2048, 2048};
 	ShadowMap_SetupFBOs(w->sunShadow);
 
 	
@@ -181,7 +181,13 @@ void World_init(World* w) {
 	
 	
 	
-	ShadowMap_addPass(w->sunShadow, DynamicMeshManager_CreateShadowPass(w->dmm));
+ 	RenderPass* shadPass1 = DynamicMeshManager_CreateShadowPass(w->dmm);
+	RenderPass* shadPass = Map_CreateShadowPass(&w->map);
+	shadPass->clearDepth = 1;
+	shadPass->drawBuffer = GL_NONE;
+	shadPass->readBuffer = GL_NONE;
+	ShadowMap_addPass(w->sunShadow, shadPass);
+	ShadowMap_addPass(w->sunShadow, shadPass1);
 	
 	
 	

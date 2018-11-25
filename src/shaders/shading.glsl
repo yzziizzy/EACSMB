@@ -30,8 +30,11 @@ uniform sampler2D sDepth;
 uniform sampler2D sSelection;
 uniform sampler2D sLighting;
 
+uniform sampler2D sShadow;
+
 uniform int debugMode;
 uniform vec2 clipPlanes;
+uniform vec2 shadowClipPlanes;
 
 uniform vec3 sunNormal;
 
@@ -43,8 +46,17 @@ uniform mat4 mViewProj;
 uniform mat4 mViewWorld;
 uniform mat4 mProjView;
 
+uniform mat4 mWorldLight;
+
 uniform vec2 resolution;
 
+
+float linearizeDepth(float depth, vec2 clip) {
+	return (
+		(2.0 * clip.x * clip.y) / 
+		(clip.y + clip.x - (depth * 2.0 - 1.0) * (clip.y - clip.x))
+	) / clip.y;
+}
 
 out vec4 FragColor;
 
@@ -72,6 +84,21 @@ void main() {
 		// --------------------------------
 		// pos is in world coordinates now
 		
+		
+		// ---- shadow stuff ---------
+		vec4 l_pos4 = mWorldLight * vec4(pos, 1.0);
+		vec3 l_pos = vec3(l_pos4.xyz / l_pos4.w);
+		//l_pos /= 1024;
+		l_pos = l_pos * 0.5 + 0.5;
+		float l_closest = linearizeDepth(texture(sShadow, l_pos.xy).r, shadowClipPlanes);
+		float l_current = linearizeDepth(l_pos.z, shadowClipPlanes);
+		//vec4 light_pos = inverse(mWorldLight) * vec4(0,0,0,1);
+		//light_pos = vec4(light_pos.xyz / light_pos.w, 1);
+		
+		float shadow_factor = l_current - l_closest;
+		// ^^^ shadow stuff ^^^^^^^^^^^
+		
+		
 		vec3 pos_vw = (vec4(pos, 1) * mWorldView).xyz;
 		
 		//vec3 pos_vw = (vec4(pos, 1) * mWorldView).xyz;
@@ -96,7 +123,14 @@ void main() {
 		// world space
 		vec3 sundir = sunNormal;
 		
-		vec3 sunColor = vec3(1, .9, .8);
+		vec3 sunColor;
+		
+		if(shadow_factor < 0.005) {
+			sunColor = vec3(1, .9, .8);
+		}
+		else {
+			sunColor = vec3(0,0,0);
+		}
 		
 		float lambertian = max(dot(sundir, normal), 0.0);
 		
@@ -129,7 +163,11 @@ void main() {
 		FragColor = vec4(pow(colorOut, vec3(1.1)), 1.0);
 		
 		
-	//	FragColor = vec4(sundir * .5 + .5, 1.0);
+// 		FragColor = vec4((l_pos4.xyz / l_pos4.w), 1.0);
+//  		FragColor = vec4(l_pos.xy, 0 , 1.0);
+//  		FragColor = vec4(l_closest, l_closest / 100, l_closest / 10000, 1.0);
+//  		FragColor = vec4(l_pos.z,l_pos.z / 100,l_pos.z /1000, 1.0);
+// 		FragColor = vec4(shadow_factor, shadow_factor / 100, shadow_factor / 1000, 1.0);
 	//	FragColor = vec4(lambertian * diffuseColor, 1.0);
 //		FragColor = vec4(vec3(dot(normalize(-sundir), normalize(normal))), 1.0);
 //		
@@ -162,6 +200,19 @@ void main() {
 		// lighting buffer
 		FragColor = vec4(texture(sLighting, tex).rgb,  1.0);
 	}
-
+	else if(debugMode == 6) {
+		// shadow depth
+		
+		// bring it back to linear
+		float nd = (
+				(2.0 * shadowClipPlanes.x * shadowClipPlanes.y) / 
+				(shadowClipPlanes.y + shadowClipPlanes.x - (texture(sShadow, tex).r * 2.0 - 1.0) * (shadowClipPlanes.y - shadowClipPlanes.x))
+			) / shadowClipPlanes.y;
+		
+		FragColor = vec4(vec3(nd),  1.0);
+	//	FragColor = vec4(texture(sShadow, tex).rrr,  1.0);
+	}
+	
+	
 //	FragColor = vec4(texture(sNormals, tex).rgb,  1.0);
 }

@@ -554,21 +554,21 @@ glexit("");
 }
 
 
-static void bindTerrainTextures(MapInfo* mi) {
+static void bindTerrainTextures(MapInfo* mi, GLuint progID) {
 	
 	glActiveTexture(GL_TEXTURE0 + 19);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, mi->tex);
-	glProgramUniform1i(terrProg->id, glGetUniformLocation(terrProg->id, "sData"), 19);
+	glProgramUniform1i(progID, glGetUniformLocation(progID, "sData"), 19);
 
 	glActiveTexture(GL_TEXTURE0 + 21);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, mi->terrainTex);
-	GLuint hmul = glGetUniformLocation(terrProg->id, "sHeightMap");
-	glProgramUniform1i(terrProg->id, hmul, 21);
+	GLuint hmul = glGetUniformLocation(progID, "sHeightMap");
+	glProgramUniform1i(progID, hmul, 21);
 	
 	glActiveTexture(GL_TEXTURE0 + 22);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, mi->tm->tex_id);
-	GLuint texul = glGetUniformLocation(terrProg->id, "sTextures");
-	glProgramUniform1i(terrProg->id, texul, 22);
+	GLuint texul = glGetUniformLocation(progID, "sTextures");
+	glProgramUniform1i(progID, texul, 22);
 	
 	
 	//MapBlock_GetLayer(mi->block, "surface");
@@ -605,7 +605,7 @@ void drawTerrainDepth(MapInfo* mi, UniformBuffer* perViewUB, Vector2* viewWH) {
 	glUniform2f(winsize_d_ul, viewWH->x, viewWH->y);
 	glexit("");
 	
-	bindTerrainTextures(mi);
+	bindTerrainTextures(mi, terrDepthProg->id);
 	
 glexit("");	
 	glBindVertexArray(patchVAO);
@@ -934,7 +934,7 @@ static void uniformSetup(MapInfo* mi, GLuint progID) {
 	// TODO: move elsewhere, no need to set every frame
 	glUniform2iv(glGetUniformLocation(progID, "aSurfaces"), 16, mi->surfaceUniforms);
 	
-	bindTerrainTextures(mi);
+	bindTerrainTextures(mi, progID);
 }
 
 
@@ -942,7 +942,6 @@ static void instanceSetup(MapInfo* mi, TerrainPatchInstance* vmem, MDIDrawInfo**
 	
 	int i, j;
 	int x, y;
-	
 	
 	for(j = 0; j < diCount; j++) {
 		di[j]->numToDraw = 4;
@@ -997,6 +996,22 @@ RenderPass* Map_CreateSelectionPass(MapInfo* m) {
 	PassDrawable* pd;
 
 	pd = MultiDrawIndirect_CreateDrawable(m->blockPatch, terrDepthProg);
+
+	rp = calloc(1, sizeof(*rp));
+	RenderPass_init(rp);
+	RenderPass_addDrawable(rp, pd);
+	//rp->fboIndex = LIGHTING;
+	
+	return rp;
+}
+
+
+RenderPass* Map_CreateShadowPass(MapInfo* m) {
+	
+	RenderPass* rp;
+	PassDrawable* pd;
+
+	pd = MultiDrawIndirect_CreateDrawable(m->blockPatch, loadCombinedProgram("terrainShadow"));
 
 	rp = calloc(1, sizeof(*rp));
 	RenderPass_init(rp);

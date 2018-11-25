@@ -120,6 +120,8 @@ typedef struct RenderPass {
 	char clearDepth;
 	
 	char fboIndex;
+	GLuint readBuffer;
+	GLuint drawBuffer;
 	// fbo config, texture bindings, etc
 	
 	VEC(PassDrawable*) drawables;
@@ -160,7 +162,7 @@ PassDrawable* Pass_allocDrawable(char* name);
 void RenderPass_init(RenderPass* pass); 
 void RenderPipeline_addShadingPass(RenderPipeline* rpipe, char* shaderName); 
 
-void RenderPipeline_renderAll(RenderPipeline* rp, PassDrawParams* pdp);
+void RenderPipeline_renderAll(RenderPipeline* rp, PassFrameParams* pfp);
 void RenderPass_renderAll(RenderPass* pass, PassDrawParams* pdp);
 void RenderPass_preFrameAll(RenderPass* pass, PassFrameParams* pfp);
 void RenderPass_postFrameAll(RenderPass* pass);

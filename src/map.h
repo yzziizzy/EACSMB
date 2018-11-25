@@ -269,7 +269,7 @@ void Map_readConfigFile(MapInfo* map, char* path);
 RenderPass* Map_CreateRenderPass(MapInfo* m); 
 PassDrawable* Map_CreateDrawable(MapInfo* m);
 RenderPass* Map_CreateSelectionPass(MapInfo* m); 
-
+RenderPass* Map_CreateShadowPass(MapInfo* m);
 
 
 

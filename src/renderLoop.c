@@ -215,6 +215,8 @@ void initRenderLoop(GameState* gs) {
 	glProgramUniform1i(shadingProg->id, glGetUniformLocation(shadingProg->id, "sSelection"), 3);
 	glProgramUniform1i(shadingProg->id, glGetUniformLocation(shadingProg->id, "sLighting"), 4);
 	
+	glProgramUniform1i(shadingProg->id, glGetUniformLocation(shadingProg->id, "sShadow"), 5);
+	
 	glBindTexture(GL_TEXTURE_2D, 0);
 	
 	
@@ -252,9 +254,15 @@ void shadingPass(GameState* gs, PassFrameParams* pfp) {
 	glActiveTexture(GL_TEXTURE0 + 4);
 	glBindTexture(GL_TEXTURE_2D, gs->lightingTexBuffer);
 
+	glActiveTexture(GL_TEXTURE0 + 5);
+	//printf("btex: %d\n",gs->world->sunShadow->rpipe->backingTextures[0]);
+	glBindTexture(GL_TEXTURE_2D, gs->world->sunShadow->rpipe->backingTextures[0]);
+
 	
 	glUniform1i(glGetUniformLocation(shadingProg->id, "debugMode"), gs->debugMode);
 	glUniform2f(glGetUniformLocation(shadingProg->id, "clipPlanes"), gs->nearClipPlane, gs->farClipPlane);
+// 	glUniform2f(glGetUniformLocation(shadingProg->id, "shadowClipPlanes"), gs->nearClipPlane, gs->farClipPlane);
+	glUniform2f(glGetUniformLocation(shadingProg->id, "shadowClipPlanes"), gs->world->sunShadow->clipPlanes.x, gs->world->sunShadow->clipPlanes.y);
 	
 	glexit("shading samplers");
 	
@@ -267,6 +275,8 @@ void shadingPass(GameState* gs, PassFrameParams* pfp) {
 	
 	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "mProjView"), 1, GL_FALSE, pfp->dp->mProjView);
 	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "mViewWorld"), 1, GL_FALSE, pfp->dp->mViewWorld);
+	
+	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "mWorldLight"), 1, GL_FALSE, &gs->world->sunShadow->mWorldLight);
 
 	glexit("shading world");
 
@@ -470,13 +480,20 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	RenderAllPrePasses(&pfp);
 	
 	
+	//printf("sm------\n");
+	ShadowMap_Render(gs->world->sunShadow, &pfp, &gs->sunNormal);
+	//printf("sm^^^^^^\n");
+	
+// 	giShadowMap->customTexID = gs->world->sunShadow->depthTex; 
+	
+	glViewport(0, 0, gs->screen.wh.x, gs->screen.wh.y);
+	
 	glEnable(GL_CULL_FACE);
 	glFrontFace(GL_CW); // this is backwards, i think, because of the scaling inversion for z-up
 	
 	
 	
 	
-	ShadowMap_Render(gs->world->sunShadow, &pdp, &gs->sunNormal);
 	
 	
 	
@@ -584,6 +601,7 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	//glDisable(GL_DEPTH_TEST);
 	//glDepthFunc(GL_GREATER);
 	query_queue_start(&gs->queries.lighting);
+	glDepthMask(GL_FALSE); // no depth writes for light volumes
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_ONE, GL_ONE);
 	glBlendEquationSeparate(GL_FUNC_ADD, GL_MAX);
@@ -597,6 +615,7 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	RenderPass_postFrameAll(gs->world->lightingPass);
 	
 	glDisable(GL_BLEND);
+	glDepthMask(GL_TRUE);
 	query_queue_stop(&gs->queries.lighting);
 	
 	//glDisable(GL_CULL_FACE);

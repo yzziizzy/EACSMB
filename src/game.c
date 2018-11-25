@@ -80,8 +80,6 @@ GUITexBuilderControl* texbuilder;
 Texture* cnoise;
 // Emitter* dust;
 
-
-
 RenderPipeline* rpipe;
 
 ShaderProgram* waterProg;
@@ -321,7 +319,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	gswTest = guiSimpleWindowNew((Vector2){.2, .2}, (Vector2){.7, .7}, 0);
 	//gswTest->header.onClick = testClick;
 	
-	giTest = guiImageNew((Vector2){.1,.2}, (Vector2){.8,.8}, 0, 0);
+// 	giTest = guiImageNew((Vector2){.1,.2}, (Vector2){.8,.8}, 0, 0);
 	
 	
 	gclTest = guiColumnLayoutNew((Vector2){.01,.01}, .02, 0);
@@ -335,8 +333,6 @@ void initGame(XStuff* xs, GameState* gs) {
 	guiRegisterObject(gt_lighting, gclTest);
 	guiRegisterObject(gt_shading, gclTest);
 	guiRegisterObject(gt_gui, gclTest);
-
-
 	
 	guiRegisterObject(gtRenderMode, NULL);
 	guiRegisterObject(gtSelectionDisabled, NULL);
@@ -481,6 +477,7 @@ void preFrame(GameState* gs) {
 			gs->activePBO = (gs->activePBO + 1) % 2;
 		}
 	}
+	
 }
 
 
@@ -639,10 +636,11 @@ static void main_key_handler(InputEvent* ev, GameState* gs) {
 			"normal",
 			"depth",
 			"selection",
-			"lighting"
+			"lighting",
+			"shadow depth"
 		};
 		
-		gs->debugMode = (gs->debugMode + 1) % 6;
+		gs->debugMode = (gs->debugMode + 1) % 7;
 		lastChange = gs->frameTime;
 		
 		guiTextSetValue(gtRenderMode, modeStrings[gs->debugMode]);

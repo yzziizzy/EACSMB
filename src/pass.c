@@ -194,7 +194,11 @@ void RenderPipeline_rebuildFBOs(RenderPipeline* rp, Vector2i sz) {
 
 
 
-void RenderPass_init(RenderPass* bp) {
+void RenderPass_init(RenderPass* rp) {
+	
+	// disable fiddling for now
+	rp->drawBuffer = GL_INVALID_INDEX;
+	rp->readBuffer = GL_INVALID_INDEX;
 	
 	// these will generate harmless errors if the uniform is not found
 	//bp->diffuseUL = glGetUniformLocation(prog->id, "sDiffuse");
@@ -220,17 +224,29 @@ void RenderPipeline_destroy(RenderPipeline* rp) {
 }
 
 
-void RenderPipeline_renderAll(RenderPipeline* bp, PassDrawParams* rp) {
+void RenderPipeline_renderAll(RenderPipeline* bp, PassFrameParams* pfp) {
 	
 	if(!bp->backingTextures) return;
+	
+	
+	// TODO: figure out where this should be
+	VEC_EACH(&bp->passes, ind, pass) {
+		RenderPass_preFrameAll(pass, &pfp);
+	}
+	
 	
 	for(int i = 0; i < VEC_LEN(&bp->passes); i++) {
 		RenderPass* pass = VEC_ITEM(&bp->passes, i);
 		//ShaderProgram* prog = pass->prog;
 		
 		glBindFramebuffer(GL_FRAMEBUFFER, bp->fbos[pass->fboIndex]->fb);
+		
+		if(pass->readBuffer != GL_INVALID_INDEX) glReadBuffer(pass->readBuffer);
+		if(pass->drawBuffer != GL_INVALID_INDEX) glDrawBuffer(pass->drawBuffer);
+		
+		glDepthMask(GL_TRUE);
 		glDepthFunc(GL_LEQUAL);
-		//printf("fbo bound: %d\n", bp->fbos[pass->fboIndex].fb);
+		//printf("fbo bound: %d\n", bp->fbos[pass->fboIndex]->fb);
 		
 		int clear = 0;
 		if(pass->clearColor) clear |= GL_COLOR_BUFFER_BIT;
@@ -272,9 +288,16 @@ void RenderPipeline_renderAll(RenderPipeline* bp, PassDrawParams* rp) {
 		// glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		//glDepthFunc(GL_LEQUAL);
 // 		glDepthMask(GL_TRUE);
-		RenderPass_renderAll(pass, rp);
+		
+		RenderPass_renderAll(pass, pfp->dp);
 		
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	}
+	
+	
+	// TODO: figure out where this should be
+	VEC_EACH(&bp->passes, ind, pass) {
+		RenderPass_postFrameAll(pass);
 	}
 }
 
