@@ -134,6 +134,11 @@ config. See `texgen.[ch]`
 * Selection pass is laggy but it shouldn't be. It's in the rendering, not the async pixel download.
 * mCopy and the memcpy inside it have src/dst backwards but all usage needs to be fixed too...
 * Distance culling on CPU side needs to handle shadow passes properly
+* Bias calculation on shadows is terrible. Trees do not shadow themselves.
+* On an nVidia GT 530, first run after modifying terrain.glsl or wiping shader cache results in random terrain corruption.
+
+### Needs attention in the future
+* MDI max meshes limit fixed at 16
 
 ## Graphics
 * Cache low-resolution pre-baked terrain textures for blocks in the distance.
@@ -152,6 +157,8 @@ config. See `texgen.[ch]`
 * Falling rain and snow.
 	* Make a special version of Emitter that only spawns in rage of the camera, but consistently.
 * Mipmapping in decals.
+* Dynamic LOD
+* Easy, cheap ephemeral meshes, decal and effects that can automatically spawn on terrain at certain zoom levels. Grass, dust, flowers, decorative decals, etc. They should not be in the CES as they are not real game items. 
 
 
 ## Sound

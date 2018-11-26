@@ -483,7 +483,7 @@ void main(void) {
 	// normals need to be in world space
 	vec4 out_norm = normalize(te_normal + (.25 * nc));
 // 	vec4 out_norm = normalize(nc);
-	out_Normal = vec4((out_norm.xyz * .5) + .5, 1.0);
+	out_Normal = vec4((out_norm.xyz * .5) + .5, .1);
 	
 	/*
 	if(wlevel > 4.7) {
@@ -497,6 +497,6 @@ void main(void) {
 // 	out_Color =  (zoneColor * .2 + tc2) * cursorIntensity;// * lineFactor; //(1.0, 0, .5, .6);
 //	out_Color = vec4(wlevel, wlevel / 200, wlevel / 4000, 1);;
 // 	out_Color = vec4(slevel, slevel / 200, slevel / 4000, 1);;
-	out_Color = tc2; //vec4(1,0,1,1);
+	out_Color = vec4(tc2.rgb, .2);; //vec4(1,0,1,1);
 }
 

@@ -1,7 +1,7 @@
 {
 	textures: {
-		diffuse: {internalType: "GL_RGB", format: "GL_RGB", size: "GL_UNSIGNED_BYTE"},
-		normal: {internalType: "GL_RGB", format: "GL_RGB", size: "GL_UNSIGNED_BYTE"},
+		diffuse: {internalType: "GL_RGBA8", format: "GL_RGBA", size: "GL_UNSIGNED_BYTE"},
+		normal: {internalType: "GL_RGBA8", format: "GL_RGBA", size: "GL_UNSIGNED_BYTE"},
 		selection: {internalType: "GL_RGBA8", format: "GL_RGBA", size: "GL_UNSIGNED_BYTE"},
 		lighting: {internalType: "GL_RGB16F", format: "GL_RGB", size: "GL_HALF_FLOAT"},
 		depth: {internalType: "GL_DEPTH_COMPONENT32", format: "GL_DEPTH_COMPONENT", size: "GL_FLOAT"},

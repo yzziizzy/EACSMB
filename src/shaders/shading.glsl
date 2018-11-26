@@ -62,7 +62,10 @@ out vec4 FragColor;
 
 void main() {
 	vec2 tex = gl_FragCoord.xy / resolution.xy;
-	vec3 normal = (texture(sNormals, tex).xyz * 2.0) - 1.0;
+	vec4 raw_normal = texture(sNormals, tex);
+	vec4 raw_diffuse = texture(sDiffuse, tex);
+	vec3 normal = (raw_normal.xyz * 2.0) - 1.0;
+	if(raw_normal.xyz != vec3(0,0,0)) normal = normalize(normal);
 	
 	if(debugMode == 0) {
 		// normal rendering
@@ -118,6 +121,10 @@ void main() {
 		// ^^^ shadow stuff ^^^^^^^^^^^
 		
 		
+		float specPower = raw_normal.a * 128;
+		float specIntensity = raw_diffuse.a;
+		
+		
 		vec3 pos_vw = (vec4(pos, 1) * mWorldView).xyz;
 		
 		//vec3 pos_vw = (vec4(pos, 1) * mWorldView).xyz;
@@ -132,7 +139,7 @@ void main() {
 		
 		//vec3 viewdir = normalize(viewpos - pos);
 		// world space
-		vec3 viewdir = normalize((inverse(mViewProj * mWorldView) * vec4(0,0,-1,1)).xyz);
+		vec3 viewdir = normalize((inverse(mViewProj * mWorldView) * vec4(0,0,1,1)).xyz);
 		
 		//normal = (mWorldView * vec4(normal, 1)).xyz;
 		
@@ -146,17 +153,28 @@ void main() {
 		
 		sunColor = vec3(1, .9, .8) * (1 - shadow_factor);
 		
-		float lambertian = max(dot(sundir, normal), 0.0);
 		
-		vec3 sunRefl = reflect(-sundir, normal);
 		vec3 posToCam = normalize(viewpos - pos); 
 		
-		float specAngle = max(dot(posToCam, sunRefl), 0.0);
-		float specular = pow(specAngle, 32);
+		//------------ specular --------------------
+		
+		vec3 halfVec = normalize(viewdir - sundir);
+		
+		float nDl = max(0, dot(normal, sundir)); 
+		float nDh = max(0, dot(normal, -halfVec)); 
+		float specular = pow(nDh, specPower);
+		
+		if(nDl == 0) {
+			specular = 0;
+		}
+		//specular = .5;
+		////////-----------------////////
 
-		vec3 diffuseColor = texture(sDiffuse, tex).rgb;
-		vec3 specColor = vec3(1,.9,.8) * .1;//normalize(vec3(1,1,1));
-
+		
+		vec3 specColor = vec3(1,.9,.8);//normalize(vec3(1,1,1));
+		// ^^^^^^^^^^^^ specular ^^^^^^^^^^^^^^^^^^^
+		
+		vec3 diffuseColor = raw_diffuse.rgb;
 		vec3 ambient = vec3(0.16,0.18,0.2);
 		
 		vec3 light = texture(sLighting, tex).rgb;
@@ -165,8 +183,8 @@ void main() {
 		vec3 colorOut;
 		if(length(normal) < 1.01) { // things with normals get directional lighting
 			colorOut = vec3(
-				(((lambertian * sunColor * 1.1) + light + ambient) * diffuseColor)
-				+ (specular * specColor)
+				(((nDl * sunColor * 1.1) + light + ambient) * diffuseColor)
+				+ (specular * specColor * diffuseColor * specIntensity)
 			);
 		}
 		else { // no directional lighting for things without normals

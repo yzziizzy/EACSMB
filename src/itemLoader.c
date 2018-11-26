@@ -33,6 +33,9 @@ static int partTypeLookup(char* name) {
 	else if(0 == strcmp("item", name)) {
 		return ITEM_TYPE_ITEM;
 	}
+	else if(0 == strcmp("soundClip", name)) {
+		return ITEM_TYPE_SOUNDCLIP;
+	}
 	else {
 		printf("Unknown part type: %s\n", name);
 		return ITEM_TYPE_UNKNOWN;
@@ -95,6 +98,7 @@ static int loadConfig_Light(World* w, json_value_t* jo);
 static int loadConfig_Decal(World* w, json_value_t* jo);
 static int loadConfig_CustomDecal(World* w, json_value_t* jo);
 static int loadConfig_Marker(World* w, json_value_t* jo);
+static int loadConfig_SoundClip(World* w, json_value_t* jo);
 
 
 typedef int (*loaderFn)(World*, json_value_t*);
@@ -109,6 +113,7 @@ static const loaderFn loaderFns[] = {
 	[ITEM_TYPE_DECAL] =       loadConfig_Decal,
 	[ITEM_TYPE_CUSTOMDECAL] = loadConfig_CustomDecal,
 	[ITEM_TYPE_MARKER] =      loadConfig_Marker,
+	[ITEM_TYPE_SOUNDCLIP] =   loadConfig_SoundClip,
 };
 
 
@@ -587,6 +592,28 @@ static int loadConfig_Marker(World* w, json_value_t* jo) {
 	name = strdup(json_obj_get_string(jo, "_name"));
 	
 	return add_part(w, (Part){ITEM_TYPE_MARKER, ind, name});
+	
+}
+
+
+// returns part index
+static int loadConfig_SoundClip(World* w, json_value_t* jo) {
+	
+	printf("loadconfig_soundClip\n");
+
+	json_value_t* val;
+	char* name, *path;
+	SoundClip* sc;
+	
+	//pcalloc(sc);
+
+//	int ind = MarkerManager_addMesh(w->mm, m, name, 24);
+	int ind;
+	
+	// save name
+	name = strdup(json_obj_get_string(jo, "_name"));
+	
+	return add_part(w, (Part){ITEM_TYPE_SOUNDCLIP, ind, name});
 	
 }
 

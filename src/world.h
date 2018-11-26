@@ -14,6 +14,7 @@
 #include "dynamicMesh.h"
 #include "marker.h"
 #include "waterPlane.h"
+#include "sound.h"
 #include "pass.h"
 #include "shadowMap.h"
 
@@ -30,6 +31,13 @@ enum ItemTypes {
 	ITEM_TYPE_DECAL,
 	ITEM_TYPE_CUSTOMDECAL,
 	ITEM_TYPE_MARKER,
+	ITEM_TYPE_SOUNDCLIP,
+};
+
+enum PartFlag {
+	PART_FLAG_SPAWN_IMMEDIATE, // spawn the part when spawning the item
+	PART_FLAG_ATTACHED, // the part hsould be moved with the item
+	
 };
 
 
@@ -45,6 +53,9 @@ typedef struct { // info about how the part relates to the item
 	int index;
 	int partIndex;
 	Vector offset; // rotation, scale, etc
+	
+	enum PartFlag flags;
+	
 	//void* data;
 } ItemPart;
 

@@ -82,7 +82,7 @@ void main(void) {
 	
 	if(tex.a < 0.1) discard;
 	
-	out_Color = vec4(tex.rgb, 1);//vs_norm;
- 	out_Normal = vec4((vs_norm.xyz * .5) + .5, 1);
+	out_Color = vec4(tex.rgb, 0);//vs_norm;
+ 	out_Normal = vec4((vs_norm.xyz * .5) + .5, 0);
 }
 
