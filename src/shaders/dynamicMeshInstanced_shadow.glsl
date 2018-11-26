@@ -20,8 +20,7 @@ layout (location = 2) in vec2 v_tex_in;
 layout (location = 3) in mat4 i_mat_in;
 layout (location = 7) in ivec2 i_tex_in;
 
-uniform mat4 mWorldView;
-uniform mat4 mViewProj;
+uniform mat4 mWorldProj;
 
 // out vec4 vs_pos;
 out vec3 vs_norm;
@@ -31,14 +30,9 @@ flat out ivec2 vs_tex_indices;
 
 void main() {
 	vec4 pos = vec4(v_pos_in, 1.0);
-//	pos *= rotationMatrix(i_dir_rot_in.xyz, i_dir_rot_in.w);
-//	pos *= vec4(i_pos_scale_in.www, 1);
-//	pos += vec4(i_pos_scale_in.xyz, 0);
 	
-	gl_Position = (mViewProj * mWorldView * i_mat_in) * (pos);// * i_scale_in;
-	vs_norm = v_norm_in; // normalize(vec4(1,1,1,0));
+	gl_Position = (mWorldProj * i_mat_in) * (pos);// * i_scale_in;
 	vs_tex = v_tex_in;
-	vs_alpha = 1.0;//i_alpha_in.x;
 	vs_tex_indices = i_tex_in;
 }
 

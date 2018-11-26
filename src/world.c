@@ -181,8 +181,8 @@ void World_init(World* w) {
 	
 	
 	
- 	RenderPass* shadPass1 = DynamicMeshManager_CreateShadowPass(w->dmm);
-	RenderPass* shadPass = Map_CreateShadowPass(&w->map);
+	RenderPass* shadPass = DynamicMeshManager_CreateShadowPass(w->dmm);
+	RenderPass* shadPass1 = Map_CreateShadowPass(&w->map);
 	shadPass->clearDepth = 1;
 	shadPass->drawBuffer = GL_NONE;
 	shadPass->readBuffer = GL_NONE;

@@ -92,10 +92,12 @@ void main() {
 		l_pos = l_pos * 0.5 + 0.5;
 	//	float l_closest = texture(sShadow, l_pos.xy).r;
 		float l_current = l_pos.z;
-		//vec4 light_pos = inverse(mWorldLight) * vec4(0,0,0,1);
-		//light_pos = vec4(light_pos.xyz / light_pos.w, 1);
+		vec4 light_dir = inverse(mWorldLight) * vec4(0,0,1,1);
+		light_dir = vec4(normalize(light_dir.xyz / light_dir.w), 1);
+	
 		
-		float bias = 0.0002;
+	//	float bias = 0.005;
+		float bias = max(0.005 * (1.0 - dot(normal, light_dir.xyz)), 0.0005);  
 		float shadow_factor = 0.0;
 		
 		// PCF
@@ -112,6 +114,7 @@ void main() {
 		if(l_pos.x > 1 || l_pos.y > 1 || l_pos.x < 0 || l_pos.y < 0) {
 			shadow_factor = 0;
 		}
+		
 		// ^^^ shadow stuff ^^^^^^^^^^^
 		
 		
@@ -141,15 +144,7 @@ void main() {
 		
 		vec3 sunColor;
 		
-		//if(shadow_factor > 0 ) {
-// 		if(l_current < l_closest + bias) {
-			sunColor = vec3(1, .9, .8) * (1 - shadow_factor);
-	//	}
-		//else {
-	//		sunColor = vec3(0,0,0);
-		//}
-		
-// 		sunColor = shadow_factor * vec3(1,.9,.8);
+		sunColor = vec3(1, .9, .8) * (1 - shadow_factor);
 		
 		float lambertian = max(dot(sundir, normal), 0.0);
 		

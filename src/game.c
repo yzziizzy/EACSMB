@@ -63,6 +63,7 @@ GUIText* gt_decals;
 GUIText* gt_emitters;
 GUIText* gt_effects;
 GUIText* gt_lighting;
+GUIText* gt_sunShadow;
 GUIText* gt_shading;
 GUIText* gt_gui;
 GUIText* gtRenderMode;
@@ -306,6 +307,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	gt_emitters = guiTextNew("gui!", (Vector2){0.010,0.10}, 3.0f, "Arial");
 	gt_effects = guiTextNew("gui!", (Vector2){0.010,0.10}, 3.0f, "Arial");
 	gt_lighting = guiTextNew("gui!", (Vector2){0.010,0.12}, 3.0f, "Arial");
+	gt_sunShadow = guiTextNew("gui!", (Vector2){0.010,0.14}, 3.0f, "Arial");
 	gt_shading = guiTextNew("gui!", (Vector2){0.010,0.14}, 3.0f, "Arial");
 	gt_gui = guiTextNew("gui!", (Vector2){0.010,0.16}, 3.0f, "Arial");
 	gtRenderMode = guiTextNew("", (Vector2){0.1,0.9}, 6.0f, "Arial");
@@ -328,9 +330,10 @@ void initGame(XStuff* xs, GameState* gs) {
 	guiRegisterObject(gt_terrain, gclTest);
 	guiRegisterObject(gt_solids, gclTest);
 	guiRegisterObject(gt_decals, gclTest);
-	guiRegisterObject(gt_emitters, gclTest);
+	//guiRegisterObject(gt_emitters, gclTest);
 	guiRegisterObject(gt_effects, gclTest);
 	guiRegisterObject(gt_lighting, gclTest);
+	guiRegisterObject(gt_sunShadow, gclTest);
 	guiRegisterObject(gt_shading, gclTest);
 	guiRegisterObject(gt_gui, gclTest);
 	
@@ -422,6 +425,7 @@ void preFrame(GameState* gs) {
 		query_update_gui(decals);
 		query_update_gui(effects);
 		query_update_gui(emitters);
+		query_update_gui(sunShadow);
 		query_update_gui(shading);
 		query_update_gui(lighting);
 		query_update_gui(gui);
@@ -1069,6 +1073,8 @@ void runSystems(GameState* gs, InputState* is) {
 void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	gs->frameCount++;
 	
+// 	printf("-----------frame------------\n");
+	
 	static erodeDelay = 0;
 	//erodeDelay = (erodeDelay + 1) % 1;
 	
@@ -1110,4 +1116,5 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	gs->screen.resized = 0;
 
 	postFrame(gs);
+// 	printf("^^^^^^^^^^frame^^^^^^^^^^\n");
 }

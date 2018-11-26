@@ -113,20 +113,20 @@ void ShadowMap_Render(ShadowMap* sm, PassFrameParams* cameraPFP, Vector* lightPo
 	Matrix m_vp_inv;
 	Matrix m_wp_inv;
 	
-	//mOrtho(-1, 1, 1, -1, 1, 6000, &m_vp);
+	mOrtho(-100, 100, 100, -100, sm->clipPlanes.x, sm->clipPlanes.y, &m_vp);
 	//mLookAt(&lpos, &(Vector){10,0,10}, &(Vector){0,1,0}, &m_wv);
 	
-	mPerspective(60, 1, sm->clipPlanes.x, sm->clipPlanes.y, &m_vp);
+	//mPerspective(60, 1, sm->clipPlanes.x, sm->clipPlanes.y, &m_vp);
 	
 	
 	double time = cameraPDP->timeSeconds + cameraPDP->timeFractional;
 	
-	float zoom = (fabs(sin(fmod(time, 6.28))) * 20) + 10;
-	float lrot = -3.14/3; //fmod(time / 3, 6.28);
+	float zoom = (fabs(sin(fmod(time, 6.28))) * -100) - 150;
+	float lrot = -3.14 / 2; //fmod(time / 3, 6.28);
 	zoom = -150;
 	
 	mTrans3f(0, -1, zoom, &m_wv);
-	mRot3f(1, 0, 0, F_PI / 3, &m_wv);
+	mRot3f(1, 0, 0, F_PI / 6, &m_wv);
 	mRot3f(0,1,0, lrot, &m_wv);
 	mTrans3f(-lcenter.x, 0, -lcenter.y, &m_wv);
 	

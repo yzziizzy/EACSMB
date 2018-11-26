@@ -58,6 +58,11 @@ void PCBuffer_finishInit(PCBuffer* b) {
 	glBindBuffer(b->type, 0);
 }
 
+// returns the offset of the current region in bytes
+size_t PCBuffer_getOffset(PCBuffer* b) {
+	return (b->nextRegion * b->bufferSize);
+}
+
 
 void* PCBuffer_beginWrite(PCBuffer* b) {
 	// the fence at index n protects from writing to index n.

@@ -195,6 +195,7 @@ void initRenderLoop(GameState* gs) {
 	query_queue_init(&gs->queries.emitters);
 	query_queue_init(&gs->queries.effects);
 	query_queue_init(&gs->queries.lighting);
+	query_queue_init(&gs->queries.sunShadow);
 	query_queue_init(&gs->queries.shading);
 	query_queue_init(&gs->queries.gui);
 	
@@ -480,9 +481,11 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	RenderAllPrePasses(&pfp);
 	
 	
-	//printf("sm------\n");
+// 	printf("sm------\n");
+	query_queue_start(&gs->queries.sunShadow);
 	ShadowMap_Render(gs->world->sunShadow, &pfp, &gs->sunNormal);
-	//printf("sm^^^^^^\n");
+	query_queue_stop(&gs->queries.sunShadow);
+// 	printf("sm^^^^^^\n");
 	
 // 	giShadowMap->customTexID = gs->world->sunShadow->depthTex; 
 	
@@ -571,10 +574,11 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	
 	// emitters
+// 	query_queue_start(&gs->queries.emitters);
 	RenderPass_preFrameAll(gs->world->emitterPass, &pfp);
 	RenderPass_renderAll(gs->world->emitterPass, pfp.dp);
 	RenderPass_postFrameAll(gs->world->emitterPass);
-	
+// 	query_queue_stop(&gs->queries.emitters);
 	
 	glDepthMask(GL_TRUE); // turn depth writes back on
 	glDisable(GL_BLEND);
@@ -587,9 +591,9 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 
 	
 	
-	query_queue_start(&gs->queries.emitters);
+	
 
-	query_queue_stop(&gs->queries.emitters);
+	
 	
 	// keep depth writes off for lighting
 	

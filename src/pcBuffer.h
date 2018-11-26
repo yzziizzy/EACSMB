@@ -11,7 +11,7 @@
 #include "common_gl.h"
 
 
-// shouldn't need to be higher.
+// shouldn't need to be higher than 3.
 #define PC_BUFFER_DEPTH 3
 
 
@@ -35,6 +35,7 @@ void PCBuffer_finishInit(PCBuffer* b);
 void* PCBuffer_beginWrite(PCBuffer* b);
 void PCBuffer_afterDraw(PCBuffer* b);
 void PCBuffer_bind(PCBuffer* b);
+size_t PCBuffer_getOffset(PCBuffer* b); // in bytes
 
 
 

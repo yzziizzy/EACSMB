@@ -234,6 +234,7 @@ static void draw(MultiDrawIndirect* mdi, GLuint progID, PassDrawParams* pdp) {
 }
 
 static void core_draw(MultiDrawIndirect* mdi) {
+	size_t cmdOffset;
 	
 	glBindVertexArray(mdi->vao);
 	glBindBuffer(GL_ARRAY_BUFFER, mdi->geomVBO);
@@ -244,11 +245,13 @@ static void core_draw(MultiDrawIndirect* mdi) {
 	PCBuffer_bind(&mdi->instVB);
 	PCBuffer_bind(&mdi->indirectCmds);
 	
+	cmdOffset = PCBuffer_getOffset(&mdi->indirectCmds);
+	
 	if(mdi->isIndexed) {
-		glMultiDrawElementsIndirect(mdi->primMode, GL_UNSIGNED_SHORT, 0, VEC_LEN(&mdi->meshes), 0);
+		glMultiDrawElementsIndirect(mdi->primMode, GL_UNSIGNED_SHORT, cmdOffset, VEC_LEN(&mdi->meshes), 0);
 	}
 	else {
-		glMultiDrawArraysIndirect(mdi->primMode, 0, VEC_LEN(&mdi->meshes), 0);
+		glMultiDrawArraysIndirect(mdi->primMode, cmdOffset, VEC_LEN(&mdi->meshes), 0);
 	}
 	glexit("multidrawarraysindirect");
 }

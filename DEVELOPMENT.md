@@ -133,12 +133,13 @@ config. See `texgen.[ch]`
 * Texture splatting on terrain is bad.
 * Selection pass is laggy but it shouldn't be. It's in the rendering, not the async pixel download.
 * mCopy and the memcpy inside it have src/dst backwards but all usage needs to be fixed too...
+* Distance culling on CPU side needs to handle shadow passes properly
 
 ## Graphics
 * Cache low-resolution pre-baked terrain textures for blocks in the distance.
 * Animated meshes.
 * Normal Mapping on meshes and decals.
-* Shadow Maps.
+* Improve shadowing.
 * Screen Space Reflections
 * SSAO (Screen Space Ambient Occlusion)
 * Emitters need animated 3D textures.
@@ -149,6 +150,7 @@ config. See `texgen.[ch]`
 * Configurable decal render order (road markings on top of roads on top of leaves).
 * HDR lighting and bloom.
 * Falling rain and snow.
+	* Make a special version of Emitter that only spawns in rage of the camera, but consistently.
 * Mipmapping in decals.
 
 
