@@ -1032,4 +1032,34 @@ void renderText(TextRenderInfo* tri) {
 }
 */
 
+// horizontal offset
+float TextRes_charTexOffset(TextRes* font, char c) {
+	int index;
+	float uscale;
+	
+	uscale = 1.0 / font->texWidth;
+	index = font->codeIndex[c];
+	return (font->offsets[index] + font->padding) * uscale;
+}
 
+
+float TextRes_charWidth(TextRes* font, char c) {
+	
+	float offset, vscale, scale;
+	int v, i;
+
+	vscale = 1.0 / font->texHeight;
+	scale = 1.0 / font->maxHeight;
+	
+	offset = 0.0;
+	v = 0;
+
+	float width, valign, kerning;
+	int index;
+	
+	index = font->codeIndex[c];
+	width = font->charWidths[index];
+	
+
+	return width / font->texWidth;
+}

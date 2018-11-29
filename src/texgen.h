@@ -8,7 +8,7 @@
 
 #include "hash.h"
 
-#include "gui.h"
+#include "game.h"
 #include "texture.h"
 #include "perlin.h"
 #include "opensimplex.h"

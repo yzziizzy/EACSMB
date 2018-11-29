@@ -7,12 +7,42 @@
 
 #include "text/text.h"
 #include "input.h"
-#include "game.h"
+// #include "game.h"
+#include "pass.h"
+#include "pcBuffer.h"
+
+
+struct GameState;
+typedef struct GameState GameState;
+
+
+struct Color4 {
+	uint8_t r,g,b,a;
+} __attribute__ ((packed));
+
+struct Color3 {
+	uint8_t r,g,b;
+} __attribute__ ((packed));
+
+
+typedef struct GUIUnifiedVertex {
+	struct { float t, l, b, r; } pos;
+	struct { float t, l, b, r; } clip;
+	uint8_t texIndex1, texIndex2, texFade, guiType; 
+	struct { uint16_t x, y; } texOffset1, texOffset2;
+	struct { uint16_t x, y; } texSize1, texSize2;
+	
+	struct Color4 fg;
+	struct Color4 bg;
+	
+} __attribute__ ((packed)) GUIUnifiedVertex;
+
 
 
 
 
 typedef union GUIObject GUIObject;
+struct GUIManager;
 
 
 struct gui_vtbl {
@@ -60,6 +90,7 @@ typedef struct GUIHeader {
 	VEC(union GUIObject*) children;
 	GUIObject* parent;
 	
+	struct GUIManager* gm;
 	struct gui_vtbl* vt;
 	
 	GUI_OnClickFn onClick;
@@ -91,6 +122,40 @@ union GUIObject {
 	GUIColumnLayout columnLayout;
 };
 
+
+
+
+/*
+The general idea is this:
+The gui is held in a big tree. The tree is walked depth-first from the bottom up, resulting in
+a mostly-sorted list. A sort is then run on z-index to ensure proper order. The list is then
+rendered all at once through a single unified megashader using the geometry stage to expand
+points into quads.
+
+*/
+typedef struct GUIManager {
+	PCBuffer instVB;
+	GLuint vao;
+	
+	int elementCount;
+	GUIUnifiedVertex* elemBuffer;
+	
+	Vector2i screenSize;
+	
+	GUIObject* root;
+	
+	
+	
+	TextRes* font;
+	
+} GUIManager;
+
+
+
+void GUIManager_init(GUIManager* gm, int maxInstances);
+GUIManager* GUIManager_alloc(int maxInstances);
+RenderPass* GUIManager_CreateRenderPass(GUIManager* gm);
+PassDrawable* GUIManager_CreateDrawable(GUIManager* gm);
 
 
 

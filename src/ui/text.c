@@ -91,7 +91,7 @@ GUIText* guiTextNew(char* str, Vector2 pos, float size, char* fontname) {
 	
 	gt->font = getFont(fontname);
 	if(!gt->font) {
-		printf(stderr, "Failed to load font: %s\n", fontname);
+		fprintf(stderr, "Failed to load font: %s\n", fontname);
 	}
 	
 	if(str) {
@@ -137,10 +137,10 @@ void guiTextRender(GUIText* gt, GameState* gs, PassFrameParams* pfp) {
 
 	glDisable(GL_CULL_FACE);
 	
-	glActiveTexture(GL_TEXTURE0);
+	glActiveTexture(GL_TEXTURE0 + 28);
 	glexit("active texture");
 
-	glUniform1i(ts_ul, 0);
+	glUniform1i(ts_ul, 28);
 	glexit("text sampler uniform");
 // 	glBindTexture(GL_TEXTURE_2D, arial->textureID);
 	glBindTexture(GL_TEXTURE_2D, gt->font->textureID); // TODO check null ptr

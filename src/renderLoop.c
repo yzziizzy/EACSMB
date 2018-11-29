@@ -301,6 +301,13 @@ void shadingPass(GameState* gs, PassFrameParams* pfp) {
 	
 	gui_RenderAll(gs, pfp);
 	
+	
+	glDisable(GL_DEPTH_TEST);
+	RenderPass_preFrameAll(gs->guiPass, pfp);
+	RenderPass_renderAll(gs->guiPass, pfp->dp);
+	RenderPass_postFrameAll(gs->guiPass);
+	glEnable(GL_DEPTH_TEST);
+	
 	glDisable(GL_BLEND);
 	
 	query_queue_stop(&gs->queries.gui);

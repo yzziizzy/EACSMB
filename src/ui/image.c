@@ -24,6 +24,18 @@ ShaderProgram* imageProg;
 ShaderProgram* rtProg;
 
 
+
+
+
+
+	
+
+
+
+
+
+
+
 void gui_Image_Init(char* file) {
 	
 	char** paths; 

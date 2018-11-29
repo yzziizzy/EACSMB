@@ -92,7 +92,8 @@ void FreeFont(TextRes* res);
 
 void updateText(TextRenderInfo* tri, const char* str, int len, unsigned int* colors);
 
-
+float TextRes_charWidth(TextRes* font, char c);
+float TextRes_charTexOffset(TextRes* font, char c);
 
 TextRes* LoadSDFFont(char* path);
 TextRes* GenerateSDFFont(char* fontName, int size, char* chars);

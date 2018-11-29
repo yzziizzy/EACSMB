@@ -5,7 +5,8 @@
 #include <string.h>
 
 #include "window.h"
-#include "gui.h"
+#include "game.h"
+#include "texture.h"
 #include "hash.h"
 #include "log.h"
 
@@ -17,6 +18,189 @@ VEC(GUIObject*) gui_reap_queue;
 
 
 GUIObject* guiBaseHitTest(GUIObject* go, Vector2 testPos);
+
+
+static void preFrame(PassFrameParams* pfp, GUIManager* gm);
+static void draw(GUIManager* gm, GLuint progID, PassDrawParams* pdp);
+static void postFrame(GUIManager* gm);
+
+
+GUIManager* GUIManager_alloc(int maxInstances) {
+	GUIManager* gm;
+	pcalloc(gm);
+	
+	GUIManager_init(gm, maxInstances);
+	
+	return gm;
+}
+
+
+void GUIManager_init(GUIManager* gm, int maxInstances) {
+	
+	static VAOConfig vaoConfig[] = {
+		{0, 4, GL_FLOAT, 0, GL_FALSE}, // top, left, bottom, right
+		{0, 4, GL_FLOAT, 0, GL_FALSE}, // tlbr clipping planes
+		{0, 4, GL_UNSIGNED_BYTE, 0, GL_FALSE}, // tex indices 1&2, tex fade, gui type
+		{0, 4, GL_UNSIGNED_SHORT, 0, GL_TRUE}, // tex offset 1&2
+		{0, 4, GL_UNSIGNED_SHORT, 0, GL_TRUE}, // tex size 1&2
+		
+		{0, 4, GL_UNSIGNED_BYTE, 0, GL_TRUE}, // fg color
+		{0, 4, GL_UNSIGNED_BYTE, 0, GL_TRUE}, // bg color
+		
+		
+		{0, 0, 0}
+	};
+
+	
+	gm->vao = makeVAO(vaoConfig);
+	glBindVertexArray(gm->vao);
+	
+	int stride = calcVAOStride(0, vaoConfig);
+
+	PCBuffer_startInit(&gm->instVB, maxInstances * stride, GL_ARRAY_BUFFER);
+	updateVAO(0, vaoConfig); 
+	PCBuffer_finishInit(&gm->instVB);
+	
+	
+	
+	// ---- general properties ----
+	
+	gm->font = LoadSDFFont("Arial.sdf");
+	if(!gm->font) {
+		fprintf(stderr, "Failed to load font: %s\n", "Arial");
+	}
+	
+	
+}
+
+static void preFrame(PassFrameParams* pfp, GUIManager* gm) {
+	GUIUnifiedVertex* vmem = PCBuffer_beginWrite(&gm->instVB);
+	if(!vmem) {
+		printf("attempted to update invalid PCBuffer in GUIManager\n");
+		return;
+	}
+	
+	/* just a clipped box
+	*vmem = (GUIUnifiedVertex){
+		.pos = {50, 10, 900, 700},
+		.clip = {150, 110, 800, 600},
+		
+		.texIndex1 = 0,
+		.texIndex2 = 0,
+		.texFade = .5,
+		.guiType = 0, // window
+		
+		.texOffset1 = 0,
+		.texOffset2 = 0,
+		.texSize1 = 0,
+		.texSize2 = 0,
+		
+		.fg = {255, 128, 64, 255},
+		.bg = {64, 128, 255, 255},
+	};
+	*/
+	
+	float off = TextRes_charTexOffset(gm->font, 'A');
+	float wid = TextRes_charWidth(gm->font, 'A');
+	*vmem = (GUIUnifiedVertex){
+		.pos = {50, 10, 900, 700},
+		.clip = {150, 110, 800, 600},
+		
+		.texIndex1 = 0,
+		.texIndex2 = 0,
+		.texFade = .5,
+		.guiType = 1, // text
+		
+// 		.texOffset1 = { off * 65535.0, 0},
+		.texOffset1 = { off * 65535.0, 0},
+		.texOffset2 = {0, 0},
+// 		.texSize1 = { wid * 65535.0, 65535},
+		.texSize1 = { wid *  65535.0, 65535},
+		.texSize2 = {5000, 5000},
+		
+		.fg = {255, 128, 64, 255},
+		.bg = {64, 128, 255, 255},
+	};
+	
+	printf("FONT INFO: %f, %f\n", off, wid);
+	
+}
+
+static void draw(GUIManager* gm, GLuint progID, PassDrawParams* pdp) {
+	size_t offset;
+	
+// 	if(mdi->uniformSetup) {
+// 		(*mdi->uniformSetup)(mdi->data, progID);
+// 	}
+	GLuint ts_ul = glGetUniformLocation(progID, "fontTex");
+	
+	glUniform1i(ts_ul, 28);
+	glexit("text sampler uniform");
+// 	glBindTexture(GL_TEXTURE_2D, arial->textureID);
+// 	glBindTexture(GL_TEXTURE_2D, gt->font->textureID); // TODO check null ptr
+// 	glexit("bind texture");
+	
+	// ------- draw --------
+	
+	glBindVertexArray(gm->vao);
+	
+	PCBuffer_bind(&gm->instVB);
+	offset = PCBuffer_getOffset(&gm->instVB);
+	
+	
+	glDrawArrays(GL_POINTS, offset / sizeof(GUIUnifiedVertex), 1);
+	
+	glexit("");
+}
+
+
+
+static void postFrame(GUIManager* gm) {
+	PCBuffer_afterDraw(&gm->instVB);
+}
+
+
+
+
+
+
+RenderPass* GUIManager_CreateRenderPass(GUIManager* gm) {
+	
+	RenderPass* rp;
+	PassDrawable* pd;
+
+	pd = GUIManager_CreateDrawable(gm);
+
+	rp = calloc(1, sizeof(*rp));
+	RenderPass_init(rp);
+	RenderPass_addDrawable(rp, pd);
+	//rp->fboIndex = LIGHTING;
+	
+	return rp;
+}
+
+
+PassDrawable* GUIManager_CreateDrawable(GUIManager* gm) {
+	
+	PassDrawable* pd;
+	static ShaderProgram* prog = NULL;
+	
+	if(!prog) {
+		prog = loadCombinedProgram("guiUnified");
+		glexit("");
+	}
+	
+	
+	pd = Pass_allocDrawable("GUIManager");
+	pd->data = gm;
+	pd->preFrame = preFrame;
+	pd->draw = (PassDrawFn)draw;
+	pd->postFrame = postFrame;
+	pd->prog = prog;
+	
+	return pd;;
+}
+
 
 
 

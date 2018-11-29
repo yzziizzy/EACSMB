@@ -157,9 +157,10 @@ config. See `texgen.[ch]`
 * Falling rain and snow.
 	* Make a special version of Emitter that only spawns in rage of the camera, but consistently.
 * Mipmapping in decals.
+* 3D billboards/text/gui
 * Dynamic LOD
 * Easy, cheap ephemeral meshes, decal and effects that can automatically spawn on terrain at certain zoom levels. Grass, dust, flowers, decorative decals, etc. They should not be in the CES as they are not real game items. 
-
+* Better gbuffer packing, depends on shader #include support.
 
 ## Sound
 * Finish API.
@@ -189,6 +190,10 @@ config. See `texgen.[ch]`
 * More features in building generator.
 * Track GPU memory usage as much as possible.
 
+## UI
+* Config system
+* Text boxes with wrapping
+* SDF calculation on the GPU
 
 
 # Reference

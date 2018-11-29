@@ -9,7 +9,7 @@
 #include "../staticMesh.h" 
 #include "../shader.h" 
 #include "../pass.h" 
-#include "../gui.h" 
+#include "../game.h" 
 
 
 

@@ -12,6 +12,7 @@
 #include "world.h"
 #include "shadowMap.h"
 #include "window.h"
+#include "gui.h"
 
 
 #include "component.h"
@@ -86,6 +87,9 @@ typedef struct GameState {
 	
 	Scene scene;
 	World* world;
+	
+	GUIManager* gui;
+	RenderPass* guiPass;
 	
 	UniformBuffer perViewUB;
 	UniformBuffer perFrameUB;

@@ -75,6 +75,8 @@ GUIColumnLayout* gclTest;
 
 GUIEdit* geditTest;
 
+// GUIImageButton* gibTest;
+
 GUIRenderTarget* grtTest;
 GUIBuilderControl* gbcTest;
 GUITexBuilderControl* texbuilder;
@@ -114,6 +116,9 @@ void initGame(XStuff* xs, GameState* gs) {
 	
 	glerr("left over error on game init");
 	
+	
+	gs->gui = GUIManager_alloc(4096);
+	gs->guiPass = GUIManager_CreateRenderPass(gs->gui);
 	
 	
 #ifndef DISABLE_SOUND
@@ -195,15 +200,16 @@ void initGame(XStuff* xs, GameState* gs) {
 	
 	gs->screen.wh.x = (float)ww;
 	gs->screen.wh.y = (float)wh;
+	gs->gui->screenSize = (Vector2i){ww, wh};
 	
 	gs->screen.aspect = gs->screen.wh.x / gs->screen.wh.y;
 	gs->screen.resized = 0;
 	
 	gs->defaultInputHandlers = calloc(1, sizeof(*gs->defaultInputHandlers));
-	gs->defaultInputHandlers->dragStop = main_drag_handler;
-	gs->defaultInputHandlers->keyUp = main_key_handler;
-	gs->defaultInputHandlers->perFrame = main_perframe_handler;
-	gs->defaultInputHandlers->click = main_click_handler;
+	gs->defaultInputHandlers->dragStop = (void*)main_drag_handler;
+	gs->defaultInputHandlers->keyUp = (void*)main_key_handler;
+	gs->defaultInputHandlers->perFrame = (void*)main_perframe_handler;
+	gs->defaultInputHandlers->click = (void*)main_click_handler;
 	InputFocusStack_PushTarget(&gs->ifs, gs, defaultInputHandlers);
 	
 	//printf("w: %d, h: %d\n", ww, wh);
@@ -314,6 +320,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	gtSelectionDisabled = guiTextNew("", (Vector2){0.5,0.1}, 6.0f, "Arial");
 	
 	
+//	gibTest = guiImageButtonNew((Vector2){0.5,0.1}, (Vector2){0.1,0.1}, 7.0f, "foo");
 
 // 	gwTest = guiWindowNew((Vector2){.2, .2}, (Vector2){.7, .7}, 0);
 // 	gwTest->header.onClick = testClick;
@@ -964,6 +971,7 @@ void checkResize(XStuff* xs, GameState* gs) {
 		
 		gs->screen.wh.x = (float)xs->winAttr.width;
 		gs->screen.wh.y = (float)xs->winAttr.height;
+		gs->gui->screenSize = (Vector2i){xs->winAttr.width, xs->winAttr.height};
 		
 		gs->screen.aspect = gs->screen.wh.x / gs->screen.wh.y;
 		
