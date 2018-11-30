@@ -12,6 +12,9 @@
 
 #include "utilities.h"
 
+// FontConfig
+#include "text/fcfg.h"
+
 
 VEC(GUIObject*) gui_list; 
 VEC(GUIObject*) gui_reap_queue; 
@@ -410,4 +413,208 @@ void guiRemoveClient(GUIObject* parent, GUIObject* child) {
 	if(parent->h.vt->RemoveClient)
 		parent->h.vt->RemoveClient(parent, child);
 } 
+
+
+
+
+
+
+
+
+
+
+
+// new font rendering info
+static char* defaultCharset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 `~!@#$%^&*()_+|-=\\{}[]:;<>?,./'\"";
+
+// 16.16 fixed point to float conversion
+static float f2f(uint32_t i) {
+	return (float)(i >> 6);
+}
+
+
+static void blit(
+	int src_x, int src_y, int dst_x, int dst_y, int w, int h,
+	int src_w, int dst_w, unsigned char* src, unsigned char* dst) {
+	
+	
+	int y, x, s, d;
+	
+	// this may be upside down...
+	for(y = 0; y < h; y++) {
+		for(x = 0; x < w; x++) {
+			s = ((y + src_y) * src_w) + src_x + x;
+			d = ((y + dst_y) * dst_w) + dst_x + x;
+			
+			dst[d] = src[s];
+		}
+	}
+}
+
+static FT_Library ftLib = NULL;
+	
+
+static void checkFTlib() {
+	if(!ftLib) {
+		err = FT_Init_FreeType(&ftLib);
+		if(err) {
+			fprintf(stderr, "Could not initialize FreeType library.\n");
+			return NULL;
+		}
+	}
+}
+
+
+static float dist(int a, int b) {
+	return a*a + b*b;
+}
+static float dmin(int a, int b, float d) {
+	return fmin(dist(a, b), d);
+}
+
+static int boundedOffset(int x, int y, int ox, int oy, int w, int h) {
+	int x1 = x + ox;
+	int y1 = y + oy;
+	if(x1 < 0 || y1 < 0 || x1 >= w || y1 >= h) return -1;
+	return x1 + (w * y1);
+}
+
+static uint8_t sdfEncode(float d, int inside, float maxDist) {
+	int o;
+	d = sqrt(d);
+	float norm = d / maxDist;
+	if(inside) norm = -norm;
+	
+	o = (norm * 192) + 64;
+	
+	return o < 0 ? 0 : (o > 255 ? 255 : o);
+}
+
+void CalcSDF_Software(FontGen* fg, GlyphBitmap* gb) {
+	
+	int searchSize;
+	int x, y, ox, oy, sx, sy;
+	int dw, dh;
+	
+	uint8_t* input;
+	uint8_t* output;
+	
+	float d, maxDist;
+	
+	searchSize = fg->oversample * fg->magnitude;
+	maxDist = 0.5 * searchSize;
+	dw = gb->dw;
+	dh = gb->dh;
+	
+	// this is wrong
+	gb->sdfw = (dw / (gb->oversample)); 
+	gb->sdfh = (dh / (gb->oversample)); 
+	
+	fg->sdfGlyph = output = malloc(gb->sdfGlyphSize.x * gb->sdfGlyphSize.y * sizeof(uint8_t));
+	input = fg->rawGlyph;
+	
+	
+	for(y = 0; y < gb->sdfh; y++) {
+		for(x = 0; x < gb->sdfw; x++) {
+			int sx = x * gb->oversample;
+			int sy = y * gb->oversample;
+			//printf(".");
+			// value right under the center of the pixel, to determine if we are inside
+			// or outside the glyph
+			int v = data[sx + (sy * dw)];
+			
+			d = 999999.9;
+			
+			
+			for(oy = -searchSize / 2; oy < searchSize; oy++) {
+				for(ox = -searchSize / 2; ox < searchSize; ox++) {
+					int off = boundedOffset(sx, sy, ox, oy, dw, dh);
+					if(off >= 0 && data[off] != v) 
+						d = dmin(ox, oy, d);
+				}
+			}
+			
+			int q = sdfEncode(d, v, maxDist);
+			if(q) { 
+// 				gb->sdfdims.left = MIN(gb->sdfdims.left, x);
+// 				gb->sdfdims.bottom = MIN(gb->sdfdims.bottom, y);
+// 				gb->sdfdims.right = MAX(gb->sdfdims.right, x);
+// 				gb->sdfdims.top = MAX(gb->sdfdims.top, y);
+			}
+			
+			output[x + (y * gb->sdfw)] = q;
+		}
+	}
+}
+
+
+
+
+static void addChar(FontManager* fm, Font* f, int code, int fontSize, char italic, char bold) {
+	FontGen* fg;
+	FT_Error err;
+	FT_GlyphSlot slot;
+	
+	pcalloc(fg);
+	fg->code = code;
+	fg->italic = italic;
+	fg->bold = bold;
+	
+	int rawSize = fontSize * fm->oversample;
+	
+	
+	err = FT_Set_Pixel_Sizes(f->fontFace, 0, rawSize);
+	if(err) {
+		fprintf(stderr, "Could not set pixel size to %dpx.\n", rawSize);
+		free(fg);
+		return;
+	}
+	
+	
+	err = FT_Load_Char(f->fontFace, code, FT_LOAD_DEFAULT | FT_LOAD_MONOCHROME);
+	f2f(slot->metrics.horiBearingY);
+	
+	// draw character to freetype's internal buffer and copy it here
+	FT_Load_Char(f->fontFace, code, FT_LOAD_RENDER);
+	// slot is a pointer
+	slot = fontFace->glyph;
+	
+	fg->rawGlyphSize.x = slot->metrics.width >> 6; 
+	fg->rawGlyphSize.y = slot->metrics.height >> 6; 
+	
+	fg->rawGlyph = malloc(sizeof(*fg->rawGlyph) * fg->rawGlyphSize.x * fg->rawGlyphSize.y);
+	
+	blit(
+		0, 0, // src x and y offset for the image
+		0, 0, // dst offset
+		fg->rawGlyphSize.x, fg->rawGlyphSize.y, // width and height
+		slot->bitmap.pitch, fg->rawGlyphSize.x, // src and dst row widths
+		slot->bitmap.buffer, // source
+		fg->rawGlyph); // destination
+	
+	
+	
+	
+	
+	
+	
+	
+}
+
+static void addFont(FontManager* fm) {
+	Font* f;
+	int len = strlen(defaultCharset);
+	
+	int fontSize = 8; // pixels
+	
+	for(int i = 0; i < len; i++) {
+		addChar(fm, f, defaultCharset[i], fontSize, 0, 0);
+		//addChar(fm, defaultCharset[i], 1, 0);
+		//addChar(fm, defaultCharset[i], 0, 1);
+		//addChar(fm, defaultCharset[i], 1, 1);
+	}
+	
+}
+
+
 

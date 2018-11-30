@@ -124,6 +124,91 @@ union GUIObject {
 
 
 
+// ----------- new font rendering info --------------
+
+
+
+
+#include <ft2build.h>
+#include FT_FREETYPE_H
+
+
+struct charInfo {
+	int code;
+	
+	// final output texture coordinates
+	Vector2i texelOffset;
+	Vector2i texelSize; // size of the character data in texels
+	Vector2 texNormOffset; // normalized texture coordinates
+	Vector2 texNormSize; 
+	
+};
+
+
+
+// generation info for a single character
+
+
+
+typedef struct Font {
+	FT_Face fontFace;
+	
+	int charsLen;
+	charInfo* regular;
+	charInfo* italic;
+	charInfo* bold;
+	
+	// TODO: kerning info
+	
+} Font;
+
+
+typedef struct FontGen {
+	FT_Face fontFace;
+	
+	int code;
+	char italic;
+	char bold;
+	
+	
+	// the raw glyph is oversampled by FontManager.oversample times
+	
+	// metrics for the raw glyph, in pixels
+	uint8_t* rawGlyph;
+	Vector2i rawGlyphSize; // size of the raw bitmap
+	Vector rawOrigin; // location of the origin in the raw bitmap, in pixels
+	AABB2 rawBounds; // bounding box of the character data in the raw bitmap, in pixels
+	float rawAdvance; // horizontal advance, in pixels
+	
+	// the sdf is smaller than the raw glyph
+	
+	// metrics for the sdf glyph, in pixels
+	uint8_t* sdfGlyph;
+	Vector2i sdfGlyphSize; // size of the sdf bitmap
+	Vector sdfOrigin; // location of the origin in the sdf bitmap, in pixels
+	AABB2 sdfBounds; // bounding box of the character data in the sdf bitmap, in pixels
+	float sdfAdvance; // horizontal advance, in pixels
+	
+	
+	// final texture data
+	struct charInfo charinfo;
+} FontGen;
+
+
+typedef struct FontManager {
+	HashTable(Font*) fonts;
+	
+	// SDF generation 
+	VEC(FontGen*) gen;
+	
+	// SDF config
+	int oversample;
+	int magnitude;
+	
+	
+} FontManager;
+
+
 
 /*
 The general idea is this:
