@@ -74,13 +74,15 @@ void* PCBuffer_beginWrite(PCBuffer* b) {
 
 
 void PCBuffer_afterDraw(PCBuffer* b) {
-	b->nextRegion = (b->nextRegion + 1) % PC_BUFFER_DEPTH; 
 	
 	if(b->fences[b->nextRegion]) glDeleteSync(b->fences[b->nextRegion]);
 	glexit("");
 	
 	b->fences[b->nextRegion] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 	glexit("");
+	
+	b->nextRegion = (b->nextRegion + 1) % PC_BUFFER_DEPTH; 
+	
 	
 }
 
@@ -95,11 +97,18 @@ void PCBuffer_bind(PCBuffer* b) {
 static int waitSync(GLsync id) {
 	GLenum ret;
 	if(!id || !glIsSync(id)) return 1;
+	int n = 0;
 	while(1) {
 		ret = glClientWaitSync(id, GL_SYNC_FLUSH_COMMANDS_BIT, 1);
 		glexit("");
 		if(ret == GL_ALREADY_SIGNALED || ret == GL_CONDITION_SATISFIED)
 			return 0;
+		
+		n++;
+		if(n > 6) {
+			printf("\n\nserious pipeline stall in pcBuffer!\n\n");
+			int z = *((int*)0); 
+		}
 	}
 }
 

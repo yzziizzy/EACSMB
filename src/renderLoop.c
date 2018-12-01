@@ -316,7 +316,7 @@ void shadingPass(GameState* gs, PassFrameParams* pfp) {
 
 
 void selectionPass(XStuff* xs, GameState* gs, InputState* is, PassFrameParams* pfp) {
-
+	
 	glexit("");
 	gs->lastSelectionFrame = gs->frameCount; 
 	

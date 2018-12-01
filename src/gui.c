@@ -80,6 +80,11 @@ void GUIManager_init(GUIManager* gm, int maxInstances) {
 	
 	// ---- general properties ----
 	
+	gm->elementCount = 0;
+	gm->elementAlloc = 64;
+	gm->elemBuffer = calloc(1, sizeof(*gm->elemBuffer) * gm->elementAlloc);
+	
+	
 	gm->font = LoadSDFFont("Arial.sdf");
 	if(!gm->font) {
 		fprintf(stderr, "Failed to load font: %s\n", "Arial");
@@ -88,7 +93,8 @@ void GUIManager_init(GUIManager* gm, int maxInstances) {
 	
 	pcalloc(gm->fm);
 	gm->fm->oversample = 16;
-	addFont(gm->fm, "Helvetica");
+// 	addFont(gm->fm, "Helvetica");
+	addFont(gm->fm, "Arial");
 // 	addFont(gm->fm, "Impact");
 // 	addFont(gm->fm, "Modern");
 // 	addFont(gm->fm, "Times New Roman");
@@ -100,7 +106,91 @@ void GUIManager_init(GUIManager* gm, int maxInstances) {
 //	addFont(gm->fm, "Lucida Blackletter");
 	FontManager_createAtlas(gm->fm);
 	
+	///////////////////////////////
+	
+	glGenTextures(1, &gm->atlasID);
+	glBindTexture(GL_TEXTURE_2D, gm->atlasID);
+	glerr("bind font tex");
+	
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0); // no mipmaps for this; it'll get fucked up
+	glerr("param font tex");
+	
+//	printf("text width: %d, height: %d \n", tex_width, height);
+//	printf("text width 3: %d, height: %d \n", width, height);
+	
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, gm->fm->atlasSize, gm->fm->atlasSize, 0, GL_RED, GL_UNSIGNED_BYTE, gm->fm->atlas);
+	glerr("load font tex");
+	
+	glBindTexture(GL_TEXTURE_2D, 0);
+	
+	//////////////////////////////////
+	
+	
 }
+
+
+
+
+static void writeCharacterGeom(GUIUnifiedVertex* v, struct charInfo* ci, float sz, float adv) {
+	
+	float offx = ci->texNormOffset.x;//TextRes_charTexOffset(gm->font, 'A');
+	float offy = ci->texNormOffset.y;//TextRes_charTexOffset(gm->font, 'A');
+	float widx = ci->texNormSize.x;//TextRes_charWidth(gm->font, 'A');
+	float widy = ci->texNormSize.y;//TextRes_charWidth(gm->font, 'A');
+	
+	v->pos.t = 200 - ci->topLeftOffset.y * sz;
+	v->pos.l= 200 + adv + ci->topLeftOffset.x * sz;
+	v->pos.b = 200 + ci->size.y * sz - ci->topLeftOffset.y * sz;
+	v->pos.r = 200 + adv + ci->size.x * sz + ci->topLeftOffset.x * sz;
+	
+	v->guiType = 1; // text
+	
+	v->texOffset1.x = offx * 65535.0;
+	v->texOffset1.y = offy * 65535.0;
+	v->texSize1.x = widx *  65535.0;
+	v->texSize1.y = widy * 65535.0;
+}
+
+
+void GUIManager_checkElemBuffer(GUIManager* gm) {
+	if(gm->elementAlloc < gm->elementCount + 1) {
+		gm->elementAlloc *= 2;
+		gm->elemBuffer = realloc(gm->elemBuffer, sizeof(*gm->elemBuffer) * gm->elementCount);
+	}
+}
+
+GUITextArea_draw(GUIManager* gm, GUIFont* f) {
+	
+	int n = gm->elementCount;
+	GUIUnifiedVertex* v = gm->elemBuffer + n;
+	
+	char* txt = "foobar";
+	int len = strlen(txt);
+	
+	float adv = 0.0;
+	float size = 3;
+	
+	for(int i = 0; i < len; i++) {
+		struct charInfo* ci = &f->regular[txt[i]];
+		writeCharacterGeom(v, ci, size, adv);
+		
+		adv += ci->advance * size; // BUG: needs sdfDataSize added in?
+		
+		v->fg = (struct Color4){255, 128, 64, 255},
+		v++;
+		gm->elementCount++;
+	}
+	
+	
+	
+}
+
+
+
 
 static void preFrame(PassFrameParams* pfp, GUIManager* gm) {
 	GUIUnifiedVertex* vmem = PCBuffer_beginWrite(&gm->instVB);
@@ -108,6 +198,17 @@ static void preFrame(PassFrameParams* pfp, GUIManager* gm) {
 		printf("attempted to update invalid PCBuffer in GUIManager\n");
 		return;
 	}
+	
+	
+	gm->elementCount = 0;
+	
+	GUIFont* f = gm->fm->helv;
+	
+	GUITextArea_draw(gm, f);
+
+	memcpy(vmem, gm->elemBuffer, gm->elementCount * sizeof(*gm->elemBuffer));
+		
+	
 	
 	/* just a clipped box
 	*vmem = (GUIUnifiedVertex){
@@ -128,11 +229,17 @@ static void preFrame(PassFrameParams* pfp, GUIManager* gm) {
 		.bg = {64, 128, 255, 255},
 	};
 	*/
-	
-	float off = TextRes_charTexOffset(gm->font, 'A');
-	float wid = TextRes_charWidth(gm->font, 'A');
+	/*
+	float off = gm->fm->helv->regular['I'].texNormOffset.x;//TextRes_charTexOffset(gm->font, 'A');
+	float offy = gm->fm->helv->regular['I'].texNormOffset.y;//TextRes_charTexOffset(gm->font, 'A');
+	float wid = gm->fm->helv->regular['I'].texNormSize.x;//TextRes_charWidth(gm->font, 'A');
+	float widy = gm->fm->helv->regular['I'].texNormSize.y;//TextRes_charWidth(gm->font, 'A');
 	*vmem = (GUIUnifiedVertex){
-		.pos = {50, 10, 900, 700},
+		.pos = {200, 200, 
+			200 + gm->fm->helv->regular['I'].size.y * 5,
+			200 + gm->fm->helv->regular['I'].size.x * 5
+			
+		},
 		.clip = {150, 110, 800, 600},
 		
 		.texIndex1 = 0,
@@ -141,15 +248,17 @@ static void preFrame(PassFrameParams* pfp, GUIManager* gm) {
 		.guiType = 1, // text
 		
 // 		.texOffset1 = { off * 65535.0, 0},
-		.texOffset1 = { off * 65535.0, 0},
+		.texOffset1 = { off * 65535.0, offy * 65535.0},
 		.texOffset2 = {0, 0},
 // 		.texSize1 = { wid * 65535.0, 65535},
-		.texSize1 = { wid *  65535.0, 65535},
+		.texSize1 = { wid *  65535.0, widy * 65535.0},
 		.texSize2 = {5000, 5000},
 		
 		.fg = {255, 128, 64, 255},
 		.bg = {64, 128, 255, 255},
 	};
+	
+	*/
 	
 	//printf("FONT INFO: %f, %f\n", off, wid);
 	
@@ -163,11 +272,12 @@ static void draw(GUIManager* gm, GLuint progID, PassDrawParams* pdp) {
 // 	}
 	GLuint ts_ul = glGetUniformLocation(progID, "fontTex");
 	
-	glUniform1i(ts_ul, 28);
+	glActiveTexture(GL_TEXTURE0 + 29);
+	glUniform1i(ts_ul, 29);
 	glexit("text sampler uniform");
-// 	glBindTexture(GL_TEXTURE_2D, arial->textureID);
-// 	glBindTexture(GL_TEXTURE_2D, gt->font->textureID); // TODO check null ptr
-// 	glexit("bind texture");
+ 	glBindTexture(GL_TEXTURE_2D, gm->atlasID);
+//  	glBindTexture(GL_TEXTURE_2D, gt->font->textureID); // TODO check null ptr
+ 	glexit("bind texture");
 	
 	// ------- draw --------
 	
@@ -177,7 +287,7 @@ static void draw(GUIManager* gm, GLuint progID, PassDrawParams* pdp) {
 	offset = PCBuffer_getOffset(&gm->instVB);
 	
 	
-	glDrawArrays(GL_POINTS, offset / sizeof(GUIUnifiedVertex), 1);
+	glDrawArrays(GL_POINTS, offset / sizeof(GUIUnifiedVertex), gm->elementCount);
 	
 	glexit("");
 }
@@ -750,6 +860,9 @@ static void addFont(FontManager* fm, char* name) {
 	GUIFont* f;
 	FT_Error err;
 	FT_Face fontFace;
+	
+	//defaultCharset = "I";
+	
 	int len = strlen(defaultCharset);
 	
 	int fontSize = 8; // pixels
@@ -771,6 +884,7 @@ static void addFont(FontManager* fm, char* name) {
 	}
 	
 	f = GUIFont_alloc(name);
+	fm->helv = f; 
 	
 	for(int i = 0; i < len; i++) {
 		printf("calc: '%s' %c\n", name, defaultCharset[i]);
@@ -874,8 +988,14 @@ void FontManager_createAtlas(FontManager* fm) {
 		
 		// BUG: wrong? needs magnitude?
 		c->advance = gen->rawAdvance / (float)gen->oversample;
-		c->topLeftOffset.x = (gen->rawBearing.x / (float)gen->oversample) + (float)gen->sdfBounds.min.x;
-		c->topLeftOffset.x = (gen->rawBearing.y / (float)gen->oversample) - (float)gen->sdfBounds.min.y;
+		c->topLeftOffset.x = (gen->rawBearing.x / (float)gen->oversample);// + (float)gen->sdfBounds.min.x;
+		c->topLeftOffset.y = (gen->rawBearing.y / (float)gen->oversample);// - (float)gen->sdfBounds.min.y;
+		c->size.x = gen->sdfDataSize.x;
+		c->size.y = gen->sdfDataSize.y;
+		
+		printf("toff: %f, %f \n", c->texNormOffset.x, c->texNormOffset.y);
+		printf("tsize: %f, %f \n", c->texNormSize.x, c->texNormSize.y);
+		printf("ltoff: %f, %f \n", c->topLeftOffset.x, c->topLeftOffset.y);
 		
 		// advance the write offset
 		rowWidth += gen->sdfDataSize.x;

@@ -105,14 +105,15 @@ void main() {
 		
 		// PCF
 		vec2 texelSz = 1.0 / textureSize(sShadow, 0);
-		for(int x = -2; x <= 2; x++) {
-			for(int y = -2; y <= 2; y++) {
+		int sz = 1;
+		for(int x = -sz; x <= sz; x++) {
+			for(int y = -sz; y <= sz; y++) {
 				float sf = texture(sShadow, l_pos.xy + (vec2(x, y) * texelSz)).r;
 				shadow_factor += l_current - bias > sf ? 1 : 0;
 			}
 		}
 		
-		shadow_factor = smoothstep(0, 1, shadow_factor / 25);
+		shadow_factor = smoothstep(0, 1, shadow_factor / ((sz + sz + 1)*(sz + sz + 1)));
 		
 		if(l_pos.x > 1 || l_pos.y > 1 || l_pos.x < 0 || l_pos.y < 0) {
 			shadow_factor = 0;

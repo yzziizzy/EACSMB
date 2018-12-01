@@ -104,12 +104,14 @@ typedef struct GUIHeader {
 
 
 
+
 #include "ui/window.h"
 #include "ui/text.h"
 #include "ui/simpleWindow.h"
 #include "ui/image.h"
 #include "ui/edit.h"
 #include "ui/columnLayout.h"
+
 
 
 union GUIObject {
@@ -144,7 +146,8 @@ struct charInfo {
 	
 	// typographic info
 	float advance; // horizonatal distance to advance after this char
-	Vector topLeftOffset; // offset from the baseline to the top left vertex of the quad
+	Vector2 topLeftOffset; // offset from the baseline to the top left vertex of the quad
+	Vector2 size;
 	
 };
 
@@ -217,6 +220,10 @@ typedef struct FontManager {
 	uint8_t* atlas;
 	int atlasSize;
 	
+	
+	// temp hacky stuff
+	GUIFont* helv;
+	
 } FontManager;
 
 void FontManager_createAtlas(FontManager* fm);
@@ -234,6 +241,7 @@ typedef struct GUIManager {
 	GLuint vao;
 	
 	int elementCount;
+	int elementAlloc;
 	GUIUnifiedVertex* elemBuffer;
 	
 	Vector2i screenSize;
@@ -243,14 +251,52 @@ typedef struct GUIManager {
 	FontManager* fm;
 	TextRes* font;
 	
+	// temp 
+	GLuint atlasID;
+	
 } GUIManager;
 
 
 
 void GUIManager_init(GUIManager* gm, int maxInstances);
 GUIManager* GUIManager_alloc(int maxInstances);
+
+void GUIManager_checkElemBuffer(GUIManager* gm);
+
 RenderPass* GUIManager_CreateRenderPass(GUIManager* gm);
 PassDrawable* GUIManager_CreateDrawable(GUIManager* gm);
+
+
+
+
+
+// --------------temp----------------
+typedef struct GUITextArea {
+	GUIHeader header;
+	
+	
+	char* current;
+	
+	Vector pos;
+	float size;
+	
+	// align, height, width wrapping
+	
+	GUIFont* font;
+//	TextRenderInfo* strRI;
+	
+	
+} GUITextArea;
+// ^^^^^^^^^^^^^temp^^^^^^^^^^^^^^^^
+
+
+
+
+
+
+
+
+
 
 
 

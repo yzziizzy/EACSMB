@@ -208,8 +208,14 @@ void main(void) {
 	}
 	else if(gs_guiType == 1) { // text
 		
-		float d = texture(fontTex, gs_tex).r;
+		float dd;
+		float d = dd = texture(fontTex, gs_tex).r;
+		
+// 		out_Color = vec4(d,d,d, 1.0); 
+// 		return;
+		
 		float a;
+		
 		
 		if(d > .75) {
 			d = 1;// (d - .75) * -4;
@@ -219,13 +225,18 @@ void main(void) {
 		}
 		d = 1 - d;
 
-		a = smoothstep(0.2, 1.0, abs(d));
+		a = smoothstep(0.55, 0.65, abs(d));
+// 		a = step(0.65, abs(d));
 		
 		if(a < 0.01) {
 			out_Color = vec4(gs_tex.xy, 0, 1);
-			return;
+			return; // show the overdraw
+// 			discard;
 		};
-		out_Color = vec4(gs_fg_color.rgb, a); 
+		
+		//if(dd < .35) discard;
+// 		out_Color = vec4(gs_fg_color.rgb, a); 
+		out_Color = vec4(.9,.9,.9, a); 
 		return;
 	}
 	
