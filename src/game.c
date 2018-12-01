@@ -119,7 +119,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	
 	gs->gui = GUIManager_alloc(4096);
 	gs->guiPass = GUIManager_CreateRenderPass(gs->gui);
-	
+
 	
 #ifndef DISABLE_SOUND
 	gs->sound = SoundManager_alloc();

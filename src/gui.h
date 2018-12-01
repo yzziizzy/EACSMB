@@ -137,10 +137,14 @@ struct charInfo {
 	int code;
 	
 	// final output texture coordinates
-	Vector2i texelOffset;
+	Vector2i texelOffset; // from the top left
 	Vector2i texelSize; // size of the character data in texels
 	Vector2 texNormOffset; // normalized texture coordinates
 	Vector2 texNormSize; 
+	
+	// typographic info
+	float advance; // horizonatal distance to advance after this char
+	Vector topLeftOffset; // offset from the baseline to the top left vertex of the quad
 	
 };
 
@@ -150,21 +154,22 @@ struct charInfo {
 
 
 
-typedef struct Font {
-	FT_Face fontFace;
+typedef struct GUIFont {
+	
+	char* name;
 	
 	int charsLen;
-	charInfo* regular;
-	charInfo* italic;
-	charInfo* bold;
+	struct charInfo* regular;
+	struct charInfo* italic;
+	struct charInfo* bold;
 	
 	// TODO: kerning info
 	
-} Font;
+} GUIFont;
 
 
 typedef struct FontGen {
-	FT_Face fontFace;
+	GUIFont* font;
 	
 	int code;
 	char italic;
@@ -172,12 +177,14 @@ typedef struct FontGen {
 	
 	
 	// the raw glyph is oversampled by FontManager.oversample times
+	int oversample;
+	int magnitude;
 	
 	// metrics for the raw glyph, in pixels
 	uint8_t* rawGlyph;
 	Vector2i rawGlyphSize; // size of the raw bitmap
-	Vector rawOrigin; // location of the origin in the raw bitmap, in pixels
-	AABB2 rawBounds; // bounding box of the character data in the raw bitmap, in pixels
+
+	Vector rawBearing; // distance from the origin to the top left corner of the glyph
 	float rawAdvance; // horizontal advance, in pixels
 	
 	// the sdf is smaller than the raw glyph
@@ -185,8 +192,10 @@ typedef struct FontGen {
 	// metrics for the sdf glyph, in pixels
 	uint8_t* sdfGlyph;
 	Vector2i sdfGlyphSize; // size of the sdf bitmap
-	Vector sdfOrigin; // location of the origin in the sdf bitmap, in pixels
-	AABB2 sdfBounds; // bounding box of the character data in the sdf bitmap, in pixels
+	AABB2 sdfBounds; // bounding box of the non-empty data in the sdf bitmap, in pixels
+	Vector2i sdfDataSize; // size of the non-empty sdf data in the bitmap
+	
+	Vector sdfBearing; // distance from the origin to the top left corner of the clipped sdf data
 	float sdfAdvance; // horizontal advance, in pixels
 	
 	
@@ -196,7 +205,7 @@ typedef struct FontGen {
 
 
 typedef struct FontManager {
-	HashTable(Font*) fonts;
+	HashTable(GUIFont*) fonts;
 	
 	// SDF generation 
 	VEC(FontGen*) gen;
@@ -205,10 +214,12 @@ typedef struct FontManager {
 	int oversample;
 	int magnitude;
 	
+	uint8_t* atlas;
+	int atlasSize;
 	
 } FontManager;
 
-
+void FontManager_createAtlas(FontManager* fm);
 
 /*
 The general idea is this:
@@ -229,8 +240,7 @@ typedef struct GUIManager {
 	
 	GUIObject* root;
 	
-	
-	
+	FontManager* fm;
 	TextRes* font;
 	
 } GUIManager;

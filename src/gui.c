@@ -15,6 +15,9 @@
 // FontConfig
 #include "text/fcfg.h"
 
+// for sdf debugging
+#include "dumpImage.h"
+
 
 VEC(GUIObject*) gui_list; 
 VEC(GUIObject*) gui_reap_queue; 
@@ -26,6 +29,15 @@ GUIObject* guiBaseHitTest(GUIObject* go, Vector2 testPos);
 static void preFrame(PassFrameParams* pfp, GUIManager* gm);
 static void draw(GUIManager* gm, GLuint progID, PassDrawParams* pdp);
 static void postFrame(GUIManager* gm);
+
+
+
+
+// temp
+static void addFont(FontManager* fm, char* name);
+
+
+
 
 
 GUIManager* GUIManager_alloc(int maxInstances) {
@@ -73,6 +85,20 @@ void GUIManager_init(GUIManager* gm, int maxInstances) {
 		fprintf(stderr, "Failed to load font: %s\n", "Arial");
 	}
 	
+	
+	pcalloc(gm->fm);
+	gm->fm->oversample = 16;
+	addFont(gm->fm, "Helvetica");
+// 	addFont(gm->fm, "Impact");
+// 	addFont(gm->fm, "Modern");
+// 	addFont(gm->fm, "Times New Roman");
+// 	addFont(gm->fm, "Century");
+// 	addFont(gm->fm, "Courier New");
+// 	addFont(gm->fm, "Copperplate");
+//	addFont(gm->fm, "Mardian Demo");
+//	addFont(gm->fm, "Champignon Medium");
+//	addFont(gm->fm, "Lucida Blackletter");
+	FontManager_createAtlas(gm->fm);
 	
 }
 
@@ -125,7 +151,7 @@ static void preFrame(PassFrameParams* pfp, GUIManager* gm) {
 		.bg = {64, 128, 255, 255},
 	};
 	
-	printf("FONT INFO: %f, %f\n", off, wid);
+	//printf("FONT INFO: %f, %f\n", off, wid);
 	
 }
 
@@ -429,7 +455,12 @@ static char* defaultCharset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVW
 
 // 16.16 fixed point to float conversion
 static float f2f(uint32_t i) {
-	return (float)(i >> 6);
+	return ((double)(i) / 65536.0);
+}
+
+// 26.6 fixed point to float conversion
+static float f2f26_6(uint32_t i) {
+	return ((double)(i) / 64.0);
 }
 
 
@@ -455,6 +486,7 @@ static FT_Library ftLib = NULL;
 	
 
 static void checkFTlib() {
+	FT_Error err;
 	if(!ftLib) {
 		err = FT_Init_FreeType(&ftLib);
 		if(err) {
@@ -490,7 +522,7 @@ static uint8_t sdfEncode(float d, int inside, float maxDist) {
 	return o < 0 ? 0 : (o > 255 ? 255 : o);
 }
 
-void CalcSDF_Software(FontGen* fg, GlyphBitmap* gb) {
+void CalcSDF_Software_(FontGen* fg) {
 	
 	int searchSize;
 	int x, y, ox, oy, sx, sy;
@@ -503,54 +535,107 @@ void CalcSDF_Software(FontGen* fg, GlyphBitmap* gb) {
 	
 	searchSize = fg->oversample * fg->magnitude;
 	maxDist = 0.5 * searchSize;
-	dw = gb->dw;
-	dh = gb->dh;
+	dw = fg->rawGlyphSize.x;
+	dh = fg->rawGlyphSize.y;
 	
 	// this is wrong
-	gb->sdfw = (dw / (gb->oversample)); 
-	gb->sdfh = (dh / (gb->oversample)); 
+	fg->sdfGlyphSize.x = floor(((float)(dw/* + (2*fg->magnitude)*/) / (float)(fg->oversample)) + .5);
+	fg->sdfGlyphSize.y = floor(((float)(dh/* + (2*fg->magnitude)*/) / (float)(fg->oversample)) + .5); 
 	
-	fg->sdfGlyph = output = malloc(gb->sdfGlyphSize.x * gb->sdfGlyphSize.y * sizeof(uint8_t));
+	fg->sdfGlyph = output = malloc(fg->sdfGlyphSize.x * fg->sdfGlyphSize.y * sizeof(uint8_t));
 	input = fg->rawGlyph;
 	
+	fg->sdfBounds.min.x = 0;
+	fg->sdfBounds.max.y =  fg->sdfGlyphSize.y;
+	fg->sdfBounds.max.x = fg->sdfGlyphSize.x; 
+	fg->sdfBounds.min.y = 0;
 	
-	for(y = 0; y < gb->sdfh; y++) {
-		for(x = 0; x < gb->sdfw; x++) {
-			int sx = x * gb->oversample;
-			int sy = y * gb->oversample;
+	// calculate the sdf 
+	for(y = 0; y < fg->sdfGlyphSize.y; y++) {
+		for(x = 0; x < fg->sdfGlyphSize.x; x++) {
+			int sx = x * fg->oversample;
+			int sy = y * fg->oversample;
 			//printf(".");
 			// value right under the center of the pixel, to determine if we are inside
 			// or outside the glyph
-			int v = data[sx + (sy * dw)];
+			int v = input[sx + (sy * dw)];
 			
-			d = 999999.9;
+			d = 999999.99999;
 			
 			
 			for(oy = -searchSize / 2; oy < searchSize; oy++) {
 				for(ox = -searchSize / 2; ox < searchSize; ox++) {
 					int off = boundedOffset(sx, sy, ox, oy, dw, dh);
-					if(off >= 0 && data[off] != v) 
+					if(off >= 0 && input[off] != v) 
 						d = dmin(ox, oy, d);
 				}
 			}
 			
 			int q = sdfEncode(d, v, maxDist);
-			if(q) { 
-// 				gb->sdfdims.left = MIN(gb->sdfdims.left, x);
-// 				gb->sdfdims.bottom = MIN(gb->sdfdims.bottom, y);
-// 				gb->sdfdims.right = MAX(gb->sdfdims.right, x);
-// 				gb->sdfdims.top = MAX(gb->sdfdims.top, y);
-			}
+			//printf("%d,%d = %d (%f)\n",x,y,q,d);
 			
-			output[x + (y * gb->sdfw)] = q;
+			output[x + (y * fg->sdfGlyphSize.x)] = q;
 		}
 	}
+	
+	
+	// find the bounds of the sdf data
+	// first rows
+	for(y = 0; y < fg->sdfGlyphSize.y; y++) {
+		int hasData = 0;
+		for(x = 0; x < fg->sdfGlyphSize.x; x++) {
+			hasData += output[x + (y * fg->sdfGlyphSize.x)];
+		}
+		
+		if(hasData / fg->sdfGlyphSize.x < 255) {
+			fg->sdfBounds.min.y = y;
+			break;
+		}
+	}
+	for(y = fg->sdfGlyphSize.y - 1; y >= 0; y--) {
+		int hasData = 0;
+		for(x = 0; x < fg->sdfGlyphSize.x; x++) {
+			hasData += output[x + (y * fg->sdfGlyphSize.x)];
+		}
+		
+		if(hasData / fg->sdfGlyphSize.x < 255) {
+			fg->sdfBounds.max.y = y + 1;
+			break;
+		}
+	}
+
+	for(x = 0; x < fg->sdfGlyphSize.x; x++) {
+		int hasData = 0;
+		for(y = 0; y < fg->sdfGlyphSize.y; y++) {
+			hasData += output[x + (y * fg->sdfGlyphSize.x)];
+		}
+		
+		if(hasData / fg->sdfGlyphSize.y < 255) {
+			fg->sdfBounds.min.x = x;
+			break;
+		}
+	}
+	for(x = fg->sdfGlyphSize.x - 1; x >= 0; x++) {
+		int hasData = 0;
+		for(y = 0; y < fg->sdfGlyphSize.y; y++) {
+			hasData += output[x + (y * fg->sdfGlyphSize.x)];
+		}
+		
+		if(hasData / fg->sdfGlyphSize.y < 255) {
+			fg->sdfBounds.max.x = x + 1;
+			break;
+		}
+	}
+	
+	fg->sdfDataSize.x = fg->sdfBounds.max.x - fg->sdfBounds.min.x;
+	fg->sdfDataSize.y = fg->sdfBounds.max.y - fg->sdfBounds.min.y;
+	
 }
 
 
 
 
-static void addChar(FontManager* fm, Font* f, int code, int fontSize, char italic, char bold) {
+static FontGen* addChar(FontManager* fm, FT_Face* ff, int code, int fontSize, char italic, char bold) {
 	FontGen* fg;
 	FT_Error err;
 	FT_GlyphSlot slot;
@@ -559,11 +644,13 @@ static void addChar(FontManager* fm, Font* f, int code, int fontSize, char itali
 	fg->code = code;
 	fg->italic = italic;
 	fg->bold = bold;
+	fg->oversample = fm->oversample;
+	fg->magnitude = 8;
 	
 	int rawSize = fontSize * fm->oversample;
 	
 	
-	err = FT_Set_Pixel_Sizes(f->fontFace, 0, rawSize);
+	err = FT_Set_Pixel_Sizes(*ff, 0, rawSize);
 	if(err) {
 		fprintf(stderr, "Could not set pixel size to %dpx.\n", rawSize);
 		free(fg);
@@ -571,50 +658,241 @@ static void addChar(FontManager* fm, Font* f, int code, int fontSize, char itali
 	}
 	
 	
-	err = FT_Load_Char(f->fontFace, code, FT_LOAD_DEFAULT | FT_LOAD_MONOCHROME);
-	f2f(slot->metrics.horiBearingY);
+	err = FT_Load_Char(*ff, code, FT_LOAD_DEFAULT | FT_LOAD_MONOCHROME);
+	
+	//f2f(slot->metrics.horiBearingY);
 	
 	// draw character to freetype's internal buffer and copy it here
-	FT_Load_Char(f->fontFace, code, FT_LOAD_RENDER);
+	FT_Load_Char(*ff, code, FT_LOAD_RENDER);
 	// slot is a pointer
-	slot = fontFace->glyph;
+	slot = (*ff)->glyph;
 	
-	fg->rawGlyphSize.x = slot->metrics.width >> 6; 
-	fg->rawGlyphSize.y = slot->metrics.height >> 6; 
+	// typographic metrics for later. has nothing to do with sdf generation
+	fg->rawAdvance = f2f(slot->linearHoriAdvance); 
+	fg->rawBearing.x = f2f26_6(slot->metrics.horiBearingX); 
+	fg->rawBearing.y = f2f26_6(slot->metrics.horiBearingY); 
 	
-	fg->rawGlyph = malloc(sizeof(*fg->rawGlyph) * fg->rawGlyphSize.x * fg->rawGlyphSize.y);
+	
+	// back to sdf generation
+	Vector2i rawImgSz = {(slot->metrics.width >> 6), (slot->metrics.height >> 6)};
+	
+	fg->rawGlyphSize.x = (slot->metrics.width >> 6) + (fg->oversample * fg->magnitude); 
+	fg->rawGlyphSize.y = (slot->metrics.height >> 6) + (fg->oversample * fg->magnitude); 
+	
+	// the raw glyph is copied to the middle of a larger buffer to make the sdf algorithm simpler 
+	fg->rawGlyph = calloc(1, sizeof(*fg->rawGlyph) * fg->rawGlyphSize.x * fg->rawGlyphSize.y);
 	
 	blit(
 		0, 0, // src x and y offset for the image
-		0, 0, // dst offset
-		fg->rawGlyphSize.x, fg->rawGlyphSize.y, // width and height
+		 (fg->oversample * fg->magnitude * .5), (fg->oversample * fg->magnitude * .5), // dst offset
+		rawImgSz.x, rawImgSz.y, // width and height
 		slot->bitmap.pitch, fg->rawGlyphSize.x, // src and dst row widths
 		slot->bitmap.buffer, // source
 		fg->rawGlyph); // destination
 	
 	
+	/// TODO move to multithreaded pass
+	CalcSDF_Software_(fg);
+	
+	// done with the raw data
+	free(fg->rawGlyph);
 	
 	
+	/*
 	
+	printf("raw size: %d, %d\n", fg->rawGlyphSize.x, fg->rawGlyphSize.y);
+	printf("sdf size: %d, %d\n", fg->sdfGlyphSize.x, fg->sdfGlyphSize.y);
+	printf("bounds: %f,%f, %f,%f\n",
+		fg->sdfBounds.min.x,
+		fg->sdfBounds.min.y,
+		fg->sdfBounds.max.x,
+		fg->sdfBounds.max.y
+		   
+	);
+
+	writePNG("sdf-raw.png", 1, fg->rawGlyph, fg->rawGlyphSize.x, fg->rawGlyphSize.y);
+	writePNG("sdf-pct.png", 1, fg->sdfGlyph, fg->sdfGlyphSize.x, fg->sdfGlyphSize.y);
+	*/
 	
-	
-	
+	return fg;
 }
 
-static void addFont(FontManager* fm) {
-	Font* f;
+
+// sorting function for fontgen array
+static int gen_comp(const void* aa, const void * bb) {
+	FontGen* a = *((FontGen**)aa);
+	FontGen* b = *((FontGen**)bb);
+	
+	if(a->sdfDataSize.y == b->sdfDataSize.y) {
+		return b->sdfDataSize.x - a->sdfDataSize.x;
+	}
+	else {
+		return b->sdfDataSize.y - a->sdfDataSize.y;
+	}
+}
+
+
+
+GUIFont* GUIFont_alloc(char* name) {
+	GUIFont* f;
+	
+	pcalloc(f);
+	
+	f->name = strdup(name);
+	f->charsLen = 128;
+	f->regular = calloc(1, sizeof(*f->regular) * f->charsLen);
+	
+	return f;
+}
+
+
+static void addFont(FontManager* fm, char* name) {
+	GUIFont* f;
+	FT_Error err;
+	FT_Face fontFace;
 	int len = strlen(defaultCharset);
 	
 	int fontSize = 8; // pixels
 	
+	checkFTlib();
+	
+	// TODO: load font
+	char* fontPath = getFontFile(name);
+	if(!fontPath) {
+		fprintf(stderr, "Could not load font '%s'\n", name);
+		return;
+	}
+	printf("font path: %s: %s\n", name, fontPath);
+
+	err = FT_New_Face(ftLib, fontPath, 0, &fontFace);
+	if(err) {
+		fprintf(stderr, "Could not access font '%s' at '%'.\n", name, fontPath);
+		return;
+	}
+	
+	f = GUIFont_alloc(name);
+	
 	for(int i = 0; i < len; i++) {
-		addChar(fm, f, defaultCharset[i], fontSize, 0, 0);
+		printf("calc: '%s' %c\n", name, defaultCharset[i]);
+		FontGen* fg = addChar(fm, &fontFace, defaultCharset[i], fontSize, 0, 0);
+		fg->font = f;
+		VEC_PUSH(&fm->gen, fg);
+		//addChar(fm, f, ' ', fontSize, 0, 0);
 		//addChar(fm, defaultCharset[i], 1, 0);
 		//addChar(fm, defaultCharset[i], 0, 1);
 		//addChar(fm, defaultCharset[i], 1, 1);
+		
+		
 	}
 	
+	
+
 }
 
 
+void FontManager_createAtlas(FontManager* fm) {
+	
+	qsort(VEC_DATA(&fm->gen), VEC_LEN(&fm->gen), sizeof(VEC_DATA(&fm->gen)), gen_comp);
+	
+	int totalWidth = 0;
+	VEC_EACH(&fm->gen, ind, gen) {
+		printf("%c: h: %d, w: %d \n", gen->code, gen->sdfDataSize.y, gen->sdfDataSize.x);
+		totalWidth += gen->sdfDataSize.x;
+	}
+	
+	int maxHeight = VEC_ITEM(&fm->gen, 0)->sdfDataSize.y;
+	int naiveSize = ceil(sqrt(maxHeight * totalWidth));
+	int pot = nextPOT(naiveSize);
+	int pot2 = naiveSize / 2;
+	
+	printf("naive min tex size: %f -> %d (%d)\n", naiveSize, pot, totalWidth);
+	
+	
+	// test the packing
+	int row = 0;
+	int hext = maxHeight;
+	int rowWidth = 0;
+// 	int maxh = maxHeight;
+	VEC_EACH(&fm->gen, ind, gen) {
+		
+		if(rowWidth + gen->sdfDataSize.x > pot) {
+			row++;
+			rowWidth = 0;
+			hext += gen->sdfDataSize.y;
+		}
+		
+		rowWidth += gen->sdfDataSize.x;
+	}
+	
+	printf("packing: rows: %d, h extent: %d \n", row, hext);
+	if(hext > pot) {
+		fprintf(stderr, "character packing overflows texture\n");
+		exit(1);
+	}
+	
+	
+	// copy the chars into the atlas, cleaning as we go
+	uint8_t* texData = fm->atlas = malloc(sizeof(*texData) * pot * pot);
+	fm->atlasSize = pot;
+	
+	// make everything white, the "empty" value
+	memset(texData, 255, sizeof(*texData) * pot * pot);
+	
+	row = 0;
+	hext = 0;
+	int prevhext = maxHeight;
+	rowWidth = 0;
+	VEC_EACH(&fm->gen, ind, gen) {
+		
+		if(rowWidth + gen->sdfDataSize.x > pot) {
+			row++;
+			rowWidth = 0;
+			hext += prevhext;
+			prevhext = gen->sdfDataSize.y;
+		}
+		
+		// blit the sdf bitmap data
+		blit(
+			gen->sdfBounds.min.x, gen->sdfBounds.min.y, // src x and y offset for the image
+			rowWidth, hext, // dst offset
+			gen->sdfDataSize.x, gen->sdfDataSize.y, // width and height
+			gen->sdfGlyphSize.x, pot, // src and dst row widths
+			gen->sdfGlyph, // source
+			texData); // destination
+		
+		
+		// copy info over to font
+		struct charInfo* c = &gen->font->regular[gen->code];
+		
+		c->texelOffset.x = rowWidth;
+		c->texelOffset.y = hext;
+		c->texelSize = gen->sdfDataSize;
+		c->texNormOffset.x = (float)rowWidth / (float)pot;
+		c->texNormOffset.y = (float)hext / (float)pot;
+		c->texNormSize.x = (float)gen->sdfDataSize.x / (float)pot;
+		c->texNormSize.y = (float)gen->sdfDataSize.y / (float)pot;
+		
+		// BUG: wrong? needs magnitude?
+		c->advance = gen->rawAdvance / (float)gen->oversample;
+		c->topLeftOffset.x = (gen->rawBearing.x / (float)gen->oversample) + (float)gen->sdfBounds.min.x;
+		c->topLeftOffset.x = (gen->rawBearing.y / (float)gen->oversample) - (float)gen->sdfBounds.min.y;
+		
+		// advance the write offset
+		rowWidth += gen->sdfDataSize.x;
+		
+		// clean up the FontGen struct
+		free(gen->sdfGlyph);
+		free(gen);
+	}
+	
+	VEC_FREE(&fm->gen);
+	
+	
+	writePNG("sdf-comp.png", 1, texData, pot, pot);
+
+	
+	//exit(1);
+	
+	
+}
 
