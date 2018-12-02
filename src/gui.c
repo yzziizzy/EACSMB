@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "window.h"
 #include "game.h"
@@ -94,7 +95,7 @@ void GUIManager_init(GUIManager* gm, int maxInstances) {
 	pcalloc(gm->fm);
 	gm->fm->oversample = 16;
 // 	addFont(gm->fm, "Helvetica");
-	addFont(gm->fm, "Arial");
+
 // 	addFont(gm->fm, "Impact");
 // 	addFont(gm->fm, "Modern");
 // 	addFont(gm->fm, "Times New Roman");
@@ -104,8 +105,14 @@ void GUIManager_init(GUIManager* gm, int maxInstances) {
 //	addFont(gm->fm, "Mardian Demo");
 //	addFont(gm->fm, "Champignon Medium");
 //	addFont(gm->fm, "Lucida Blackletter");
-	FontManager_createAtlas(gm->fm);
 	
+	if(FontManager_loadAtlas(gm->fm, "arial.atlas")) {
+		
+		addFont(gm->fm, "Arial");
+			
+		FontManager_createAtlas(gm->fm);
+		FontManager_saveAtlas(gm->fm, "arial.atlas");
+	}
 	///////////////////////////////
 	
 	glGenTextures(1, &gm->atlasID);
@@ -135,16 +142,16 @@ void GUIManager_init(GUIManager* gm, int maxInstances) {
 
 
 
-static void writeCharacterGeom(GUIUnifiedVertex* v, struct charInfo* ci, float sz, float adv) {
+static void writeCharacterGeom(GUIUnifiedVertex* v, struct charInfo* ci, float sz, float adv, float line) {
 	
 	float offx = ci->texNormOffset.x;//TextRes_charTexOffset(gm->font, 'A');
 	float offy = ci->texNormOffset.y;//TextRes_charTexOffset(gm->font, 'A');
 	float widx = ci->texNormSize.x;//TextRes_charWidth(gm->font, 'A');
 	float widy = ci->texNormSize.y;//TextRes_charWidth(gm->font, 'A');
 	
-	v->pos.t = 200 - ci->topLeftOffset.y * sz;
+	v->pos.t = 200 + line - ci->topLeftOffset.y * sz;
 	v->pos.l= 200 + adv + ci->topLeftOffset.x * sz;
-	v->pos.b = 200 + ci->size.y * sz - ci->topLeftOffset.y * sz;
+	v->pos.b = 200 + line + ci->size.y * sz - ci->topLeftOffset.y * sz;
 	v->pos.r = 200 + adv + ci->size.x * sz + ci->topLeftOffset.x * sz;
 	
 	v->guiType = 1; // text
@@ -163,26 +170,142 @@ void GUIManager_checkElemBuffer(GUIManager* gm) {
 	}
 }
 
+
+void scanTextLine(GUIFont* f, char* txt, float maxWidth, 
+	int* numSpaces, 
+	int* lastChar,
+	float* safeLen
+) {
+	
+	int spacenum = 0;
+	float adv = 0.0;
+	
+	int i;
+	
+
+	int hasNonSpace = 0;
+	for(i = 0; txt[i] != 0; i++) {
+		char c = txt[i];
+		struct charInfo* ci = &f->regular[c];
+		
+		
+		adv += ci->advance; // BUG: needs sdfDataSize added in?
+		if(isspace(c)) spacenum++;
+// 		
+// 		if(hasNonSpace) {
+			if(adv >= maxWidth) {
+				break;
+			}
+// 			if(c == '\n') break;
+// 		}
+		
+	}
+	
+	if(adv > maxWidth) {
+		int hasSpace = 0;
+		while(i >= 0) {
+			if(isspace(txt[i])) {
+				hasSpace = 1;
+				spacenum--;
+			}
+			else if(hasSpace) {
+				break;
+			}
+			i--;
+			adv -= f->regular[txt[i]].advance;
+		}
+	}
+	// i should be the last non-space character before the last space
+	
+	if(lastChar) *lastChar = i;
+	if(safeLen) *safeLen = adv;
+	if(numSpaces) *numSpaces = spacenum;
+}
+
+
 GUITextArea_draw(GUIManager* gm, GUIFont* f) {
 	
 	int n = gm->elementCount;
 	GUIUnifiedVertex* v = gm->elemBuffer + n;
 	
-	char* txt = "foobar";
+	char* txt = "[ j ]When in the Course of human events, it becomes necessary for one people to" \
+	" dissolve the political bands which have connected them with another, and to assume among" \
+	" the powers of the earth, the separate and equal station to which the Laws of Nature and" \
+	" of Nature's God entitle them, a decent respect to the opinions of mankind requires that" \
+	" they should declare the causes which impel them to the separation.\n" \
+	" We hold these truths to be self-evident, that all men are created equal, that they are" \
+	" endowed by their Creator with certain unalienable Rights, that among these are Life," \
+	" Liberty and the pursuit of Happiness.\n" \
+	" That to secure these rights, Governments are instituted among Men, deriving their just" \
+	" powers from the consent of the governed, That whenever any Form of Government becomes" \
+	" destructive of these ends, it is the Right of the People to alter or to abolish it, and" \
+	" to institute new Government, laying its foundation on such principles and organizing its" \
+	" powers in such form, as to them shall seem most likely to effect their Safety and" \
+	" Happiness. Prudence, indeed, will dictate that Governments long established should not" \
+	" be changed for light and transient causes; and accordingly all experience hath shewn," \
+	" that mankind are more disposed to suffer, while evils are sufferable, than to right" \
+	" themselves by abolishing the forms to which they are accustomed. But when a long train" \
+	" of abuses and usurpations, pursuing invariably the same Object evinces a design to reduce" \
+	" them under absolute Despotism, it is their right, it is their duty, to throw off such" \
+	" Government, and to provide new Guards for their future security.";
+	
+	
+	
+	
 	int len = strlen(txt);
 	
 	float adv = 0.0;
-	float size = 3;
+	float size = .75;
+	
+	float maxw = 710;
+	float lineh = 21;
+	float line = 0;
+	
+	
+	
 	
 	for(int i = 0; i < len; i++) {
-		struct charInfo* ci = &f->regular[txt[i]];
-		writeCharacterGeom(v, ci, size, adv);
+		int numSpaces; 
+		int lastChar;
+		float safeLen;
 		
-		adv += ci->advance * size; // BUG: needs sdfDataSize added in?
+		scanTextLine(f, txt + i, maxw, &numSpaces, &lastChar, &safeLen);
 		
-		v->fg = (struct Color4){255, 128, 64, 255},
-		v++;
-		gm->elementCount++;
+		// broken
+		float spaceadv = f->regular[' '].advance;
+		spaceadv +=  (maxw - safeLen) / (numSpaces);
+		
+		int onlySpace = 1;
+		for(int n = 0; n <= lastChar; n++) {
+			char c = txt[i + n];
+			// skip leading space on a new line
+			if(!isspace(c)) onlySpace = 0; 
+			if(onlySpace) {
+				continue;
+			}
+			
+			
+			struct charInfo* ci = &f->regular[c];
+			
+			if(c != ' ') {
+				writeCharacterGeom(v, ci, size, adv, line);
+				adv += ci->advance * size; // BUG: needs sdfDataSize added in?
+			}
+			else {
+				adv += spaceadv;
+			}
+			
+			
+			
+			v->fg = (struct Color4){255, 128, 64, 255},
+			v++;
+			gm->elementCount++;
+		}
+		
+		i += lastChar;
+		
+		adv = 0;
+		line += lineh;
 	}
 	
 	
@@ -865,7 +988,7 @@ static void addFont(FontManager* fm, char* name) {
 	
 	int len = strlen(defaultCharset);
 	
-	int fontSize = 8; // pixels
+	int fontSize = 32; // pixels
 	
 	checkFTlib();
 	
@@ -1016,3 +1139,96 @@ void FontManager_createAtlas(FontManager* fm) {
 	
 }
 
+
+void FontManager_saveAtlas(FontManager* fm, char* path) {
+	FILE* f;
+	
+	f = fopen(path, "wb");
+	if(!f) {
+		fprintf(stderr, "Could not save font atlas to '%s'\n", path);
+		return;
+	}
+	
+	// save the font
+	// font identifier
+	fwrite("F", 1, 1, f);
+	
+	// name length
+	uint16_t nlen = strlen(fm->helv->name); 
+	fwrite(&nlen, 1, 2, f);
+	
+	//name 
+	fwrite(fm->helv->name, 1, nlen, f);
+	
+	// number of charInfo structs
+	uint32_t clen = fm->helv->charsLen;
+	fwrite(&clen, 1, 4, f);
+	
+	// the charInfo structs
+	fwrite(fm->helv->regular, 1, clen * sizeof(*fm->helv->regular), f);
+	
+	
+	// atlas identifier
+	fwrite("A", 1, 1, f);
+	
+	// atlas dimension (always square)
+	fwrite(&fm->atlasSize, 1, 4, f);
+	
+	// atlas data
+	fwrite(fm->atlas, 1, fm->atlasSize * fm->atlasSize * sizeof(*fm->atlas), f);
+	
+	
+	// done
+	fclose(f);
+}
+
+int FontManager_loadAtlas(FontManager* fm, char* path) {
+	FILE* f;
+	
+	f = fopen(path, "rb");
+	if(!f) {
+		fprintf(stderr, "Could not open font atlas '%s'\n", path);
+		return 1;
+	}
+	
+	
+	uint8_t u8;
+	uint32_t u16;
+	uint32_t u32;
+	
+	// font sigil
+	fread(&u8, 1, 1, f);
+	
+	GUIFont* gf = calloc(1, sizeof(*gf)); 
+	
+	// name length and name string
+	fread(&u16, 1, 2, f);
+	gf->name = malloc(u16 + 1);
+	fread(gf->name, 1, u16, f);
+	gf->name[u16] = 0;
+	
+	// charInfo array length
+	fread(&u32, 1, 4, f);
+	gf->charsLen = u32;
+	gf->regular = malloc(u32 * sizeof(*gf->regular));
+	
+	// charInfo structs
+	fread(gf->regular, 1, u32 * sizeof(*gf->regular), f);
+	
+	// atlas sigil
+	fread(&u8, 1, 1, f);
+	
+	// atlas dimension
+	fread(&u32, 1, 4, f);
+	fm->atlasSize = u32;
+	fm->atlas = malloc(u32 * u32 * sizeof(*fm->atlas));
+	
+	// atlas data
+	fread(fm->atlas, 1, u32 * u32 * sizeof(*fm->atlas), f);
+	
+	fm->helv = gf;
+	
+	fclose(f);
+	
+	return 0;
+}

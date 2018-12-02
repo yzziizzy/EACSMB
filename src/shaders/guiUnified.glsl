@@ -210,10 +210,10 @@ void main(void) {
 		
 		float dd;
 		float d = dd = texture(fontTex, gs_tex).r;
-		
-// 		out_Color = vec4(d,d,d, 1.0); 
-// 		return;
-		
+/*		
+		out_Color = vec4(d,d,d, 1.0); 
+		return;
+		*/
 		float a;
 		
 		
@@ -225,13 +225,13 @@ void main(void) {
 		}
 		d = 1 - d;
 
-		a = smoothstep(0.55, 0.65, abs(d));
+		a = smoothstep(0.2, 1.0, abs(d));
 // 		a = step(0.65, abs(d));
 		
 		if(a < 0.01) {
-			out_Color = vec4(gs_tex.xy, 0, 1);
-			return; // show the overdraw
-// 			discard;
+// 			out_Color = vec4(gs_tex.xy, 0, 1);
+			//return; // show the overdraw
+			discard;
 		};
 		
 		//if(dd < .35) discard;

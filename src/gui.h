@@ -136,7 +136,7 @@ union GUIObject {
 
 
 struct charInfo {
-	int code;
+	uint32_t code;
 	
 	// final output texture coordinates
 	Vector2i texelOffset; // from the top left
@@ -218,7 +218,7 @@ typedef struct FontManager {
 	int magnitude;
 	
 	uint8_t* atlas;
-	int atlasSize;
+	uint32_t atlasSize;
 	
 	
 	// temp hacky stuff
@@ -227,6 +227,8 @@ typedef struct FontManager {
 } FontManager;
 
 void FontManager_createAtlas(FontManager* fm);
+void FontManager_saveAtlas(FontManager* fm, char* path);
+int FontManager_loadAtlas(FontManager* fm, char* path);
 
 /*
 The general idea is this:
