@@ -25,6 +25,7 @@ out Vertex {
 	vec4 bg_color;
 	vec2 texOffset1;
 	vec2 texSize1;
+	int texIndex1;
 	
 } vertex;
 
@@ -53,6 +54,7 @@ void main() {
 	
 	vertex.texOffset1 = tex_off_in.xy;
 	vertex.texSize1 = tex_size_in.xy;
+	vertex.texIndex1 = int(tex_type_in.x);
 }
 
 
@@ -77,11 +79,12 @@ in Vertex {
 	vec4 bg_color;
 	vec2 texOffset1;
 	vec2 texSize1;
+	int texIndex1;
 	
 } vertex[];
 
 
-out vec2 gs_tex;
+out vec3 gs_tex;
 flat out float gs_opacity;
 flat out vec4 gs_clip; 
 flat out vec4 gs_fg_color; 
@@ -94,7 +97,7 @@ void main() {
 	if(vertex[0].opacity == 0.0) return;
 	
 	
-	gs_tex = vec2(vertex[0].texOffset1.x, vertex[0].texOffset1.y);
+	gs_tex = vec3(vertex[0].texOffset1.x, vertex[0].texOffset1.y, vertex[0].texIndex1);
 // 	gs_tex = vec2(0,0);
 	gs_opacity = vertex[0].opacity;
 	gs_clip = vertex[0].clip;
@@ -105,7 +108,7 @@ void main() {
 	EmitVertex();
 
 	
-	gs_tex = vec2(vertex[0].texOffset1.x, vertex[0].texOffset1.y + vertex[0].texSize1.y);
+	gs_tex = vec3(vertex[0].texOffset1.x, vertex[0].texOffset1.y + vertex[0].texSize1.y, vertex[0].texIndex1);
 // 	gs_tex = vec2(0, 1);
 	gs_opacity = vertex[0].opacity;
 	gs_clip = vertex[0].clip;
@@ -115,7 +118,7 @@ void main() {
 	gl_Position = vec4(vertex[0].tl_br.y, -vertex[0].tl_br.z, 0, 1);
 	EmitVertex();
 	
-	gs_tex = vec2(vertex[0].texOffset1.x + vertex[0].texSize1.x, vertex[0].texOffset1.y);
+	gs_tex = vec3(vertex[0].texOffset1.x + vertex[0].texSize1.x, vertex[0].texOffset1.y, vertex[0].texIndex1);
 // 	gs_tex = vec2(1, 0);
 	gs_opacity = vertex[0].opacity;
 	gs_clip = vertex[0].clip;
@@ -125,7 +128,7 @@ void main() {
 	gl_Position = vec4(vertex[0].tl_br.w, -vertex[0].tl_br.x, 0, 1);
 	EmitVertex();
 
-	gs_tex = vertex[0].texOffset1 + vertex[0].texSize1;
+	gs_tex = vec3(vertex[0].texOffset1 + vertex[0].texSize1, vertex[0].texIndex1);
 	//gs_tex = vec2(1,1);
 	gs_opacity = vertex[0].opacity;
 	gs_clip = vertex[0].clip;
@@ -148,7 +151,7 @@ void main() {
 
 layout(location = 0) out vec4 out_Color;
 
-in vec2 gs_tex;
+in vec3 gs_tex;
 flat in float gs_opacity;
 flat in vec4 gs_clip; 
 flat in vec4 gs_fg_color; 
@@ -157,7 +160,7 @@ flat in int gs_guiType;
 
 uniform sampler2DArray textures;
 
-uniform sampler2D fontTex;
+uniform sampler2DArray fontTex;
 
 
 void main(void) {

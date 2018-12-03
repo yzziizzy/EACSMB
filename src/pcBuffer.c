@@ -106,8 +106,8 @@ static int waitSync(GLsync id) {
 		
 		n++;
 		if(n > 6) {
-			printf("\n\nserious pipeline stall in pcBuffer!\n\n");
-			int z = *((int*)0); 
+			printf("\n\nserious pipeline stall in pcBuffer! (%d)\n\n", n);
+			//int z = *((int*)0); 
 		}
 	}
 }

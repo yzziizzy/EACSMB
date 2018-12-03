@@ -1,6 +1,7 @@
 #ifndef __EACSMB_GUI_H__
 #define __EACSMB_GUI_H__
 
+#include <stdatomic.h>
 
 #include "common_gl.h"
 #include "common_math.h"
@@ -139,6 +140,7 @@ struct charInfo {
 	uint32_t code;
 	
 	// final output texture coordinates
+	int texIndex;
 	Vector2i texelOffset; // from the top left
 	Vector2i texelSize; // size of the character data in texels
 	Vector2 texNormOffset; // normalized texture coordinates
@@ -165,6 +167,7 @@ typedef struct GUIFont {
 	struct charInfo* regular;
 	struct charInfo* italic;
 	struct charInfo* bold;
+	struct charInfo* boldItalic;
 	
 	// TODO: kerning info
 	
@@ -212,12 +215,14 @@ typedef struct FontManager {
 	
 	// SDF generation 
 	VEC(FontGen*) gen;
+	atomic_int genCounter;
 	
 	// SDF config
 	int oversample;
 	int magnitude;
 	
-	uint8_t* atlas;
+	int maxAtlasSize;
+	VEC(uint8_t*) atlas;
 	uint32_t atlasSize;
 	
 	

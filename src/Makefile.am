@@ -74,6 +74,7 @@ eacsmb_LDADD =  \
 	-lasound
 	 
 AM_CFLAGS = "-I/usr/include/freetype2" -std=gnu11 -g -DLINUX \
+	-pthread \
 	-Wno-unused-result \
 	-Werror-implicit-function-declaration
 	

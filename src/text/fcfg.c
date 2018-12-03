@@ -14,6 +14,10 @@ void initFontConfig() {
 
 
 char* getFontFile(char* fontName) {
+	return getFontFile2(fontName, 0, 0);
+}
+
+char* getFontFile2(char* fontName, char bold, char italic) {
 	FcPattern* pattern, *font;
 	FcResult result;
 	char* fileName = NULL;
@@ -21,6 +25,10 @@ char* getFontFile(char* fontName) {
 	if(!config) initFontConfig();
 	
 	pattern = FcNameParse((const FcChar8*)fontName);
+	
+	if(bold) FcPatternAddInteger(pattern, "weight", 200);
+	if(italic) FcPatternAddInteger(pattern, "slant", 100);
+	
 	FcConfigSubstitute(config, pattern, FcMatchPattern);
 	FcDefaultSubstitute(pattern);
 	
