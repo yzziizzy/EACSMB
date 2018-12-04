@@ -91,15 +91,8 @@ static inline int nextPOT(int in) {
 #include "ds.h"
 
 
-// 128 bits to fill one slot of an aligned allocation for SSE 
-struct array_info {
-	uint32_t alloc_cnt;
-	uint32_t next_index;
-	
-	uint64_t unused;
-};
 
-
+typedef void (*progess_fn_t)(float*); 
 
 
 // cpu clock stuff

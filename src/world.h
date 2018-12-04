@@ -195,6 +195,7 @@ void loadItemConfig(World* w, char* path);
 
 
 void World_init(World* w);
+void World_initGL(World* w);
 
 
 #endif // __EACSMB_world_h__

@@ -10,6 +10,7 @@
 #include "ds.h"
 #include "hash.h"
 
+#include "settings.h"
 #include "texture.h"
 #include "pcBuffer.h"
 #include "pass.h"
@@ -123,7 +124,9 @@ void DynamicMesh_updateBuffers(DynamicMesh* sm);
 void drawDynamicMesh(DynamicMesh* m, Matrix* view, Matrix* proj);
 void initDynamicMeshes();
 
-DynamicMeshManager* dynamicMeshManager_alloc(int maxInstances);
+DynamicMeshManager* dynamicMeshManager_alloc(GlobalSettings* gs);
+void dynamicMeshManager_init(DynamicMeshManager* dmm, GlobalSettings* gs);
+void dynamicMeshManager_initGL(DynamicMeshManager* dmm, GlobalSettings* gs); 
 
 void dynamicMeshManager_updateMatrices(DynamicMeshManager* dmm, PassFrameParams* pfp);
 

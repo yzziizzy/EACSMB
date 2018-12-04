@@ -142,37 +142,34 @@ DynamicMesh* DynamicMeshFromOBJ(OBJContents* obj) {
 
 
 
-DynamicMeshManager* dynamicMeshManager_alloc(int maxInstances) {
+DynamicMeshManager* dynamicMeshManager_alloc(GlobalSettings* gs) {
 	DynamicMeshManager* mm;
-	GLbitfield flags;
-	size_t vbo_size;
 	
+	pcalloc(mm);
 	
-	mm = calloc(1, sizeof(*mm));
-
-	VEC_INIT(&mm->meshes);
-	HT_init(&mm->lookup, 6);
-	//HT_init(&mm->textureLookup, 6);
-	
-	mm->maxInstances = maxInstances;
-	
-	
-	mm->mdi = MultiDrawIndirect_alloc(vao_opts, maxInstances);
-	mm->mdi->isIndexed = 1;
-	mm->mdi->indexSize = 2;
-	mm->mdi->primMode = GL_TRIANGLES;
-	mm->mdi->uniformSetup = (void*)uniformSetup;
-	mm->mdi->instanceSetup = (void*)instanceSetup;
-	mm->mdi->data = mm;
-	
-	
-	//glBindVertexArray(vao);
-	
+	dynamicMeshManager_init(mm, gs);
 	
 	return mm;
 }
 
 
+void dynamicMeshManager_init(DynamicMeshManager* dmm, GlobalSettings* gs) {
+	VEC_INIT(&dmm->meshes);
+	HT_init(&dmm->lookup, 6);
+	
+	dmm->maxInstances = gs->DynamicMeshManager_maxInstances;
+}
+
+void dynamicMeshManager_initGL(DynamicMeshManager* dmm, GlobalSettings* gs) {
+	
+	dmm->mdi = MultiDrawIndirect_alloc(vao_opts, dmm->maxInstances);
+	dmm->mdi->isIndexed = 1;
+	dmm->mdi->indexSize = 2;
+	dmm->mdi->primMode = GL_TRIANGLES;
+	dmm->mdi->uniformSetup = (void*)uniformSetup;
+	dmm->mdi->instanceSetup = (void*)instanceSetup;
+	dmm->mdi->data = dmm;
+}
 
 // returns the index of the instance
 int dynamicMeshManager_addInstance(DynamicMeshManager* mm, int meshIndex, const DynamicMeshInstance* smi) {

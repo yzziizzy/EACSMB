@@ -12,7 +12,6 @@ eacsmb_SOURCES = main.c \
 	c3dlas/meshgen.c \
 	c_json/json.c \
 	component.c \
-	config.c \
 	cursor.c \
 	decals.c \
 	decalsCustom.c \
@@ -28,6 +27,7 @@ eacsmb_SOURCES = main.c \
 	itemLoader.c \
 	json_gl.c \
 	lighting.c \
+	loadingScreen.c \
 	log.c \
 	mdi.c \
 	map.c \
@@ -45,6 +45,7 @@ eacsmb_SOURCES = main.c \
 	renderLoop.c \
 	road.c \
 	scene.c \
+	settings.c \
 	sexp.c \
 	shader.c \
 	shadowMap.c \

@@ -6,6 +6,7 @@
 #include <ctype.h>
 
 #include <pthread.h>
+#include <sys/sysinfo.h>
 
 #include "window.h"
 #include "game.h"
@@ -53,8 +54,7 @@ GUIManager* GUIManager_alloc(int maxInstances) {
 }
 
 
-void GUIManager_init(GUIManager* gm, int maxInstances) {
-	
+void GUIManager_initGL(GUIManager* gm) {
 	static VAOConfig vaoConfig[] = {
 		{0, 4, GL_FLOAT, 0, GL_FALSE}, // top, left, bottom, right
 		{0, 4, GL_FLOAT, 0, GL_FALSE}, // tlbr clipping planes
@@ -75,23 +75,55 @@ void GUIManager_init(GUIManager* gm, int maxInstances) {
 	
 	int stride = calcVAOStride(0, vaoConfig);
 
-	PCBuffer_startInit(&gm->instVB, maxInstances * stride, GL_ARRAY_BUFFER);
+	PCBuffer_startInit(&gm->instVB, gm->maxInstances * stride, GL_ARRAY_BUFFER);
 	updateVAO(0, vaoConfig); 
 	PCBuffer_finishInit(&gm->instVB);
 	
+		///////////////////////////////
 	
+	glGenTextures(1, &gm->atlasID);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, gm->atlasID);
+	glerr("bind font tex");
 	
-	// ---- general properties ----
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_LEVEL, 0); // no mipmaps for this; it'll get fucked up
+	glerr("param font tex");
+	
+//	printf("text width: %d, height: %d \n", tex_width, height);
+//	printf("text width 3: %d, height: %d \n", width, height);
+	glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_R8, gm->fm->atlasSize, gm->fm->atlasSize, VEC_LEN(&gm->fm->atlas));
+	
+	VEC_EACH(&gm->fm->atlas, ind, at) {
+		glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 
+			0, 0, ind, // offsets
+// 			, 
+			gm->fm->atlasSize, gm->fm->atlasSize, 1, 
+			GL_RED, GL_UNSIGNED_BYTE, at);
+		glerr("load font tex");
+	}
+	
+	glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
+	
+	//////////////////////////////////
+	
+}
+
+// _init is always called before _initGL
+void GUIManager_init(GUIManager* gm, int maxInstances) {
+	
+
+	gm->maxInstances = maxInstances;
+	
 	
 	gm->elementCount = 0;
 	gm->elementAlloc = 64;
 	gm->elemBuffer = calloc(1, sizeof(*gm->elemBuffer) * gm->elementAlloc);
 	
 	
-	gm->font = LoadSDFFont("Arial.sdf");
-	if(!gm->font) {
-		fprintf(stderr, "Failed to load font: %s\n", "Arial");
-	}
+
 	
 	
 	pcalloc(gm->fm);
@@ -125,37 +157,7 @@ void GUIManager_init(GUIManager* gm, int maxInstances) {
 		FontManager_saveAtlas(gm->fm, "fonts.atlas");
 	}
 	HT_get(&gm->fm->fonts, "Arial", &gm->fm->helv);
-	///////////////////////////////
-	
-	glGenTextures(1, &gm->atlasID);
-	glBindTexture(GL_TEXTURE_2D_ARRAY, gm->atlasID);
-	glerr("bind font tex");
-	
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_LEVEL, 0); // no mipmaps for this; it'll get fucked up
-	glerr("param font tex");
-	
-//	printf("text width: %d, height: %d \n", tex_width, height);
-//	printf("text width 3: %d, height: %d \n", width, height);
-	glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_R8, gm->fm->atlasSize, gm->fm->atlasSize, VEC_LEN(&gm->fm->atlas));
-	
-	VEC_EACH(&gm->fm->atlas, ind, at) {
-		glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 
-			0, 0, ind, // offsets
-// 			, 
-			gm->fm->atlasSize, gm->fm->atlasSize, 1, 
-			GL_RED, GL_UNSIGNED_BYTE, at);
-		glerr("load font tex");
-	}
-	
-	glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
-	
-	//////////////////////////////////
-	
-	
+
 }
 
 
@@ -183,11 +185,13 @@ static void writeCharacterGeom(GUIUnifiedVertex* v, struct charInfo* ci, float s
 }
 
 
-void GUIManager_checkElemBuffer(GUIManager* gm) {
+GUIUnifiedVertex* GUIManager_checkElemBuffer(GUIManager* gm) {
 	if(gm->elementAlloc < gm->elementCount + 1) {
 		gm->elementAlloc *= 2;
-		gm->elemBuffer = realloc(gm->elemBuffer, sizeof(*gm->elemBuffer) * gm->elementCount);
+		gm->elemBuffer = realloc(gm->elemBuffer, sizeof(*gm->elemBuffer) * gm->elementAlloc);
 	}
+	
+	return gm->elemBuffer + gm->elementCount;
 }
 
 
@@ -340,7 +344,7 @@ void scanTextLine(GUIFont* f, char* txt, float maxWidth,
 GUITextArea_draw(GUIManager* gm, GUIFont* f) {
 	
 	int n = gm->elementCount;
-	GUIUnifiedVertex* v = gm->elemBuffer + n;
+	GUIUnifiedVertex* v;// = gm->elemBuffer + n;
 	
 	char* txt = "( j | l )When in the Course of human events, it becomes necessary for one people to" \
 	" dissolve the political bands which have connected them with another, and to assume among" \
@@ -376,7 +380,6 @@ GUITextArea_draw(GUIManager* gm, GUIFont* f) {
 	float line = 0;
 	
 	
-	
 	int line_num = 0;
 	for(int i = 0; i < len; i++) {
 		int numSpaces; 
@@ -405,11 +408,13 @@ GUITextArea_draw(GUIManager* gm, GUIFont* f) {
 			
 			struct charInfo* ci = &f->regular[c];
 			
+			
 			if(c != ' ') {
+				v = GUIManager_checkElemBuffer(gm);
 				writeCharacterGeom(v, ci, size, adv, line);
 				adv += ci->advance * size; // BUG: needs sdfDataSize added in?
 				v->fg = (struct Color4){255, 128, 64, 255},
-				v++;
+				//v++;
 				gm->elementCount++;
 			}
 			else {
@@ -417,8 +422,6 @@ GUITextArea_draw(GUIManager* gm, GUIFont* f) {
 			}
 			
 			
-			
-
 			
 		}
 		
@@ -1101,7 +1104,7 @@ void* sdf_thread(void* _fm) {
 
 static void finishProcessing(FontManager* fm) {
 	
-	int maxThreads = 11;
+	int maxThreads = get_nprocs();
 	pthread_t threads[maxThreads];
 	
 	for(int i = 0; i < maxThreads; i++) {
@@ -1206,7 +1209,7 @@ void FontManager_createAtlas(FontManager* fm) {
 	char buf[32];
 	
 	// order the characters by height then width, tallest and widest first.
-	qsort(VEC_DATA(&fm->gen), VEC_LEN(&fm->gen), sizeof(VEC_DATA(&fm->gen)), gen_comp);
+	VEC_SORT(&fm->gen, gen_comp);
 	
 	int totalWidth = 0;
 	VEC_EACH(&fm->gen, ind, gen) {
@@ -1228,26 +1231,6 @@ void FontManager_createAtlas(FontManager* fm) {
 	int row = 0;
 	int hext = maxHeight;
 	int rowWidth = 0;
-// 	int maxh = maxHeight;
-	
-	/*
-	VEC_EACH(&fm->gen, ind, gen) {
-		
-		if(rowWidth + gen->sdfDataSize.x > pot) {
-			row++;
-			rowWidth = 0;
-			hext += gen->sdfDataSize.y;
-		}
-		
-		rowWidth += gen->sdfDataSize.x;
-	}
-	
-	printf("packing: rows: %d, h extent: %d \n", row, hext);
-	if(hext > pot) {
-		fprintf(stderr, "character packing overflows texture\n");
-		exit(1);
-	}
-	*/
 	
 	// copy the chars into the atlas, cleaning as we go
 	uint8_t* texData = malloc(sizeof(*texData) * pot * pot);
@@ -1346,7 +1329,7 @@ void FontManager_createAtlas(FontManager* fm) {
 }
 
 
-
+// bump on format changes. there is no backward compatibility
 static uint16_t GUIFONT_ATLAS_FILE_VERSION = 2;
 
 void FontManager_saveAtlas(FontManager* fm, char* path) {
@@ -1422,10 +1405,10 @@ int FontManager_loadAtlas(FontManager* fm, char* path) {
 	uint32_t u16;
 	uint32_t u32;
 	
-	// check the fiel version
-	fread(&u16, 1, 2, f);
+	// check the file version
+	int r = fread(&u16, 1, 2, f);
 	if(u16 != GUIFONT_ATLAS_FILE_VERSION) {
-		printf("Font atlas file version mismatch.\n");
+		printf("Font atlas file version mismatch. %d != %d, %d, '%s' \n", u16, GUIFONT_ATLAS_FILE_VERSION, r, path);
 		fclose(f);
 		return 1;
 	}
@@ -1459,7 +1442,7 @@ int FontManager_loadAtlas(FontManager* fm, char* path) {
 			fread(gf->bold, 1, u32 * sizeof(*gf->bold), f);
 			fread(gf->italic, 1, u32 * sizeof(*gf->italic), f);
 			fread(gf->boldItalic, 1, u32 * sizeof(*gf->boldItalic), f);
-		
+			
 		}
 		else if(u8 == 'A') { // atlas
 			

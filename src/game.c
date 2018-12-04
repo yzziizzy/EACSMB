@@ -106,21 +106,18 @@ static void main_perframe_handler(InputState* is, float frameSpan, GameState* gs
 static void main_click_handler(InputEvent* ev, GameState* gs);
 
 
-
+// nothing in here can use opengl at all.
 void initGame(XStuff* xs, GameState* gs) {
-	int ww, wh;
 	
 	srand((unsigned int)time(NULL));
 	
 	json_gl_init_lookup();
 	
-	glerr("left over error on game init");
-	
 	
 	gs->gui = GUIManager_alloc(4096);
-	gs->guiPass = GUIManager_CreateRenderPass(gs->gui);
-
 	
+	
+	// sound
 #ifndef DISABLE_SOUND
 	gs->sound = SoundManager_alloc();
 	SoundManager_readConfigFile(gs->sound, "assets/config/sound.json");
@@ -136,8 +133,10 @@ void initGame(XStuff* xs, GameState* gs) {
 	SoundManager_addInstance(gs->sound, si);
 	*/
 #endif
-	
-	
+
+
+	// CES system
+
 	struct { 
 		char* name;
 		size_t size;
@@ -167,19 +166,30 @@ void initGame(XStuff* xs, GameState* gs) {
 	json_free(j_ces_conf->root);
 	free(j_ces_conf);
 	
-	/*
+	//^^^^^^^^^^ CES system ^^^^^^^^^^^^^
 	
-	height auto-update flag
 	
-	money, debt
-	food consumption
-	gratification deferment
+	// input handlers
+	gs->defaultInputHandlers = calloc(1, sizeof(*gs->defaultInputHandlers));
+	gs->defaultInputHandlers->dragStop = (void*)main_drag_handler;
+	gs->defaultInputHandlers->keyUp = (void*)main_key_handler;
+	gs->defaultInputHandlers->perFrame = (void*)main_perframe_handler;
+	gs->defaultInputHandlers->click = (void*)main_click_handler;
+	InputFocusStack_PushTarget(&gs->ifs, gs, defaultInputHandlers);
 	
-	*/
 	
-	waterProg = loadCombinedProgram("mg_water");
-	erodeProg = loadCombinedProgram("mg_erode");
-	soilProg = loadCombinedProgram("mg_soil");
+	// general properties
+	const float rotateFactor = 0.7260f;
+	const float scrollFactor = 300.0f;
+	const float zoomFactor = 600.0f;
+	
+	gs->settings.keyRotate = rotateFactor * fclampNorm(gs->globalSettings.keyRotateSensitivity);
+	gs->settings.keyScroll = scrollFactor * fclampNorm(gs->globalSettings.keyScrollSensitivity);
+	gs->settings.keyZoom = zoomFactor * fclampNorm(gs->globalSettings.keyZoomSensitivity);
+	
+	gs->settings.mouseRotate = rotateFactor * fclampNorm(gs->globalSettings.mouseRotateSensitivity);
+	gs->settings.mouseScroll = scrollFactor * fclampNorm(gs->globalSettings.mouseScrollSensitivity);
+	gs->settings.mouseZoom = 4 * zoomFactor * fclampNorm(gs->globalSettings.mouseZoomSensitivity);
 	
 	gs->hasMoved = 1;
 	gs->lastSelectionFrame = 0;
@@ -194,7 +204,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	gs->nearClipPlane = .5;
 	gs->farClipPlane = 1700;
 
-	
+	int ww, wh;
 	ww = xs->winAttr.width;
 	wh = xs->winAttr.height;
 	
@@ -205,12 +215,66 @@ void initGame(XStuff* xs, GameState* gs) {
 	gs->screen.aspect = gs->screen.wh.x / gs->screen.wh.y;
 	gs->screen.resized = 0;
 	
-	gs->defaultInputHandlers = calloc(1, sizeof(*gs->defaultInputHandlers));
-	gs->defaultInputHandlers->dragStop = (void*)main_drag_handler;
-	gs->defaultInputHandlers->keyUp = (void*)main_key_handler;
-	gs->defaultInputHandlers->perFrame = (void*)main_perframe_handler;
-	gs->defaultInputHandlers->click = (void*)main_click_handler;
-	InputFocusStack_PushTarget(&gs->ifs, gs, defaultInputHandlers);
+	gs->zoom = -600.0;
+	gs->direction = 0.0f;
+	gs->lookCenter.x = 128;
+	gs->lookCenter.y = 128;
+	
+	
+	// set up matrix stacks
+	MatrixStack* view, *proj;
+	
+	view = &gs->view;
+	proj = &gs->proj;
+	
+	msAlloc(2, view);
+	msAlloc(2, proj);
+
+	msIdent(view);
+	msIdent(proj);
+	
+	
+	gs->world = calloc(1, sizeof(*gs->world));
+	gs->world->gs = gs;
+	World_init(gs->world);
+
+}
+
+void initGameGL(XStuff* xs, GameState* gs) {
+	
+	
+	
+	
+
+	
+	glerr("left over error on game init");
+	
+	
+	GUIManager_initGL(gs->gui);
+	gs->guiPass = GUIManager_CreateRenderPass(gs->gui);
+
+	
+
+	
+	
+
+	
+	/*
+	
+	height auto-update flag
+	
+	money, debt
+	food consumption
+	gratification deferment
+	
+	*/
+	
+	waterProg = loadCombinedProgram("mg_water");
+	erodeProg = loadCombinedProgram("mg_erode");
+	soilProg = loadCombinedProgram("mg_soil");
+	
+
+
 	
 	//printf("w: %d, h: %d\n", ww, wh);
 	
@@ -259,18 +323,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	
 	*/
 	
-	// set up matrix stacks
-	MatrixStack* view, *proj;
-	
-	view = &gs->view;
-	proj = &gs->proj;
-	
-	msAlloc(2, view);
-	msAlloc(2, proj);
 
-	msIdent(view);
-	msIdent(proj);
-	
 
 	
 	
@@ -278,10 +331,7 @@ void initGame(XStuff* xs, GameState* gs) {
 // 	msPerspective(60, 1.0, 01000.0f, 100000.0f, proj);
 // 		msOrtho(0, 1, 0, 1, .01, 100000, proj);
 
-	gs->zoom = -600.0;
-	gs->direction = 0.0f;
-	gs->lookCenter.x = 128;
-	gs->lookCenter.y = 128;
+
 	
 	
 	
@@ -353,9 +403,10 @@ void initGame(XStuff* xs, GameState* gs) {
 	//InputFocusStack_PushTarget(&gs->ifs, geditTest, inputHandlers);
 
 	
-	gs->world = calloc(1, sizeof(*gs->world));
-	gs->world->gs = gs;
-	World_init(gs->world);
+// 	gs->world = calloc(1, sizeof(*gs->world));
+// 	gs->world->gs = gs;
+// 	World_init(gs->world);
+	World_initGL(gs->world);
 	
 	
 	
@@ -772,28 +823,6 @@ void handleInput(GameState* gs, InputState* is) {
 }
 
 
-void setGameSettings(GameSettings* g, UserConfig* u) {
-	
-	const float rotateFactor = 0.7260f;
-	const float scrollFactor = 300.0f;
-	const float zoomFactor = 600.0f;
-	
-	g->keyRotate = rotateFactor * fclampNorm(u->keyRotateSensitivity);
-	g->keyScroll = scrollFactor * fclampNorm(u->keyScrollSensitivity);
-	g->keyZoom = zoomFactor * fclampNorm(u->keyZoomSensitivity);
-	
-	g->mouseRotate = rotateFactor * fclampNorm(u->mouseRotateSensitivity);
-	g->mouseScroll = scrollFactor * fclampNorm(u->mouseScrollSensitivity);
-	g->mouseZoom = 4 * zoomFactor * fclampNorm(u->mouseZoomSensitivity);
-	
-	printf("keyRotate %.3f\n", g->keyRotate);
-	printf("keyScroll %.3f\n", g->keyScroll);
-	printf("keyZoom %.3f\n", g->keyZoom);
-	printf("mouseRotate %.3f\n", g->mouseRotate);
-	printf("mouseScroll %.3f\n", g->mouseScroll);
-	printf("mouseZoom %.3f\n", g->mouseZoom);
-	
-}
 
 
 void setUpView(GameState* gs) {

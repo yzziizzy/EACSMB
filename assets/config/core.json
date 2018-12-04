@@ -1,0 +1,19 @@
+{
+	keyRotateSensitivity: 0.500,
+	keyScrollSensitivity: 0.500,
+	keyZoomSensitivity: 0.600,
+
+	mouseRotateSensitivity: 0.500,
+	mouseScrollSensitivity: 0.500,
+	mouseZoomSensitivity: 0.500,
+	
+	
+	DynamicMeshManager_maxInstances: 8192,
+	DecalManager_maxInstances: 8192,
+	CustomDecalManager_maxInstances: 8192,
+	MarkerManager_maxInstances: 8192, 
+	EmitterManager_maxInstances: 8192, 
+	
+	SunShadow_size: 1024,
+	
+}

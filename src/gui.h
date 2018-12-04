@@ -244,6 +244,7 @@ points into quads.
 
 */
 typedef struct GUIManager {
+	int maxInstances;
 	PCBuffer instVB;
 	GLuint vao;
 	
@@ -256,7 +257,6 @@ typedef struct GUIManager {
 	GUIObject* root;
 	
 	FontManager* fm;
-	TextRes* font;
 	
 	// temp 
 	GLuint atlasID;
@@ -266,9 +266,10 @@ typedef struct GUIManager {
 
 
 void GUIManager_init(GUIManager* gm, int maxInstances);
+void GUIManager_initGL(GUIManager* gm);
 GUIManager* GUIManager_alloc(int maxInstances);
 
-void GUIManager_checkElemBuffer(GUIManager* gm);
+GUIUnifiedVertex* GUIManager_checkElemBuffer(GUIManager* gm);
 
 RenderPass* GUIManager_CreateRenderPass(GUIManager* gm);
 PassDrawable* GUIManager_CreateDrawable(GUIManager* gm);

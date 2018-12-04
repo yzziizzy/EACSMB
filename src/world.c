@@ -19,20 +19,27 @@
 
 
 void World_init(World* w) {
-	
 	VEC_INIT(&w->itemInstances);
 	VEC_INIT(&w->partInstances);
 	VEC_INIT(&w->items);
 	VEC_INIT(&w->parts);
+	
+	HT_init(&w->itemLookup, 4);
+	HT_init(&w->partLookup, 4);
+	
+	w->dmm = dynamicMeshManager_alloc(&w->gs->globalSettings);
+}
+
+void World_initGL(World* w) {
+	
+
 	
 	
 	w->lm = calloc(1, sizeof(*w->lm));
 	LightManager_Init(w->lm);
 	w->lightingPass = LightManager_CreateRenderPass(w->lm);
 	// not static //w->lm->dtex = w->gs->depthTexBuffer;
-	
-	HT_init(&w->itemLookup, 4);
-	HT_init(&w->partLookup, 4);
+
 	
 	//initMap(&w->map);
 	MapInfo_Init(&w->map);
@@ -42,7 +49,7 @@ void World_init(World* w) {
 	w->decalTexMan = TextureManager_alloc();
 	w->emitterTexMan = TextureManager_alloc();
 	
-	w->dmm = dynamicMeshManager_alloc(1024*50);
+	dynamicMeshManager_initGL(w->dmm, &w->gs->globalSettings);
 	w->dm = DecalManager_alloc(1024*50);
 	w->cdm = CustomDecalManager_alloc(1024*50);
 	w->mm = MarkerManager_alloc(1024*50);

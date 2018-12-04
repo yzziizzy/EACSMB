@@ -6,6 +6,9 @@
 
 #include <unistd.h>
 #include <limits.h>
+#include <limits.h>
+#include <pthread.h>
+#include <sys/sysinfo.h>
 
 #include <X11/X.h>
 #include <X11/Xlib.h>
@@ -29,6 +32,7 @@
 #include "window.h"
 #include "road.h"
 #include "map.h"
+#include "loadingScreen.h"
 #include "game.h"
 
 
@@ -38,15 +42,29 @@
 
 
 
+
 static XStuff xs;
 static GameState game;
 static InputState input;
+
+static LoadingScreen loadingScreen;
+
+
+
+void meh(void* m) {
+	initGame(&xs, &game);
+	loadingScreen.done = 1;
+// 	pthread_exit(NULL);
+}
 
 
 int main(int argc, char* argv[]) {
 	int first = 1;
 	int configStatus = 0;
 	char* wd;
+	
+	GlobalSettings_loadDefaults(&game.globalSettings);
+	GlobalSettings_loadFromFile(&game.globalSettings, "assets/config/core.json");
 	
 	initLog(0);
 	
@@ -57,20 +75,6 @@ int main(int argc, char* argv[]) {
 	game.worldDir = pathJoin(game.dataDir, "world");
 	
 	free(wd);
-	
-	
-	zeroConfig(&game.uSettings);
-	configStatus = updateConfigFromFile(&game.uSettings, "defaults.ini");
-	if(configStatus) {
-		printf("failed to load defaults.ini [code %d]\n",configStatus);
-	}
-	
-	configStatus = updateConfigFromFile(&game.uSettings, "settings.ini");
-	if(configStatus) {
-		printf("failed to load settings.ini [code %d]\n",configStatus);
-	}
-	
-	setGameSettings(&game.settings,&game.uSettings);
 	
 	input.doubleClickTime = 0.200;
 	input.dragMinDist = 4;
@@ -83,22 +87,47 @@ int main(int argc, char* argv[]) {
 	
 	initXWindow(&xs);
 	
-	while(1) {
+	
+	
+	pthread_t initThread;
+	pthread_create(&initThread, NULL, meh, NULL);
+	//meh(NULL);
+	
+	// initialization progress loop
+	int first2 = 1;
+	while(!loadingScreen.done) {
 		processEvents(&xs, &input, &game.ifs, -1);
 		
-		if (first && xs.ready) {
-			initGame(&xs, &game);
-			first = 0;
+		if(first2 && xs.ready) {
+			LoadingScreen_init(&loadingScreen);
+			
+			//meh(NULL);
+			first2 = 0;
 		}
 		
 		if(xs.ready) {
-			#ifndef DISABLE_SOUND
-				SoundManager_tick(game.sound, game.frameTime);
-			#endif
-		
+			loadingScreen.resolution.x = xs.winAttr.width;
+			loadingScreen.resolution.y = xs.winAttr.height;
 			
-			gameLoop(&xs, &game, &input);
+			LoadingScreen_draw(&loadingScreen, &xs);
 		}
+		
+		usleep((1.0/80.0) * 1000000);
+	}
+
+	initGameGL(&xs, &game);
+	printf("init complete\n");
+	
+	// main running loop
+	while(1) {
+		processEvents(&xs, &input, &game.ifs, -1);
+		
+		#ifndef DISABLE_SOUND
+			SoundManager_tick(game.sound, game.frameTime);
+		#endif
+		
+		gameLoop(&xs, &game, &input);
+		
 		
 		if(game.frameSpan < 1.0/60.0) {
 			// shitty estimation based on my machine's heuristics, needs improvement

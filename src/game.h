@@ -5,7 +5,7 @@
 #include "common_math.h"
 #include "common_gl.h"
 
-#include "config.h" // UserConfig
+#include "settings.h"
 #include "uniformBuffer.h"
 #include "fbo.h"
 #include "scene.h"
@@ -67,7 +67,7 @@ typedef struct GameState {
 	GameScreen screen;
 	
 	GameSettings settings;
-	UserConfig uSettings;
+	GlobalSettings globalSettings;
 	
 	GLuint diffuseTexBuffer, normalTexBuffer, depthTexBuffer, selectionTexBuffer, lightingTexBuffer;
 	GLuint framebuffer;
@@ -186,6 +186,7 @@ typedef struct GameState {
 
 
 void initGame(XStuff* xs, GameState* gs);
+void initGameGL(XStuff* xs, GameState* gs);
 void getTileFromScreenCoords(GameState* gs, Vector2 scoord, Vector2i* tile);
 
 
@@ -197,7 +198,6 @@ void getTileFromScreenCoords(GameState* gs, Vector2 scoord, Vector2i* tile);
 void renderFrame(XStuff* xs, GameState* gs, InputState* is, PassFrameParams* pfp);
 void gameLoop(XStuff* xs, GameState* gs, InputState* is);
 
-void setGameSettings(GameSettings* g, UserConfig* u);
 
 void initRenderLoop(GameState* gs);
 
