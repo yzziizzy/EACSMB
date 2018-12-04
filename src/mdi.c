@@ -15,11 +15,19 @@ static void postFrame(MultiDrawIndirect* mdi);
 
 
 
+MultiDrawIndirect* MultiDrawIndirect_alloc(VAOConfig* vaoConfig, int maxInstances) {
+	MultiDrawIndirect* mdi;
+	
+	pcalloc(mdi);
+	MultiDrawIndirect_init(mdi, vaoConfig, maxInstances);
+	
+	return mdi;
+}
+
+
 
 
 void MultiDrawIndirect_init(MultiDrawIndirect* mdi, VAOConfig* vaoConfig, int maxInstances) {
-	GLbitfield flags;
-	size_t vbo_size;
 	
 	mdi->primMode = GL_TRIANGLES;
 	mdi->isIndexed = 0;
@@ -27,15 +35,17 @@ void MultiDrawIndirect_init(MultiDrawIndirect* mdi, VAOConfig* vaoConfig, int ma
 	VEC_INIT(&mdi->meshes);
 	mdi->maxInstances = maxInstances;
 	mdi->vaoConfig = vaoConfig;
+}
+
+void MultiDrawIndirect_initGL(MultiDrawIndirect* mdi) {
 	
-	
-	mdi->vao = makeVAO(vaoConfig);
+	mdi->vao = makeVAO(mdi->vaoConfig);
 	glBindVertexArray(mdi->vao);
 	
-	int stride = calcVAOStride(1, vaoConfig);
+	int stride = calcVAOStride(1, mdi->vaoConfig);
 	
 	PCBuffer_startInit(&mdi->instVB, mdi->maxInstances * stride, GL_ARRAY_BUFFER);
-	updateVAO(1, vaoConfig); 
+	updateVAO(1, mdi->vaoConfig); 
 	PCBuffer_finishInit(&mdi->instVB);
 	
 	
@@ -45,16 +55,6 @@ void MultiDrawIndirect_init(MultiDrawIndirect* mdi, VAOConfig* vaoConfig, int ma
 		GL_DRAW_INDIRECT_BUFFER
 	);
 	PCBuffer_finishInit(&mdi->indirectCmds);
-}
-
-
-MultiDrawIndirect* MultiDrawIndirect_alloc(VAOConfig* vaoConfig, int maxInstances) {
-	MultiDrawIndirect* mdi;
-	
-	pcalloc(mdi);
-	MultiDrawIndirect_init(mdi, vaoConfig, maxInstances);
-	
-	return mdi;
 }
 
 

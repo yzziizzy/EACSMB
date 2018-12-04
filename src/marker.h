@@ -10,6 +10,7 @@
 #include "ds.h"
 #include "hash.h"
 
+#include "settings.h"
 #include "texture.h"
 #include "pcBuffer.h"
 #include "pass.h"
@@ -76,7 +77,9 @@ typedef struct MarkerManager {
 } MarkerManager;
 
 
-MarkerManager* MarkerManager_alloc(int maxInstances);
+MarkerManager* MarkerManager_alloc(GlobalSettings* gs);
+void MarkerManager_init(MarkerManager* mm, GlobalSettings* gs);
+void MarkerManager_initGL(MarkerManager* mm, GlobalSettings* gs);
 int MarkerManager_addMesh(MarkerManager* mm, Marker* m, char* name, int segments);
 void MarkerManager_addInstance(MarkerManager* mm, int index, MarkerInstance* inst);
 void MarkerManager_updateGeometry(MarkerManager* mm);

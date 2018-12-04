@@ -48,12 +48,19 @@ Use DynamicMeshManager as the example.
 	* A ShaderProgram* 
 	* GLuint's for uniform locations
 2. Initialization
-	* initMyNewDrawable() function, called from World_init() containing:
+	* MyNewDrawable_init() function, called from World_init() containing:
+		* NOTHING to do with OpenGL. It will crash the game.
+		* Anything not dealing with OpenGL
+		* Data structure allocation and initialization
+		* MDI allocation
+	* MyNewDrawable_initGL() function, called from World_initGL() containing:
+		* Anything dealing with OpenGL
 		* Shader loading
 		* Uniform location caching
+		* MDI_initGL()
+		* Any non-GL operations that must happen after GL initialization. 
+	* _init() is called first **from a seperate thread**, then _initGL() is called from the main thread with an active OpenGL context.
 3. Methods
-	* MyNewDrawable_init/alloc() function with:
-		* MDI initialization
 	* PassDrawable* MyNewDrawable_CreateDrawable(MyNewDrawable* o)
 		* usually just calls MDI_CreateDrawable
 	* RenderPass* MyNewDrawable_CreateRenderPass(MyNewDrawable* o)
@@ -131,14 +138,14 @@ config. See `texgen.[ch]`
 * segfault when custom decal start/end points are the same.
 * Calculate correct shader error message line numbers.
 * Texture splatting on terrain is bad.
-* Selection pass is laggy but it shouldn't be. It's in the rendering, not the async pixel download.
+* Selection pass is laggy but it shouldn't be. It's in the rendering, not the async pixel download. It might be in the render loop sleep timer; drawing the terrain should only take a few ms.
 * mCopy and the memcpy inside it have src/dst backwards but all usage needs to be fixed too...
 * Distance culling on CPU side needs to handle shadow passes properly
 * Bias calculation on shadows is terrible. Trees do not shadow themselves.
 * On an nVidia GT 530, first run after modifying terrain.glsl or wiping shader cache results in random terrain corruption.
 
 ### Needs attention in the future
-* MDI max meshes limit fixed at 16
+* MDI max meshes limit fixed at 16. Might be able to choose the right value in initGL if all meshes are loaded first.
 
 ## Graphics
 * Cache low-resolution pre-baked terrain textures for blocks in the distance.
@@ -176,6 +183,8 @@ config. See `texgen.[ch]`
 * Put sound in its own thread.
 
 ## Core
+* Better loading screen
+* Migrate MapInfo and World to init/initGL system
 * Water and fluid dynamics are a broken mess right now.
 * B+ tree leaves become heavily lopsided when filled with an increasing integer sequence. (half full leaves) 
 * B+ tree does not have a delete operation.
@@ -193,7 +202,7 @@ config. See `texgen.[ch]`
 ## UI
 * Config system
 * Text boxes with wrapping
-* SDF calculation on the GPU
+* SDF calculation on the GPU. (current multithreaded version is not *too* bad.)
 
 
 # Reference
@@ -227,11 +236,11 @@ The first five are the main GBuffer.
 21. terrain heightmap
 22. terrain diffuse tex array
 23. terrain diffuse tex array (new)
-24. dust sprite (temp)
-25. road texture (temp)
+24. 
+25. 
 26.
 27.
 28.
-29.
+29. sdf array texture 
 30. guiImage
 31. gui icon array

@@ -13,7 +13,7 @@
 	\
 	SETTING(int, SunShadow_size, 1024) \
 	\
-	SETTING(string, gameConfigPath, "assets/config/combined_config.json") \
+	SETTING(string, worldConfigPath, "assets/config/combined_config.json") \
 	\
 	SETTING(float, keyRotateSensitivity, 0.0f) \
 	SETTING(float, keyScrollSensitivity, 0.0f) \

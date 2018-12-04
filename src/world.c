@@ -27,43 +27,22 @@ void World_init(World* w) {
 	HT_init(&w->itemLookup, 4);
 	HT_init(&w->partLookup, 4);
 	
-	w->dmm = dynamicMeshManager_alloc(&w->gs->globalSettings);
-}
-
-void World_initGL(World* w) {
-	
-
-	
 	
 	w->lm = calloc(1, sizeof(*w->lm));
-	LightManager_Init(w->lm);
-	w->lightingPass = LightManager_CreateRenderPass(w->lm);
-	// not static //w->lm->dtex = w->gs->depthTexBuffer;
-
 	
-	//initMap(&w->map);
-	MapInfo_Init(&w->map);
+	w->dmm = dynamicMeshManager_alloc(&w->gs->globalSettings);
+	w->dm = DecalManager_alloc(&w->gs->globalSettings);
+	w->cdm = CustomDecalManager_alloc(&w->gs->globalSettings);
+	w->mm = MarkerManager_alloc(&w->gs->globalSettings);
+	w->em = EmitterManager_alloc(&w->gs->globalSettings);
+	
+	// hack becore CES is made
+	w->dmm->ces = &w->gs->ces;
 	
 	w->mapTexMan = TextureManager_alloc();
 	w->meshTexMan = TextureManager_alloc();
 	w->decalTexMan = TextureManager_alloc();
 	w->emitterTexMan = TextureManager_alloc();
-	
-	dynamicMeshManager_initGL(w->dmm, &w->gs->globalSettings);
-	w->dm = DecalManager_alloc(1024*50);
-	w->cdm = CustomDecalManager_alloc(1024*50);
-	w->mm = MarkerManager_alloc(1024*50);
-	w->em = EmitterManager_alloc(1024*50);
-//	MarkerManager_addMesh(w->mm, "marker", 20); 
-
-	
-	w->sunShadow = ShadowMap_alloc();
-	w->sunShadow->size = (Vector2i){1024, 1024};
-	ShadowMap_SetupFBOs(w->sunShadow);
-
-	
-	// hack becore CES is made
-	w->dmm->ces = &w->gs->ces;
 	
 	w->map.tm = w->mapTexMan;
 	w->dmm->tm = w->meshTexMan;
@@ -73,40 +52,15 @@ void World_initGL(World* w) {
 	w->em->tm = w->emitterTexMan;
 	
 	
-	World_loadItemConfigFileNew(w, "assets/config/combined_config.json");
-	
-	Map_readConfigFile(&w->map, "assets/config/terrain.json");
+	World_loadItemConfigFileNew(w, w->gs->globalSettings.worldConfigPath);
 	
 	
 	
 	
-	// old bezier roads
-	//w->roads = calloc(1, sizeof(*w->roads));
-	//initRoadBlock(w->roads);
 	
-	//RoadControlPoint rcp = {
-		//{5,5},
-		//{50,50},
-		//{40,7}
-	//};
-	//int id;
-	//rbAddRoad(w->roads, &rcp, &id);
-	
-	//roadblock_update_vbo(w->roads);
-	
-	// water plane, temporary hack
-	w->wp = calloc(1, sizeof(*w->wp));
-	WaterPlane_create(w->wp, 200, &(Vector){0,0,0});
-	
-	Pipe_init(&w->testmesh);
-	
-	// hack to test lightmanager
-	LightManager_AddPointLight(w->lm, (Vector){10,10, 10}, 200, 20);
 	
 	
 	// -------- building test ------------
-	
-	
 	Building b;
 	VEC_INIT(&b.outlines);
 	VEC_INIT(&b.vertices);
@@ -136,17 +90,6 @@ void World_initGL(World* w) {
 	
 	int building_ind = dynamicMeshManager_addMesh(w->dmm, "building", Building_CreateDynamicMesh(&b));
 	
-
-	
-	
-	
-	// -----------------------------------
-	
-	dynamicMeshManager_updateGeometry(w->dmm);
-	MarkerManager_updateGeometry(w->mm);
-	EmitterManager_updateGeometry(w->em);
-	
-
 	DynamicMeshInstance inst = {
 		pos: {100, 100, 30},
 		scale: 30,
@@ -158,7 +101,87 @@ void World_initGL(World* w) {
 	dynamicMeshManager_addInstance(w->dmm, building_ind, &inst);
 	//printf("^^^^ %d\n", building_ind);
 	Vector v = {50,50,0};
-	World_spawnAt_DynamicMesh(w, building_ind, &v);
+	
+	// depends on terrain height, which is not converted to be ready yet
+	//World_spawnAt_DynamicMesh(w, building_ind, &v);
+	
+	// -----------------------------------
+	
+	
+	
+	
+	w->roads = RoadNetwork_alloc();
+	
+}
+
+void World_initGL(World* w) {
+	
+
+	
+	
+	
+	LightManager_Init(w->lm);
+	w->lightingPass = LightManager_CreateRenderPass(w->lm);
+	// not static //w->lm->dtex = w->gs->depthTexBuffer;
+
+	
+	//initMap(&w->map);
+	MapInfo_Init(&w->map);
+	
+
+	
+	dynamicMeshManager_initGL(w->dmm, &w->gs->globalSettings);
+	DecalManager_initGL(w->dm, &w->gs->globalSettings);
+	CustomDecalManager_initGL(w->cdm, &w->gs->globalSettings);
+	MarkerManager_initGL(w->mm, &w->gs->globalSettings);
+	EmitterManager_initGL(w->em, &w->gs->globalSettings);
+
+//	MarkerManager_addMesh(w->mm, "marker", 20); 
+
+	
+	float shadSz = w->gs->globalSettings.SunShadow_size;
+	w->sunShadow = ShadowMap_alloc();
+	w->sunShadow->size = (Vector2i){shadSz, shadSz};
+	ShadowMap_SetupFBOs(w->sunShadow);
+
+	
+
+	
+/*
+	World_loadItemConfigFileNew(w, "assets/config/combined_config.json");
+	*/
+	Map_readConfigFile(&w->map, "assets/config/terrain.json");
+	
+	
+	
+	
+	// old bezier roads
+	//w->roads = calloc(1, sizeof(*w->roads));
+	//initRoadBlock(w->roads);
+	
+	//RoadControlPoint rcp = {
+		//{5,5},
+		//{50,50},
+		//{40,7}
+	//};
+	//int id;
+	//rbAddRoad(w->roads, &rcp, &id);
+	
+	//roadblock_update_vbo(w->roads);
+	
+	// water plane, temporary hack
+	w->wp = calloc(1, sizeof(*w->wp));
+	WaterPlane_create(w->wp, 200, &(Vector){0,0,0});
+	
+	Pipe_init(&w->testmesh);
+	
+	// hack to test lightmanager
+	LightManager_AddPointLight(w->lm, (Vector){10,10, 10}, 200, 20);
+	
+	
+	dynamicMeshManager_updateGeometry(w->dmm);
+	MarkerManager_updateGeometry(w->mm);
+	EmitterManager_updateGeometry(w->em);
 	
 	
 	// very last thing: load textures
@@ -181,13 +204,12 @@ void World_initGL(World* w) {
 	// emitters TODO: put in the right pass
 	w->emitterPass = EmitterManager_CreateRenderPass(w->em);
 	
-
 	// decals pass
 	w->decalPass = DecalManager_CreateRenderPass(w->dm);
 	RenderPass_addDrawable(w->decalPass, CustomDecalManager_CreateDrawable(w->cdm));
 	
 	
-	
+	// the sun shadow pass
 	RenderPass* shadPass = DynamicMeshManager_CreateShadowPass(w->dmm);
 	RenderPass* shadPass1 = Map_CreateShadowPass(&w->map);
 	shadPass->clearDepth = 1;
@@ -201,9 +223,7 @@ void World_initGL(World* w) {
 	
 	
 	
-	
-	w->roads = RoadNetwork_alloc();
-	
+
 	
 	
 	

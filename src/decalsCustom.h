@@ -8,6 +8,7 @@
 #include "ds.h"
 #include "hash.h"
 
+#include "settings.h"
 #include "texture.h"
 #include "pcBuffer.h"
 #include "pass.h"
@@ -84,7 +85,9 @@ int CustomDecalManager_AddDecal(CustomDecalManager* dm, char* name, CustomDecal*
 void CustomDecalManager_updateMatrices(CustomDecalManager* dm, PassFrameParams* pfp);
 int CustomDecalManager_lookupName(CustomDecalManager* dm, char* name);
 int CustomDecalManager_AddInstance(CustomDecalManager* dm, int index, const CustomDecalInstance* di);
-CustomDecalManager* CustomDecalManager_alloc(int maxInstances); 
+CustomDecalManager* CustomDecalManager_alloc(GlobalSettings* gs); 
+void CustomDecalManager_init(CustomDecalManager* dm, GlobalSettings* gs); 
+void CustomDecalManager_initGL(CustomDecalManager* dm, GlobalSettings* gs); 
 void initCustomDecals(); 
 
 

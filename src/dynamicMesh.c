@@ -158,9 +158,6 @@ void dynamicMeshManager_init(DynamicMeshManager* dmm, GlobalSettings* gs) {
 	HT_init(&dmm->lookup, 6);
 	
 	dmm->maxInstances = gs->DynamicMeshManager_maxInstances;
-}
-
-void dynamicMeshManager_initGL(DynamicMeshManager* dmm, GlobalSettings* gs) {
 	
 	dmm->mdi = MultiDrawIndirect_alloc(vao_opts, dmm->maxInstances);
 	dmm->mdi->isIndexed = 1;
@@ -169,6 +166,10 @@ void dynamicMeshManager_initGL(DynamicMeshManager* dmm, GlobalSettings* gs) {
 	dmm->mdi->uniformSetup = (void*)uniformSetup;
 	dmm->mdi->instanceSetup = (void*)instanceSetup;
 	dmm->mdi->data = dmm;
+}
+
+void dynamicMeshManager_initGL(DynamicMeshManager* dmm, GlobalSettings* gs) {
+	MultiDrawIndirect_initGL(dmm->mdi);
 }
 
 // returns the index of the instance

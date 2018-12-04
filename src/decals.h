@@ -8,6 +8,7 @@
 #include "ds.h"
 #include "hash.h"
 
+#include "settings.h"
 #include "texture.h"
 #include "pcBuffer.h"
 #include "pass.h"
@@ -79,7 +80,10 @@ int DecalManager_AddDecal(DecalManager* dm, char* name, Decal* d);
 void DecalManager_updateMatrices(DecalManager* dm, PassFrameParams* pfp);
 int DecalManager_lookupName(DecalManager* dm, char* name);
 int DecalManager_AddInstance(DecalManager* dm, int index, const DecalInstance* di);
-DecalManager* DecalManager_alloc(int maxInstances); 
+DecalManager* DecalManager_alloc(GlobalSettings* gs); 
+void DecalManager_init(DecalManager* dm, GlobalSettings* gs); 
+void DecalManager_initGL(DecalManager* dm, GlobalSettings* gs);
+
 void initDecals(); 
 
 

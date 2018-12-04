@@ -94,15 +94,13 @@ int main(int argc, char* argv[]) {
 	//meh(NULL);
 	
 	// initialization progress loop
-	int first2 = 1;
 	while(!loadingScreen.done) {
 		processEvents(&xs, &input, &game.ifs, -1);
 		
-		if(first2 && xs.ready) {
+		if(first && xs.ready) {
 			LoadingScreen_init(&loadingScreen);
 			
-			//meh(NULL);
-			first2 = 0;
+			first = 0;
 		}
 		
 		if(xs.ready) {

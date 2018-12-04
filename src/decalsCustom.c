@@ -199,20 +199,25 @@ PassDrawable* CustomDecalManager_CreateDrawable(CustomDecalManager* lm) {
 
 
 
-CustomDecalManager*  CustomDecalManager_alloc(int maxInstances) {
+CustomDecalManager*  CustomDecalManager_alloc(GlobalSettings* gs) {
 	CustomDecalManager* dm;
-	GLbitfield flags;
-	size_t vbo_size;
-	
 	
 	dm = calloc(1, sizeof(*dm));
+	CustomDecalManager_init(dm, gs);
+	
+	return dm;
+}
 
+
+void CustomDecalManager_init(CustomDecalManager* dm, GlobalSettings* gs) {
 	VEC_INIT(&dm->decals);
 	HT_init(&dm->lookup, 6);
-	//HT_init(&mm->textureLookup, 6);
 	
-	dm->maxInstances = maxInstances;
-	
+	dm->maxInstances = gs->CustomDecalManager_maxInstances;
+}
+
+
+void CustomDecalManager_initGL(CustomDecalManager* dm, GlobalSettings* gs) {
 	glBindVertexArray(vao);
 	
 	// per-instance attributes
@@ -220,27 +225,6 @@ CustomDecalManager*  CustomDecalManager_alloc(int maxInstances) {
 	
 	PCBuffer_startInit(&dm->instVB, dm->maxInstances * stride, GL_ARRAY_BUFFER);
 	updateVAO(1, vaoConfig);
-	// position matrix 	
-// 	glEnableVertexAttribArray(2);
-// 	glEnableVertexAttribArray(3);
-// 	glEnableVertexAttribArray(4);
-// 	glEnableVertexAttribArray(5);
-// 	glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 4*4*4 + 2*2, 0);
-// 	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 4*4*4 + 2*2, 1*4*4);
-// 	glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 4*4*4 + 2*2, 2*4*4);
-// 	glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 4*4*4 + 2*2, 3*4*4);
-// 	
-// 	glVertexAttribDivisor(2, 1);
-// 	glVertexAttribDivisor(3, 1);
-// 	glVertexAttribDivisor(4, 1);
-// 	glVertexAttribDivisor(5, 1);
-// 	
-// 	// texture indices
-// 	glEnableVertexAttribArray(6);
-// 	glVertexAttribIPointer(6, 2, GL_UNSIGNED_SHORT, 4*4*4 + 2*2, 4*4*4);
-// 	glVertexAttribDivisor(6, 1);
-// 	
-	
 	PCBuffer_finishInit(&dm->instVB);
 	
 	
@@ -250,10 +234,6 @@ CustomDecalManager*  CustomDecalManager_alloc(int maxInstances) {
 		GL_DRAW_INDIRECT_BUFFER
 	);
 	PCBuffer_finishInit(&dm->indirectCmds);
-
-	
-	
-	return dm;
 }
 
 

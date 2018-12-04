@@ -56,7 +56,8 @@ typedef struct MultiDrawIndirect {
 
 
 MultiDrawIndirect* MultiDrawIndirect_alloc(VAOConfig* vaoConfig, int maxInstances);
-void MultiDrawIndirect_init(MultiDrawIndirect* dmi, VAOConfig* vaoConfig, int maxInstances);
+void MultiDrawIndirect_init(MultiDrawIndirect* mdi, VAOConfig* vaoConfig, int maxInstances);
+void MultiDrawIndirect_initGL(MultiDrawIndirect* mdi);
 void MultiDrawIndirect_updateGeometry(MultiDrawIndirect* mdi);
 int MultiDrawIndirect_addMesh(MultiDrawIndirect* mdi, MDIDrawInfo* di);
 

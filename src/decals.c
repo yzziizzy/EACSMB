@@ -188,20 +188,29 @@ PassDrawable* DecalManager_CreateDrawable(DecalManager* lm) {
 
 
 
-DecalManager*  DecalManager_alloc(int maxInstances) {
+DecalManager*  DecalManager_alloc(GlobalSettings* gs) {
 	DecalManager* dm;
 	GLbitfield flags;
 	size_t vbo_size;
 	
-	
 	dm = calloc(1, sizeof(*dm));
+	
+	DecalManager_init(dm, gs);
+	
+	return dm;
+}
 
+
+void DecalManager_init(DecalManager* dm, GlobalSettings* gs) {
 	VEC_INIT(&dm->decals);
 	HT_init(&dm->lookup, 6);
 	//HT_init(&mm->textureLookup, 6);
 	
-	dm->maxInstances = maxInstances;
-	
+	dm->maxInstances = gs->DecalManager_maxInstances;
+}
+
+
+void DecalManager_initGL(DecalManager* dm, GlobalSettings* gs) {
 	glBindVertexArray(vao);
 	
 	int stride = calcVAOStride(1, vaoConfig);
@@ -218,10 +227,6 @@ DecalManager*  DecalManager_alloc(int maxInstances) {
 		GL_DRAW_INDIRECT_BUFFER
 	);
 	PCBuffer_finishInit(&dm->indirectCmds);
-
-	
-	
-	return dm;
 }
 
 

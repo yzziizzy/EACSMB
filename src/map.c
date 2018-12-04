@@ -1323,6 +1323,7 @@ void MapInfo_Init(MapInfo* mi) {
 	};
 	
 	mi->blockPatch = MultiDrawIndirect_alloc(vao_opts, 64);
+	MultiDrawIndirect_initGL(mi->blockPatch);
 	
 	//mi->block = MapBlock_Alloc(1024, 1024);
 	mi->block = MapBlock_Alloc(512, 512);

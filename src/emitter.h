@@ -7,6 +7,7 @@
 #include "ds.h"
 #include "hash.h"
 
+#include "settings.h"
 #include "texture.h"
 #include "pcBuffer.h"
 #include "pass.h"
@@ -69,7 +70,9 @@ typedef struct EmitterManager {
 
 
 
-EmitterManager* EmitterManager_alloc(int maxInstances);
+EmitterManager* EmitterManager_alloc(GlobalSettings* gs);
+void EmitterManager_init(EmitterManager*, GlobalSettings* gs);
+void EmitterManager_initGL(EmitterManager*, GlobalSettings* gs);
 int EmitterManager_addEmitter(EmitterManager* em, Emitter* e, char* name);
 void EmitterManager_addInstance(EmitterManager* em, int index, EmitterInstance* inst);
 void EmitterManager_updateGeometry(EmitterManager* em);

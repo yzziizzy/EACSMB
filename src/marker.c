@@ -36,11 +36,17 @@ static ShaderProgram* prog;
 
 
 
-MarkerManager* MarkerManager_alloc(int maxInstances) {
+MarkerManager* MarkerManager_alloc(GlobalSettings* gs) {
 	
 	MarkerManager* mm = pcalloc(mm);
+	MarkerManager_init(mm, gs);
 	
-	mm->maxInstances = maxInstances;
+	return mm;
+}
+
+
+void MarkerManager_init(MarkerManager* mm, GlobalSettings* gs) {
+	mm->maxInstances = gs->MarkerManager_maxInstances;
 	VEC_INIT(&mm->meshes);
 	HT_init(&mm->lookup, 4);
 	
@@ -56,18 +62,19 @@ MarkerManager* MarkerManager_alloc(int maxInstances) {
 		
 		{0, 0, 0}
 	};
-
 	
-	
-	mm->mdi = MultiDrawIndirect_alloc(vaoopts, maxInstances);
+	mm->mdi = MultiDrawIndirect_alloc(vaoopts, mm->maxInstances);
 	mm->mdi->isIndexed = 1;
 	mm->mdi->indexSize = 2;
 	mm->mdi->primMode = GL_TRIANGLES;
 	mm->mdi->uniformSetup = (void*)uniformSetup;
 	mm->mdi->instanceSetup = (void*)instanceSetup;
 	mm->mdi->data = mm;
-	
-	return mm;
+}
+
+
+void MarkerManager_initGL(MarkerManager* mm, GlobalSettings* gs) {
+	MultiDrawIndirect_initGL(mm->mdi);
 }
 
 

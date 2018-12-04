@@ -31,11 +31,16 @@ static ShaderProgram* prog;
 
 
 
-EmitterManager* EmitterManager_alloc(int maxInstances) {
+EmitterManager* EmitterManager_alloc(GlobalSettings* gs) {
 	
 	EmitterManager* em = pcalloc(em);
+	EmitterManager_init(em, gs);
 	
-	//em->maxInstances = maxInstances;
+	return em;
+}
+
+
+void EmitterManager_init(EmitterManager* em, GlobalSettings* gs) {
 	VEC_INIT(&em->emitters);
 	HT_init(&em->lookup, 4);
 	
@@ -53,17 +58,19 @@ EmitterManager* EmitterManager_alloc(int maxInstances) {
 		
 		{0, 0, 0}
 	};
-
 	
 	
-	em->mdi = MultiDrawIndirect_alloc(vaoopts, maxInstances);
+	em->mdi = MultiDrawIndirect_alloc(vaoopts, gs->EmitterManager_maxInstances);
 	em->mdi->isIndexed = 0;
 	em->mdi->primMode = GL_POINTS;
 	em->mdi->uniformSetup = (void*)uniformSetup;
 	em->mdi->instanceSetup = (void*)instanceSetup;
 	em->mdi->data = em;
-	
-	return em;
+}
+
+
+void EmitterManager_initGL(EmitterManager* em, GlobalSettings* gs) {
+	MultiDrawIndirect_initGL(em->mdi);
 }
 
 
