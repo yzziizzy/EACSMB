@@ -114,7 +114,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	json_gl_init_lookup();
 	
 	
-	gs->gui = GUIManager_alloc(4096);
+	gs->gui = GUIManager_alloc(&gs->globalSettings);
 	
 	
 	// sound
@@ -250,7 +250,7 @@ void initGameGL(XStuff* xs, GameState* gs) {
 	glerr("left over error on game init");
 	
 	
-	GUIManager_initGL(gs->gui);
+	GUIManager_initGL(gs->gui, &gs->globalSettings);
 	gs->guiPass = GUIManager_CreateRenderPass(gs->gui);
 
 	

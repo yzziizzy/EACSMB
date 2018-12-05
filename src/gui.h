@@ -12,6 +12,8 @@
 #include "pass.h"
 #include "pcBuffer.h"
 
+#include "font.h"
+
 
 struct GameState;
 typedef struct GameState GameState;
@@ -127,113 +129,8 @@ union GUIObject {
 
 
 
-// ----------- new font rendering info --------------
 
 
-
-
-#include <ft2build.h>
-#include FT_FREETYPE_H
-
-
-struct charInfo {
-	uint32_t code;
-	
-	// final output texture coordinates
-	int texIndex;
-	Vector2i texelOffset; // from the top left
-	Vector2i texelSize; // size of the character data in texels
-	Vector2 texNormOffset; // normalized texture coordinates
-	Vector2 texNormSize; 
-	
-	// typographic info
-	float advance; // horizonatal distance to advance after this char
-	Vector2 topLeftOffset; // offset from the baseline to the top left vertex of the quad
-	Vector2 size;
-	
-};
-
-
-
-// generation info for a single character
-
-
-
-typedef struct GUIFont {
-	
-	char* name;
-	
-	int charsLen;
-	struct charInfo* regular;
-	struct charInfo* italic;
-	struct charInfo* bold;
-	struct charInfo* boldItalic;
-	
-	// TODO: kerning info
-	
-} GUIFont;
-
-
-typedef struct FontGen {
-	GUIFont* font;
-	
-	int code;
-	char italic;
-	char bold;
-	
-	
-	// the raw glyph is oversampled by FontManager.oversample times
-	int oversample;
-	int magnitude;
-	
-	// metrics for the raw glyph, in pixels
-	uint8_t* rawGlyph;
-	Vector2i rawGlyphSize; // size of the raw bitmap
-
-	Vector rawBearing; // distance from the origin to the top left corner of the glyph
-	float rawAdvance; // horizontal advance, in pixels
-	
-	// the sdf is smaller than the raw glyph
-	
-	// metrics for the sdf glyph, in pixels
-	uint8_t* sdfGlyph;
-	Vector2i sdfGlyphSize; // size of the sdf bitmap
-	AABB2 sdfBounds; // bounding box of the non-empty data in the sdf bitmap, in pixels
-	Vector2i sdfDataSize; // size of the non-empty sdf data in the bitmap
-	
-	Vector sdfBearing; // distance from the origin to the top left corner of the clipped sdf data
-	float sdfAdvance; // horizontal advance, in pixels
-	
-	
-	// final texture data
-	struct charInfo charinfo;
-} FontGen;
-
-
-typedef struct FontManager {
-	HashTable(GUIFont*) fonts;
-	
-	// SDF generation 
-	VEC(FontGen*) gen;
-	atomic_int genCounter;
-	
-	// SDF config
-	int oversample;
-	int magnitude;
-	
-	int maxAtlasSize;
-	VEC(uint8_t*) atlas;
-	uint32_t atlasSize;
-	
-	
-	// temp hacky stuff
-	GUIFont* helv;
-	
-} FontManager;
-
-void FontManager_createAtlas(FontManager* fm);
-void FontManager_saveAtlas(FontManager* fm, char* path);
-int FontManager_loadAtlas(FontManager* fm, char* path);
 
 /*
 The general idea is this:
@@ -265,9 +162,9 @@ typedef struct GUIManager {
 
 
 
-void GUIManager_init(GUIManager* gm, int maxInstances);
-void GUIManager_initGL(GUIManager* gm);
-GUIManager* GUIManager_alloc(int maxInstances);
+void GUIManager_init(GUIManager* gm, GlobalSettings* gs);
+void GUIManager_initGL(GUIManager* gm, GlobalSettings* gs);
+GUIManager* GUIManager_alloc(GlobalSettings* gs);
 
 GUIUnifiedVertex* GUIManager_checkElemBuffer(GUIManager* gm);
 

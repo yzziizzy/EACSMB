@@ -20,6 +20,7 @@ eacsmb_SOURCES = main.c \
 	dynamicMesh.c \
 	emitter.c \
 	fbo.c \
+	font.c \
 	game.c \
 	gui.c \
 	hash.c \

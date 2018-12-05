@@ -10,6 +10,7 @@
 	SETTING(int, CustomDecalManager_maxInstances, 8192) \
 	SETTING(int, EmitterManager_maxInstances, 8192) \
 	SETTING(int, MarkerManager_maxInstances, 8192) \
+	SETTING(int, GUIManager_maxInstances, 8192) \
 	\
 	SETTING(int, SunShadow_size, 1024) \
 	\

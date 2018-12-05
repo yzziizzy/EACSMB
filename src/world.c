@@ -108,10 +108,75 @@ void World_init(World* w) {
 	
 	// -----------------------------------
 	
-	
-	
-	
 	w->roads = RoadNetwork_alloc();
+	
+	
+	
+	
+	
+	int nn = 0;
+	for(int y = 0; y < 512; y+=2) {
+		for(int x = 0; x < 512; x+=2) {
+			Vector v = {
+				.x = x + frand(-2, 2),
+				.y = y + frand(-2, 2),
+				.z = 30,
+			};
+			
+			float f = fabs(PerlinNoise_2D((0 + x) / 512.0, (0 + y) / 512.0, .2, 6));
+			
+			//if(nn > 4) goto DONE;
+			//printf("f = %f\n", f);
+// 			if(f < -0.01) continue; 
+// 			if(frandNorm() < .5) continue;
+			if(f / frandNorm() < 1.8) continue;
+			
+			World_spawnAt_Item(w, "tree", &v);
+			nn++;
+			
+		}
+	}
+	
+	
+	
+	CustomDecal* cd;
+	DONE:
+	
+	cd = pcalloc(cd); 
+	cd->thickness = 9.0f;
+	
+	
+	CustomDecalManager_AddDecal(w->cdm, "test", cd);
+	
+	Matrix rm;
+	
+	mIdent(&rm);
+	mTrans3f(100, 100, 0, &rm);
+	mRotZ(1, &rm);
+
+	Vector pos1 = {40, 55, 20};
+	Vector pos2 = {40, 95, 20};
+	Vector pos3 = {100, 30, 20};
+	Vector pos4 = {90, 110, 20};
+	
+	vMatrixMul(&pos1, &rm, &pos1);
+	vMatrixMul(&pos2, &rm, &pos2);
+	vMatrixMul(&pos3, &rm, &pos3);
+	vMatrixMul(&pos4, &rm, &pos4);
+	
+	CustomDecalManager_AddInstance(w->cdm, 0, &(CustomDecalInstance){
+		.pos1 = pos1,
+		.pos2 = pos2,
+		.pos3 = pos3,
+		.pos4 = pos4,
+		.thickness = 5,
+		.tex12 = .5,
+		.tex34 = 2,
+	});
+	
+	
+	
+	World_spawnAt_CustomDecal(w, 0, 1, &(Vector2){100, 100}, &(Vector2){300, 300});
 	
 }
 
@@ -219,96 +284,6 @@ void World_initGL(World* w) {
 	ShadowMap_addPass(w->sunShadow, shadPass);
 	ShadowMap_addPass(w->sunShadow, shadPass1);
 	
-	
-	
-	
-	
-	
-
-	
-	
-	
-	
-	
-	
-	
-	
-	/// hacks
-	
-// 	for(int i = 0; i < 50; i++) {
-// 		Vector v = {
-// 			.x = frand(0, 500),
-// 			.y = frand(0, 500),
-// 			.z = 30,
-// 		};
-// 		
-// 		//World_spawnAt_Item(w, "tree", &v);
-// 		//World_spawnAt_DynamicMesh(w,  4, &v);
-// 	}
-	int nn = 0;
-	for(int y = 0; y < 512; y+=2) {
-		for(int x = 0; x < 512; x+=2) {
-			Vector v = {
-				.x = x + frand(-2, 2),
-				.y = y + frand(-2, 2),
-				.z = 30,
-			};
-			
-			float f = fabs(PerlinNoise_2D((0 + x) / 512.0, (0 + y) / 512.0, .2, 6));
-			
-			//if(nn > 4) goto DONE;
-			//printf("f = %f\n", f);
-// 			if(f < -0.01) continue; 
-// 			if(frandNorm() < .5) continue;
-			if(f / frandNorm() < 1.8) continue;
-			
-			World_spawnAt_Item(w, "tree", &v);
-			nn++;
-			
-		}
-	}
-	
-	
-	
-	CustomDecal* cd;
-	DONE:
-	
-	cd = pcalloc(cd); 
-	cd->thickness = 9.0f;
-	
-	
-	CustomDecalManager_AddDecal(w->cdm, "test", cd);
-	
-	Matrix rm;
-	
-	mIdent(&rm);
-	mTrans3f(100, 100, 0, &rm);
-	mRotZ(1, &rm);
-
-	Vector pos1 = {40, 55, 20};
-	Vector pos2 = {40, 95, 20};
-	Vector pos3 = {100, 30, 20};
-	Vector pos4 = {90, 110, 20};
-	
-	vMatrixMul(&pos1, &rm, &pos1);
-	vMatrixMul(&pos2, &rm, &pos2);
-	vMatrixMul(&pos3, &rm, &pos3);
-	vMatrixMul(&pos4, &rm, &pos4);
-	
-	CustomDecalManager_AddInstance(w->cdm, 0, &(CustomDecalInstance){
-		.pos1 = pos1,
-		.pos2 = pos2,
-		.pos3 = pos3,
-		.pos4 = pos4,
-		.thickness = 5,
-		.tex12 = .5,
-		.tex34 = 2,
-	});
-	
-	
-	
-	World_spawnAt_CustomDecal(w, 0, 1, &(Vector2){100, 100}, &(Vector2){300, 300});
-
 	
 }
 
