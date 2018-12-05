@@ -27,6 +27,7 @@ void World_init(World* w) {
 	HT_init(&w->itemLookup, 4);
 	HT_init(&w->partLookup, 4);
 	
+	MapInfo_Init(&w->map, &w->gs->globalSettings);
 	
 	w->lm = calloc(1, sizeof(*w->lm));
 	
@@ -102,8 +103,8 @@ void World_init(World* w) {
 	//printf("^^^^ %d\n", building_ind);
 	Vector v = {50,50,0};
 	
-	// depends on terrain height, which is not converted to be ready yet
-	//World_spawnAt_DynamicMesh(w, building_ind, &v);
+	
+	World_spawnAt_DynamicMesh(w, building_ind, &v);
 	
 	// -----------------------------------
 	
@@ -126,7 +127,7 @@ void World_initGL(World* w) {
 
 	
 	//initMap(&w->map);
-	MapInfo_Init(&w->map);
+	MapInfo_InitGL(&w->map, &w->gs->globalSettings);
 	
 
 	

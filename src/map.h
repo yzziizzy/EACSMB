@@ -24,6 +24,7 @@
 #include "ds.h"
 #include "hash.h"
 
+#include "settings.h"
 #include "pass.h"
 #include "texture.h"
 #include "mdi.h"
@@ -256,7 +257,8 @@ MapLayer* MapBlock_GetLayer(MapBlock* mb, char* name);
 void MapLayer_GenTerrain(MapLayer* ml, MapLayer* surface);
 MapLayer* MapLayer_Alloc(Vector2i size, float scale);
 void MapLayer_init(MapLayer* ml, Vector2i size, float scale);
-void MapInfo_Init(MapInfo* mi);
+void MapInfo_Init(MapInfo* mi, GlobalSettings* gs);
+void MapInfo_InitGL(MapInfo* mi, GlobalSettings* gs);
 void MapInfo_GenMesh(MapInfo* mi);
 
 

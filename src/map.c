@@ -1308,9 +1308,7 @@ void MapLayer_FillUChar(MapLayer* ml, unsigned char value) {
 
 
 
-void MapInfo_Init(MapInfo* mi) {
-	
-	
+void MapInfo_Init(MapInfo* mi, GlobalSettings* gs) {
 	static VAOConfig vao_opts[] = {
 		// per vertex
 		{0, 2, GL_FLOAT, 0, GL_FALSE}, // position
@@ -1323,7 +1321,8 @@ void MapInfo_Init(MapInfo* mi) {
 	};
 	
 	mi->blockPatch = MultiDrawIndirect_alloc(vao_opts, 64);
-	MultiDrawIndirect_initGL(mi->blockPatch);
+	
+	
 	
 	//mi->block = MapBlock_Alloc(1024, 1024);
 	mi->block = MapBlock_Alloc(512, 512);
@@ -1344,6 +1343,17 @@ void MapInfo_Init(MapInfo* mi) {
 	MapLayer_Fill(MapBlock_GetLayer(mi->block, "water2"), 8.0);
 	MapLayer_Fill(MapBlock_GetLayer(mi->block, "soil"), 0.0);
 	
+	MapLayer_GenTerrain(mi->block->terrain, surface);
+}
+
+
+void MapInfo_InitGL(MapInfo* mi, GlobalSettings* gs) {
+	
+	
+
+	MultiDrawIndirect_initGL(mi->blockPatch);
+	
+
 	
 	// temp, initializes the patches
 	initTerrain(mi);
@@ -1354,7 +1364,7 @@ void MapInfo_Init(MapInfo* mi) {
 	MapInfo_initLayerTextures(mi);
 	
 	// gen heightmap
-	MapLayer_GenTerrain(mi->block->terrain, surface);
+// 	MapLayer_GenTerrain(mi->block->terrain, surface);
 	MapGen_initWaterVelTex(mi); 
 	
 	Map_updateSurfaceTextures(mi);
