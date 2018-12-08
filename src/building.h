@@ -60,7 +60,7 @@ void Building_extrudeOutline(Building* b, BuildingOutline* o);
 void Building_capAll(Building* b);
 void Building_capOutline(Building* building, BuildingOutline* o);
 
-void Building_pointCapOutline(Building* building, BuildingOutline* o);
+void Building_pointCapOutline(Building* building, BuildingOutline* o, float height);
 
 
 DynamicMesh* Building_CreateDynamicMesh(Building* b);

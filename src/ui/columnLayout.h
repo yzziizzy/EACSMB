@@ -16,7 +16,7 @@ typedef struct GUIColumnLayout {
 	
 } GUIColumnLayout;
 
-GUIColumnLayout* guiColumnLayoutNew(Vector2 pos, float spacing, float zIndex);
+GUIColumnLayout* GUIColumnLayout_new(GUIManager* gm, Vector2 pos, float spacing, float zIndex);
 
 
 

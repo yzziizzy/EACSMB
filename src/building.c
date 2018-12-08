@@ -295,8 +295,46 @@ void Building_capOutline(Building* building, BuildingOutline* o) {
 
 // this uses an extremely naive averaging algorithm.
 // do no use it on strongly convex or irregular shapes
-void Building_pointCapOutline(Building* building, BuildingOutline* o) {
+void Building_pointCapOutline(Building* building, BuildingOutline* o, float height) {
+	/*
+	Vector3 avg = {0, 0, height};
+	LIST_LOOP(&o->points, p) {
+		avg.x += p->x;
+		avg.y += p->y;
+	}
 	
+	
+	LIST_LOOP(&o->points, p) {
+		
+		int base_vertex = VEC_LEN(&building->vertices);
+		
+		Vector p1 = {a->x, a->y, o->h_offset + height}
+		Vector p2 = {a->x, a->y, o->h_offset + height}
+		Vector p3 = {a->x, a->y, o->h_offset + height}
+		
+		VEC_PUSH(&building->vertices, ((Vertex_PNT){
+			p: p1, 
+			n: {0,0,1}, 
+			t: {(a->x - minx) / spanx, (a->y - miny) / spany}
+		}));
+		VEC_PUSH(&building->vertices, ((Vertex_PNT){
+			p: p2, 
+			n: {0,0,1}, 
+			t: {(b->x - minx) / spanx, (b->y - miny) / spany}
+		}));
+		VEC_PUSH(&building->vertices, ((Vertex_PNT){
+			p: p3, 
+			n: {0,0,1}, 
+			t: {(c->x - minx) / spanx, (c->y - miny) / spany}
+		}));
+		
+		VEC_PUSH(&building->indices, base_vertex + 0);
+		VEC_PUSH(&building->indices, base_vertex + 2);
+		VEC_PUSH(&building->indices, base_vertex + 1);
+		
+		
+	}
+	*/
 }
 
 

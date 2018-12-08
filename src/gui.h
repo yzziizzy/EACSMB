@@ -18,6 +18,15 @@
 struct GameState;
 typedef struct GameState GameState;
 
+struct GUIManager;
+typedef struct GUIManager GUIManager;
+
+
+#define GUI_GRAV_TOP     0x0000
+#define GUI_GRAV_BOTTOM  0x0001
+#define GUI_GRAV_LEFT    0x0000
+#define GUI_GRAV_RIGHT   0x0002
+
 
 struct Color4 {
 	uint8_t r,g,b,a;
@@ -29,14 +38,16 @@ struct Color3 {
 
 
 typedef struct GUIUnifiedVertex {
-	struct { float t, l, b, r; } pos;
-	struct { float t, l, b, r; } clip;
+	struct { float l, t, r, b; } pos;
+	struct { float l, t, r, b; } clip;
 	uint8_t texIndex1, texIndex2, texFade, guiType; 
 	struct { uint16_t x, y; } texOffset1, texOffset2;
 	struct { uint16_t x, y; } texSize1, texSize2;
 	
 	struct Color4 fg;
 	struct Color4 bg;
+	
+	float z, alpha, opt1, opt2;
 	
 } __attribute__ ((packed)) GUIUnifiedVertex;
 
@@ -49,7 +60,7 @@ struct GUIManager;
 
 
 struct gui_vtbl {
-	void (*Render)(GUIObject* go, GameState* gs, PassFrameParams* pfp);
+	void (*Render)(GUIObject* go, AABB2* clip, PassFrameParams* pfp);
 	void (*Delete)(GUIObject* go);
 	void (*Reap)(GUIObject* go);
 	void (*Resize)(GUIObject* go, Vector2 newSz); // exterior size
@@ -78,10 +89,18 @@ typedef void (*GUI_OnMouseEnterFn)(GUIEvent* e);
 typedef void (*GUI_OnMouseLeaveFn)(GUIEvent* e);
 
 
+
 typedef struct GUIHeader {
+	struct GUIManager* gm;
+	GUIObject* parent;
+	struct gui_vtbl* vt;
+
+	// fallback for easy hit testing
+	VEC(union GUIObject*) children;
+	
 	Vector2 topleft; // relative to parent (and window padding)
 	Vector2 size; // absolute
-	float scale; // meaning scale, apparently
+	float scale;
 	float alpha;
 	float z;
 	
@@ -90,11 +109,6 @@ typedef struct GUIHeader {
 	char hidden;
 	char deleted;
 	
-	VEC(union GUIObject*) children;
-	GUIObject* parent;
-	
-	struct GUIManager* gm;
-	struct gui_vtbl* vt;
 	
 	GUI_OnClickFn onClick;
 	GUI_OnMouseEnterFn onMouseEnter;
@@ -152,6 +166,7 @@ typedef struct GUIManager {
 	Vector2i screenSize;
 	
 	GUIObject* root;
+	VEC(GUIObject*) reapQueue; 
 	
 	FontManager* fm;
 	
@@ -166,7 +181,6 @@ void GUIManager_init(GUIManager* gm, GlobalSettings* gs);
 void GUIManager_initGL(GUIManager* gm, GlobalSettings* gs);
 GUIManager* GUIManager_alloc(GlobalSettings* gs);
 
-GUIUnifiedVertex* GUIManager_checkElemBuffer(GUIManager* gm);
 
 RenderPass* GUIManager_CreateRenderPass(GUIManager* gm);
 PassDrawable* GUIManager_CreateDrawable(GUIManager* gm);
@@ -205,14 +219,9 @@ typedef struct GUITextArea {
 
 
 
-void gui_Init();
-void gui_Image_Init(char* file);
-
-void gui_RenderAll(GameState* gs, PassFrameParams* pfp);
-
 GUIObject* guiHitTest(GUIObject* go, Vector2 testPos);
 void guiDelete(GUIObject* go);
-void guiRender(GUIObject* go, GameState* gs, PassFrameParams* pfp);
+// void guiRender(GUIObject* go, GameState* gs, PassFrameParams* pfp);
 void guiReap(GUIObject* go);
 void guiResize(GUIHeader* gh, Vector2 newSz);
 int guiRemoveChild(GUIObject* parent, GUIObject* child);
@@ -220,10 +229,9 @@ int guiRemoveChild(GUIObject* parent, GUIObject* child);
 
 void guiTriggerClick(GUIEvent* e); 
 
-#define guiRegisterObject(o, p) guiRegisterObject_(&(o)->header, p)
-void guiRegisterObject_(GUIHeader* o, GUIHeader* parent);
+#define GUIRegisterObject(o, p) GUIRegisterObject_(&(o)->header, (p) ? (&((GUIObject*)(p))->header) : NULL)
+void GUIRegisterObject_(GUIHeader* o, GUIHeader* parent);
 
-void guiHeaderInit(GUIHeader* gh); 
 
 void guiSetClientSize(GUIObject* go, Vector2 cSize);
 Vector2 guiGetClientSize(GUIObject* go);

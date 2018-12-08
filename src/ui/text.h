@@ -5,25 +5,21 @@
 typedef struct GUIText {
 	GUIHeader header;
 	
-	
-	char* current;
-	
-	Vector pos;
-	float size;
+	char* currentStr;
+	float fontSize;
 	
 	// align, height, width wrapping
 	
-	TextRes* font;
-	TextRenderInfo* strRI;
-	
+	GUIFont* font;
 	
 } GUIText;
 
 
 
-GUIText* guiTextNew(char* str, Vector2 pos, float size, char* fontname);
+GUIText* GUIText_new(GUIManager* gm, char* str, char* fontname, float fontSize );
 
-void guiTextSetValue(GUIText* gt, char* newval);
+void GUIText_setString(GUIText* gt, char* newval);
+
 float guiTextGetTextWidth(GUIText* gt, int numChars);
 
 

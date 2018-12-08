@@ -1,6 +1,7 @@
 
 
 #include "../gui.h"
+#include "../gui_internal.h"
 
 
 
@@ -17,15 +18,15 @@ static void moveCursor(GUIEdit* ed, int delta) {
 
 void guiEditRender(GUIEdit* ed, GameState* gs, PassFrameParams* pfp) {
 	
-	guiRender(ed->bg, gs, pfp);
-	guiRender(ed->textControl, gs, pfp);
+// 	guiRender(ed->bg, gs, pfp);
+// 	guiRender(ed->textControl, gs, pfp);
 	
 	
 	if(fmod(pfp->wallTime, 1.0) > .5) {
 		ed->cursor->header.topleft.x = 
 			ed->bg->header.topleft.x +
-			(ed->cursorOffset * ed->textControl->size * .01);
-		guiRender(ed->cursor, gs, pfp);
+			(ed->cursorOffset * ed->textControl->fontSize * .01);
+// 		guiRender(ed->cursor, gs, pfp);
 	}
 }
 
@@ -91,8 +92,7 @@ GUIEdit* GUIEditNew(char* initialValue, Vector2 pos, Vector2 size) {
 	ed = calloc(1, sizeof(*ed));
 	CHECK_OOM(ed);
 	
-	guiHeaderInit(&ed->header);
-	ed->header.vt = &static_vt;
+	gui_headerInit(&ed->header, NULL, &static_vt);
 	ed->inputHandlers = &input_vt;
 	
 	ed->header.hitbox.min.x = pos.x;
@@ -117,19 +117,19 @@ GUIEdit* GUIEditNew(char* initialValue, Vector2 pos, Vector2 size) {
 	
 	ed->cursorpos = ed->textlen;
 	
-	ed->bg = guiWindowNew(pos, size, 1);
+// 	ed->bg = GUIWindow_new(pos, size, 1);
 	ed->bg->color = (Vector){0.1, 0.1, 0.1};
 	ed->bg->borderColor = (Vector4){1.0, .7, .3, 1.0};
-	guiRegisterObject(ed->bg, &ed->header);
+// 	guiRegisterObject(ed->bg, &ed->header);
 	
 	// TODO: fix size and pos of cursor
-	ed->cursor = guiWindowNew(pos, (Vector2){.003, size.y}, 1);
+// 	ed->cursor = guiWindowNew(pos, (Vector2){.003, size.y}, 1);
 	ed->cursor->color = (Vector){1.0, 1.0, 1.0};
-	guiRegisterObject(ed->cursor, &ed->bg->header);
+// 	guiRegisterObject(ed->cursor, &ed->bg->header);
 	
-	ed->textControl = guiTextNew(initialValue, pos, 6.0f, "Arial");
+// 	ed->textControl = GUIText_new(initialValue, pos, 6.0f, "Arial");
 	ed->textControl->header.size.x = .5;
-	guiRegisterObject(ed->textControl, &ed->bg->header);
+// 	guiRegisterObject(ed->textControl, &ed->bg->header);
 
 	ed->cursorOffset = guiTextGetTextWidth(ed->textControl, ed->cursorpos);
 
@@ -164,10 +164,10 @@ static void insertChar(GUIEdit* ed, char c) {
 }
 
 static void updateTextControl(GUIEdit* ed) {
-	guiTextSetValue(ed->textControl, ed->buf);
+	GUIText_setString(ed->textControl, ed->buf);
 	
 	// get new cursor pos
-	ed->cursorOffset = guiTextGetTextWidth(ed->textControl, ed->cursorpos);
+// 	ed->cursorOffset = guiTextGetTextWidth(ed->textControl, ed->cursorpos);
 	//printf("cursorpos %f\n", ed->cursorOffset); 
 	
 	fireOnchange(ed);

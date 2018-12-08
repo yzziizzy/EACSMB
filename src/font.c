@@ -67,6 +67,15 @@ void FontManager_init(FontManager* fm, GlobalSettings* gs) {
 
 
 
+GUIFont* FontManager_findFont(FontManager* fm, char* name) {
+	GUIFont* f;
+	
+	if(HT_get(&fm->fonts, name, &f)) {
+		return fm->helv; // fallback
+	}
+	
+	return f;
+}
 
 
 

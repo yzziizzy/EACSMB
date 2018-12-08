@@ -1056,8 +1056,8 @@ static void parseConfig(char* path) {
 
 
 void guiTexBuilderControlRender(GUITexBuilderControl* bc, GameState* gs, PassFrameParams* pfp) {
-	guiRender(bc->bg, gs, pfp);
-	guiRender(bc->im, gs, pfp);
+// 	guiRender(bc->bg, gs, pfp);
+// 	guiRender(bc->im, gs, pfp);
 }
 
 void guiTexBuilderControlDelete(GUITexBuilderControl* bc) {
@@ -1067,8 +1067,8 @@ void guiTexBuilderControlDelete(GUITexBuilderControl* bc) {
 
 void guiTexBuilderControlResize(GUITexBuilderControl* bc, Vector2 newSz) {
 	
-	guiResize(bc->bg, newSz);
-	guiResize(bc->im, newSz);
+// 	guiResize(bc->bg, newSz);
+// 	guiResize(bc->im, newSz);
 }
 
 
@@ -1109,7 +1109,7 @@ GUITexBuilderControl* guiTexBuilderControlNew(Vector2 pos, Vector2 size, int zIn
 	bc = calloc(1, sizeof(*bc));
 	CHECK_OOM(bc);
 	
-	guiHeaderInit(&bc->header);
+	//guiHeaderInit(&bc->header);
 	bc->header.vt = &static_vt;
 	bc->inputHandlers = &input_vt;
 	
@@ -1123,31 +1123,31 @@ GUITexBuilderControl* guiTexBuilderControlNew(Vector2 pos, Vector2 size, int zIn
 	bc->header.z = 0;
 	
 	
-	bc->bg = guiSimpleWindowNew(
-		(Vector2){pos.x, pos.y}, 
-		(Vector2){size.x, size.y}, 
-		zIndex + .0001
-	);
+	//bc->bg = guiSimpleWindowNew(
+		//(Vector2){pos.x, pos.y}, 
+		//(Vector2){size.x, size.y}, 
+		//zIndex + .0001
+	//);
 	
 // 	bc->bg->bg->borderWidth = 0;
 // 	bc->bg->bg->fadeWidth = 0;
-	guiRegisterObject(bc->bg, &bc->header);
+	GUIRegisterObject(bc->bg, &bc->header);
 	
 	
 	
-	bc->im = guiImageNew(
-		(Vector2){pos.x + .01, pos.y + .025}, 
-		(Vector2){size.x - .02, size.y - .035}, 
-		zIndex + .001, 
-		-1
-	);
-	guiRegisterObject(bc->im, &bc->header);
+	//bc->im = guiImageNew(
+		//(Vector2){pos.x + .01, pos.y + .025}, 
+		//(Vector2){size.x - .02, size.y - .035}, 
+		//zIndex + .001, 
+		//-1
+	//);
+	GUIRegisterObject(bc->im, &bc->header);
 	//bc->im->customTexID = 17;
 	
-	guiAddClient(bc->bg, bc->im);
-	Vector2 bgsz = guiRecalcClientSize(bc->bg);
-	printf("simplewindosz: %f, %f \n", bgsz.x, bgsz.y);
-	guiResize(bc->bg, bgsz);
+	//guiAddClient(bc->bg, bc->im);
+	//Vector2 bgsz = guiRecalcClientSize(bc->bg);
+	//printf("simplewindosz: %f, %f \n", bgsz.x, bgsz.y);
+	//guiResize(bc->bg, bgsz);
 	
 	return bc;
 }

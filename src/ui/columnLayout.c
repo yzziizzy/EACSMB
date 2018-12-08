@@ -6,31 +6,31 @@
 
 
 #include "../gui.h"
+#include "../gui_internal.h"
 
 
 
 
 
-void guiColumnLayoutRender(GUIColumnLayout* cl, GameState* gs, PassFrameParams* pfp);
+static void render(GUIColumnLayout* cl, AABB2* clip, PassFrameParams* pfp);
 
 
 
 
 
-GUIColumnLayout* guiColumnLayoutNew(Vector2 pos, float spacing, float zIndex) {
+GUIColumnLayout* GUIColumnLayout_new(GUIManager* gm, Vector2 pos, float spacing, float zIndex) {
 	
 	GUIColumnLayout* w;
 	
 	static struct gui_vtbl static_vt = {
-		.Render = guiColumnLayoutRender,
+		.Render = render,
 	};
 	
 	
 	w = calloc(1, sizeof(*w));
 	CHECK_OOM(w);
 	
-	guiHeaderInit(&w->header);
-	w->header.vt = &static_vt;
+	gui_headerInit(&w->header, gm, &static_vt);
 	
 	w->spacing = spacing;
 	
@@ -55,20 +55,20 @@ GUIColumnLayout* guiColumnLayoutNew(Vector2 pos, float spacing, float zIndex) {
 
 
 
-void guiColumnLayoutRender(GUIColumnLayout* cl, GameState* gs, PassFrameParams* pfp) {
+static void render(GUIColumnLayout* cl, AABB2* clip, PassFrameParams* pfp) {
 	
 // 	guiRender(ed->bg, gs, pfp);
 // 	guiRender(ed->textControl, gs, pfp);
 	
 	// adjust positions based on size
 	float total_h = 0.0;
-	VEC_EACH(&cl->header.children, i, child) {
-		total_h += cl->spacing;
+	VEC_EACH(&cl->header.children, i, child) { 
+		total_h += cl->spacing + 20;
 		
 		child->h.topleft.x = cl->header.topleft.x;
 		child->h.topleft.y = cl->header.topleft.y + total_h;
 		
-		guiRender(child, gs, pfp);
+		GUIHeader_render(child, clip, pfp);
 		
 		total_h += child->h.size.y;
 	}

@@ -299,7 +299,6 @@ void shadingPass(GameState* gs, PassFrameParams* pfp) {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
-	gui_RenderAll(gs, pfp);
 	
 	
 	glDisable(GL_DEPTH_TEST);

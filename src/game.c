@@ -353,21 +353,21 @@ void initGameGL(XStuff* xs, GameState* gs) {
 	Scene_init(&gs->scene);
 	
 	
-	gui_Init();
 	
-	gt = guiTextNew("gui!", (Vector2){0.010,0.01}, 4.0f, "Arial");
-	gt_terrain = guiTextNew("gui!", (Vector2){0.010,0.04}, 3.0f, "Arial");
-	gt_solids = guiTextNew("gui!", (Vector2){0.010,0.06}, 3.0f, "Arial");
-	gt_selection = guiTextNew("gui!", (Vector2){0.010,0.28}, 3.0f, "Arial");
-	gt_decals = guiTextNew("gui!", (Vector2){0.010,0.08}, 3.0f, "Arial");
-	gt_emitters = guiTextNew("gui!", (Vector2){0.010,0.10}, 3.0f, "Arial");
-	gt_effects = guiTextNew("gui!", (Vector2){0.010,0.10}, 3.0f, "Arial");
-	gt_lighting = guiTextNew("gui!", (Vector2){0.010,0.12}, 3.0f, "Arial");
-	gt_sunShadow = guiTextNew("gui!", (Vector2){0.010,0.14}, 3.0f, "Arial");
-	gt_shading = guiTextNew("gui!", (Vector2){0.010,0.14}, 3.0f, "Arial");
-	gt_gui = guiTextNew("gui!", (Vector2){0.010,0.16}, 3.0f, "Arial");
-	gtRenderMode = guiTextNew("", (Vector2){0.1,0.9}, 6.0f, "Arial");
-	gtSelectionDisabled = guiTextNew("", (Vector2){0.5,0.1}, 6.0f, "Arial");
+	gt = GUIText_new(gs->gui, "", "Arial", 3.0f);
+	gt_terrain = GUIText_new(gs->gui, "", "Arial", 3.0f);
+	gt_terrain->header.topleft = (Vector2){20,20};
+	gt_solids = GUIText_new(gs->gui, "", "Arial", 3.0f);
+	gt_selection = GUIText_new(gs->gui, "", "Arial", 3.0f);
+	gt_decals = GUIText_new(gs->gui, "", "Arial", 3.0f);
+	gt_emitters = GUIText_new(gs->gui, "", "Arial", 3.0f);
+	gt_effects = GUIText_new(gs->gui, "", "Arial", 3.0f);
+	gt_lighting = GUIText_new(gs->gui, "", "Arial", 3.0f);
+	gt_sunShadow = GUIText_new(gs->gui, "", "Arial", 3.0f);
+	gt_shading = GUIText_new(gs->gui, "", "Arial", 3.0f);
+	gt_gui = GUIText_new(gs->gui, "", "Arial", 3.0f);
+	gtRenderMode = GUIText_new(gs->gui, "", "Arial", 6.0f);
+	gtSelectionDisabled = GUIText_new(gs->gui, "", "Arial", 6.0f);
 	
 	
 //	gibTest = guiImageButtonNew((Vector2){0.5,0.1}, (Vector2){0.1,0.1}, 7.0f, "foo");
@@ -375,31 +375,34 @@ void initGameGL(XStuff* xs, GameState* gs) {
 // 	gwTest = guiWindowNew((Vector2){.2, .2}, (Vector2){.7, .7}, 0);
 // 	gwTest->header.onClick = testClick;
 	
-	gswTest = guiSimpleWindowNew((Vector2){.2, .2}, (Vector2){.7, .7}, 0);
+//	gswTest = guiSimpleWindowNew((Vector2){.2, .2}, (Vector2){.7, .7}, 0);
 	//gswTest->header.onClick = testClick;
 	
 // 	giTest = guiImageNew((Vector2){.1,.2}, (Vector2){.8,.8}, 0, 0);
 	
 	
-	gclTest = guiColumnLayoutNew((Vector2){.01,.01}, .02, 0);
+	gclTest = GUIColumnLayout_new(gs->gui, (Vector2){.01,.01}, .02, 0);
+	gt_terrain->header.topleft = (Vector2){20,20};
+
 	
-	guiRegisterObject(gclTest, NULL);
-	guiRegisterObject(gt_terrain, gclTest);
-	guiRegisterObject(gt_solids, gclTest);
-	guiRegisterObject(gt_decals, gclTest);
-	//guiRegisterObject(gt_emitters, gclTest);
-	guiRegisterObject(gt_effects, gclTest);
-	guiRegisterObject(gt_lighting, gclTest);
-	guiRegisterObject(gt_sunShadow, gclTest);
-	guiRegisterObject(gt_shading, gclTest);
-	guiRegisterObject(gt_gui, gclTest);
+	GUIRegisterObject(gclTest, NULL);
+	GUIRegisterObject(gt_terrain, gclTest);
+// 	GUIRegisterObject(gt_terrain, NULL);
+	GUIRegisterObject(gt_solids, gclTest);
+	GUIRegisterObject(gt_decals, gclTest);
+	//GUIRegisterObject(gt_emitters, gclTest);
+	GUIRegisterObject(gt_effects, gclTest);
+	GUIRegisterObject(gt_lighting, gclTest);
+	GUIRegisterObject(gt_sunShadow, gclTest);
+	GUIRegisterObject(gt_shading, gclTest);
+	GUIRegisterObject(gt_gui, gclTest);
 	
-	guiRegisterObject(gtRenderMode, NULL);
-	guiRegisterObject(gtSelectionDisabled, NULL);
+	GUIRegisterObject(gtRenderMode, NULL);
+	GUIRegisterObject(gtSelectionDisabled, NULL);
 	
 
 	//geditTest = GUIEditNew("edit", (Vector2){.5, .5}, (Vector2){.4, .05});
-	//guiRegisterObject(geditTest, NULL);
+	//GUIRegisterObject(geditTest, NULL);
 	//InputFocusStack_PushTarget(&gs->ifs, geditTest, inputHandlers);
 
 	
@@ -474,7 +477,7 @@ void preFrame(GameState* gs) {
 			sdtime = ((double)qtime) / 1000000.0;\
 		}\
 		snprintf(frameCounterBuf, 128, #qname ":  %.2fms", sdtime);\
-		guiTextSetValue(gt_##qname, frameCounterBuf);
+		GUIText_setString(gt_##qname, frameCounterBuf);
 
 
 		query_update_gui(terrain);
@@ -492,21 +495,21 @@ void preFrame(GameState* gs) {
 			//sdtime = ((double)qtime) / 1000000.0;
 		//}
 		//snprintf(frameCounterBuf, 128, "dtime:  %.2fms", sdtime);
-		//guiTextSetValue(gt, frameCounterBuf);
+		//GUIText_setString(gt, frameCounterBuf);
 
 
 		//if(!query_queue_try_result(&gs->queries.selection, &qtime)) {
 			//sseltime = ((double)qtime) / 1000000.0;
 		//}
 		//snprintf(frameCounterBuf, 128, "seltime:  %.2fms", sseltime);
-		//guiTextSetValue(gt_sel, frameCounterBuf);
+		//GUIText_setString(gt_sel, frameCounterBuf);
 		
 		
 		//if(!query_queue_try_result(&gs->queries.emitters, &qtime)) {
 			//semittime = ((double)qtime) / 1000000.0;
 		//}
 		//snprintf(frameCounterBuf, 128, "emittime:  %.2fms", semittime);
-		//guiTextSetValue(gt_emit, frameCounterBuf);
+		//GUIText_setString(gt_emit, frameCounterBuf);
 		
 		lastPoint = now;
 	}
@@ -705,18 +708,18 @@ static void main_key_handler(InputEvent* ev, GameState* gs) {
 		gs->debugMode = (gs->debugMode + 1) % 7;
 		lastChange = gs->frameTime;
 		
-		guiTextSetValue(gtRenderMode, modeStrings[gs->debugMode]);
+		GUIText_setString(gtRenderMode, modeStrings[gs->debugMode]);
 	}
 	
 	if(ev->keysym == XK_Insert) {
 		gs->selectionPassDisabled = !gs->selectionPassDisabled;
-		guiTextSetValue(gtSelectionDisabled, gs->selectionPassDisabled ? "Selection Disabled" : "");
+		GUIText_setString(gtSelectionDisabled, gs->selectionPassDisabled ? "Selection Disabled" : "");
 	}
 	
 	if(ev->character == 'b') {
 		// builder control
 		gbcTest = guiBuilderControlNew((Vector2){.1,.2}, (Vector2){.8,.8}, 0);
-		guiRegisterObject(gbcTest, NULL);
+		GUIRegisterObject(gbcTest, NULL);
 		guiResize(&gbcTest->header, (Vector2){.79, .79});
 		guiRenderTarget_SetScreenRes(gbcTest->rt,  (Vector2i){gs->screen.wh.x, gs->screen.wh.y});
 		
@@ -727,7 +730,7 @@ static void main_key_handler(InputEvent* ev, GameState* gs) {
 	if(ev->character == 't') {
 		printf("t\n");
 		texbuilder = guiTexBuilderControlNew((Vector2){.15,.1}, (Vector2){.82,.82}, 0);
-		guiRegisterObject(texbuilder, NULL);
+		GUIRegisterObject(texbuilder, NULL);
 		guiResize(&texbuilder->header, (Vector2){.79, .79});
 		
 		InputFocusStack_PushTarget(&gs->ifs, texbuilder, inputHandlers);

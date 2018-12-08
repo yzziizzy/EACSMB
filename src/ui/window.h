@@ -8,9 +8,7 @@ typedef struct GUIWindow {
 	
 // 	Vector2 size;
 	Vector2 clientSize;
-	struct {
-		float top, left, bottom, right;
-	} padding;
+	AABB2 padding;
 	
 // 	uint32_t color;
 	Vector color;
@@ -18,17 +16,12 @@ typedef struct GUIWindow {
 	float borderWidth;
 	float fadeWidth;
 	
-	float zindex;
-	
-	VEC(union GUIObject*) clients;
-	
-	
 } GUIWindow;
 
 
 
 
-GUIWindow* guiWindowNew(Vector2 pos, Vector2 size, float zIndex);
+GUIWindow* GUIWindow_new(GUIManager* gm);
 
 
 

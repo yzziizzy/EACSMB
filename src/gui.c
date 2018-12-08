@@ -11,6 +11,9 @@
 #include "hash.h"
 #include "log.h"
 
+#include "gui.h"
+#include "gui_internal.h"
+
 #include "utilities.h"
 
 // // FontConfig
@@ -20,8 +23,8 @@
 #include "dumpImage.h"
 
 
-VEC(GUIObject*) gui_list; 
-VEC(GUIObject*) gui_reap_queue; 
+// VEC(GUIObject*) gui_list; 
+// VEC(GUIObject*) gui_reap_queue; 
 
 
 GUIObject* guiBaseHitTest(GUIObject* go, Vector2 testPos);
@@ -30,10 +33,6 @@ GUIObject* guiBaseHitTest(GUIObject* go, Vector2 testPos);
 static void preFrame(PassFrameParams* pfp, GUIManager* gm);
 static void draw(GUIManager* gm, GLuint progID, PassDrawParams* pdp);
 static void postFrame(GUIManager* gm);
-
-
-
-
 
 
 
@@ -48,19 +47,29 @@ GUIManager* GUIManager_alloc(GlobalSettings* gs) {
 
 
 
+static void renderRoot(GUIHeader* gh, AABB2* clip, PassFrameParams* pfp) {
+	GUIHeader_renderChildren(gh, clip, pfp);
+}
 
 // _init is always called before _initGL
 void GUIManager_init(GUIManager* gm, GlobalSettings* gs) {
 	
-
-	gm->maxInstances = gs->GUIManager_maxInstances;
+	static struct gui_vtbl  root_vt = {
+		.Render = renderRoot,
+	};
 	
+	VEC_INIT(&gm->reapQueue);
+	
+	gm->maxInstances = gs->GUIManager_maxInstances;
 	
 	gm->elementCount = 0;
 	gm->elementAlloc = 64;
 	gm->elemBuffer = calloc(1, sizeof(*gm->elemBuffer) * gm->elementAlloc);
 	
 	gm->fm = FontManager_alloc(gs);
+	
+	gm->root = calloc(1, sizeof(GUIHeader));
+	gui_headerInit(gm->root, NULL, &root_vt); // TODO: vtable?
 }
 
 
@@ -75,6 +84,7 @@ void GUIManager_initGL(GUIManager* gm, GlobalSettings* gs) {
 		{0, 4, GL_UNSIGNED_BYTE, 0, GL_TRUE}, // fg color
 		{0, 4, GL_UNSIGNED_BYTE, 0, GL_TRUE}, // bg color
 		
+		{0, 4, GL_FLOAT, 0, GL_FALSE}, // z-index, alpha, opts 1-2
 		
 		{0, 0, 0}
 	};
@@ -147,14 +157,7 @@ static void writeCharacterGeom(GUIUnifiedVertex* v, struct charInfo* ci, float s
 }
 
 
-GUIUnifiedVertex* GUIManager_checkElemBuffer(GUIManager* gm) {
-	if(gm->elementAlloc < gm->elementCount + 1) {
-		gm->elementAlloc *= 2;
-		gm->elemBuffer = realloc(gm->elemBuffer, sizeof(*gm->elemBuffer) * gm->elementAlloc);
-	}
-	
-	return gm->elemBuffer + gm->elementCount;
-}
+
 
 
 // returns 0 if the line wraps, 1 if the text ended before reaching the end of the line 
@@ -372,7 +375,7 @@ GUITextArea_draw(GUIManager* gm, GUIFont* f) {
 			
 			
 			if(c != ' ') {
-				v = GUIManager_checkElemBuffer(gm);
+				v = GUIManager_checkElemBuffer(gm, 1);
 				writeCharacterGeom(v, ci, size, adv, line);
 				adv += ci->advance * size; // BUG: needs sdfDataSize added in?
 				v->fg = (struct Color4){255, 128, 64, 255},
@@ -410,36 +413,44 @@ static void preFrame(PassFrameParams* pfp, GUIManager* gm) {
 	
 	gm->elementCount = 0;
 	
+	
+	AABB2 clip = {{0,0}, {800,800}};
+	GUIHeader_render(gm->root, &clip, pfp);
+	
+	
+	
+	
 	GUIFont* f = gm->fm->helv;
 	
-	GUITextArea_draw(gm, f);
+// 	GUITextArea_draw(gm, f);
+// 	
+// 	printf("\n elementCount: %d \n\n", gm->elementCount);
+// 	memcpy(vmem, gm->elemBuffer, gm->elementCount * sizeof(*gm->elemBuffer));
+// 		
+// 	
 
-	memcpy(vmem, gm->elemBuffer, gm->elementCount * sizeof(*gm->elemBuffer));
-		
-	
-	
 	//just a clipped box
-	*vmem = (GUIUnifiedVertex){
-		.pos = {200, 200, 900, 200+650},
-		.clip = {150, 110, 800, 600},
-		
-		.texIndex1 = 0,
-		.texIndex2 = 0,
-		.texFade = .5,
-		.guiType = 0, // window
-		
-		.texOffset1 = 0,
-		.texOffset2 = 0,
-		.texSize1 = 0,
-		.texSize2 = 0,
-		
-		.fg = {255, 128, 64, 255},
-		.bg = {64, 128, 255, 255},
-	};
-	
-	
-	vmem++;
-	GUITextArea_draw(gm, f);
+// 	*vmem = (GUIUnifiedVertex){
+// 		.pos = {200, 200, 900, 200+650},
+// 		.clip = {150, 110, 800, 600},
+// 		
+// 		.texIndex1 = 0,
+// 		.texIndex2 = 0,
+// 		.texFade = .5,
+// 		.guiType = 0, // window
+// 		
+// 		.texOffset1 = 0,
+// 		.texOffset2 = 0,
+// 		.texSize1 = 0,
+// 		.texSize2 = 0,
+// 		
+// 		.fg = {255, 128, 64, 255},
+// 		.bg = {64, 128, 255, 255},
+// 	};
+// 	
+// 	
+// 	vmem++;
+//	GUITextArea_draw(gm, f);
 
 	memcpy(vmem, gm->elemBuffer, gm->elementCount * sizeof(*gm->elemBuffer));
 
@@ -483,6 +494,7 @@ static void preFrame(PassFrameParams* pfp, GUIManager* gm) {
 static void draw(GUIManager* gm, GLuint progID, PassDrawParams* pdp) {
 	size_t offset;
 	
+
 // 	if(mdi->uniformSetup) {
 // 		(*mdi->uniformSetup)(mdi->data, progID);
 // 	}
@@ -501,7 +513,6 @@ static void draw(GUIManager* gm, GLuint progID, PassDrawParams* pdp) {
 	
 	PCBuffer_bind(&gm->instVB);
 	offset = PCBuffer_getOffset(&gm->instVB);
-	
 	
 	glDrawArrays(GL_POINTS, offset / sizeof(GUIUnifiedVertex), gm->elementCount);
 	
@@ -586,46 +597,32 @@ PassDrawable* GUIManager_CreateDrawable(GUIManager* gm) {
 
 
 
-void gui_Window_Init();
-void gui_Text_Init();
-
-void gui_Init() {
-	
-	VEC_INIT(&gui_list);
-	VEC_INIT(&gui_reap_queue);
-	
-	gui_Window_Init();
-	gui_Text_Init();
-	
-	gui_Image_Init("assets/config/guiIcons.json");
-}
-
 
 // add root objects to the root list, record the parent otherwise
-void guiRegisterObject_(GUIHeader* o, GUIHeader* parent) {
-	
-	o->parent = parent;
+void GUIRegisterObject_(GUIHeader* o, GUIHeader* parent) {
+	int i;
 	
 	if(!parent) {
-		VEC_PUSH(&gui_list, o);
+		parent = o->gm->root;
 	}
-	else {
+	o->parent = parent;
+	printf("parent: %p, o: %p \n", parent, o);
+	i = VEC_FIND(&parent->children, &o);
+	if(i < 0) {
+		printf("pushing child\n");
 		VEC_PUSH(&parent->children, o);
+	} else {
+	 printf("child found: %d\n", i);
 	}
 }
 
 
-void guiRender(GUIObject* go, GameState* gs, PassFrameParams* pfp) {
-	if(go->h.hidden || go->h.deleted) return;
-	
-	if(go->h.vt->Render)
-		go->h.vt->Render(go, gs, pfp);
-} 
+
 
 void guiDelete(GUIObject* go) {
 	go->h.deleted = 1;
 	
-	VEC_PUSH(&gui_reap_queue, go);
+// 	VEC_PUSH(&gui_reap_queue, go);
 	
 	for(int i = 0; i < VEC_LEN(&go->h.children); i++) {
 		//guiTextRender(VEC_DATA(&gui_list)[i], gs);
@@ -679,6 +676,18 @@ int guiRemoveChild(GUIObject* parent, GUIObject* child) {
 }
 
 
+
+
+
+void gui_headerInit(GUIHeader* gh, GUIManager* gm, struct gui_vtbl* vt) {
+	VEC_INIT(&gh->children);
+	gh->gm = gm;
+	gh->vt = vt;
+}
+
+
+
+
 GUIObject* guiHitTest(GUIObject* go, Vector2 testPos) {
 
 	if(go->h.vt->HitTest)
@@ -686,12 +695,6 @@ GUIObject* guiHitTest(GUIObject* go, Vector2 testPos) {
 	
 	return guiBaseHitTest(go, testPos);
 } 
-
-void guiHeaderInit(GUIHeader* gh) {
-	VEC_INIT(&gh->children);
-}
-
-
 
 GUIObject* guiBaseHitTest(GUIObject* go, Vector2 testPos) {
 	GUIHeader* h = &go->h; 
@@ -709,16 +712,6 @@ GUIObject* guiBaseHitTest(GUIObject* go, Vector2 testPos) {
 }
 
 
-void gui_RenderAll(GameState* gs, PassFrameParams* pfp) {
-	int i;
-	
-	// TODO: replace with rendering tree once all data is unified
-	
-	for(i = 0; i < VEC_LEN(&gui_list); i++) {
-		//guiTextRender(VEC_DATA(&gui_list)[i], gs);
-		guiRender(VEC_DATA(&gui_list)[i], gs, pfp);
-	}
-}
 
 
 
@@ -772,4 +765,36 @@ void guiRemoveClient(GUIObject* parent, GUIObject* child) {
 
 
 
+///////////// internals //////////////
 
+
+GUIUnifiedVertex* GUIManager_checkElemBuffer(GUIManager* gm, int count) {
+	if(gm->elementAlloc < gm->elementCount + count) {
+		gm->elementAlloc = MAX(gm->elementAlloc * 2, gm->elementAlloc + count);
+		gm->elemBuffer = realloc(gm->elemBuffer, sizeof(*gm->elemBuffer) * gm->elementAlloc);
+	}
+	
+	return gm->elemBuffer + gm->elementCount;
+}
+
+GUIUnifiedVertex* GUIManager_reserveElements(GUIManager* gm, int count) {
+	GUIUnifiedVertex* v = GUIManager_checkElemBuffer(gm, count);
+	gm->elementCount == count;
+	return v;
+}
+
+
+void GUIHeader_render(GUIHeader* gh, AABB2* clip, PassFrameParams* pfp) {
+	if(gh->hidden || gh->deleted) return;
+	
+	if(gh->vt->Render)
+		gh->vt->Render((GUIObject*)gh, clip, pfp);
+} 
+
+void GUIHeader_renderChildren(GUIHeader* gh, AABB2* clip, PassFrameParams* pfp) {
+	if(gh->hidden || gh->deleted) return;
+
+	VEC_EACH(&gh->children, i, obj) {
+		GUIHeader_render(&obj->h, clip, pfp);
+	}
+}

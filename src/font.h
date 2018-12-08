@@ -119,6 +119,8 @@ void FontManager_addFont(FontManager* fm, char* name);
 void FontManager_addFont2(FontManager* fm, char* name, char bold, char italic);
 void FontManager_finalize(FontManager* fm);
 
+GUIFont* FontManager_findFont(FontManager* fm, char* name);
+
 FontManager* FontManager_alloc(GlobalSettings* gs);
 void FontManager_init(FontManager* fm, GlobalSettings* gs);
 

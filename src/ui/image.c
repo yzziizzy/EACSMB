@@ -4,6 +4,7 @@
 #include "string.h"
 
 #include "../gui.h"
+#include "../gui_internal.h"
 
 #include "hash.h"
 #include "shader.h"
@@ -209,7 +210,7 @@ GUIImage* guiImageNew(Vector2 pos, Vector2 size, float zIndex, int texIndex) {
 	im = calloc(1, sizeof(*im));
 	CHECK_OOM(im);
 	
-	guiHeaderInit(&im->header);
+// 	guiHeaderInit(&im->header);
 	im->header.vt = &static_vt;
 	
 	im->header.hitbox.min.x = pos.x;
@@ -341,7 +342,7 @@ GUIRenderTarget* guiRenderTargetNew(Vector2 pos, Vector2 size, RenderPipeline* r
 	im = calloc(1, sizeof(*im));
 	CHECK_OOM(im);
 	
-	guiHeaderInit(&im->header);
+// 	guiHeaderInit(&im->header);
 	im->header.vt = &static_vt;
 	
 	im->header.hitbox.min.x = pos.x;

@@ -6,154 +6,80 @@
 
 #include "../window.h"
 #include "../gui.h"
+#include "../gui_internal.h"
 #include "../hash.h"
 
 #include "../utilities.h"
 
 
-HashTable* font_cache; // TextRes*
 
-ShaderProgram* textProg;
-
-void gui_Text_Init() {
-	
-	//init font cache
-	font_cache = HT_create(2);
-	
-	textProg = loadCombinedProgram("guiTextSDF");
-}
+static void render(GUIText* gt, AABB2* clip, PassFrameParams* pfp);
+static void guiTextDelete(GUIText* gt);
 
 
+static void writeCharacterGeom(GUIUnifiedVertex* v, struct charInfo* ci, Vector2 off, float sz, float adv, float line);
 
 
-
-
-// handles caching in ram and on disk
-static TextRes* getFont(char* name) {
-	TextRes* tr;
-	char* filename;
-	
-	// try the cache first
-	if(!HT_get(font_cache, name, &tr)) {
-		return tr;
-	}
-	
-	// not in the cache
-	filename = malloc(strlen(name) + strlen(".sdf") + 1);
-	filename[0] = 0;
-	strcpy(filename, name);
-	strcat(filename, ".sdf");
-	
-	// try to load a pre-generated sdf file
-	tr = LoadSDFFont(filename);
-	if(tr == NULL) {
-		tr = GenerateSDFFont(name, 32, NULL);
-		SaveSDFFont(filename, tr);
-	}
-	
-	HT_set(font_cache, name, tr);
-	
-	free(filename);
-	
-	return tr;
-}
-
-
-
-void guiTextRender(GUIText* gt, GameState* gs, PassFrameParams* pfp);
-void guiTextDelete(GUIText* gt);
-
-
-GUIText* guiTextNew(char* str, Vector2 pos, float size, char* fontname) {
+GUIText* GUIText_new(GUIManager* gm, char* str, char* fontname, float fontSize) {
 	
 	static struct gui_vtbl static_vt = {
-		.Render = guiTextRender,
+		.Render = render,
 		.Delete = guiTextDelete,
 	};
 	
 	
-	
-	
 	GUIText* gt;
+	pcalloc(gt);
 	
-	unsigned int colors[] = {
-		0x88FF88FF, INT_MAX
-	};
+// 	gt->header.gm = gm;
+	gui_headerInit(&gt->header, gm, &static_vt);
+// 	gt->header.vt = &static_vt; 
 	
-	gt = calloc(1, sizeof(*gt));
-	CHECK_OOM(gt);
-	
-	guiHeaderInit(&gt->header);
-	gt->header.vt = &static_vt; 
-	
-	gt->header.topleft = pos;
-	gt->size = size;
-	
-	gt->font = getFont(fontname);
-	if(!gt->font) {
-		fprintf(stderr, "Failed to load font: %s\n", fontname);
-	}
-	
+	gt->fontSize = fontSize;
+	gt->font = FontManager_findFont(gm->fm, fontname);
+
 	if(str) {
-		gt->current = strdup(str);
-		gt->strRI = prepareText(gt->font, str, -1, colors);
+		gt->currentStr = strdup(str);
 	}
-	
-	
-	//VEC_PUSH(&gui_list, gt);
 	
 	return gt;
 }
 
 
 
-void guiTextRender(GUIText* gt, GameState* gs, PassFrameParams* pfp) {
-	
-	Matrix textProj;
-	Vector v;
-	MatrixStack textModel;
-	
-	msAlloc(3, &textModel);
-	
-	glUseProgram(textProg->id);
-	
-	// text stuff
-	textProj = IDENT_MATRIX;	
-	mOrtho(0, 1, 0, 1, 0, 1, &textProj);
-	
-	msIdent(&textModel);
-	// the text is really big
-	msScale3f(gt->size * .01, gt->size * .01, gt->size * .01, &textModel);
-
-	GLuint world_ul = glGetUniformLocation(textProg->id, "world");
-	GLuint tp_ul = glGetUniformLocation(textProg->id, "mProj");
-	GLuint tm_ul = glGetUniformLocation(textProg->id, "mModel");
-	GLuint ts_ul = glGetUniformLocation(textProg->id, "fontTex");
-	
-	glUniform2fv(world_ul, 1, &gt->header.topleft);
-	glUniformMatrix4fv(tp_ul, 1, GL_FALSE, textProj.m);
-	glUniformMatrix4fv(tm_ul, 1, GL_FALSE, msGetTop(&textModel)->m);
-	glexit("text matrix uniforms");
-
-	glDisable(GL_CULL_FACE);
-	
-	glActiveTexture(GL_TEXTURE0 + 28);
-	glexit("active texture");
-
-	glUniform1i(ts_ul, 28);
-	glexit("text sampler uniform");
-// 	glBindTexture(GL_TEXTURE_2D, arial->textureID);
-	glBindTexture(GL_TEXTURE_2D, gt->font->textureID); // TODO check null ptr
-	glexit("bind texture");
+static void render(GUIText* gt, AABB2* clip, PassFrameParams* pfp) {
+	char* txt = gt->currentStr;
+	GUIFont* f = gt->font;
+	GUIManager* gm = gt->header.gm;
 	
 	
-	glBindVertexArray(gt->strRI->vao);
-	glexit("text vao bind");
+	float size = 0.55;
+	float hoff = 0;
+	float adv = 0;
 	
-	glBindBuffer(GL_ARRAY_BUFFER, gt->strRI->vbo);
-	glexit("text vbo bind");
-	glDrawArrays(GL_TRIANGLES, 0, gt->strRI->vertexCnt);
-	glexit("text drawing");
+	float spaceadv = f->regular[' '].advance;
+	
+	for(int n = 0; txt[n] != 0; n++) {
+		char c = txt[n];
+		
+		struct charInfo* ci = &f->regular[c];
+		
+		
+		if(c != ' ') {
+			GUIUnifiedVertex* v = GUIManager_checkElemBuffer(gm, 1);
+			writeCharacterGeom(v, ci, gt->header.topleft, size, adv, hoff);
+			adv += ci->advance * size; // BUG: needs sdfDataSize added in?
+			v->fg = (struct Color4){255, 128, 64, 255},
+			//v++;
+			gm->elementCount++;
+		}
+		else {
+			adv += spaceadv;
+		}
+		
+		
+		
+	}
 }
 
 void guiTextDelete(GUIText* gt) {
@@ -162,19 +88,44 @@ void guiTextDelete(GUIText* gt) {
 
 
 float guiTextGetTextWidth(GUIText* gt, int numChars) {
-	return CalcTextWidth(gt->strRI, numChars);
+//	return CalcTextWidth(gt->strRI, numChars);
+	return 0;
 }
 
 
-void guiTextSetValue(GUIText* gt, char* newval) {
-	unsigned int colors[] = {
-		0xddddddFF, INT_MAX
-	};
-	
-	if(0 != strcmp(newval, gt->current)) {
-		if(gt->current) free(gt->current);
-		gt->current = strdup(newval);
-	
-		updateText(gt->strRI, newval, -1, colors);
+void GUIText_setString(GUIText* gt, char* newval) {
+	if(0 != strcmp(newval, gt->currentStr)) {
+		if(gt->currentStr) free(gt->currentStr);
+		gt->currentStr = strdup(newval);
 	}
 }
+
+
+
+
+
+
+
+
+
+static void writeCharacterGeom(GUIUnifiedVertex* v, struct charInfo* ci, Vector2 off, float sz, float adv, float line) {
+	float offx = ci->texNormOffset.x;//TextRes_charTexOffset(gm->font, 'A');
+	float offy = ci->texNormOffset.y;//TextRes_charTexOffset(gm->font, 'A');
+	float widx = ci->texNormSize.x;//TextRes_charWidth(gm->font, 'A');
+	float widy = ci->texNormSize.y;//TextRes_charWidth(gm->font, 'A');
+	
+	v->pos.t = off.y + line - ci->topLeftOffset.y * sz;
+	v->pos.l = off.x + adv + ci->topLeftOffset.x * sz;
+	v->pos.b = off.y + line + ci->size.y * sz - ci->topLeftOffset.y * sz;
+	v->pos.r = off.x + adv + ci->size.x * sz + ci->topLeftOffset.x * sz;
+	
+	v->guiType = 1; // text
+	
+	v->texOffset1.x = offx * 65535.0;
+	v->texOffset1.y = offy * 65535.0;
+	v->texSize1.x = widx *  65535.0;
+	v->texSize1.y = widy * 65535.0;
+	v->texIndex1 = ci->texIndex;
+}
+
+

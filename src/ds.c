@@ -53,7 +53,7 @@ void vec_resize(void** data, size_t* size, size_t elem_size) {
 ptrdiff_t vec_find(void* data, size_t len, size_t stride, void* search) {
 	size_t i;
 	for(i = 0; i < len; i++) {
-		if(memcmp(data + (i * stride), search, stride)) {
+		if(0 == memcmp(data + (i * stride), search, stride)) {
 			return i;
 		}
 	}

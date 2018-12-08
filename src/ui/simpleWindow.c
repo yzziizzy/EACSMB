@@ -5,6 +5,7 @@
 
 
 #include "../gui.h"
+#include "../gui_internal.h"
 
 
 
@@ -31,9 +32,9 @@ static int closeClick(GUIEvent* e) {
 
 void guiSimpleWindowRender(GUISimpleWindow* sw, GameState* gs, PassFrameParams* pfp) {
 	
-	guiRender(sw->bg, gs, pfp);
-	guiRender(sw->titlebar, gs, pfp);
-	guiRender(sw->closebutton, gs, pfp);
+// 	guiRender(sw->bg, gs, pfp);
+// 	guiRender(sw->titlebar, gs, pfp);
+// 	guiRender(sw->closebutton, gs, pfp);
 }
 
 void guiSimpleWindowDelete(GUISimpleWindow* sw) {
@@ -54,8 +55,8 @@ void guiSimpleWindowSetClientSize(GUIObject* go, Vector2 cSize) {
 	GUIHeader* h = &go->header;
 	GUIWindow* w = go->simpleWindow.bg;
 	w->clientSize = cSize;
-	h->size.x = cSize.x + w->padding.left + w->padding.right;
-	h->size.y = cSize.y + w->padding.bottom + w->padding.top;
+// 	h->size.x = cSize.x + w->padding.left + w->padding.right;
+// 	h->size.y = cSize.y + w->padding.bottom + w->padding.top;
 	
 	// TODO: trigger resize event
 }
@@ -97,7 +98,7 @@ GUISimpleWindow* guiSimpleWindowNew(Vector2 pos, Vector2 size, float zIndex) {
 	sw = calloc(1, sizeof(*sw));
 	CHECK_OOM(sw);
 	
-	guiHeaderInit(&sw->header);
+// 	guiHeaderInit(&sw->header);
 	sw->header.vt = &static_vt;
 	
 	sw->header.hitbox.min.x = pos.x;
@@ -105,36 +106,36 @@ GUISimpleWindow* guiSimpleWindowNew(Vector2 pos, Vector2 size, float zIndex) {
 	sw->header.hitbox.max.x = pos.x + size.x;
 	sw->header.hitbox.max.y = pos.y + size.y;
 	
-	sw->bg = guiWindowNew(pos, size, zIndex);
+// 	sw->bg = guiWindowNew(pos, size, zIndex);
 	sw->bg->color = (Vector){0.1, 0.9, 0.1};
 	sw->bg->fadeWidth = 0.0;
 	sw->bg->borderWidth = 0.0;
-	sw->bg->padding.top = .21;
-	sw->bg->padding.left = .05;
-	sw->bg->padding.bottom = .05;
-	sw->bg->padding.right = .05;
+// 	sw->bg->padding.top = .21;
+// 	sw->bg->padding.left = .05;
+// 	sw->bg->padding.bottom = .05;
+// 	sw->bg->padding.right = .05;
 
-	guiRegisterObject(sw->bg, &sw->header);
+// 	guiRegisterObject(sw->bg, &sw->header);
 	
-	sw->titlebar = guiWindowNew(
-		(Vector2){pos.x, pos.y}, 
-		(Vector2){size.x, tbh}, 
-		zIndex + .0001
-	);
+// 	sw->titlebar = guiWindowNew(
+// 		(Vector2){pos.x, pos.y}, 
+// 		(Vector2){size.x, tbh}, 
+// 		zIndex + .0001
+// 	);
 	sw->titlebar->color = (Vector){0.9, 0.1, .9};
 	sw->titlebar->fadeWidth = 0.0;
 	sw->titlebar->borderWidth = 0.0;
-	guiRegisterObject(sw->titlebar, &sw->bg->header);
+// 	guiRegisterObject(sw->titlebar, &sw->bg->header);
 	
-	sw->closebutton = guiWindowNew(
-		(Vector2){pos.x + size.x - tbh, pos.y + tbh * .05}, 
-		(Vector2){tbh * 0.9, tbh * 0.9},
-		zIndex + .0002
-	);
+// 	sw->closebutton = guiWindowNew(
+// 		(Vector2){pos.x + size.x - tbh, pos.y + tbh * .05}, 
+// 		(Vector2){tbh * 0.9, tbh * 0.9},
+// 		zIndex + .0002
+// 	);
 	sw->closebutton->color = (Vector){0.9, 0.1, 0.1};
 	sw->closebutton->fadeWidth = 0.0;
 	sw->closebutton->borderWidth = 0.0;
-	guiRegisterObject(sw->closebutton, &sw->titlebar->header);
+// 	guiRegisterObject(sw->closebutton, &sw->titlebar->header);
 	
 	
 	sw->header.onClick = closeClick;

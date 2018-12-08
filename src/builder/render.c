@@ -55,12 +55,12 @@ void updateMeshManager() {
 	*/
 }
 void guiBuilderControlRender(GUIBuilderControl* bc, GameState* gs, PassFrameParams* pfp) {
-	bc->rt->texID = RenderPipeline_getOutputTexture(bc->rpipe);
-	
-	guiRender(bc->rt, gs, pfp);
-	
-	if(bc->ed)
-		guiRender(bc->ed, gs, pfp);
+// 	bc->rt->texID = RenderPipeline_getOutputTexture(bc->rpipe);
+// 	
+// 	guiRender(bc->rt, gs, pfp);
+// 	
+// 	if(bc->ed)
+// 		guiRender(bc->ed, gs, pfp);
 	
 	//printf("sdf\n");
 }
@@ -112,10 +112,10 @@ static void builderKeyUp(InputEvent* ev, GUIBuilderControl* bc) {
 		
 	}
 	if(ev->character == 'c') { // reroot with a compose
-		bc->ed = GUIEditNew("i", (Vector2){.5,.5}, (Vector2){.2,.045});
+	//	bc->ed = GUIEditNew("i", (Vector2){.5,.5}, (Vector2){.2,.045});
 		
-		guiRegisterObject(bc->ed, &bc->bg->header);
-		InputFocusStack_PushTarget(bc->inputHandlers->stack, bc->ed, inputHandlers);
+		//guiRegisterObject(bc->ed, &bc->bg->header);
+	//	InputFocusStack_PushTarget(bc->inputHandlers->stack, bc->ed, inputHandlers);
 		
 		
 		
@@ -150,7 +150,7 @@ static void pipeline_render(GUIBuilderControl* bc, PassFrameParams* pfp) {
 
 
 GUIBuilderControl* guiBuilderControlNew(Vector2 pos, Vector2 size, int zIndex) {
-	
+	/*
 	GUIBuilderControl* bc;
 	
 	static struct gui_vtbl static_vt = {
@@ -167,7 +167,7 @@ GUIBuilderControl* guiBuilderControlNew(Vector2 pos, Vector2 size, int zIndex) {
 	bc = calloc(1, sizeof(*bc));
 	CHECK_OOM(bc);
 	
-	guiHeaderInit(&bc->header);
+	gui_headerInit(&bc->header);
 	bc->header.vt = &static_vt;
 	bc->inputHandlers = &input_vt;
 	
@@ -295,6 +295,7 @@ GUIBuilderControl* guiBuilderControlNew(Vector2 pos, Vector2 size, int zIndex) {
 	bc->mb->mm = bc->mm;
 	
 	return bc;
+	*/
 }
 
 

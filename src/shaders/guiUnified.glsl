@@ -3,7 +3,7 @@
 
 #version 430 core
 
-layout (location = 0) in vec4 tl_br_in;
+layout (location = 0) in vec4 lt_rb_in;
 layout (location = 1) in vec4 clip_in;
 layout (location = 2) in ivec4 tex_type_in;
 layout (location = 3) in vec4 tex_off_in;
@@ -16,7 +16,7 @@ uniform ivec2 targetSize;
 
 
 out Vertex {
-	vec4 tl_br;
+	vec4 lt_rb;
 	vec4 clip;
 	vec2 wh;
 	float opacity;
@@ -37,14 +37,15 @@ vec4 toNDC(vec4 positiveNorm) {
 void main() {
 	
 	// convert to NDC
-	vertex.tl_br = toNDC(tl_br_in * vec4(0.001, 0.001, 0.001, 0.001));
+ 	vertex.lt_rb = toNDC(lt_rb_in * vec4(0.001, 0.001, 0.001, 0.001));
+//	vertex.lt_rb = vec4(.5, .5, -.5, -.5);
 	
 	// convert to clip space
 	vertex.clip = (clip_in / 1000) * targetSize.xyxy;
 	vertex.clip.x = targetSize.y - vertex.clip.x;
 	vertex.clip.z = targetSize.y - vertex.clip.z;
 	
-	vertex.wh = vec2(abs(tl_br_in.x - tl_br_in.z), abs(tl_br_in.y - tl_br_in.w)) / 1000;
+	vertex.wh = vec2(abs(lt_rb_in.x - lt_rb_in.z), abs(lt_rb_in.y - lt_rb_in.w)) / 1000;
 	vertex.opacity = .7; 
 	
 	vertex.guiType = tex_type_in.w;
@@ -70,7 +71,7 @@ layout (points) in;
 layout (triangle_strip, max_vertices = 4) out;
 
 in Vertex {
-	vec4 tl_br;
+	vec4 lt_rb;
 	vec4 clip;
 	vec2 wh;
 	float opacity;
@@ -94,48 +95,44 @@ flat out int gs_guiType;
 
 
 void main() {
-	if(vertex[0].opacity == 0.0) return;
+	//if(vertex[0].opacity == 0.0) return;
 	
 	
 	gs_tex = vec3(vertex[0].texOffset1.x, vertex[0].texOffset1.y, vertex[0].texIndex1);
-// 	gs_tex = vec2(0,0);
 	gs_opacity = vertex[0].opacity;
 	gs_clip = vertex[0].clip;
 	gs_guiType = vertex[0].guiType;
 	gs_fg_color = vertex[0].fg_color;
 	gs_bg_color = vertex[0].bg_color;
-	gl_Position = vec4(vertex[0].tl_br.y, -vertex[0].tl_br.x, 0, 1);
+	gl_Position = vec4(vertex[0].lt_rb.x, -vertex[0].lt_rb.y, 0, 1);
 	EmitVertex();
 
 	
-	gs_tex = vec3(vertex[0].texOffset1.x, vertex[0].texOffset1.y + vertex[0].texSize1.y, vertex[0].texIndex1);
-// 	gs_tex = vec2(0, 1);
+	gs_tex = vec3(vertex[0].texOffset1.x + vertex[0].texSize1.x, vertex[0].texOffset1.y, vertex[0].texIndex1);
 	gs_opacity = vertex[0].opacity;
 	gs_clip = vertex[0].clip;
 	gs_guiType = vertex[0].guiType;
 	gs_fg_color = vertex[0].fg_color;
 	gs_bg_color = vertex[0].bg_color;
-	gl_Position = vec4(vertex[0].tl_br.y, -vertex[0].tl_br.z, 0, 1);
+	gl_Position = vec4(vertex[0].lt_rb.z, -vertex[0].lt_rb.y, 0, 1);
 	EmitVertex();
 	
-	gs_tex = vec3(vertex[0].texOffset1.x + vertex[0].texSize1.x, vertex[0].texOffset1.y, vertex[0].texIndex1);
-// 	gs_tex = vec2(1, 0);
+	gs_tex = vec3(vertex[0].texOffset1.x, vertex[0].texOffset1.y + vertex[0].texSize1.y, vertex[0].texIndex1);
 	gs_opacity = vertex[0].opacity;
 	gs_clip = vertex[0].clip;
 	gs_guiType = vertex[0].guiType;
 	gs_fg_color = vertex[0].fg_color;
 	gs_bg_color = vertex[0].bg_color;
-	gl_Position = vec4(vertex[0].tl_br.w, -vertex[0].tl_br.x, 0, 1);
+	gl_Position = vec4(vertex[0].lt_rb.x, -vertex[0].lt_rb.w, 0, 1);
 	EmitVertex();
 
 	gs_tex = vec3(vertex[0].texOffset1 + vertex[0].texSize1, vertex[0].texIndex1);
-	//gs_tex = vec2(1,1);
 	gs_opacity = vertex[0].opacity;
 	gs_clip = vertex[0].clip;
 	gs_guiType = vertex[0].guiType;
 	gs_fg_color = vertex[0].fg_color;
 	gs_bg_color = vertex[0].bg_color;
-	gl_Position = vec4(vertex[0].tl_br.w, -vertex[0].tl_br.z, 0, 1);
+	gl_Position = vec4(vertex[0].lt_rb.z, -vertex[0].lt_rb.w, 0, 1);
 	EmitVertex();
 
 	
@@ -175,6 +172,8 @@ void main(void) {
 	//	discard;
 	}
 	
+	//out_Color = vec4(1,.1,.1, 1);
+	//return;
 	
 // 	out_Color = texture(textures, vec3(gs_tex.xy, 0)) * vec4(1.0, 1.0, 1.0, gs_opacity); //vs_norm;
 
@@ -228,7 +227,7 @@ void main(void) {
 		}
 		d = 1 - d;
 
-		a = smoothstep(0.2, 1.0, abs(d));
+		a = smoothstep(0.35, 0.9, abs(d));
 // 		a = step(0.65, abs(d));
 		
 		if(a < 0.01) {
