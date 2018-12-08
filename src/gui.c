@@ -68,6 +68,11 @@ void GUIManager_init(GUIManager* gm, GlobalSettings* gs) {
 	
 	gm->fm = FontManager_alloc(gs);
 	
+	gm->ta = TextureAtlas_alloc(gs);
+	gm->ta->width = 256;
+	TextureAtlas_addFolder(gm->ta, "pre", "assets/ui/icons", 0);
+	TextureAtlas_finalize(gm->ta);
+	
 	gm->root = calloc(1, sizeof(GUIHeader));
 	gui_headerInit(gm->root, NULL, &root_vt); // TODO: vtable?
 }
@@ -99,7 +104,35 @@ void GUIManager_initGL(GUIManager* gm, GlobalSettings* gs) {
 	updateVAO(0, vaoConfig); 
 	PCBuffer_finishInit(&gm->instVB);
 	
-		///////////////////////////////
+	///////////////////////////////
+	// font texture
+	
+	glGenTextures(1, &gm->fontAtlasID);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, gm->fontAtlasID);
+	glerr("bind font tex");
+	
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_LEVEL, 0); // no mipmaps for this; it'll get fucked up
+	glerr("param font tex");
+	
+	glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_R8, gm->fm->atlasSize, gm->fm->atlasSize, VEC_LEN(&gm->fm->atlas));
+	
+	VEC_EACH(&gm->fm->atlas, ind, at) {
+		glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 
+			0, 0, ind, // offsets
+			gm->fm->atlasSize, gm->fm->atlasSize, 1, 
+			GL_RED, GL_UNSIGNED_BYTE, at);
+		glerr("load font tex");
+	}
+	
+	glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
+	
+	
+	///////////////////////////////
+	// regular texture atlas
 	
 	glGenTextures(1, &gm->atlasID);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, gm->atlasID);
@@ -112,17 +145,16 @@ void GUIManager_initGL(GUIManager* gm, GlobalSettings* gs) {
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_LEVEL, 0); // no mipmaps for this; it'll get fucked up
 	glerr("param font tex");
 	
-//	printf("text width: %d, height: %d \n", tex_width, height);
-//	printf("text width 3: %d, height: %d \n", width, height);
-	glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_R8, gm->fm->atlasSize, gm->fm->atlasSize, VEC_LEN(&gm->fm->atlas));
+	glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGBA8, gm->ta->width, gm->ta->width, VEC_LEN(&gm->ta->atlas));
 	
-	VEC_EACH(&gm->fm->atlas, ind, at) {
+	char buf [50];
+	
+	VEC_EACH(&gm->ta->atlas, ind, at2) {
 		glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 
 			0, 0, ind, // offsets
-// 			, 
-			gm->fm->atlasSize, gm->fm->atlasSize, 1, 
-			GL_RED, GL_UNSIGNED_BYTE, at);
-		glerr("load font tex");
+			gm->ta->width, gm->ta->width, 1, 
+			GL_RGBA, GL_UNSIGNED_BYTE, at2);
+		glerr("load font tex");	
 	}
 	
 	glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
@@ -499,9 +531,19 @@ static void draw(GUIManager* gm, GLuint progID, PassDrawParams* pdp) {
 // 		(*mdi->uniformSetup)(mdi->data, progID);
 // 	}
 	GLuint ts_ul = glGetUniformLocation(progID, "fontTex");
+	GLuint ta_ul = glGetUniformLocation(progID, "atlasTex");
 	
 	glActiveTexture(GL_TEXTURE0 + 29);
 	glUniform1i(ts_ul, 29);
+	glexit("text sampler uniform");
+ 	glBindTexture(GL_TEXTURE_2D_ARRAY, gm->fontAtlasID);
+//  	glBindTexture(GL_TEXTURE_2D, gt->font->textureID); // TODO check null ptr
+ 	glexit("bind texture");
+
+
+
+	glActiveTexture(GL_TEXTURE0 + 28);
+	glUniform1i(ta_ul, 28);
 	glexit("text sampler uniform");
  	glBindTexture(GL_TEXTURE_2D_ARRAY, gm->atlasID);
 //  	glBindTexture(GL_TEXTURE_2D, gt->font->textureID); // TODO check null ptr
@@ -683,6 +725,10 @@ void gui_headerInit(GUIHeader* gh, GUIManager* gm, struct gui_vtbl* vt) {
 	VEC_INIT(&gh->children);
 	gh->gm = gm;
 	gh->vt = vt;
+	
+	gh->scale = 1.0;
+	gh->alpha = 1.0;
+	gh->z = 0.0;
 }
 
 
@@ -779,7 +825,7 @@ GUIUnifiedVertex* GUIManager_checkElemBuffer(GUIManager* gm, int count) {
 
 GUIUnifiedVertex* GUIManager_reserveElements(GUIManager* gm, int count) {
 	GUIUnifiedVertex* v = GUIManager_checkElemBuffer(gm, count);
-	gm->elementCount == count;
+	gm->elementCount += count;
 	return v;
 }
 

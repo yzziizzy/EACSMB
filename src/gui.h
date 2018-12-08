@@ -8,6 +8,7 @@
 
 #include "text/text.h"
 #include "input.h"
+#include "texture.h"
 // #include "game.h"
 #include "pass.h"
 #include "pcBuffer.h"
@@ -172,8 +173,10 @@ typedef struct GUIManager {
 	VEC(GUIObject*) reapQueue; 
 	
 	FontManager* fm;
+	TextureAtlas* ta;
 	
 	// temp 
+	GLuint fontAtlasID;
 	GLuint atlasID;
 	
 } GUIManager;

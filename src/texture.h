@@ -5,6 +5,7 @@
 #include "hash.h"
 #include "ds.h"
 #include "utilities.h"
+#include "settings.h"
 
 
 
@@ -188,8 +189,6 @@ typedef struct TextureAtlas {
 	HashTable(TextureAtlasItem*) items;
 	
 	int width;
-	int depth;
-	
 	VEC(uint32_t*) atlas;
 	
 	
@@ -198,9 +197,9 @@ typedef struct TextureAtlas {
 } TextureAtlas;
 
 
-TextureAtlas* TextureAtlas_alloc();
-void TextureAtlas_init(TextureAtlas* ta); 
-void TextureAtlas_initGL(TextureAtlas* ta); 
+TextureAtlas* TextureAtlas_alloc(GlobalSettings* gs);
+void TextureAtlas_init(TextureAtlas* ta, GlobalSettings* gs); 
+void TextureAtlas_initGL(TextureAtlas* ta, GlobalSettings* gs); 
 
 void TextureAtlas_addPNG(TextureAtlas* ta, char* name, char* path);
 void TextureAtlas_addFolder(TextureAtlas* ta, char* prefix, char* dirPath, int recursive);

@@ -32,7 +32,7 @@ ShaderProgram* rtProg;
 	
 
 
-
+/*
 
 
 
@@ -120,109 +120,88 @@ void gui_Image_Init(char* file) {
 	
 	
 	
+}*/
+
+
+
+
+
+
+
+
+static void render(GUIImage* im, GUIRenderParams* grp, PassFrameParams* pfp) {
+	
+	//just a clipped box
+	
+	float sz = im->header.scale;
+	
+	GUIUnifiedVertex* v = GUIManager_reserveElements(im->header.gm, 1);
+	*v = (GUIUnifiedVertex){
+		
+		.pos.t = grp->offset.y + im->header.topleft.y * sz,
+		.pos.l = grp->offset.x + im->header.topleft.x * sz,
+		.pos.b = grp->offset.y + im->header.topleft.y * sz + im->header.size.y * sz,
+		.pos.r = grp->offset.x + im->header.topleft.x * sz + im->header.size.x * sz,
+		
+		.clip = {150, 110, 800, 600},
+		
+		.texIndex1 = im->texIndex,
+		.texIndex2 = 0,
+		.texFade = .5,
+		
+		.guiType = 2, // simple image
+		
+		.texOffset1 = { im->offsetNorm.x * 65535, im->offsetNorm.y * 65535 },
+// 		.texOffset1 = { .1 * 65535, .1 * 65535 },
+		.texOffset2 = 0,
+		.texSize1 = { im->sizeNorm.x * 65535, im->sizeNorm.y * 65535 },
+// 		.texSize1 = { .5 * 65535, .5 * 65535 },
+		.texSize2 = 0,
+		
+		.fg = {255, 128, 64, 255},
+		.bg = {64, 128, 255, 255},
+	};
+	
+// 	
 }
 
 
 
+GUIImage* GUIImage_new(GUIManager* gm, char* name) {
 
-
-
-void guiImageRender(GUIImage* im, GameState* gs, PassFrameParams* pfp) {
-	
-	Matrix proj = IDENT_MATRIX;
-	
-	static GLuint proj_ul;
-	static GLuint tlx_tly_w_h_ul;
-	static GLuint z_alpha__ul;
-	static GLuint texIndex_ul;
-	static GLuint sTexture_ul;
-	static GLuint sCustomTexture_ul;
-	//static GLuint color_ul;
-	
-	if(!proj_ul) proj_ul = glGetUniformLocation(imageProg->id, "mProj");
-	if(!tlx_tly_w_h_ul) tlx_tly_w_h_ul = glGetUniformLocation(imageProg->id, "tlx_tly_w_h");
-	if(!z_alpha__ul) z_alpha__ul = glGetUniformLocation(imageProg->id, "z_alpha_");
-	if(!texIndex_ul) texIndex_ul = glGetUniformLocation(imageProg->id, "texIndex");
-	if(!sTexture_ul) sTexture_ul = glGetUniformLocation(imageProg->id, "sTexture");
-	if(!sCustomTexture_ul) sCustomTexture_ul = glGetUniformLocation(imageProg->id, "sCustomTexture");
-	//if(!color_ul) color_ul = glGetUniformLocation(imageProg->id, "color");
-	
-	
-	
-	mOrtho(0, 1, 0, 1, 0, 1, &proj);
-	
-	
-	glUseProgram(imageProg->id);
-	glexit("");
-	
-	glUniformMatrix4fv(proj_ul, 1, GL_FALSE, &proj.m);
-	glUniform4f(tlx_tly_w_h_ul, 
-		im->header.topleft.x, 
-		im->header.topleft.y, 
-		im->header.size.x, 
-		im->header.size.y 
-	);
-	glUniform4f(z_alpha__ul, -.1, 1, 0, 0); // BUG z is a big messed up; -.1 works but .1 doesn't.
-		glexit("");
-	glProgramUniform1i(imageProg->id, texIndex_ul, im->texIndex);
-	if(im->texIndex == -1) {
-		glProgramUniform1i(imageProg->id, sCustomTexture_ul, 30);
-	}
-	glProgramUniform1i(imageProg->id, sTexture_ul, 31);
-		glexit("");
-	//glActiveTexture(GL_TEXTURE0 + 31);
-	//glBindTexture(GL_TEXTURE_2D_ARRAY, image_textures->tex_id);
-	
-	glActiveTexture(GL_TEXTURE0 + 30);
-		glexit("");
-	glBindTexture(GL_TEXTURE_2D, im->customTexID);
-		glexit("");
-	//glUniform3f(color_ul, gw->color.x, gw->color.y, gw->color.z); // BUG z is a big messed up; -.1 works but .1 doesn't.
-
-	glBindVertexArray(vaoImage);
-	glBindBuffer(GL_ARRAY_BUFFER, vboImage);
-	
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-	glexit("");
-}
-
-void guiImageDelete(GUIImage* im) {
-	
-	
-	
-	
-}
-
-
-
-GUIImage* guiImageNew(Vector2 pos, Vector2 size, float zIndex, int texIndex) {
-	
-	GUIImage* im;
 	
 	float tbh = .03; // titleBarHeight
 	
 	static struct gui_vtbl static_vt = {
-		.Render = guiImageRender,
-		.Delete = guiImageDelete
+		.Render = render,
 	};
 	
 	
-	im = calloc(1, sizeof(*im));
-	CHECK_OOM(im);
+	GUIImage* im;
+	pcalloc(im);
 	
-// 	guiHeaderInit(&im->header);
-	im->header.vt = &static_vt;
+	gui_headerInit(&im->header, gm, &static_vt);
 	
-	im->header.hitbox.min.x = pos.x;
-	im->header.hitbox.min.y = pos.y;
-	im->header.hitbox.max.x = pos.x + size.x;
-	im->header.hitbox.max.y = pos.y + size.y;
+// 	im->header.hitbox.min.x = pos.x;
+// 	im->header.hitbox.min.y = pos.y;
+// 	im->header.hitbox.max.x = pos.x + size.x;
+// 	im->header.hitbox.max.y = pos.y + size.y;
 	
-	im->header.topleft = pos;
-	im->header.size = size;
-	im->header.z = zIndex;
 	
-	im->texIndex = texIndex;
+	TextureAtlasItem* it;
+	if(HT_get(&gm->ta->items, name, &it)) {
+		printf("could not find gui image '%s' \n", name);
+	}
+	else {
+		im->offsetNorm = it->offsetNorm;
+		im->sizeNorm = it->sizeNorm;
+		im->texIndex = it->index;
+		
+		im->header.size.x = it->sizePx.x;
+		im->header.size.y = it->sizePx.y;
+	}
+	printf("text index: %d\n", it->index);
+	
 	im->customTexID = 0;
 	
 	return im;

@@ -244,7 +244,7 @@ The first five are the main GBuffer.
 25. 
 26.
 27.
-28.
+28. gui atlas texture
 29. sdf array texture 
-30. guiImage
-31. gui icon array
+30. guiImage (render target)
+31. gui icon array (obsolete?)

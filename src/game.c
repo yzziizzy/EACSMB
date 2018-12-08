@@ -66,6 +66,9 @@ GUIText* gt_lighting;
 GUIText* gt_sunShadow;
 GUIText* gt_shading;
 GUIText* gt_gui;
+
+GUIImage* gt_img;
+
 GUIText* gtRenderMode;
 GUIText* gtSelectionDisabled;
 GUISimpleWindow* gswTest;
@@ -114,11 +117,11 @@ void initGame(XStuff* xs, GameState* gs) {
 	json_gl_init_lookup();
 	
 	
-	TextureAtlas* ta = TextureAtlas_alloc();
-	ta->width = 256;
-	TextureAtlas_addFolder(ta, "pre", "assets/ui/icons", 0);
-	TextureAtlas_finalize(ta);
-	
+// 	TextureAtlas* ta = TextureAtlas_alloc();
+// 	ta->width = 256;
+// 	TextureAtlas_addFolder(ta, "pre", "assets/ui/icons", 0);
+// 	TextureAtlas_finalize(ta);
+// 	
 	
 	gs->gui = GUIManager_alloc(&gs->globalSettings);
 	
@@ -372,6 +375,9 @@ void initGameGL(XStuff* xs, GameState* gs) {
 	gt_sunShadow = GUIText_new(gs->gui, "", "Arial", 3.0f);
 	gt_shading = GUIText_new(gs->gui, "", "Arial", 3.0f);
 	gt_gui = GUIText_new(gs->gui, "", "Arial", 3.0f);
+	
+	gt_img = GUIImage_new(gs->gui, "pre/building");
+	
 	gtRenderMode = GUIText_new(gs->gui, "", "Arial", 6.0f);
 	gtSelectionDisabled = GUIText_new(gs->gui, "", "Arial", 6.0f);
 	
@@ -403,6 +409,8 @@ void initGameGL(XStuff* xs, GameState* gs) {
 	GUIRegisterObject(gt_sunShadow, gclTest);
 	GUIRegisterObject(gt_shading, gclTest);
 	GUIRegisterObject(gt_gui, gclTest);
+	
+	GUIRegisterObject(gt_img, gclTest);
 	
 	GUIRegisterObject(gtRenderMode, NULL);
 	GUIRegisterObject(gtSelectionDisabled, NULL);

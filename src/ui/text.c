@@ -36,7 +36,7 @@ GUIText* GUIText_new(GUIManager* gm, char* str, char* fontname, float fontSize) 
 // 	gt->header.vt = &static_vt; 
 	
 	// TODO: x size, fix y size
-	gt->header.size = (Vector2){0, fontSize * 6}; 
+	gt->header.size = (Vector2){0, fontSize * 5}; 
 	
 	gt->fontSize = fontSize;
 	gt->font = FontManager_findFont(gm->fm, fontname);
@@ -56,7 +56,7 @@ static void render(GUIText* gt, GUIRenderParams* grp, PassFrameParams* pfp) {
 	GUIManager* gm = gt->header.gm;
 	
 	
-	float size = 0.55; // HACK
+	float size = 0.45; // HACK
 	float hoff = gt->header.size.y * .75; // HACK
 	float adv = 0;
 	

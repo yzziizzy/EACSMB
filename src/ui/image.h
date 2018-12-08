@@ -11,7 +11,10 @@
 typedef struct GUIImage {
 	GUIHeader header;
 	
+	Vector2 offsetNorm;
+	Vector2 sizeNorm;
 	int texIndex;
+	
 	GLuint customTexID;
 	
 } GUIImage;
@@ -20,7 +23,7 @@ typedef struct GUIImage {
 
 
 
-GUIImage* guiImageNew(Vector2 pos, Vector2 size, float zIndex, int texIndex);
+GUIImage* GUIImage_new(GUIManager* gm, char* name);
 
 
 

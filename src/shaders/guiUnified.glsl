@@ -37,11 +37,11 @@ vec4 toNDC(vec4 positiveNorm) {
 void main() {
 	
 	// convert to NDC
- 	vertex.lt_rb = toNDC(lt_rb_in * vec4(0.001, 0.001, 0.001, 0.001));
+ 	vertex.lt_rb = toNDC(lt_rb_in / vec4(targetSize.xy, targetSize.xy));
 //	vertex.lt_rb = vec4(.5, .5, -.5, -.5);
 	
 	// convert to clip space
-	vertex.clip = (clip_in / 1000) * targetSize.xyxy;
+	vertex.clip = (clip_in / vec4(targetSize.xy, targetSize.xy));
 	vertex.clip.x = targetSize.y - vertex.clip.x;
 	vertex.clip.z = targetSize.y - vertex.clip.z;
 	
@@ -155,9 +155,9 @@ flat in vec4 gs_fg_color;
 flat in vec4 gs_bg_color; 
 flat in int gs_guiType; 
 
-uniform sampler2DArray textures;
 
 uniform sampler2DArray fontTex;
+uniform sampler2DArray atlasTex;
 
 
 void main(void) {
@@ -241,7 +241,10 @@ void main(void) {
 		out_Color = vec4(.9,.9,.9, a); 
 		return;
 	}
-	
+	else if(gs_guiType == 2) { // simple image
+		out_Color = texture(atlasTex, gs_tex);
+		return;
+	}
 	
 	
 	
