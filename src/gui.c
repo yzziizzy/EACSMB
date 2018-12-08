@@ -47,8 +47,8 @@ GUIManager* GUIManager_alloc(GlobalSettings* gs) {
 
 
 
-static void renderRoot(GUIHeader* gh, AABB2* clip, PassFrameParams* pfp) {
-	GUIHeader_renderChildren(gh, clip, pfp);
+static void renderRoot(GUIHeader* gh, GUIRenderParams* grp, PassFrameParams* pfp) {
+	GUIHeader_renderChildren(gh, grp, pfp);
 }
 
 // _init is always called before _initGL

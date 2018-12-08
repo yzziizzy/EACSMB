@@ -598,7 +598,7 @@ void FontManager_createAtlas(FontManager* fm) {
 }
 
 
-// bump on format changes. there is no backward compatibility
+// bump on format changes. there is no backward compatibility. saving is for caching only.
 static uint16_t GUIFONT_ATLAS_FILE_VERSION = 2;
 
 void FontManager_saveAtlas(FontManager* fm, char* path) {

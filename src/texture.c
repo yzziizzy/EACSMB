@@ -153,6 +153,8 @@ int readPNG2(char* path, BitmapRGBA8* bmp) {
 	png_byte sig[8];
 	png_bytep* rowPtrs;
 	int i;
+	png_byte colorType;
+	png_byte bitDepth;
 	
 	f = fopen(path, "rb");
 	if(!f) {
@@ -207,8 +209,49 @@ int readPNG2(char* path, BitmapRGBA8* bmp) {
 	bmp->width = png_get_image_width(readStruct, infoStruct);
 	bmp->height = png_get_image_height(readStruct, infoStruct);
 	
+	
+	// coerce the fileinto 8-bit RGBA        
+	
+	bitDepth = png_get_bit_depth(readStruct, infoStruct);
+	colorType = png_get_color_type(readStruct, infoStruct);
+	
+	if(colorType == PNG_COLOR_TYPE_PALETTE) {
+		png_set_palette_to_rgb(readStruct);
+	}
+	if(colorType == PNG_COLOR_TYPE_GRAY) {
+		png_set_expand_gray_1_2_4_to_8(readStruct);
+		png_set_expand(readStruct);
+	}
+	
+	if(bitDepth == 16) {
+		png_set_strip_16(readStruct);
+	}
+	if(bitDepth < 8) {
+		png_set_packing(readStruct);
+	}
+	if(png_get_valid(readStruct, infoStruct, PNG_INFO_tRNS)) {
+		png_set_tRNS_to_alpha(readStruct);
+	}
+	if(colorType == PNG_COLOR_TYPE_GRAY) {
+		png_set_gray_to_rgb(readStruct);
+		png_set_expand(readStruct);
+	}		
+	if(colorType == PNG_COLOR_TYPE_GRAY_ALPHA) {
+		png_set_gray_to_rgb(readStruct);
+	}
+
+// 	if(colorType > PNG_COLOR_TYPE_PALETTE) {
+//  	png_color_16 background = {.red= 255, .green = 255, .blue = 255};
+//  	png_set_background(readStruct, &background, PNG_BACKGROUND_GAMMA_SCREEN, 0, 1.0);
+// 	}
+//  	png_set_filler(readStruct, 0x00, PNG_FILLER_AFTER);
+	
+//	printf("interlace: %d\n", png_set_interlace_handling(readStruct));
+	
 	png_read_update_info(readStruct, infoStruct);
 	
+	
+	// read the data
 	bmp->data = (uint32_t*)malloc(bmp->width * bmp->height * sizeof(uint32_t));
 	
 	rowPtrs = (png_bytep*)malloc(sizeof(png_bytep) * bmp->height);
@@ -225,7 +268,7 @@ int readPNG2(char* path, BitmapRGBA8* bmp) {
 
 	fclose(f);
 	
-	printf("Loaded \"%s\".\n", path);
+//	printf("Loaded \"%s\".\n", path);
 	
 	return 0;
 }

@@ -156,4 +156,54 @@ float FloatTex_texelFetch(FloatTex* ft, int x, int y, int channel);
 BitmapRGBA8* FloatTex_ToRGBA8(FloatTex* ft);
 
 
+
+
+
+
+// found in textureAtlas.c
+
+typedef struct TextureAtlasItem {
+	Vector2 offsetPx;
+	Vector2 offsetNorm;
+	
+	Vector2 sizePx;
+	Vector2 sizeNorm;
+	
+	int index;
+	
+} TextureAtlasItem;
+
+
+// for building the atlas
+typedef struct TextureAtlasSource {
+	char* name;
+	
+	float aspectRatio;
+	Vector2 size;
+	uint8_t* data;
+} TextureAtlasSource;
+
+
+typedef struct TextureAtlas {
+	HashTable(TextureAtlasItem*) items;
+	
+	int width;
+	int depth;
+	
+	VEC(uint32_t*) atlas;
+	
+	
+	VEC(TextureAtlasSource*) sources;
+	
+} TextureAtlas;
+
+
+TextureAtlas* TextureAtlas_alloc();
+void TextureAtlas_init(TextureAtlas* ta); 
+void TextureAtlas_initGL(TextureAtlas* ta); 
+
+void TextureAtlas_addPNG(TextureAtlas* ta, char* name, char* path);
+void TextureAtlas_addFolder(TextureAtlas* ta, char* prefix, char* dirPath, int recursive);
+void TextureAtlas_finalize(TextureAtlas* ta);
+
 #endif // __EACSMB_texture_h__

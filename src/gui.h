@@ -58,9 +58,12 @@ typedef struct GUIUnifiedVertex {
 typedef union GUIObject GUIObject;
 struct GUIManager;
 
+struct GUIRenderParams;
+typedef struct GUIRenderParams GUIRenderParams;
+
 
 struct gui_vtbl {
-	void (*Render)(GUIObject* go, AABB2* clip, PassFrameParams* pfp);
+	void (*Render)(GUIObject* go, GUIRenderParams* grp, PassFrameParams* pfp);
 	void (*Delete)(GUIObject* go);
 	void (*Reap)(GUIObject* go);
 	void (*Resize)(GUIObject* go, Vector2 newSz); // exterior size

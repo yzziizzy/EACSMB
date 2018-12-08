@@ -405,3 +405,36 @@ char* pathJoin(const char* a, const char* b) {
 	return o;
 }
 
+
+// gets a pointer to the first character of the file extension, or to the null terminator if none
+char* pathExt(const char* path) {
+	int i;
+	int len = strlen(path);
+	
+	for(i = len - 1; i >= 0; i--) {
+		char c = path[i];
+		if(c == '.') return path + i;
+		else if(c == '/') break;
+	} 
+	
+	return path + len;
+}
+
+// gets a pointer to the first character of the file extension, or to the null terminator if none
+// also provides the length of the path without the period and extension
+char* pathExt2(const char* path, int* end) {
+	int i;
+	int len = strlen(path);
+	
+	for(i = len - 1; i >= 0; i--) {
+		char c = path[i];
+		if(c == '.') {
+			if(end) *end = i > 0 ? i : 0; 
+			return path + i + 1;
+		}
+		else if(c == '/') break;
+	} 
+	
+	if(end) *end = len;
+	return path + len;
+}

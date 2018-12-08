@@ -114,6 +114,12 @@ void initGame(XStuff* xs, GameState* gs) {
 	json_gl_init_lookup();
 	
 	
+	TextureAtlas* ta = TextureAtlas_alloc();
+	ta->width = 256;
+	TextureAtlas_addFolder(ta, "pre", "assets/ui/icons", 0);
+	TextureAtlas_finalize(ta);
+	
+	
 	gs->gui = GUIManager_alloc(&gs->globalSettings);
 	
 	
@@ -382,7 +388,8 @@ void initGameGL(XStuff* xs, GameState* gs) {
 	
 	
 	gclTest = GUIColumnLayout_new(gs->gui, (Vector2){.01,.01}, .02, 0);
-	gt_terrain->header.topleft = (Vector2){20,20};
+	gclTest->header.topleft = (Vector2){10,10};
+	gclTest->spacing = 2;
 
 	
 	GUIRegisterObject(gclTest, NULL);

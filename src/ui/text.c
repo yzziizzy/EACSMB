@@ -13,7 +13,7 @@
 
 
 
-static void render(GUIText* gt, AABB2* clip, PassFrameParams* pfp);
+static void render(GUIText* gt, GUIRenderParams* grp, PassFrameParams* pfp);
 static void guiTextDelete(GUIText* gt);
 
 
@@ -35,6 +35,9 @@ GUIText* GUIText_new(GUIManager* gm, char* str, char* fontname, float fontSize) 
 	gui_headerInit(&gt->header, gm, &static_vt);
 // 	gt->header.vt = &static_vt; 
 	
+	// TODO: x size, fix y size
+	gt->header.size = (Vector2){0, fontSize * 6}; 
+	
 	gt->fontSize = fontSize;
 	gt->font = FontManager_findFont(gm->fm, fontname);
 
@@ -47,14 +50,14 @@ GUIText* GUIText_new(GUIManager* gm, char* str, char* fontname, float fontSize) 
 
 
 
-static void render(GUIText* gt, AABB2* clip, PassFrameParams* pfp) {
+static void render(GUIText* gt, GUIRenderParams* grp, PassFrameParams* pfp) {
 	char* txt = gt->currentStr;
 	GUIFont* f = gt->font;
 	GUIManager* gm = gt->header.gm;
 	
 	
-	float size = 0.55;
-	float hoff = 0;
+	float size = 0.55; // HACK
+	float hoff = gt->header.size.y * .75; // HACK
 	float adv = 0;
 	
 	float spaceadv = f->regular[' '].advance;

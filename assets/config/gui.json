@@ -1,0 +1,12 @@
+[
+
+{
+	type: "textures",
+	
+	mode: "folder",
+	recursive: 0,
+	path: "assets/ui/icons",
+	prefix: "icons",
+},
+
+]

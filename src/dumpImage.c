@@ -82,7 +82,7 @@ int writePNG(char* path, unsigned int channels, char* data, unsigned int w, unsi
 
 	rowPtrs = malloc(h * sizeof(png_bytep));
 	for(i = 0; i < h; i++) {
-		rowPtrs[i] = data + (i * w);
+		rowPtrs[i] = data + (i * w * channels);
 	}
 	
 	// write data

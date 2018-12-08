@@ -143,6 +143,7 @@ config. See `texgen.[ch]`
 * Distance culling on CPU side needs to handle shadow passes properly
 * Bias calculation on shadows is terrible. Trees do not shadow themselves.
 * On an nVidia GT 530, first run after modifying terrain.glsl or wiping shader cache results in random terrain corruption.
+* Exclude non-printing characters from sdf generation in FontManager
 
 ### Needs attention in the future
 * MDI max meshes limit fixed at 16. Might be able to choose the right value in initGL if all meshes are loaded first.
@@ -203,6 +204,9 @@ config. See `texgen.[ch]`
 * Config system
 * Text boxes with wrapping
 * SDF calculation on the GPU. (current multithreaded version is not *too* bad.)
+
+## Petty Basic Optimization
+* TextureAtlas_addFolder()
 
 
 # Reference
