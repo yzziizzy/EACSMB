@@ -6,12 +6,14 @@
 
 typedef struct GUIRenderParams {
 	Vector2 offset; // from the top left
+	Vector2 size; // of the parent's client area
 	AABB2 clip;
 } GUIRenderParams;
 
 
 
 void gui_headerInit(GUIHeader* gh, GUIManager* gm, struct gui_vtbl* vt); 
+Vector2 cui_calcPosGrav(GUIHeader* h, GUIRenderParams* grp);
 
 GUIUnifiedVertex* GUIManager_checkElemBuffer(GUIManager* gm, int count);
 GUIUnifiedVertex* GUIManager_reserveElements(GUIManager* gm, int count);

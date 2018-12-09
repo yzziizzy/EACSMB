@@ -67,6 +67,9 @@ GUIText* gt_sunShadow;
 GUIText* gt_shading;
 GUIText* gt_gui;
 
+GUIWindow* gw_test;
+GUIWindow* gw_test2;
+
 GUIImage* gt_img;
 
 GUIText* gtRenderMode;
@@ -363,9 +366,19 @@ void initGameGL(XStuff* xs, GameState* gs) {
 	
 	
 	
+	gw_test = GUIWindow_new(gs->gui);
+	gw_test->header.size = (Vector2){50, 50};
+	gw_test->header.gravity = GUI_GRAV_CENTER_BOTTOM;
+	gw_test->color = (Vector){.1, .8, .1};
+	
+	gw_test2 = GUIWindow_new(gs->gui);
+	gw_test2->header.size = (Vector2){5, 5};
+	gw_test2->header.gravity = GUI_GRAV_CENTER_LEFT;
+	gw_test2->color = (Vector){.2, .6, 1};
+	
 	gt = GUIText_new(gs->gui, "", "Arial", 3.0f);
 	gt_terrain = GUIText_new(gs->gui, "", "Arial", 3.0f);
-	gt_terrain->header.topleft = (Vector2){20,20};
+	//gt_terrain->header.topleft = (Vector2){20,20};
 	gt_solids = GUIText_new(gs->gui, "", "Arial", 3.0f);
 	gt_selection = GUIText_new(gs->gui, "", "Arial", 3.0f);
 	gt_decals = GUIText_new(gs->gui, "", "Arial", 3.0f);
@@ -396,7 +409,10 @@ void initGameGL(XStuff* xs, GameState* gs) {
 	gclTest = GUIColumnLayout_new(gs->gui, (Vector2){.01,.01}, .02, 0);
 	gclTest->header.topleft = (Vector2){10,10};
 	gclTest->spacing = 2;
-
+	gclTest->header.gravity = GUI_GRAV_TOP_LEFT;
+	
+	GUIRegisterObject(gw_test, NULL);
+	GUIRegisterObject(gw_test2, gw_test);
 	
 	GUIRegisterObject(gclTest, NULL);
 	GUIRegisterObject(gt_terrain, gclTest);

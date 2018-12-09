@@ -55,10 +55,11 @@ static void render(GUIText* gt, GUIRenderParams* grp, PassFrameParams* pfp) {
 	GUIFont* f = gt->font;
 	GUIManager* gm = gt->header.gm;
 	
+	Vector2 tl = cui_calcPosGrav(&gt->header, grp);
 	
 	float size = 0.45; // HACK
-	float hoff = gt->header.size.y * .75; // HACK
-	float adv = 0;
+	float hoff = tl.y +  gt->header.size.y * .75; // HACK
+	float adv = tl.x;
 	
 	float spaceadv = f->regular[' '].advance;
 	

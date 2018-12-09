@@ -133,15 +133,17 @@ static void render(GUIImage* im, GUIRenderParams* grp, PassFrameParams* pfp) {
 	
 	//just a clipped box
 	
+	Vector2 tl = cui_calcPosGrav(&im->header, grp);
+	
 	float sz = im->header.scale;
 	
 	GUIUnifiedVertex* v = GUIManager_reserveElements(im->header.gm, 1);
 	*v = (GUIUnifiedVertex){
 		
-		.pos.t = grp->offset.y + im->header.topleft.y * sz,
-		.pos.l = grp->offset.x + im->header.topleft.x * sz,
-		.pos.b = grp->offset.y + im->header.topleft.y * sz + im->header.size.y * sz,
-		.pos.r = grp->offset.x + im->header.topleft.x * sz + im->header.size.x * sz,
+		.pos.t = tl.y,
+		.pos.l = tl.x,
+		.pos.b = tl.y + im->header.size.y,
+		.pos.r = tl.x + im->header.size.x,
 		
 		.clip = {150, 110, 800, 600},
 		

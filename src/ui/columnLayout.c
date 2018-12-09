@@ -60,21 +60,37 @@ static void render(GUIColumnLayout* cl, GUIRenderParams* grp, PassFrameParams* p
 // 	guiRender(ed->bg, gs, pfp);
 // 	guiRender(ed->textControl, gs, pfp);
 	
-	GUIRenderParams grp2 = {
-		.clip = grp->clip,
-		.offset = {
-			.x = grp->offset.x + cl->header.topleft.x, 
-			.y = grp->offset.y + cl->header.topleft.y 
-		}
-	};
-	
-	// adjust positions based on size
+	// TODO: fix fencepost issue with spacing
+	// TODO: figure out better phase for size calculation
 	float total_h = 0.0;
+	float max_w = 0.0;
+	VEC_EACH(&cl->header.children, i, child) { 
+		total_h += cl->spacing + child->h.size.y;
+		max_w = fmax(max_w, child->h.size.x);
+	}
+	
+	cl->header.size.y = total_h;
+	cl->header.size.x = max_w;
+	
+	Vector2 tl = cui_calcPosGrav(&cl->header, grp);
+	
+	// columnlayout works by spoofing the renderparams supplied to each child
+	total_h = 0.0;
 	VEC_EACH(&cl->header.children, i, child) { 
 		total_h += cl->spacing;
 		
-		child->h.topleft.x = cl->header.topleft.x;
-		child->h.topleft.y = cl->header.topleft.y + total_h;
+		GUIRenderParams grp2 = {
+			.clip = grp->clip,
+			.size = child->h.size,//{child, total_h},
+			.offset = {
+				.x = tl.x,
+				.y = tl.y + total_h 
+			}
+		};
+		
+/*		
+		child->h.topleft.x = tl.x;
+		child->h.topleft.y = tl.y + total_h;*/
 		
 		GUIHeader_render(child, &grp2, pfp);
 		

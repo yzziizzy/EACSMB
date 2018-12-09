@@ -446,8 +446,13 @@ static void preFrame(PassFrameParams* pfp, GUIManager* gm) {
 	gm->elementCount = 0;
 	
 	
-	AABB2 clip = {{0,0}, {800,800}};
-	GUIHeader_render(gm->root, &clip, pfp);
+	GUIRenderParams grp = {
+		.offset = {0,0}, 
+		.size = {800,800},
+		.clip = {(0,0),{800,800}},
+	};
+	gm->root->h.size = (Vector2){800, 800};
+	GUIHeader_render(gm->root, &grp, pfp);
 	
 	
 	
@@ -648,13 +653,9 @@ void GUIRegisterObject_(GUIHeader* o, GUIHeader* parent) {
 		parent = o->gm->root;
 	}
 	o->parent = parent;
-	printf("parent: %p, o: %p \n", parent, o);
 	i = VEC_FIND(&parent->children, &o);
 	if(i < 0) {
-		printf("pushing child\n");
 		VEC_PUSH(&parent->children, o);
-	} else {
-	 printf("child found: %d\n", i);
 	}
 }
 
@@ -842,5 +843,67 @@ void GUIHeader_renderChildren(GUIHeader* gh, AABB2* clip, PassFrameParams* pfp) 
 
 	VEC_EACH(&gh->children, i, obj) {
 		GUIHeader_render(&obj->h, clip, pfp);
+	}
+}
+
+
+Vector2 cui_calcPosGrav(GUIHeader* h, GUIRenderParams* grp) {
+	/*
+	printf("grav: %d - %f,%f, %f,%f, %f,%f, %f,%f, \n",
+		   h->gravity,
+			grp->offset.x,
+			grp->offset.y,
+			h->topleft.x,
+			h->topleft.y,
+			grp->size.x,
+			grp->size.y,
+			h->size.x,
+			h->size.y
+	);
+	*/
+	switch(h->gravity) {
+		default:
+		case GUI_GRAV_TOP_LEFT:
+			return (Vector2){grp->offset.x + h->topleft.x, grp->offset.y + h->topleft.y}; 
+		case GUI_GRAV_CENTER_LEFT:
+			return (Vector2){
+				grp->offset.x + h->topleft.x, 
+				grp->offset.y + h->topleft.y + (grp->size.y / 2) - (h->size.y / 2)
+			}; 
+		case GUI_GRAV_BOTTOM_LEFT:
+			return (Vector2){
+				grp->offset.x + h->topleft.x, 
+				grp->offset.y + h->topleft.y + (grp->size.y) - (h->size.y)
+			};
+		case GUI_GRAV_CENTER_BOTTOM:
+			return (Vector2){
+				grp->offset.x + h->topleft.x + (grp->size.x / 2) - (h->size.x / 2), 
+				grp->offset.y + h->topleft.y + (grp->size.y) - (h->size.y)
+			};
+		case GUI_GRAV_BOTTOM_RIGHT:
+			return (Vector2){
+				grp->offset.x + h->topleft.x + (grp->size.x) - (h->size.x), 
+				grp->offset.y + h->topleft.y + (grp->size.y) - (h->size.y)
+			};
+		case GUI_GRAV_CENTER_RIGHT:
+			return (Vector2){
+				grp->offset.x + h->topleft.x + (grp->size.x) - (h->size.x), 
+				grp->offset.y + h->topleft.y + (grp->size.y / 2) - (h->size.y / 2)
+			};
+		case GUI_GRAV_TOP_RIGHT:
+			return (Vector2){
+				grp->offset.x + h->topleft.x + (grp->size.x) - (h->size.x), 
+				grp->offset.y + h->topleft.y
+			};
+		case GUI_GRAV_CENTER_TOP:
+			return (Vector2){
+				grp->offset.x + h->topleft.x + (grp->size.x / 2) - (h->size.x / 2), 
+				grp->offset.y + h->topleft.y
+			};
+		case GUI_GRAV_CENTER:
+			return (Vector2){
+				grp->offset.x + h->topleft.x + (grp->size.x / 2) - (h->size.x / 2), 
+				grp->offset.y + h->topleft.y + (grp->size.y / 2) - (h->size.y / 2)
+			};
 	}
 }

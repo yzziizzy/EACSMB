@@ -19,7 +19,7 @@ void guiWindowAddClient(GUIObject* parent, GUIObject* child);
 void guiWindowRemoveClient(GUIObject* parent, GUIObject* child);
 
 
-static void render(GUIWindow* gw, AABB2* clip, PassFrameParams* pfp);
+static void render(GUIWindow* gw, GUIRenderParams* grp, PassFrameParams* pfp);
 
 
 
@@ -65,23 +65,33 @@ GUIWindow* GUIWindow_new(GUIManager* gm) {
 }
 
 
-static void render(GUIWindow* gw, AABB2* clip, PassFrameParams* pfp) {
+static void render(GUIWindow* gw, GUIRenderParams* grp, PassFrameParams* pfp) {
 	
 	if(gw->header.hidden || gw->header.deleted) return;
 	
 	// TODO: clip calculations
 	
+	//gw->header.gravity = (gw->header.gravity + 1) % 8;
+	
+	
+	Vector2 tl = cui_calcPosGrav(&gw->header, grp);
+	
+	//printf("tl: %f, %f\n", tl.x, tl.y);
+	
+	
 	GUIUnifiedVertex* v = GUIManager_reserveElements(gw->header.gm, 1);
 	
 	*v = (GUIUnifiedVertex){
-		.pos = {gw->header.topleft.x, gw->header.topleft.y,
-			gw->header.topleft.x + gw->header.size.x, gw->header.topleft.y + gw->header.size.y},
+// 		.pos = {gw->header.topleft.x, gw->header.topleft.y,
+// 			gw->header.topleft.x + gw->header.size.x, gw->header.topleft.y + gw->header.size.y},
+		.pos = {tl.x /*+ gw->header.topleft.x*/, tl.y /*+ gw->header.topleft.y*/,
+			tl.x + /*gw->header.topleft.x +*/ gw->header.size.x, tl.y + /*gw->header.topleft.y +*/ gw->header.size.y},
 		.clip = {150, 110, 800, 600},
 		
 		.texIndex1 = 0,
 		.texIndex2 = 0,
 		.texFade = .5,
-		.guiType = 0, // window
+		.guiType = 0, // window (just a box)
 		
 		.texOffset1 = 0,
 		.texOffset2 = 0,
@@ -89,14 +99,20 @@ static void render(GUIWindow* gw, AABB2* clip, PassFrameParams* pfp) {
 		.texSize2 = 0,
 		
 		.fg = {255, 128, 64, 255}, // TODO: border color
-		.bg = {64, 128, 255, 255}, // TODO: color
+		.bg = {gw->color.x * 255, gw->color.y * 255, gw->color.z * 255, 255}, // TODO: color
 		
 		.z = gw->header.z,
 		.alpha = gw->header.alpha,
 	};
 	
 	
-	GUIHeader_renderChildren(&gw->header, clip, pfp);
+	GUIRenderParams grp2 = {
+		.clip = grp->clip,
+		.size = gw->header.size,
+		.offset = tl,
+	};
+	
+	GUIHeader_renderChildren(&gw->header, &grp2, pfp);
 }
 
 void guiWindowDelete(GUIWindow* gw) {

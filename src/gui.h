@@ -23,10 +23,16 @@ struct GUIManager;
 typedef struct GUIManager GUIManager;
 
 
-#define GUI_GRAV_TOP     0x0000
-#define GUI_GRAV_BOTTOM  0x0001
-#define GUI_GRAV_LEFT    0x0000
-#define GUI_GRAV_RIGHT   0x0002
+
+#define GUI_GRAV_TOP_LEFT      0x00
+#define GUI_GRAV_CENTER_LEFT   0x01
+#define GUI_GRAV_BOTTOM_LEFT   0x02
+#define GUI_GRAV_CENTER_BOTTOM 0x03
+#define GUI_GRAV_BOTTOM_RIGHT  0x04
+#define GUI_GRAV_CENTER_RIGHT  0x05
+#define GUI_GRAV_TOP_RIGHT     0x06
+#define GUI_GRAV_CENTER_TOP    0x07
+#define GUI_GRAV_CENTER        0x08
 
 
 struct Color4 {
@@ -112,6 +118,7 @@ typedef struct GUIHeader {
 	
 	char hidden;
 	char deleted;
+	char gravity;
 	
 	
 	GUI_OnClickFn onClick;
