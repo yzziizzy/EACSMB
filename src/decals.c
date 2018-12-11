@@ -30,6 +30,9 @@ static void preFrame(PassFrameParams* pfp, DecalManager* dm);
 static void draw(DecalManager* dm, GLuint progID, PassDrawParams* pdp);
 static void postFrame(DecalManager* dm);
 
+static void sortDecalRenderOrder(DecalManager* dm);
+
+
 
 
 static VAOConfig vaoConfig[] = {
@@ -203,6 +206,7 @@ DecalManager*  DecalManager_alloc(GlobalSettings* gs) {
 
 void DecalManager_init(DecalManager* dm, GlobalSettings* gs) {
 	VEC_INIT(&dm->decals);
+	VEC_INIT(&dm->renderOrder);
 	HT_init(&dm->lookup, 6);
 	//HT_init(&mm->textureLookup, 6);
 	
@@ -282,6 +286,9 @@ int DecalManager_AddDecal(DecalManager* dm, char* name, Decal* d) {
 	//mm->totalIndices += sm->indexCnt;
 	index = VEC_LEN(&dm->decals);
 	
+	VEC_PUSH(&dm->renderOrder, index - 1);
+	sortDecalRenderOrder(dm);
+	
 	HT_set(&dm->lookup, name, index -1);
 	
 	return index - 1;
@@ -291,7 +298,7 @@ int DecalManager_AddDecal(DecalManager* dm, char* name, Decal* d) {
 
 
 void DecalManager_updateMatrices(DecalManager* dm, PassFrameParams* pfp) {
-	int decal_index, i;
+	int decal_index, ro_index, i;
 	
 	
 	
@@ -303,7 +310,8 @@ void DecalManager_updateMatrices(DecalManager* dm, PassFrameParams* pfp) {
 	}
 
 	
-	for(decal_index = 0; decal_index < VEC_LEN(&dm->decals); decal_index++) {
+	for(ro_index = 0; ro_index < VEC_LEN(&dm->renderOrder); ro_index++) {
+		decal_index = VEC_ITEM(&dm->renderOrder, ro_index);
 		Decal* d = VEC_ITEM(&dm->decals, decal_index);
 		d->numToDraw = 0;
 		
@@ -352,19 +360,20 @@ static void preFrame(PassFrameParams* pfp, DecalManager* dm) {
 	
 	int index_offset = 0;
 	int instance_offset = 0;
-	int decal_index;
-	for(decal_index = 0; decal_index < VEC_LEN(&dm->decals); decal_index++) {
+	int ro_index;
+	for(ro_index = 0; ro_index < VEC_LEN(&dm->renderOrder); ro_index++) {
+		int decal_index = VEC_ITEM(&dm->renderOrder, ro_index);
 		Decal* d = VEC_ITEM(&dm->decals, decal_index);
 			
-		cmds[decal_index].firstIndex = index_offset; // offset of this mesh into the instances
-		cmds[decal_index].count = 36;//dm->indexCnt; // number of polys
+		cmds[ro_index].firstIndex = index_offset; // offset of this mesh into the instances
+		cmds[ro_index].count = 36;//dm->indexCnt; // number of polys
 		
 		// offset into instanced vertex attributes
-		cmds[decal_index].baseInstance = (dm->maxInstances * ((dm->instVB.nextRegion) % PC_BUFFER_DEPTH)) + instance_offset; 
+		cmds[ro_index].baseInstance = (dm->maxInstances * ((dm->instVB.nextRegion) % PC_BUFFER_DEPTH)) + instance_offset; 
 		// number of instances
-		cmds[decal_index].instanceCount = d->numToDraw; //VEC_LEN(&dm->instances[0]); 
-		//printf("instances %d %d %d \n", decal_index, instance_offset, d->numToDraw );
-		cmds[decal_index].baseVertex = 0;
+		cmds[ro_index].instanceCount = d->numToDraw; //VEC_LEN(&dm->instances[0]); 
+		//printf("instances %d %d %d \n", ro_index, instance_offset, d->numToDraw );
+		cmds[ro_index].baseVertex = 0;
 		
 		//index_offset += 36; // just one geometry for decals
 		instance_offset += VEC_LEN(&d->instances);
@@ -425,4 +434,24 @@ glexit("");
 static void postFrame(DecalManager* dm) {
 	PCBuffer_afterDraw(&dm->instVB);
 	PCBuffer_afterDraw(&dm->indirectCmds);
+}
+
+
+
+
+
+
+
+
+
+static int ro_comp(const void* aa, const void * bb, void* ctx) {
+	int a = *((int*)aa);
+	int b = *((int*)bb);
+	DecalManager* dm = (DecalManager*)ctx;
+	
+	return VEC_ITEM(&dm->decals, b)->renderWeight - VEC_ITEM(&dm->decals, a)->renderWeight;
+}
+
+static void sortDecalRenderOrder(DecalManager* dm) {
+	VEC_SORT_R(&dm->renderOrder, ro_comp, dm);
 }

@@ -508,6 +508,7 @@ static int loadConfig_Decal(World* w, json_value_t* jo) {
 	}
 
 	grab_json_val("scale", size, 1.0)
+	grab_json_val("renderWeight", renderWeight, 0.0)
 	
 	int ind = DecalManager_AddDecal(w->dm, d->name, d);
 	printf("DM added decal %d: %s \n", ind, d->name);
@@ -548,11 +549,11 @@ static int loadConfig_CustomDecal(World* w, json_value_t* jo) {
 
 #define grab_json_val(str, field, def) \
 	d->field = def; \
-	if(!json_obj_get_key(tc, str, &val)) { \
+	if(!json_obj_get_key(jo, str, &val)) { \
 		json_as_float(val, &d->field); \
 	}
 
-	//grab_json_val("thickness", thickness, 1.0)
+	grab_json_val("renderWeight", renderWeight, 0.0)
 	
 
 	int ind = CustomDecalManager_AddDecal(w->cdm, d->name, d);

@@ -9,6 +9,13 @@
 #include <pthread.h>
 
 
+// patch for old versions of glibc
+#ifndef qsort_r
+	typedef int (*__compar_d_fn_t) (const void *, const void *, void *);
+	void ___patch_quicksort_r (void *const pbase, size_t total_elems, size_t size, __compar_d_fn_t cmp, void *arg);
+	#define qsort_r ___patch_quicksort_r
+#endif
+
 // -----------------------
 // non-thread-safe vectors
 // -----------------------
@@ -174,7 +181,12 @@ do { \
 
 
 #define VEC_SORT(x, fn) \
-	qsort(VEC_DATA(x), VEC_LEN(x), sizeof(VEC_DATA(x)), (void*)fn);
+	qsort(VEC_DATA(x), VEC_LEN(x), sizeof(*VEC_DATA(x)), (void*)fn);
+
+#define VEC_SORT_R(x, fn, s) \
+	qsort_r(VEC_DATA(x), VEC_LEN(x), sizeof(*VEC_DATA(x)), (__compar_d_fn_t)fn, (void*)s);
+
+
 
 
 /*

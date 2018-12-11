@@ -43,6 +43,7 @@ eacsmb_SOURCES = main.c \
 	pcBuffer.c \
 	perlin.c \
 	pipe.c \
+	qsort_r.c \
 	renderLoop.c \
 	road.c \
 	scene.c \

@@ -43,6 +43,8 @@ typedef struct Decal {
 	
 	int texIndex;
 	
+	float renderWeight;
+	
 	float size;
 	VEC(DecalInstance) instances;
 	int numToDraw; // todo: move
@@ -53,6 +55,7 @@ typedef struct DecalManager {
 	
 	VEC(Decal*) decals;
 	HashTable(int) lookup;
+	VEC(int) renderOrder; // indices into the decals vector
 
 	int totalInstances;
 	int maxInstances;
