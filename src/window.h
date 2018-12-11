@@ -19,6 +19,8 @@ typedef struct XStuff {
 	
 	XWindowAttributes winAttr;
 	
+	Cursor noCursor;
+	
 	void (*onExpose)(struct XStuff*, void*);
 	void* onExposeData;
 
@@ -31,7 +33,8 @@ typedef struct XStuff {
 
 
 
-
+void XStuff_hideCursor(XStuff* xs);
+void XStuff_showCursor(XStuff* xs);
 
 XErrorEvent* xLastError;
 char xLastErrorStr[1024];

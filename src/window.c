@@ -117,6 +117,11 @@ int initXWindow(XStuff* xs) {
 	int best_fbc = -1, best_num_samp = -1;
 	XSetWindowAttributes setWinAttr;
 	
+	// for the empty cursor
+	Pixmap emptyPx;
+	XColor black = {0, 0, 0};
+	static char zeros[] = {0};
+	
 	GLint att[] = { GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None };
 	
 	
@@ -204,8 +209,7 @@ int initXWindow(XStuff* xs) {
 	
 	// squeeze out any errors
 	XSync(xs->display, False);
-	
-	
+
 	glXMakeCurrent(xs->display, xs->clientWin, xs->glctx);
 	
 	
@@ -219,6 +223,11 @@ int initXWindow(XStuff* xs) {
 	glDebugMessageCallback(_khr_debug_callback , NULL);
 #endif
 	
+	
+	// set up the empty cursor used to hide the cursor
+	emptyPx = XCreateBitmapFromData(xs->display, xs->clientWin, zeros, 1, 1);
+	xs->noCursor = XCreatePixmapCursor(xs->display, emptyPx, emptyPx, &black, &black, 0, 0);
+	XFreePixmap(xs->display, emptyPx);
 }
 
 
@@ -229,7 +238,6 @@ int initXWindow(XStuff* xs) {
 
 
 void processEvents(XStuff* xs, InputState* st, InputFocusStack* ifs, int max_events) {
-	
 	
 	XEvent xev;
 	int evcnt;
@@ -286,6 +294,8 @@ void processEvents(XStuff* xs, InputState* st, InputFocusStack* ifs, int max_eve
 			
 			if(xs->onExpose)
 				(*xs->onExpose)(xs, xs->onExposeData);
+			
+			
 			
 			xs->ready = 1;
 		}
@@ -462,7 +472,13 @@ void processEvents(XStuff* xs, InputState* st, InputFocusStack* ifs, int max_eve
 }
 
 
+void XStuff_hideCursor(XStuff* xs) {
+	XDefineCursor(xs->display, xs->clientWin, xs->noCursor);
+}
 
+void XStuff_showCursor(XStuff* xs) {
+	XUndefineCursor(xs->display, xs->clientWin); 
+}
 
 
 
