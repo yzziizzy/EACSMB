@@ -51,11 +51,28 @@ static void renderRoot(GUIHeader* gh, GUIRenderParams* grp, PassFrameParams* pfp
 	GUIHeader_renderChildren(gh, grp, pfp);
 }
 
+static GUIObject* hitTestRoot(GUIObject* go, Vector2 testPos) {
+	GUIHeader* gh = &go->header;
+	float highestZ = 0;
+	int i;
+	for(i = 0; i < VEC_LEN(&gh->children); i++) {
+		GUIObject* kid = GUIObject_hitTest(VEC_ITEM(&gh->children, i), testPos);
+		if(kid) {
+			printf("hit: %p\n", kid);
+			return kid;
+		}
+	}
+	
+	// the root window does not respond to hits itself
+	return NULL;
+}
+
 // _init is always called before _initGL
 void GUIManager_init(GUIManager* gm, GlobalSettings* gs) {
 	
 	static struct gui_vtbl  root_vt = {
 		.Render = renderRoot,
+		.HitTest = hitTestRoot,
 	};
 	
 	VEC_INIT(&gm->reapQueue);
@@ -735,27 +752,52 @@ void gui_headerInit(GUIHeader* gh, GUIManager* gm, struct gui_vtbl* vt) {
 
 
 
-GUIObject* guiHitTest(GUIObject* go, Vector2 testPos) {
+void GUIObject_triggerClick(GUIObject* go, Vector2 testPos) {
+	if(go->h.onClick)
+		go->h.onClick(go, testPos);
+}
 
+
+GUIObject* GUIManager_triggerClick(GUIManager* gm, Vector2 testPos) {
+	GUIObject* go = GUIObject_hitTest(gm->root, testPos);
+	
+	
+	
+	return go;
+}
+
+
+GUIObject* GUIManager_hitTest(GUIManager* gm, Vector2 testPos) {
+	return GUIObject_hitTest(gm->root, testPos);
+}
+
+
+GUIObject* GUIObject_hitTest(GUIObject* go, Vector2 testPos) {
 	if(go->h.vt->HitTest)
 		return go->h.vt->HitTest(go, testPos);
 	
-	return guiBaseHitTest(go, testPos);
-} 
+	return gui_defaultHitTest(&go->h, testPos);
+}
 
-GUIObject* guiBaseHitTest(GUIObject* go, Vector2 testPos) {
-	GUIHeader* h = &go->h; 
 
-	int in = boxContainsPoint2(&h->hitbox, &testPos);
+// default hit testing handler that only operates on the header
+GUIObject* gui_defaultHitTest(GUIHeader* h, Vector2 testPosParent) {
+	// testPos is passed in as parent coordinates so unclickable gui elements
+	//   can skip any calculations
+	
+	Vector2 chPos = cui_parent2ChildGrav(h, &h->parent->header, testPosParent);
+	
+	int in = boxContainsPoint2(&h->hitbox, &chPos);
 	if(!in) return NULL;
 	
+	float highestZ = 0;
 	int i;
 	for(i = 0; i < VEC_LEN(&h->children); i++) {
-		GUIObject* kid = guiHitTest(VEC_ITEM(&h->children, i), testPos);
+		GUIObject* kid = GUIObject_hitTest(VEC_ITEM(&h->children, i), chPos);
 		if(kid) return kid;
 	}
 	
-	return go;
+	return (GUIObject*)h;
 }
 
 
@@ -763,18 +805,20 @@ GUIObject* guiBaseHitTest(GUIObject* go, Vector2 testPos) {
 
 
 void guiTriggerClick(GUIEvent* e) {
-	GUIObject* c = e->currentTarget;
-	
-	if(!c) return;
-	
-	if(c->h.onClick)
-		c->h.onClick(e);
-	
-	e->currentTarget = c->h.parent;
-	
-	guiTriggerClick(e);
+// 	GUIObject* c = e->currentTarget;
+// 	
+// 	if(!c) return;
+// 	
+// 	if(c->h.onClick)
+// 		c->h.onClick(e);
+// 	
+// 	e->currentTarget = c->h.parent;
+// 	
+// 	guiTriggerClick(e);
 }
 
+
+// old
 
 void guiSetClientSize(GUIObject* go, Vector2 cSize) {
 	if(go->h.vt->SetClientSize)
@@ -831,22 +875,23 @@ GUIUnifiedVertex* GUIManager_reserveElements(GUIManager* gm, int count) {
 }
 
 
-void GUIHeader_render(GUIHeader* gh, AABB2* clip, PassFrameParams* pfp) {
+void GUIHeader_render(GUIHeader* gh, GUIRenderParams* grp, PassFrameParams* pfp) {
 	if(gh->hidden || gh->deleted) return;
 	
 	if(gh->vt->Render)
-		gh->vt->Render((GUIObject*)gh, clip, pfp);
+		gh->vt->Render((GUIObject*)gh, grp, pfp);
 } 
 
-void GUIHeader_renderChildren(GUIHeader* gh, AABB2* clip, PassFrameParams* pfp) {
+void GUIHeader_renderChildren(GUIHeader* gh, GUIRenderParams* grp, PassFrameParams* pfp) {
 	if(gh->hidden || gh->deleted) return;
 
 	VEC_EACH(&gh->children, i, obj) {
-		GUIHeader_render(&obj->h, clip, pfp);
+		GUIHeader_render(&obj->h, grp, pfp);
 	}
 }
 
 
+// returns absolute top/left offset coordinates for a gui object based on the RP from the parent
 Vector2 cui_calcPosGrav(GUIHeader* h, GUIRenderParams* grp) {
 	/*
 	printf("grav: %d - %f,%f, %f,%f, %f,%f, %f,%f, \n",
@@ -906,4 +951,26 @@ Vector2 cui_calcPosGrav(GUIHeader* h, GUIRenderParams* grp) {
 				grp->offset.y + h->topleft.y + (grp->size.y / 2) - (h->size.y / 2)
 			};
 	}
+}
+
+
+
+
+// returns child coordinates from parent coordinates
+// pt is in parent coordinates
+Vector2 cui_parent2ChildGrav(GUIHeader* child, GUIHeader* parent, Vector2 pt) {
+	
+	// pretend the parent is a root element
+	GUIRenderParams grp = {
+		.size = parent->size, // parent
+		.offset = {0, 0},
+	};
+
+	// child's top left in parent coordinates
+	Vector2 ctl = cui_calcPosGrav(child, &grp);
+	
+	return (Vector2) {
+		.x = pt.x - ctl.x,
+		.y = pt.y - ctl.y
+	};
 }

@@ -160,7 +160,6 @@ config. See `texgen.[ch]`
 * Point lights using geom-shader billboards for small/distance rendering.
 * Ray-marched volumetric clouds and fog.
 * Custom mouse pointer support. 
-* Configurable decal render order (road markings on top of roads on top of leaves).
 * HDR lighting and bloom.
 * Falling rain and snow.
 	* Make a special version of Emitter that only spawns in rage of the camera, but consistently.
@@ -169,6 +168,7 @@ config. See `texgen.[ch]`
 * Dynamic LOD
 * Easy, cheap ephemeral meshes, decal and effects that can automatically spawn on terrain at certain zoom levels. Grass, dust, flowers, decorative decals, etc. They should not be in the CES as they are not real game items. 
 * Better gbuffer packing, depends on shader #include support.
+* Texture compression
 
 ## Sound
 * Finish API.

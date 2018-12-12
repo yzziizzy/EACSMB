@@ -8,18 +8,22 @@ typedef struct GUIRenderParams {
 	Vector2 offset; // from the top left
 	Vector2 size; // of the parent's client area
 	AABB2 clip;
+	float baseZ;
 } GUIRenderParams;
 
 
 
 void gui_headerInit(GUIHeader* gh, GUIManager* gm, struct gui_vtbl* vt); 
 Vector2 cui_calcPosGrav(GUIHeader* h, GUIRenderParams* grp);
+GUIObject* gui_defaultHitTest(GUIHeader* h, Vector2 testPos);
+Vector2 cui_parent2ChildGrav(GUIHeader* child, GUIHeader* parent, Vector2 pt);
+
 
 GUIUnifiedVertex* GUIManager_checkElemBuffer(GUIManager* gm, int count);
 GUIUnifiedVertex* GUIManager_reserveElements(GUIManager* gm, int count);
 
-void GUIHeader_render(GUIHeader* gh, AABB2* clip, PassFrameParams* pfp);
-void GUIHeader_renderChildren(GUIHeader* gh, AABB2* clip, PassFrameParams* pfp);
+void GUIHeader_render(GUIHeader* gh, GUIRenderParams* grp, PassFrameParams* pfp);
+void GUIHeader_renderChildren(GUIHeader* gh, GUIRenderParams* grp, PassFrameParams* pfp);
 
 
 

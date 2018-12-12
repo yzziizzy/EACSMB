@@ -94,7 +94,7 @@ typedef struct GUIEvent {
 } GUIEvent;
 
 
-typedef int  (*GUI_OnClickFn)(GUIEvent* e);
+typedef int  (*GUI_OnClickFn)(GUIEvent* e, Vector2 clickPos);
 typedef void (*GUI_OnMouseEnterFn)(GUIEvent* e);
 typedef void (*GUI_OnMouseLeaveFn)(GUIEvent* e);
 
@@ -112,9 +112,9 @@ typedef struct GUIHeader {
 	Vector2 size; // absolute
 	float scale;
 	float alpha;
-	float z;
+	float z; // relative to the parent
 	
-	AABB2 hitbox;
+	AABB2 hitbox; // in local coordinates
 	
 	char hidden;
 	char deleted;
@@ -228,11 +228,13 @@ typedef struct GUITextArea {
 
 
 
+GUIObject* GUIObject_hitTest(GUIObject* go, Vector2 testPos);
+GUIObject* GUIManager_hitTest(GUIManager* gm, Vector2 testPos);
 
 
 
 
-GUIObject* guiHitTest(GUIObject* go, Vector2 testPos);
+// GUIObject* guiHitTest(GUIObject* go, Vector2 testPos);
 void guiDelete(GUIObject* go);
 // void guiRender(GUIObject* go, GameState* gs, PassFrameParams* pfp);
 void guiReap(GUIObject* go);

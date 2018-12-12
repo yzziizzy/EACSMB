@@ -84,6 +84,10 @@ static void render(GUIText* gt, GUIRenderParams* grp, PassFrameParams* pfp) {
 		
 		
 	}
+	
+	// HACK
+	gt->header.hitbox.max = (Vector2){adv, gt->header.size.y};
+	
 }
 
 void guiTextDelete(GUIText* gt) {

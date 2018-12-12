@@ -779,7 +779,14 @@ static void main_click_handler(InputEvent* ev, GameState* gs) {
 	if(ev->button == 1) {
 		
 		// BUG: used inverse cursor pos. changed to compile temporarily
-		GUIObject* hit = guiHitTest(gswTest, ev->normPos);
+		GUIObject* hit;
+		
+		Vector2 pos = (Vector2){ev->intPos.x, ev->intPos.y};
+		hit = GUIManager_hitTest(gs->gui, pos);
+		
+		
+		
+		
 		printf("\n\n----> %f, %f \n", ev->normPos.x, ev->normPos.y);
 		if(0 && hit) {
 			printf("@@clicked in window \n");
@@ -1016,6 +1023,9 @@ void checkCursor(GameState* gs, InputState* is) {
 		gs->lookCenter.y = gs->cursorPos.y;
 	}
 	
+	
+	// wove a window with the cursor
+	//gw_test->header.topleft = (Vector2){x, h - y};
 }
 
 Vector2i viewWH = {
