@@ -47,8 +47,21 @@ GUIManager* GUIManager_alloc(GlobalSettings* gs) {
 
 
 
-static void renderRoot(GUIHeader* gh, GUIRenderParams* grp, PassFrameParams* pfp) {
-	GUIHeader_renderChildren(gh, grp, pfp);
+static void updatePosRoot(GUIHeader* gh, GUIRenderParams* always_null, PassFrameParams* pfp) {
+// 	GUIRenderParams grp = {
+// 		.size = h->size,
+// 		.offset = {0,0},
+// 		.clip = {{0,0}, h->size},
+// 		.baseZ = 0,
+// 	};
+	
+	VEC_EACH(&gh->children, ind, child) {
+		GUIHeader_updatePos(child, always_null, pfp);
+	}
+}
+
+static void renderRoot(GUIHeader* gh, PassFrameParams* pfp) {
+	GUIHeader_renderChildren(gh, pfp);
 }
 
 static GUIObject* hitTestRoot(GUIObject* go, Vector2 testPos) {
@@ -70,7 +83,8 @@ static GUIObject* hitTestRoot(GUIObject* go, Vector2 testPos) {
 // _init is always called before _initGL
 void GUIManager_init(GUIManager* gm, GlobalSettings* gs) {
 	
-	static struct gui_vtbl  root_vt = {
+	static struct gui_vtbl root_vt = {
+		.UpdatePos = updatePosRoot,
 		.Render = renderRoot,
 		.HitTest = hitTestRoot,
 	};
@@ -469,7 +483,10 @@ static void preFrame(PassFrameParams* pfp, GUIManager* gm) {
 		.clip = {(0,0),{800,800}},
 	};
 	gm->root->h.size = (Vector2){800, 800};
-	GUIHeader_render(gm->root, &grp, pfp);
+	
+	GUIHeader_updatePos(gm->root, &grp, pfp);
+	
+	GUIHeader_render(gm->root, pfp);
 	
 	
 	
@@ -752,6 +769,44 @@ void gui_headerInit(GUIHeader* gh, GUIManager* gm, struct gui_vtbl* vt) {
 
 
 
+void GUIHeader_updatePos(GUIObject* go, GUIRenderParams* grp, PassFrameParams* pfp) {
+	if(go->h.vt->UpdatePos)
+		go->h.vt->UpdatePos(go, grp, pfp);
+	else
+		gui_defaultUpdatePos(&go->h, grp, pfp);
+}
+
+void GUIManager_updatePos(GUIManager* gm, PassFrameParams* pfp) {
+	GUIHeader_updatePos(gm->root, NULL, pfp);
+}
+
+// grp is data about the parent's positioning. 
+// the child must calculate its own position based on the parent's info passed in.
+// this info is then passed down to its children
+void gui_defaultUpdatePos(GUIObject* go, GUIRenderParams* grp, PassFrameParams* pfp) {
+	
+	GUIHeader* h = &go->h;
+	
+	Vector2 tl = cui_calcPosGrav(h, grp);
+	h->absTopLeft = tl;
+	h->absZ = grp->baseZ + h->z;
+	
+	// TODO: relTopLeft, absClip
+	
+	GUIRenderParams grp2 = {
+		.size = h->size,
+		.offset = tl,
+		.clip = {0,0},
+		.baseZ = h->absZ,
+	};
+	
+	VEC_EACH(&h->children, ind, child) {
+		GUIHeader_updatePos(child, &grp2, pfp);
+	}
+	
+}
+
+
 void GUIObject_triggerClick(GUIObject* go, Vector2 testPos) {
 	if(go->h.onClick)
 		go->h.onClick(go, testPos);
@@ -875,18 +930,20 @@ GUIUnifiedVertex* GUIManager_reserveElements(GUIManager* gm, int count) {
 }
 
 
-void GUIHeader_render(GUIHeader* gh, GUIRenderParams* grp, PassFrameParams* pfp) {
+void GUIHeader_render(GUIHeader* gh, PassFrameParams* pfp) {
 	if(gh->hidden || gh->deleted) return;
 	
 	if(gh->vt->Render)
-		gh->vt->Render((GUIObject*)gh, grp, pfp);
+		gh->vt->Render((GUIObject*)gh, pfp);
+	else
+		GUIHeader_renderChildren(gh, pfp);
 } 
 
-void GUIHeader_renderChildren(GUIHeader* gh, GUIRenderParams* grp, PassFrameParams* pfp) {
-	if(gh->hidden || gh->deleted) return;
+void GUIHeader_renderChildren(GUIHeader* gh, PassFrameParams* pfp) {
+// 	if(gh->hidden || gh->deleted) return;
 
 	VEC_EACH(&gh->children, i, obj) {
-		GUIHeader_render(&obj->h, grp, pfp);
+		GUIHeader_render(&obj->h, pfp);
 	}
 }
 
@@ -968,7 +1025,7 @@ Vector2 cui_parent2ChildGrav(GUIHeader* child, GUIHeader* parent, Vector2 pt) {
 
 	// child's top left in parent coordinates
 	Vector2 ctl = cui_calcPosGrav(child, &grp);
-	
+	printf("ctl: %f, %f | %f, %f\n", pt.x, pt.y, ctl.x, ctl.y);
 	return (Vector2) {
 		.x = pt.x - ctl.x,
 		.y = pt.y - ctl.y

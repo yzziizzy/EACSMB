@@ -428,8 +428,9 @@ void initGameGL(XStuff* xs, GameState* gs) {
 	
 	GUIRegisterObject(gt_img, gclTest);
 	
-	GUIRegisterObject(gtRenderMode, NULL);
-	GUIRegisterObject(gtSelectionDisabled, NULL);
+	// commented out for hitTest testing
+// 	GUIRegisterObject(gtRenderMode, NULL);
+// 	GUIRegisterObject(gtSelectionDisabled, NULL);
 	
 
 	//geditTest = GUIEditNew("edit", (Vector2){.5, .5}, (Vector2){.4, .05});
@@ -781,7 +782,7 @@ static void main_click_handler(InputEvent* ev, GameState* gs) {
 		// BUG: used inverse cursor pos. changed to compile temporarily
 		GUIObject* hit;
 		
-		Vector2 pos = (Vector2){ev->intPos.x, ev->intPos.y};
+		Vector2 pos = (Vector2){ev->intPos.x, gs->screen.wh.y - ev->intPos.y};
 		hit = GUIManager_hitTest(gs->gui, pos);
 		
 		

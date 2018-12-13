@@ -14,6 +14,7 @@
 
 
 static void render(GUIText* gt, GUIRenderParams* grp, PassFrameParams* pfp);
+static GUIObject* hitTest(GUIObject* go, Vector2 testPos);
 static void guiTextDelete(GUIText* gt);
 
 
@@ -25,6 +26,7 @@ GUIText* GUIText_new(GUIManager* gm, char* str, char* fontname, float fontSize) 
 	static struct gui_vtbl static_vt = {
 		.Render = render,
 		.Delete = guiTextDelete,
+		.HitTest = hitTest,
 	};
 	
 	
@@ -88,6 +90,13 @@ static void render(GUIText* gt, GUIRenderParams* grp, PassFrameParams* pfp) {
 	// HACK
 	gt->header.hitbox.max = (Vector2){adv, gt->header.size.y};
 	
+}
+
+static GUIObject* hitTest(GUIObject* go, Vector2 testPos) {
+	
+	printf("text hit test, %f, %f \n", testPos.x, testPos.y);
+	
+	return go;
 }
 
 void guiTextDelete(GUIText* gt) {

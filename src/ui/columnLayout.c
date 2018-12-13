@@ -12,8 +12,8 @@
 
 
 
-static void render(GUIColumnLayout* cl, GUIRenderParams* grp, PassFrameParams* pfp);
-
+static GUIObject* hitTest(GUIColumnLayout* cl, Vector2 testPosParent);
+static void updatePos(GUIColumnLayout* cl, GUIRenderParams* grp, PassFrameParams* pfp);
 
 
 
@@ -23,7 +23,8 @@ GUIColumnLayout* GUIColumnLayout_new(GUIManager* gm, Vector2 pos, float spacing,
 	GUIColumnLayout* w;
 	
 	static struct gui_vtbl static_vt = {
-		.Render = render,
+		.UpdatePos = updatePos,
+		.HitTest = hitTest,
 	};
 	
 	
@@ -55,7 +56,8 @@ GUIColumnLayout* GUIColumnLayout_new(GUIManager* gm, Vector2 pos, float spacing,
 
 
 
-static void render(GUIColumnLayout* cl, GUIRenderParams* grp, PassFrameParams* pfp) {
+
+static void updatePos(GUIColumnLayout* cl, GUIRenderParams* grp, PassFrameParams* pfp) {
 	
 // 	guiRender(ed->bg, gs, pfp);
 // 	guiRender(ed->textControl, gs, pfp);
@@ -87,12 +89,11 @@ static void render(GUIColumnLayout* cl, GUIRenderParams* grp, PassFrameParams* p
 				.y = tl.y + total_h 
 			}
 		};
-		
 /*		
 		child->h.topleft.x = tl.x;
 		child->h.topleft.y = tl.y + total_h;*/
 		
-		GUIHeader_render(child, &grp2, pfp);
+		GUIHeader_updatePos(child, &grp2, pfp);
 		
 		total_h += child->h.size.y;
 	}
@@ -102,6 +103,40 @@ static void render(GUIColumnLayout* cl, GUIRenderParams* grp, PassFrameParams* p
 	
 	
 }
+
+
+
+static GUIObject* hitTest(GUIColumnLayout* cl, Vector2 testPosParent) {
+	
+	float total_h = 0.0;
+	float max_w = 0.0;
+	VEC_EACH(&cl->header.children, i, child) { 
+		total_h += cl->spacing + child->h.size.y;
+		max_w = fmax(max_w, child->h.size.x);
+	}
+	
+	cl->header.size.y = total_h;
+	cl->header.size.x = max_w;
+	
+	// a columnLayour element has no hitbox of its own
+	
+	total_h = 0.0;
+	VEC_EACH(&cl->header.children, i, child) { 
+		total_h += cl->spacing;
+/*		
+		child->h.topleft.x = tl.x;
+		child->h.topleft.y = tl.y + total_h;*/
+		Vector2 coff = {testPosParent.x, testPosParent.y + total_h};
+
+// 		GUIHeader_hitTest(child, coff);
+		
+		total_h += child->h.size.y;
+	}
+	
+}
+
+
+
 
 void guiColumnLayoutDelete(GUIColumnLayout* o) {
 	

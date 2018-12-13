@@ -124,7 +124,7 @@ Triangulation is not required. The loader will automatically triangulate (as fan
 
 ## Textures
 ### From File
-PNG files can be loaded. *They must be full **RGBA** and a **square power of two**.*
+PNG files can be loaded. All textures will be converted to RGBA8. *They must be a **square power of two**.*
 ### Procedural Generation
 Working but few operations. Prefixing the config texture path with "$" indicates a procedural 
 config. See `texgen.[ch]`
@@ -142,11 +142,11 @@ config. See `texgen.[ch]`
 * mCopy and the memcpy inside it have src/dst backwards but all usage needs to be fixed too...
 * Distance culling on CPU side needs to handle shadow passes properly
 * Bias calculation on shadows is terrible. Trees do not shadow themselves.
-* On an nVidia GT 530, first run after modifying terrain.glsl or wiping shader cache results in random terrain corruption.
+* On an NVidia GT 730, first run after modifying terrain.glsl or wiping shader cache results in random terrain corruption.
 * Exclude non-printing characters from sdf generation in FontManager
 
 ### Needs attention in the future
-* MDI max meshes limit fixed at 16. Might be able to choose the right value in initGL if all meshes are loaded first.
+* MDI max meshes limit fixed at 16. Might be able to choose the right value in `initGL` if all meshes are loaded first.
 
 ## Graphics
 * Cache low-resolution pre-baked terrain textures for blocks in the distance.
@@ -169,6 +169,7 @@ config. See `texgen.[ch]`
 * Easy, cheap ephemeral meshes, decal and effects that can automatically spawn on terrain at certain zoom levels. Grass, dust, flowers, decorative decals, etc. They should not be in the CES as they are not real game items. 
 * Better gbuffer packing, depends on shader #include support.
 * Texture compression
+* Calculate proper derivatives in decal fragment shader for anisotropic filtering
 
 ## Sound
 * Finish API.
@@ -185,7 +186,7 @@ config. See `texgen.[ch]`
 
 ## Core
 * Better loading screen
-* Migrate MapInfo and World to init/initGL system
+* Migrate World to init/initGL system
 * Water and fluid dynamics are a broken mess right now.
 * B+ tree leaves become heavily lopsided when filled with an increasing integer sequence. (half full leaves) 
 * B+ tree does not have a delete operation.

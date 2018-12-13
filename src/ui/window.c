@@ -19,7 +19,7 @@ void guiWindowAddClient(GUIObject* parent, GUIObject* child);
 void guiWindowRemoveClient(GUIObject* parent, GUIObject* child);
 
 
-static void render(GUIWindow* gw, GUIRenderParams* grp, PassFrameParams* pfp);
+static void render(GUIWindow* gw, PassFrameParams* pfp);
 
 
 
@@ -64,8 +64,12 @@ GUIWindow* GUIWindow_new(GUIManager* gm) {
 	return gw;
 }
 
+/*
+static void updatePos(GUIWindow* gw, GUIRenderParams* grp, PassFrameParams* pfp) {
+	Vector2 tl = cui_calcPosGrav(&gw->header, grp);
+}*/
 
-static void render(GUIWindow* gw, GUIRenderParams* grp, PassFrameParams* pfp) {
+static void render(GUIWindow* gw, PassFrameParams* pfp) {
 	
 	if(gw->header.hidden || gw->header.deleted) return;
 	
@@ -74,7 +78,7 @@ static void render(GUIWindow* gw, GUIRenderParams* grp, PassFrameParams* pfp) {
 	//gw->header.gravity = (gw->header.gravity + 1) % 8;
 	
 	
-	Vector2 tl = cui_calcPosGrav(&gw->header, grp);
+	Vector2 tl = gw->header.absTopLeft;//cui_calcPosGrav(&gw->header, grp);
 	
 	//printf("tl: %f, %f\n", tl.x, tl.y);
 	
@@ -106,13 +110,8 @@ static void render(GUIWindow* gw, GUIRenderParams* grp, PassFrameParams* pfp) {
 	};
 	
 	
-	GUIRenderParams grp2 = {
-		.clip = grp->clip,
-		.size = gw->header.size,
-		.offset = tl,
-	};
 	
-	GUIHeader_renderChildren(&gw->header, &grp2, pfp);
+	GUIHeader_renderChildren(&gw->header, pfp);
 }
 
 void guiWindowDelete(GUIWindow* gw) {

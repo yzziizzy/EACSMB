@@ -70,7 +70,8 @@ typedef struct GUIRenderParams GUIRenderParams;
 
 
 struct gui_vtbl {
-	void (*Render)(GUIObject* go, GUIRenderParams* grp, PassFrameParams* pfp);
+	void (*UpdatePos)(GUIObject* go, GUIRenderParams* grp, PassFrameParams* pfp);
+	void (*Render)(GUIObject* go, PassFrameParams* pfp);
 	void (*Delete)(GUIObject* go);
 	void (*Reap)(GUIObject* go);
 	void (*Resize)(GUIObject* go, Vector2 newSz); // exterior size
@@ -113,6 +114,17 @@ typedef struct GUIHeader {
 	float scale;
 	float alpha;
 	float z; // relative to the parent
+	
+	// calculated absolute coordinates of the top left corner
+	// updated every frame before any rendering or hit testing
+	Vector2 absTopLeft; 
+	// calculated tl coords relative to the parent
+	Vector2 relTopLeft; 
+	// calculated absolute clipping box. this element may be entirely clipped.
+	AABB2 absClip;
+	// calculated absolute z index
+	float absZ;
+	
 	
 	AABB2 hitbox; // in local coordinates
 	
@@ -226,7 +238,7 @@ typedef struct GUITextArea {
 
 
 
-
+void GUIManager_updatePos(GUIManager* gm, PassFrameParams* pfp);
 
 GUIObject* GUIObject_hitTest(GUIObject* go, Vector2 testPos);
 GUIObject* GUIManager_hitTest(GUIManager* gm, Vector2 testPos);
