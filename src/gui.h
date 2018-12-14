@@ -151,6 +151,7 @@ typedef struct GUIHeader {
 #include "ui/image.h"
 #include "ui/edit.h"
 #include "ui/columnLayout.h"
+#include "ui/gridLayout.h"
 
 
 
@@ -162,6 +163,7 @@ union GUIObject {
 	GUISimpleWindow simpleWindow;
 	GUIImage image;
 	GUIColumnLayout columnLayout;
+	GUIGridLayout gridLayout;
 };
 
 

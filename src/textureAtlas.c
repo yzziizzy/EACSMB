@@ -95,7 +95,7 @@ void TextureAtlas_addFolder(TextureAtlas* ta, char* prefix, char* dirPath, int r
 			strncat(name, dir->d_name, namelen);
 		
 			if(streq(ext, "png")) {
-				printf("loading '%s' into atlas as '%s'\n", path, name);
+// 				printf("loading '%s' into atlas as '%s'\n", path, name);
 				TextureAtlas_addPNG(ta, name, path);
 			}
 			
@@ -214,7 +214,7 @@ void TextureAtlas_finalize(TextureAtlas* ta) {
 			.index = VEC_LEN(&ta->atlas)
 		};
 		
-		printf("added icon '%s'\n", src->name);
+// 		printf("added icon '%s'\n", src->name);
 		HT_set(&ta->items, strdup(src->name), it);
 		
 		

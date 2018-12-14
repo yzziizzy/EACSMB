@@ -125,8 +125,31 @@ void gui_Image_Init(char* file) {
 
 
 
-
-
+/*
+void updarePos(GUIImage* go, GUIRenderParams* grp, PassFrameParams* pfp) {
+	
+	GUIHeader* h = &go->header;
+		
+	Vector2 tl = cui_calcPosGrav(h, grp);
+	h->absTopLeft = tl;
+	h->absClip = grp->clip;
+	h->absZ = grp->baseZ + h->z;
+	
+	// TODO: relTopLeft, absClip
+	
+	GUIRenderParams grp2 = {
+		.size = h->size,
+		.offset = tl,
+		.clip = h->absClip,
+		.baseZ = h->absZ,
+	};
+	
+	VEC_EACH(&h->children, ind, child) {
+		GUIHeader_updatePos(child, &grp2, pfp);
+	}
+	
+}
+*/
 
 
 static void render(GUIImage* im, PassFrameParams* pfp) {
@@ -135,7 +158,6 @@ static void render(GUIImage* im, PassFrameParams* pfp) {
 	
 	Vector2 tl = im->header.absTopLeft; //cui_calcPosGrav(&im->header, grp);
 	
-	float sz = im->header.scale;
 	
 	GUIUnifiedVertex* v = GUIManager_reserveElements(im->header.gm, 1);
 	*v = (GUIUnifiedVertex){
@@ -189,10 +211,13 @@ GUIImage* GUIImage_new(GUIManager* gm, char* name) {
 // 	im->header.hitbox.max.x = pos.x + size.x;
 // 	im->header.hitbox.max.y = pos.y + size.y;
 	
+// 	HT_LOOP(&gm->ta->items, key, TextureAtlasItem*, itt) {
+// 		printf("key: %s\n", key);
+// 	}
 	
 	TextureAtlasItem* it;
 	if(HT_get(&gm->ta->items, name, &it)) {
-		printf("could not find gui image '%s' \n", name);
+		printf("could not find gui image '%s' %p \n", name);
 	}
 	else {
 		im->offsetNorm = it->offsetNorm;

@@ -78,6 +78,7 @@ GUISimpleWindow* gswTest;
 GUIImage* giTest;
 
 GUIColumnLayout* gclTest;
+GUIGridLayout* gglTest;
 
 GUIEdit* geditTest;
 
@@ -411,8 +412,9 @@ void initGameGL(XStuff* xs, GameState* gs) {
 	gclTest->spacing = 2;
 	gclTest->header.gravity = GUI_GRAV_TOP_LEFT;
 	
-	GUIRegisterObject(gw_test, NULL);
-	GUIRegisterObject(gw_test2, gw_test);
+
+// 	GUIRegisterObject(gw_test, NULL);
+// 	GUIRegisterObject(gw_test2, gw_test);
 	
 	GUIRegisterObject(gclTest, NULL);
 	GUIRegisterObject(gt_terrain, gclTest);
@@ -427,6 +429,50 @@ void initGameGL(XStuff* xs, GameState* gs) {
 	GUIRegisterObject(gt_gui, gclTest);
 	
 	GUIRegisterObject(gt_img, gclTest);
+	
+	
+	
+	char* iconNames[] = {
+		"pre/audio",
+		"pre/plane",
+		"pre/bag",
+		"pre/book",
+		"pre/calculator",
+		
+		"pre/camera",
+		"pre/car",
+		"pre/check",
+		"pre/clock",
+		"pre/cloud",
+		
+		"pre/crop",
+		"pre/cup",
+		"pre/cutlery",
+		"pre/denied",
+		"pre/down_arrow",
+		
+		"pre/entrance",
+		"pre/envelope",
+		"pre/file",
+		"pre/gear",
+		"pre/home",
+	};
+	
+	
+	
+	
+	gglTest = GUIGridLayout_new(gs->gui, (Vector2){0,0}, (Vector2){35, 35});
+	gglTest->maxCols = 10;
+	gglTest->maxRows = 6;
+	gglTest->header.gravity = GUI_GRAV_CENTER_BOTTOM;
+	for(int i = 0; i < 20; i++) {
+		GUIImage* img = GUIImage_new(gs->gui, iconNames[i]);
+		img->header.size = (Vector2){30, 30};
+		GUIRegisterObject(img, gglTest);
+	}
+	
+	GUIRegisterObject(gglTest, NULL);
+
 	
 	// commented out for hitTest testing
 // 	GUIRegisterObject(gtRenderMode, NULL);

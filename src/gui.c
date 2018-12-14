@@ -104,6 +104,7 @@ void GUIManager_init(GUIManager* gm, GlobalSettings* gs) {
 	TextureAtlas_addFolder(gm->ta, "pre", "assets/ui/icons", 0);
 	TextureAtlas_finalize(gm->ta);
 	
+	
 	gm->root = calloc(1, sizeof(GUIHeader));
 	gui_headerInit(gm->root, NULL, &root_vt); // TODO: vtable?
 }
