@@ -141,6 +141,7 @@ int HT_resize(HashTable* obj, int newSize) {
 		obj->buckets[bi].key = op->key;
 		
 		n++;
+		op++;
 	}
 	
 	free(old);
