@@ -12,7 +12,7 @@
 
 
 
-static GUIObject* hitTest(GUIColumnLayout* cl, Vector2 testPosParent);
+static GUIObject* hitTest(GUIColumnLayout* cl, Vector2 absTestPos);
 static void updatePos(GUIColumnLayout* cl, GUIRenderParams* grp, PassFrameParams* pfp);
 
 
@@ -59,9 +59,6 @@ GUIColumnLayout* GUIColumnLayout_new(GUIManager* gm, Vector2 pos, float spacing,
 
 static void updatePos(GUIColumnLayout* cl, GUIRenderParams* grp, PassFrameParams* pfp) {
 	
-// 	guiRender(ed->bg, gs, pfp);
-// 	guiRender(ed->textControl, gs, pfp);
-	
 	// TODO: fix fencepost issue with spacing
 	// TODO: figure out better phase for size calculation
 	float total_h = 0.0;
@@ -83,56 +80,39 @@ static void updatePos(GUIColumnLayout* cl, GUIRenderParams* grp, PassFrameParams
 		
 		GUIRenderParams grp2 = {
 			.clip = grp->clip,
-			.size = child->h.size,//{child, total_h},
+			.size = child->h.size, // sized to the child to eliminate gravity 
 			.offset = {
 				.x = tl.x,
 				.y = tl.y + total_h 
 			}
 		};
-/*		
-		child->h.topleft.x = tl.x;
-		child->h.topleft.y = tl.y + total_h;*/
 		
 		GUIHeader_updatePos(child, &grp2, pfp);
 		
 		total_h += child->h.size.y;
 	}
-	
-// 	int n = VEC_LEN(&cl->header);
-	
-	
-	
 }
 
 
 
-static GUIObject* hitTest(GUIColumnLayout* cl, Vector2 testPosParent) {
+static GUIObject* hitTest(GUIColumnLayout* cl, Vector2 absTestPos) {
+	GUIHeader* h = &cl->header;
 	
-	float total_h = 0.0;
-	float max_w = 0.0;
-	VEC_EACH(&cl->header.children, i, child) { 
-		total_h += cl->spacing + child->h.size.y;
-		max_w = fmax(max_w, child->h.size.x);
+	int i;
+	GUIObject* bestKid = NULL;
+	for(i = 0; i < VEC_LEN(&h->children); i++) {
+		GUIObject* kid = GUIObject_hitTest(VEC_ITEM(&h->children, i), absTestPos);
+		if(kid) {
+			if(!bestKid) {
+				bestKid = kid;
+			}
+			else {
+				if(kid->h.absZ > bestKid->h.absZ) bestKid = kid;
+			}
+		}
 	}
-	
-	cl->header.size.y = total_h;
-	cl->header.size.x = max_w;
-	
-	// a columnLayour element has no hitbox of its own
-	
-	total_h = 0.0;
-	VEC_EACH(&cl->header.children, i, child) { 
-		total_h += cl->spacing;
-/*		
-		child->h.topleft.x = tl.x;
-		child->h.topleft.y = tl.y + total_h;*/
-		Vector2 coff = {testPosParent.x, testPosParent.y + total_h};
-
-// 		GUIHeader_hitTest(child, coff);
-		
-		total_h += child->h.size.y;
-	}
-	
+	printf("hit: %p, %p\n", h, bestKid);
+	return bestKid;
 }
 
 

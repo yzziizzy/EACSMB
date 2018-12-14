@@ -95,7 +95,7 @@ typedef struct GUIEvent {
 } GUIEvent;
 
 
-typedef int  (*GUI_OnClickFn)(GUIEvent* e, Vector2 clickPos);
+typedef int  (*GUI_OnClickFn)(GUIObject* go, Vector2 clickPos);
 typedef void (*GUI_OnMouseEnterFn)(GUIEvent* e);
 typedef void (*GUI_OnMouseLeaveFn)(GUIEvent* e);
 
@@ -242,8 +242,10 @@ void GUIManager_updatePos(GUIManager* gm, PassFrameParams* pfp);
 
 GUIObject* GUIObject_hitTest(GUIObject* go, Vector2 testPos);
 GUIObject* GUIManager_hitTest(GUIManager* gm, Vector2 testPos);
-
-
+// 
+// void GUIObject_triggerClick(GUIObject* go, GUIEvent* e); 
+void GUIObject_triggerClick(GUIObject* go, Vector2 testPos);
+GUIObject* GUIManager_triggerClick(GUIManager* gm, Vector2 testPos);
 
 
 // GUIObject* guiHitTest(GUIObject* go, Vector2 testPos);

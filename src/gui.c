@@ -27,7 +27,7 @@
 // VEC(GUIObject*) gui_reap_queue; 
 
 
-GUIObject* guiBaseHitTest(GUIObject* go, Vector2 testPos);
+GUIObject* guiBaseHitTest(GUIObject* go, Vector2 absTestPos);
 
 
 static void preFrame(PassFrameParams* pfp, GUIManager* gm);
@@ -64,21 +64,21 @@ static void renderRoot(GUIHeader* gh, PassFrameParams* pfp) {
 	GUIHeader_renderChildren(gh, pfp);
 }
 
-static GUIObject* hitTestRoot(GUIObject* go, Vector2 testPos) {
-	GUIHeader* gh = &go->header;
-	float highestZ = 0;
-	int i;
-	for(i = 0; i < VEC_LEN(&gh->children); i++) {
-		GUIObject* kid = GUIObject_hitTest(VEC_ITEM(&gh->children, i), testPos);
-		if(kid) {
-			printf("hit: %p\n", kid);
-			return kid;
-		}
-	}
-	
-	// the root window does not respond to hits itself
-	return NULL;
-}
+// static GUIObject* hitTestRoot(GUIObject* go, Vector2 absTestPos) {
+// 	GUIHeader* gh = &go->header;
+// 	float highestZ = 0;
+// 	int i;
+// 	for(i = 0; i < VEC_LEN(&gh->children); i++) {
+// 		GUIObject* kid = GUIObject_hitTest(VEC_ITEM(&gh->children, i), testPos);
+// 		if(kid) {
+// 			printf("hit: %p\n", kid);
+// 			return kid;
+// 		}
+// 	}
+// 	
+// 	// the root window does not respond to hits itself
+// 	return NULL;
+// }
 
 // _init is always called before _initGL
 void GUIManager_init(GUIManager* gm, GlobalSettings* gs) {
@@ -86,7 +86,7 @@ void GUIManager_init(GUIManager* gm, GlobalSettings* gs) {
 	static struct gui_vtbl root_vt = {
 		.UpdatePos = updatePosRoot,
 		.Render = renderRoot,
-		.HitTest = hitTestRoot,
+// 		.HitTest = hitTestRoot,
 	};
 	
 	VEC_INIT(&gm->reapQueue);
@@ -783,12 +783,17 @@ void GUIManager_updatePos(GUIManager* gm, PassFrameParams* pfp) {
 // grp is data about the parent's positioning. 
 // the child must calculate its own position based on the parent's info passed in.
 // this info is then passed down to its children
+// the default behavior is:
+//   position according to gravity
+//   no extra clipping
+//   add z values together
 void gui_defaultUpdatePos(GUIObject* go, GUIRenderParams* grp, PassFrameParams* pfp) {
 	
 	GUIHeader* h = &go->h;
 	
 	Vector2 tl = cui_calcPosGrav(h, grp);
 	h->absTopLeft = tl;
+	h->absClip = grp->clip;
 	h->absZ = grp->baseZ + h->z;
 	
 	// TODO: relTopLeft, absClip
@@ -796,7 +801,7 @@ void gui_defaultUpdatePos(GUIObject* go, GUIRenderParams* grp, PassFrameParams* 
 	GUIRenderParams grp2 = {
 		.size = h->size,
 		.offset = tl,
-		.clip = {0,0},
+		.clip = h->absClip,
 		.baseZ = h->absZ,
 	};
 	
@@ -814,63 +819,72 @@ void GUIObject_triggerClick(GUIObject* go, Vector2 testPos) {
 
 
 GUIObject* GUIManager_triggerClick(GUIManager* gm, Vector2 testPos) {
-	GUIObject* go = GUIObject_hitTest(gm->root, testPos);
+	GUIObject* go = GUIManager_hitTest(gm, testPos);
 	
-	
+	if(go) GUIObject_triggerClick(go, testPos);
 	
 	return go;
 }
 
 
 GUIObject* GUIManager_hitTest(GUIManager* gm, Vector2 testPos) {
-	return GUIObject_hitTest(gm->root, testPos);
+	GUIObject* go = GUIObject_hitTest(gm->root, testPos);
+	return go == gm->root ? NULL : go;
 }
 
 
-GUIObject* GUIObject_hitTest(GUIObject* go, Vector2 testPos) {
+GUIObject* GUIObject_hitTest(GUIObject* go, Vector2 absTestPos) {
 	if(go->h.vt->HitTest)
-		return go->h.vt->HitTest(go, testPos);
+		return go->h.vt->HitTest(go, absTestPos);
 	
-	return gui_defaultHitTest(&go->h, testPos);
+	return gui_defaultHitTest(&go->h, absTestPos);
 }
 
 
 // default hit testing handler that only operates on the header
-GUIObject* gui_defaultHitTest(GUIHeader* h, Vector2 testPosParent) {
-	// testPos is passed in as parent coordinates so unclickable gui elements
-	//   can skip any calculations
+GUIObject* gui_defaultHitTest(GUIHeader* h, Vector2 absTestPos) {
 	
-	Vector2 chPos = cui_parent2ChildGrav(h, &h->parent->header, testPosParent);
-	
-	int in = boxContainsPoint2(&h->hitbox, &chPos);
-	if(!in) return NULL;
-	
-	float highestZ = 0;
-	int i;
-	for(i = 0; i < VEC_LEN(&h->children); i++) {
-		GUIObject* kid = GUIObject_hitTest(VEC_ITEM(&h->children, i), chPos);
-		if(kid) return kid;
+	if(!(absTestPos.x >= h->absTopLeft.x && 
+		absTestPos.y >= h->absTopLeft.y &&
+		absTestPos.x <= (h->absTopLeft.x + h->size.x) && 
+		absTestPos.y <= (h->absTopLeft.y  + h->size.y))) {
+		
+		return NULL;
 	}
 	
-	return (GUIObject*)h;
+	int i;
+	GUIObject* bestKid = NULL;
+	for(i = 0; i < VEC_LEN(&h->children); i++) {
+		GUIObject* kid = GUIObject_hitTest(VEC_ITEM(&h->children, i), absTestPos);
+		if(kid) {
+			if(!bestKid) {
+				bestKid = kid;
+			}
+			else {
+				if(kid->h.absZ > bestKid->h.absZ) bestKid = kid;
+			}
+		}
+	}
+	
+	return bestKid ? bestKid : (GUIObject*)h;
 }
 
 
 
 
-
-void guiTriggerClick(GUIEvent* e) {
-// 	GUIObject* c = e->currentTarget;
-// 	
-// 	if(!c) return;
-// 	
-// 	if(c->h.onClick)
-// 		c->h.onClick(e);
-// 	
+/*
+void GUIObject_triggerClick(GUIObject* go, GUIEvent* e) {
+	
+	if(!go) return;
+	e->currentTarget = go;
+	
+	if(c->h.onClick)
+		c->h.onClick(go, e);
+	
 // 	e->currentTarget = c->h.parent;
-// 	
+	
 // 	guiTriggerClick(e);
-}
+}*/
 
 
 // old

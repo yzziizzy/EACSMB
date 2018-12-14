@@ -20,6 +20,7 @@ void guiWindowRemoveClient(GUIObject* parent, GUIObject* child);
 
 
 static void render(GUIWindow* gw, PassFrameParams* pfp);
+// static int onclick(GUIWindow* gw, Vector2* clickPos);
 
 
 
@@ -60,6 +61,8 @@ GUIWindow* GUIWindow_new(GUIManager* gm) {
 // 	};
 	
 	//VEC_PUSH(&gui_list, gw);
+	
+// 	gw->header.onClick = onclick;
 	
 	return gw;
 }
@@ -120,8 +123,12 @@ void guiWindowDelete(GUIWindow* gw) {
 
 
 
-
-
+/*
+static int onclick(GUIWindow* gw, Vector2* clickPos) {
+	printf("window clicked \n");
+	gw->color = (Vector){1,0,1};
+	return 1;
+}*/
 
 
 

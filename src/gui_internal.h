@@ -16,7 +16,7 @@ typedef struct GUIRenderParams {
 void gui_headerInit(GUIHeader* gh, GUIManager* gm, struct gui_vtbl* vt); 
 void gui_defaultUpdatePos(GUIObject* go, GUIRenderParams* grp, PassFrameParams* pfp);
 Vector2 cui_calcPosGrav(GUIHeader* h, GUIRenderParams* grp);
-GUIObject* gui_defaultHitTest(GUIHeader* h, Vector2 testPos);
+GUIObject* gui_defaultHitTest(GUIHeader* h, Vector2 absTestPos);
 Vector2 cui_parent2ChildGrav(GUIHeader* child, GUIHeader* parent, Vector2 pt);
 
 

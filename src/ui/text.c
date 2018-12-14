@@ -26,7 +26,7 @@ GUIText* GUIText_new(GUIManager* gm, char* str, char* fontname, float fontSize) 
 	static struct gui_vtbl static_vt = {
 		.Render = render,
 		.Delete = guiTextDelete,
-		.HitTest = hitTest,
+	//	.HitTest = hitTest,
 	};
 	
 	
@@ -51,13 +51,21 @@ GUIText* GUIText_new(GUIManager* gm, char* str, char* fontname, float fontSize) 
 }
 
 
+/* standard for text
+static void updatePos(GUIText* gt, GUIRenderParams* grp, PassFrameParams* pfp) {
+	GUIHeader* h = &gt->header; 
+	Vector2 tl = cui_calcPosGrav(h, grp);
+	h->absTopLeft = tl;
+	h->absClip = grp->clip;
+	h->absZ = grp->baseZ + h->z;
+}*/
 
 static void render(GUIText* gt, GUIRenderParams* grp, PassFrameParams* pfp) {
 	char* txt = gt->currentStr;
 	GUIFont* f = gt->font;
 	GUIManager* gm = gt->header.gm;
 	
-	Vector2 tl = cui_calcPosGrav(&gt->header, grp);
+	Vector2 tl = gt->header.absTopLeft;
 	
 	float size = 0.45; // HACK
 	float hoff = tl.y +  gt->header.size.y * .75; // HACK

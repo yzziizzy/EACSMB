@@ -783,21 +783,14 @@ static void main_click_handler(InputEvent* ev, GameState* gs) {
 		GUIObject* hit;
 		
 		Vector2 pos = (Vector2){ev->intPos.x, gs->screen.wh.y - ev->intPos.y};
-		hit = GUIManager_hitTest(gs->gui, pos);
+// 		hit = GUIManager_hitTest(gs->gui, pos);
 		
-		
+		hit = GUIManager_triggerClick(gs->gui, pos);
 		
 		
 		printf("\n\n----> %f, %f \n", ev->normPos.x, ev->normPos.y);
-		if(0 && hit) {
-			printf("@@clicked in window \n");
-			
-			GUIEvent e;
-			e.originalTarget = hit;
-			e.currentTarget = hit;
-			e.eventPos = ev->normPos; // BUG: smae here
-			
-			guiTriggerClick(&e);
+		if(hit) {
+			printf("@@clicked in window %p %p  %f,%f\n", gs->gui->root, hit, hit->header.size.x, hit->header.size.y);
 		}
 		else {
 			Vector2i tile;

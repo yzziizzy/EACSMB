@@ -129,11 +129,11 @@ void gui_Image_Init(char* file) {
 
 
 
-static void render(GUIImage* im, GUIRenderParams* grp, PassFrameParams* pfp) {
+static void render(GUIImage* im, PassFrameParams* pfp) {
 	
 	//just a clipped box
 	
-	Vector2 tl = cui_calcPosGrav(&im->header, grp);
+	Vector2 tl = im->header.absTopLeft; //cui_calcPosGrav(&im->header, grp);
 	
 	float sz = im->header.scale;
 	
