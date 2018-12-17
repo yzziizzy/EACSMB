@@ -135,16 +135,11 @@ void initGame(XStuff* xs, GameState* gs) {
 	gs->sound = SoundManager_alloc();
 	SoundManager_readConfigFile(gs->sound, "assets/config/sound.json");
 	SoundManager_start(gs->sound);
-	/*
+	
 	SoundClip* sc = SoundClip_fromWAV("./assets/sounds/ohno.wav");
 	SoundManager_addClip(gs->sound, sc, "ohno");
-	SoundInstance* si = calloc(1, sizeof(*si));
-	si->clip = sc;
-	si->flags = SOUNDFLAG_LOOP;
-	si->globalStartTime = 3.0;
-	si->volume = 0.8;
-	SoundManager_addInstance(gs->sound, si);
-	*/
+
+	
 #endif
 
 
@@ -428,7 +423,7 @@ void initGameGL(XStuff* xs, GameState* gs) {
 	GUIRegisterObject(gt_shading, gclTest);
 	GUIRegisterObject(gt_gui, gclTest);
 	
-	GUIRegisterObject(gt_img, gclTest);
+// 	GUIRegisterObject(gt_img, gclTest);
 	
 	
 	
@@ -846,6 +841,12 @@ static void main_click_handler(InputEvent* ev, GameState* gs) {
 			Vector2 tilef = {tile.x, tile.y};
 			//BUG: convert this to tile coords
 			World_spawnAt_Item(gs->world, "gazebbq", &tilef);
+			
+			SoundInstance* si = calloc(1, sizeof(*si));
+			si->flags = 0;//SOUNDFLAG_LOOP;
+			si->globalStartTime = 2.0;
+			si->volume = 0.8;
+			SoundManager_addClipInstance(gs->sound, "ohno", si);
 		}
 		/*
 		flattenArea(gs->map.tb,

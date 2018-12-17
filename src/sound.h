@@ -6,6 +6,7 @@
 
 #include "common_math.h"
 #include "ds.h"
+#include "hash.h"
 
 #include "c_json/json.h"
 
@@ -52,8 +53,10 @@ typedef struct SoundManager {
 	
 	int status;
 	
-	VEC(SoundClip*) clips;
+	HashTable(SoundClip*) clips;
 	VEC(SoundInstance*) instances;
+	
+	// TODO: a sorted queue by start time?
 	
 	// software mixer
 	// channels are interleaved
@@ -87,6 +90,7 @@ void SoundManager_start(SoundManager* sm);
 void SoundManager_shutdown(SoundManager* sm);
 void SoundManager_addClip(SoundManager* sm, SoundClip* sc, char* name);
 void SoundManager_addInstance(SoundManager* sm, SoundInstance* si);
+void SoundManager_addClipInstance(SoundManager* sm, char* clipName, SoundInstance* si);
 
 
 void SoundManager_readConfigFile(SoundManager* sm, char* path);

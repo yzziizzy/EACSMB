@@ -25,7 +25,7 @@ SoundManager* SoundManager_alloc() {
 	SoundManager* sm;
 	pcalloc(sm);
 	
-	VEC_INIT(&sm->clips);
+	HT_init(&sm->clips, 4);
 	VEC_INIT(&sm->instances);
 	
 	sm->sampleRate = 44100;
@@ -134,12 +134,22 @@ void SoundManager_start(SoundManager* sm) {
 
 void SoundManager_addClip(SoundManager* sm, SoundClip* sc, char* name) {
 	if(!sc) return;
-	VEC_PUSH(&sm->clips, sc);
+	HT_set(&sm->clips, name, sc);
 }
 void SoundManager_addInstance(SoundManager* sm, SoundInstance* si) {
 	if(!si) return;
 	VEC_PUSH(&sm->instances, si);
 }
+
+void SoundManager_addClipInstance(SoundManager* sm, char* clipName, SoundInstance* si) {
+	SoundClip* sc;
+	if(HT_get(&sm->clips, clipName, &sc)) return;
+	si->clip = sc;
+	
+	SoundManager_addInstance(sm, si);
+}
+
+
 
 void SoundManager_tick(SoundManager* sm, double newGlobalTime) {
 	if(sm->lastMixTime == -1) { // sigil for initialization
@@ -147,26 +157,62 @@ void SoundManager_tick(SoundManager* sm, double newGlobalTime) {
 	}
 	
 	
+	int buflen = MIN(4096, snd_pcm_avail_update(sm->playback_handle));
 	
+	// clear the buffer
+	for(int i = 0; i < buflen; i++) {
+		sm->alsabuf[i * 2 + 0] = 0;
+		sm->alsabuf[i * 2 + 1] = 0;
+	}
 	
-	// HACK
-	return;
+	// mix in the sound
+	VEC_EACH(&sm->instances, ind, si) {
+		SoundClip* sc = si->clip;
+		int n;
+		
+		// skip clips queued in the future
+		if(si->globalStartTime > newGlobalTime) continue;
+		
+		// just in case a finished one slips through
+		if(si->lastSampleWritten >= sc->numSamples) continue;
+		
+		// determine how many samples to write
+		if(si->flags & SOUNDFLAG_LOOP) {
+			n = buflen;
+		}
+		else {
+			n = MIN(buflen, sc->numSamples - si->lastSampleWritten);
+		}
+		
+		// TODO: mix into float intermediate buffer first
+		// add to buffer
+		for(int i = 0; i < n; i++) {
+			for(int c = 0; c < 2; c++) {
+				sm->alsabuf[i * 2 + c] = sc->data[(si->lastSampleWritten + i) % sc->numSamples] * 32768;
+			}
+		}
 	
-	int n = MIN(4096, snd_pcm_avail_update(sm->playback_handle));
-	
-	SoundInstance* si = VEC_ITEM(&sm->instances, 0);
-	SoundClip* sc = si->clip;
-	
-	for(int i = 0; i < n; i++) {
-		for(int c = 0; c < 2; c++) {
-			sm->alsabuf[i * 2 + c] = sc->data[(si->lastSampleWritten + i) % sc->numSamples] * 32768;
+		// update write pointer
+		if(si->flags & SOUNDFLAG_LOOP) {
+			si->lastSampleWritten = (si->lastSampleWritten + n) % sc->numSamples;
+		}
+		else {
+			si->lastSampleWritten = (si->lastSampleWritten + n);
 		}
 	}
 	
-	// looping behavior
-	si->lastSampleWritten = (si->lastSampleWritten + n) % sc->numSamples;
+	// send the buffer to alsa
+	snd_pcm_writei(sm->playback_handle, sm->alsabuf, buflen);
 	
-	snd_pcm_writei(sm->playback_handle, sm->alsabuf, n);
+	
+	// delete finished instances
+	VEC_EACH(&sm->instances, ind, si) {
+		if(si->lastSampleWritten >= si->clip->numSamples) {
+			VEC_RM(&sm->instances, ind);
+			free(si);
+		}
+	}
+	
 }
 
 
