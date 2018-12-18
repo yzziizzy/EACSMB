@@ -23,6 +23,8 @@ typedef struct SoundClip {
 	
 	float length; // in seconds
 	
+	float defaultVolume;
+	
 } SoundClip;
 
 

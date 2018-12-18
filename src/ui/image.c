@@ -211,10 +211,6 @@ GUIImage* GUIImage_new(GUIManager* gm, char* name) {
 // 	im->header.hitbox.max.x = pos.x + size.x;
 // 	im->header.hitbox.max.y = pos.y + size.y;
 	
-// 	HT_LOOP(&gm->ta->items, key, TextureAtlasItem*, itt) {
-// 		printf("key: %s\n", key);
-// 	}
-	
 	TextureAtlasItem* it;
 	if(HT_get(&gm->ta->items, name, &it)) {
 		printf("could not find gui image '%s' %p \n", name);

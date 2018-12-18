@@ -59,7 +59,7 @@ typedef struct { // info about how the part relates to the item
 	//void* data;
 } ItemPart;
 
-typedef struct {
+typedef struct Item {
 	char* name;
 	int numParts;
 	ItemPart* parts;
@@ -156,7 +156,6 @@ typedef struct World {
 	VEC(PartInstance*) partInstances;
 	
 
-	PipeSegment testmesh;
 	
 	
 } World;
@@ -180,11 +179,12 @@ int World_lookUp_Item(World* w, char* name);
 int World_lookUp_SubItem(World* w, enum ItemType type, char* name);
 
 int World_spawnAt_Item(World* w, char* itemName, Vector* location);
+int World_spawnAt_ItemPtr(World* w, Item* item, Vector* location);
 int World_spawnAt_DynamicMesh(World* w, int dmIndex, Vector* location);
 // int World_spawnAt_StaticMesh(World* w, int smIndex, Vector* location);
 int World_spawnAt_Light(World* w, int lightIndex, Vector* location); 
 int World_spawnAt_Decal(World* w, int index, Vector* location);
-int World_spawnAt_CustomDecal(World* w, int texIndex, float width, const Vector2* p1, const Vector2* p2);
+int World_spawnAt_CustomDecal(World* w, int cdecalIndex, float width, const Vector2* p1, const Vector2* p2);
 void World_spawnAt_Road(World* w, Vector2* start,  Vector2* stop);
 int World_spawnAt_Emitter(World* w, int emitterIndex, Vector* location);
 int World_spawnAt_Marker(World* w, int markerIndex, Vector* location);

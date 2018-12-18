@@ -2,7 +2,59 @@
 
 
 #include "pipe.h"
+#include "world.h"
 #include "builder/builder.h"
+
+
+
+
+
+
+
+
+
+PipeLine* PipeLine_alloc() {
+	PipeLine* pl;
+	pcalloc(pl);
+	PipeLine_init(pl);
+	return pl;
+}
+
+void PipeLine_init(PipeLine* pl) {
+	VEC_INIT(&pl->segments);
+	VEC_INIT(&pl->joints);
+	
+	pl->pipeScale = 1.0;
+	pl->pipeLength = 1.0;
+	pl->jointScale = 1.0;
+	
+	pl->length = 0;
+}
+
+
+void PipeLine_setMeshes(PipeLine* pl, Item* pipe, Item* joint) {
+	pl->pipe = pipe;
+	pl->joint = joint;
+}
+
+
+void PipeLine_spawn(World* w, PipeLine* pl, Vector start, Vector end) {
+	
+	float adv = 0; // distance along the pipeline
+	
+	float length = vDist(&start, &end); 
+	if(length == 0.0) return; // we only care about the div/0 below so equality is fine
+	
+	while(adv < length) {
+		Vector loc;
+		
+		vLerp(&start, &end, adv / length, &loc);
+		
+		World_spawnAt_ItemPtr(w, pl->pipe, &loc);
+		
+		adv += pl->pipeLength;
+	}
+}
 
 
 

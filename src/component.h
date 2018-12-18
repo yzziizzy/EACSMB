@@ -109,4 +109,15 @@ typedef struct C_PathFollow {
 
 
 
+
+struct RoadEdge;
+
+typedef struct C_RoadWander {
+	struct RoadEdge* edge;
+	float speed;
+	float distTravelled;
+} C_RoadWander;
+
+
+
 #endif // __EACSMB__component_h__

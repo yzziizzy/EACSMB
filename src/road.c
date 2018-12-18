@@ -84,12 +84,29 @@ void Road_AddEdge1Way(RoadNetwork* rn, int from, int to) {
 	VEC_PUSH(&rn->nodeDirtyList, to);
 }
 
+RoadEdge* RoadNetwork_getNode(RoadNetwork* rn, int n) {
+	return VEC_ITEM(&rn->nodes, n);
+}
+
+RoadEdge* RoadNetwork_getEdge(RoadNetwork* rn, int e) {
+	return &VEC_ITEM(&rn->edges, e);
+}
 
 
+Vector2 RoadNetwork_LerpEdge(RoadNetwork* rn, int e, float t) {
+	RoadEdge* edge = RoadNetwork_getEdge(rn, e);
+	RoadNode* fn = RoadNetwork_getNode(rn, edge->from);
+	RoadNode* tn = RoadNetwork_getNode(rn, edge->to);
+	Vector2 out;
+	
+	vLerp2(&fn->pos, &tn->pos, t, &out);
+	
+	return out;
+}
 
 Vector2 RoadNetwork_Lerp(RoadNetwork* rn, int from, int to, float t) {
-	RoadNode* fn = RoadNetwork_GetNode(rn, from);
-	RoadNode* tn = RoadNetwork_GetNode(rn, to);
+	RoadNode* fn = RoadNetwork_getNode(rn, from);
+	RoadNode* tn = RoadNetwork_getNode(rn, to);
 	Vector2 out;
 	
 	vLerp2(&fn->pos, &tn->pos, t, &out);

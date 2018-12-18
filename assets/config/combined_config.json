@@ -79,6 +79,12 @@
 		scale: 3.0,
 	},
 	{
+		_type: "customDecal", _name: "dirt_road2",
+		
+		texture: "assets/textures/dirt_road-256.png",
+		scale: 3.0,
+	},
+	{
 		_type: "emitter", _name: "dust",
 		
 		particleCount: 100,

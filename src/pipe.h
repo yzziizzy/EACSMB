@@ -6,10 +6,12 @@
 #include "common_gl.h"
 
 #include "ds.h"
-#include "staticMesh.h"
+#include "dynamicMesh.h"
 
+struct World;
+typedef struct World World;
 
-typedef VEC(StaticMeshVertex) SMVList;
+// typedef VEC(StaticMeshVertex) SMVList;
 
 
 typedef struct PipeSegment {
@@ -23,10 +25,13 @@ typedef struct PipeJoint {
 } PipeJoint;
 
 
+struct Item;
+typedef struct Item Item;
+
 typedef struct PipeLine {
 	
-	StaticMesh* pipe;
-	StaticMesh* joint;
+	Item* pipe;
+	Item* joint;
 	
 	float length;
 	
@@ -42,10 +47,16 @@ typedef struct PipeLine {
 } PipeLine;
 
 
+PipeLine* PipeLine_alloc();
+void PipeLine_init(PipeLine* pl);
+
+
+void PipeLine_setMeshes(PipeLine* pl, Item* pipe, Item* joint);
 
 
 
 
+// old
 PipeLine* Pipe_create(Vector* points, int numpts);
 
 void Pipe_init(PipeSegment* ps);

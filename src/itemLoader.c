@@ -160,6 +160,7 @@ void World_loadItemConfigNew(World* w, json_value_t* jo) {
 			}
 			else {
 				printf("failed to parse item/part definition\n");
+				exit(1);
 			}
 			
 			link = link->next;
@@ -535,7 +536,9 @@ static int loadConfig_CustomDecal(World* w, json_value_t* jo) {
 	//loadOBJFile(path, 0, &obj);
 	//d = DynamicMeshFromOBJ(&obj);
 	pcalloc(d);
-
+	
+	d->thickness = 9.0f; // HACK make them tall to handle improper vertical positioning
+	
 		// save name
 	d->name = strdup(json_obj_get_string(jo, "_name"));
 	

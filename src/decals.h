@@ -25,6 +25,7 @@ typedef struct DecalVertex {
 } __attribute__ ((packed))  DecalVertex;
 
 
+// a square
 typedef struct DecalInstance {
 	Vector pos; // shouldn't this only be 2 components?
 	float size;
@@ -37,6 +38,25 @@ typedef struct DecalInstance {
 	unsigned short tileInfo; // 0 = clamp to transparent, 1 = tilex, 2 = tiley, 3 = tile both
 	
 }  __attribute__ ((packed)) DecalInstance;
+
+
+/*
+// a triangle
+typedef struct DecalTriInstance {
+	Vector pos; // shouldn't this only be 2 components?
+	float size;
+	
+	float rot;
+	float alpha;
+	float lerp1, unused;
+	
+	unsigned short texIndex;
+	unsigned short tileInfo; // 0 = clamp to transparent, 1 = tilex, 2 = tiley, 3 = tile both
+	
+}  __attribute__ ((packed)) DecalTriInstance;
+*/
+
+
 
 typedef struct Decal {
 	char* name;

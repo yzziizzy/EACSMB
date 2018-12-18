@@ -144,6 +144,7 @@ config. See `texgen.[ch]`
 * Bias calculation on shadows is terrible. Trees do not shadow themselves.
 * On an NVidia GT 730, first run after modifying terrain.glsl or wiping shader cache results in random terrain corruption.
 * Exclude non-printing characters from sdf generation in FontManager
+* CustomDecals are not vertically positioned properly. Show boxes to see it.
 
 ### Needs attention in the future
 * MDI max meshes limit fixed at 16. Might be able to choose the right value in `initGL` if all meshes are loaded first.
@@ -157,10 +158,12 @@ config. See `texgen.[ch]`
 * SSAO (Screen Space Ambient Occlusion)
 * Emitters need animated 3D textures.
 * Texture scaling algorithm is broken (TextureManager)
-* Point lights using geom-shader billboards for small/distance rendering.
+* Lighting:
+	* Point lights using geom-shader billboards for small/distance rendering.
+	* Fix light direction and color storage in gbuf. Probably needs some fancy packing.
+	* HDR and bloom
 * Ray-marched volumetric clouds and fog.
 * Custom mouse pointer support. 
-* HDR lighting and bloom.
 * Falling rain and snow.
 	* Make a special version of Emitter that only spawns in rage of the camera, but consistently.
 * Mipmapping in decals.
@@ -170,6 +173,8 @@ config. See `texgen.[ch]`
 * Better gbuffer packing, depends on shader #include support.
 * Texture compression
 * Calculate proper derivatives in decal fragment shader for anisotropic filtering
+* Texture atlassing for meshes, including coordinate transformation in/near shaders.
+* Polygonal/triangular decals
 
 ## Sound
 * Finish API.
@@ -200,21 +205,40 @@ config. See `texgen.[ch]`
 * Proper logging utility.
 * More features in building generator.
 * Track GPU memory usage as much as possible.
+* Destructors and resource cleanup on just about everything.
 
 ## UI
 * Config system
-* Text boxes with wrapping
+* Finish wiring clipping boxes through everything
+* Arbitrary lines (via rotation?)
+* Components:
+	* Performance bar graphs (frame times)
+	* Text boxes with wrapping
+	* Sliders
+	* Menu boxes
+	* Scroll bars and scrollable windows (depends on clipping)
+	* Input fields and text areas
 * SDF calculation on the GPU. (current multithreaded version is not *too* bad.)
+* 3D gui (positioned in the world rather than overlayed in 2D.)
+* Consistent z offsets for child windows to prevent flickering from inconsistent sorting
+* Animations
 
 ## Petty Basic Optimization
 * TextureAtlas_addFolder()
+* Many of the texgen algorithms
+
+## Gameplay
+* Road networks
+* Pipe Lines (sequences of meshes in a line, like sewer pipes - needs better name)
+
 
 
 # Reference
 ## Texture unit allocation
 Texture units are (mostly) used for only one texture, reducing rebinding costs. EACSMB assumes there will only be 32 units, the minimum required by modern GL versions.
 
-The first five are the main GBuffer.
+The first five are the main GBuffer. It is not the most optimized GBuffer and could use 
+some work later on when the engine is more mature.
 
 
 0. diffuse buffer

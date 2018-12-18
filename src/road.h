@@ -68,6 +68,7 @@ int RoadNetwork_AddNode(RoadNetwork* rn, RoadNode* n);
 void Road_AddEdge(RoadNetwork* rn, int from, int to);
 void Road_AddEdge1Way(RoadNetwork* rn, int from, int to);
 Vector2 RoadNetwork_Lerp(RoadNetwork* rn, int from, int to, float t);
+Vector2 RoadNetwork_LerpEdge(RoadNetwork* rn, int e, float t);
 
 // -1 for not found
 int RoadNetwork_GetNodeRadius(RoadNetwork* rn, Vector2* pos, float radius);

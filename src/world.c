@@ -139,44 +139,44 @@ void World_init(World* w) {
 	
 	
 	
-	CustomDecal* cd;
+// 	CustomDecal* cd;
 	DONE:
-	
-	cd = pcalloc(cd); 
-	cd->thickness = 9.0f;
-	
-	
-	CustomDecalManager_AddDecal(w->cdm, "test", cd);
-	
-	Matrix rm;
-	
-	mIdent(&rm);
-	mTrans3f(100, 100, 0, &rm);
-	mRotZ(1, &rm);
-
-	Vector pos1 = {40, 55, 20};
-	Vector pos2 = {40, 95, 20};
-	Vector pos3 = {100, 30, 20};
-	Vector pos4 = {90, 110, 20};
-	
-	vMatrixMul(&pos1, &rm, &pos1);
-	vMatrixMul(&pos2, &rm, &pos2);
-	vMatrixMul(&pos3, &rm, &pos3);
-	vMatrixMul(&pos4, &rm, &pos4);
-	
-	CustomDecalManager_AddInstance(w->cdm, 0, &(CustomDecalInstance){
-		.pos1 = pos1,
-		.pos2 = pos2,
-		.pos3 = pos3,
-		.pos4 = pos4,
-		.thickness = 5,
-		.tex12 = .5,
-		.tex34 = 2,
-	});
+	return;
+// 	cd = pcalloc(cd); 
+// 	cd->thickness = 9.0f;
 	
 	
+// 	CustomDecalManager_AddDecal(w->cdm, "test", cd);
 	
-	World_spawnAt_CustomDecal(w, 0, 1, &(Vector2){100, 100}, &(Vector2){300, 300});
+// 	Matrix rm;
+// 	
+// 	mIdent(&rm);
+// 	mTrans3f(100, 100, 0, &rm);
+// 	mRotZ(1, &rm);
+// 
+// 	Vector pos1 = {40, 55, 20};
+// 	Vector pos2 = {40, 95, 20};
+// 	Vector pos3 = {100, 30, 20};
+// 	Vector pos4 = {90, 110, 20};
+// 	
+// 	vMatrixMul(&pos1, &rm, &pos1);
+// 	vMatrixMul(&pos2, &rm, &pos2);
+// 	vMatrixMul(&pos3, &rm, &pos3);
+// 	vMatrixMul(&pos4, &rm, &pos4);
+// 	
+// 	CustomDecalManager_AddInstance(w->cdm, 0, &(CustomDecalInstance){
+// 		.pos1 = pos1,
+// 		.pos2 = pos2,
+// 		.pos3 = pos3,
+// 		.pos4 = pos4,
+// 		.thickness = 5,
+// 		.tex12 = .5,
+// 		.tex34 = 2,
+// 	});
+// 	
+	
+	
+// 	World_spawnAt_CustomDecal(w, 0, 1, &(Vector2){100, 100}, &(Vector2){300, 300});
 	
 }
 
@@ -239,7 +239,7 @@ void World_initGL(World* w) {
 	w->wp = calloc(1, sizeof(*w->wp));
 	WaterPlane_create(w->wp, 200, &(Vector){0,0,0});
 	
-	Pipe_init(&w->testmesh);
+// 	Pipe_init(&w->testmesh);
 	
 	// hack to test lightmanager
 	LightManager_AddPointLight(w->lm, (Vector){10,10, 10}, 200, 20);
@@ -359,6 +359,14 @@ int World_spawnAt_Item(World* w, char* itemName, Vector* location) {
 		return 1;
 	}
 	
+	return World_spawnAt_ItemPtr(w, item, location); 
+}
+
+int World_spawnAt_ItemPtr(World* w, Item* item, Vector* location) {
+	int i;
+	ItemInstance* inst;
+	
+	if(!item) return 1;
 	
 	inst = allocItemInstance(item);
 	
@@ -527,8 +535,9 @@ int World_spawnAt_Decal(World* w, int index, Vector* location) {
 }
 
 
-int World_spawnAt_CustomDecal(World* w, int texIndex, float width, const Vector2* p1, const Vector2* p2) {
+int World_spawnAt_CustomDecal(World* w, int cdecalIndex, float width, const Vector2* p1, const Vector2* p2) {
 	float h;
+	int texIndex;
 	
 	Vector2i loci;
 	Vector groundloc;
@@ -575,7 +584,9 @@ int World_spawnAt_CustomDecal(World* w, int texIndex, float width, const Vector2
 	di.tex34 = 3.0;
 	//di.pos = groundloc;
 	
-	CustomDecalManager_AddInstance(w->cdm, texIndex, &di);
+// 	texIndex = VEC_ITEM(&w->cdm->decals, cdecalIndex)->texIndex; 
+	
+	CustomDecalManager_AddInstance(w->cdm, cdecalIndex, &di);
 	
 }
 
@@ -597,7 +608,7 @@ void World_spawnAt_Road(World* w, Vector2* start,  Vector2* stop) {
 		i1 = RoadNetwork_AddNode(w->roads, n);
 	}
 	
-	if(i2 == -1 || i1 == i2) { // duplicate nodes can cause a math segfault deeper in the decal calculation
+	if(i2 == -1 || i1 == i2) { // duplicate nodes can cause an fp exception deeper in the decal calculation
 		n2 = pcalloc(n2);
 		n2->pos = *stop;
 		i2 = RoadNetwork_AddNode(w->roads, n2);
@@ -607,20 +618,6 @@ void World_spawnAt_Road(World* w, Vector2* start,  Vector2* stop) {
 	
 	RoadNetwork_FlushDirty(w->roads, w);
 	
-	
-	/* old bezier roads
-	
-	RoadControlPoint rcp = {
-		{start->x, start->y},
-		{stop->x, stop->y},
-		{(start->x + stop->x) / 2 , (stop->y + start->y) / 2}
-	};
-	int id;
-	rbAddRoad(w->roads, &rcp, &id);
-	
-	roadblock_update_vbo(w->roads);
-	
-	*/
 	
 }
 

@@ -155,6 +155,7 @@ void initGame(XStuff* xs, GameState* gs) {
 		{"mapHeightUpdate", sizeof(uint8_t)},
 		{"angularVelocity", sizeof(float)},
 		{"pathFollow", sizeof(C_PathFollow)},
+		{"roadWander", sizeof(C_RoadWander)},
 		{0, 0},
 	};
 	
@@ -1099,6 +1100,80 @@ void checkResize(XStuff* xs, GameState* gs) {
 	}
 }
 
+// temp hack
+void runLogic(GameState* gs, InputState* is) {
+	static double spawnTimer = 0;
+	
+	RoadNetwork* rn = gs->world->roads; 
+	
+	spawnTimer += gs->frameSpan;
+	if(spawnTimer > 3.0) {
+		spawnTimer = 0;
+		
+		if(VEC_LEN(&rn->edges) == 0) return;
+		
+		// choose a random road intersection
+		int n = rand() % VEC_LEN(&rn->edges);
+		printf("n: %d\n", n);
+		RoadEdge* edge = &VEC_ITEM(&rn->edges, n);
+		RoadNode* node = VEC_ITEM(&rn->nodes, edge->from);
+		
+		// put a tree at the intersection
+		Vector v = {node->pos.x, node->pos.y, 20};
+		uint32_t eid = World_spawnAt_Item(gs->world, "tree", &v);
+		printf("adding eid: %d\n", eid);
+		
+		// have it wander around
+		C_RoadWander crw;
+		crw.speed = .5;
+		crw.distTravelled = 0;
+		crw.edge = edge;
+		
+		CES_addComponentName(&gs->ces, "roadWander", eid, &crw);
+	}
+	
+	
+	
+}
+
+// temp hack
+void roadWanderSystem(GameState* gs, InputState* is) {
+	
+	ComponentManager* posComp = CES_getCompManager(&gs->ces, "position");
+	ComponentManager* wanderComp = CES_getCompManager(&gs->ces, "roadWander");
+	
+	CompManIter pindex, windex;
+	
+	
+	ComponentManager_start(wanderComp, &windex);
+	ComponentManager_start(posComp, &pindex);
+	//pindex.index = -1;
+	
+	uint32_t eid = 0;
+	C_RoadWander* rw;
+	while(rw = ComponentManager_next(wanderComp, &windex, &eid)) { 
+	//	break;
+		Vector* pos;
+		
+		if(!(pos = ComponentManager_nextEnt(posComp, &pindex, eid))) {
+	//		printf("m\n");
+			 continue;
+		}
+	//	printf("eid %d \n", eid);
+		
+		//printf("%f,%f,%f\n", pos->x, pos->y, pos->z);
+		rw->distTravelled += fmod(rw->speed * gs->frameSpan, 1.0) ;
+		Vector2 p2 = RoadNetwork_Lerp(gs->world->roads, rw->edge->from, rw->edge->to, rw->distTravelled);
+		
+		pos->x = p2.x;
+		pos->y = p2.y;
+		pos->z = Map_getTerrainHeightf(&gs->world->map, p2); 
+		
+	}
+	
+	
+}
+
 
 // temp hack
 void runSystems(GameState* gs, InputState* is) {
@@ -1183,6 +1258,7 @@ void runSystems(GameState* gs, InputState* is) {
 	}
 	*/
 	
+	roadWanderSystem(gs, is);
 }
 
 
@@ -1228,6 +1304,8 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	
 	checkCursor(gs, is);
 	
+	
+	runLogic(gs, is);
 	
 	runSystems(gs, is);
 	

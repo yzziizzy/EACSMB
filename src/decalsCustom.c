@@ -251,11 +251,6 @@ int CustomDecalManager_AddInstanceStrip(CustomDecalManager* dm, int index, Vecto
 	
 	CustomDecalInstance di;
 	
-	
-	
-	
-	
-	
 	return CustomDecalManager_AddInstance(dm, index, &di);
 }
 
@@ -267,7 +262,7 @@ int CustomDecalManager_AddInstance(CustomDecalManager* dm, int index, const Cust
 	CustomDecalInstance* ldi;
 	
 	if(index >= VEC_LEN(&dm->decals)) {
-		fprintf(stderr, "decal manager addInstance out of bounds: %d, %d\n", (int)VEC_LEN(&dm->decals), index);
+		fprintf(stderr, "custom decal manager addInstance out of bounds: %d, %d\n", (int)VEC_LEN(&dm->decals), index);
 		return -1;
 	}
 	
@@ -280,6 +275,7 @@ int CustomDecalManager_AddInstance(CustomDecalManager* dm, int index, const Cust
 	ldi = &VEC_TAIL(&d->instances);
 	ldi->thickness = d->thickness;
 	ldi->texIndex = d->texIndex;
+	printf("texindex: %d\n", d->texIndex);
 	//VEC_PUSH(&d->instances[1], *di);
 	//VEC_INC(&d->instMatrices);
 	
@@ -344,7 +340,7 @@ void CustomDecalManager_updateMatrices(CustomDecalManager* dm, PassFrameParams* 
 		// TODO make instances switch per frame
 		for(i = 0; i < VEC_LEN(&d->instances); i++) {
 			CustomDecalInstance* di = &VEC_ITEM(&d->instances, i);
-			
+// 			printf("cdi: %d\n", di->texIndex);
 			float dist = vDist(&di->pos1, &pfp->dp->eyePos);
 				
 		//	printf("d %f -- ", d);

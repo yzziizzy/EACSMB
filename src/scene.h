@@ -5,7 +5,7 @@
 
 
 typedef struct SceneItemInfo {
-	AABB aabb;
+	AABB2 aabb;
 	
 	uint32_t selectable : 1;
 	
@@ -16,7 +16,6 @@ typedef struct SceneItemInfo {
 
 typedef struct QuadTreeNode {
 	AABB2 aabb;
-	int itemCount;
 	int level;
 	VEC(SceneItemInfo*) items;
 	
@@ -53,16 +52,14 @@ typedef struct Scene {
 void Scene_init(Scene* sc);
 
 
-//void initQuadTree(QuadTree* qt, float szX, float szY);
-//void qtInsertItem(QuadTree* qt, Renderable* r); 
 
 
 
 
 
-
-
-
+QuadTreeNode* QTNode_alloc(QuadTreeNode* parent, char ix, char iy);
+void QTNode_init(QuadTreeNode* n, QuadTreeNode* parent, char ix, char iy);
+void QuadTree_insert(QuadTree* qt, SceneItemInfo* info);
 
 
 
