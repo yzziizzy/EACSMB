@@ -151,6 +151,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	} defaultComponents[] = {
 		{"meshIndex", sizeof(uint16_t)},
 		{"position", sizeof(Vector)},
+		{"relativeInfo", sizeof(C_RelativeInfo)},
 		{"rotation", sizeof(C_Rotation)},
 		{"mapHeightUpdate", sizeof(uint8_t)},
 		{"angularVelocity", sizeof(float)},
@@ -1174,6 +1175,62 @@ void roadWanderSystem(GameState* gs, InputState* is) {
 	
 }
 
+// temp hack
+void runRelPosUpdate(GameState* gs, InputState* is) {
+	
+	ComponentManager* posComp = CES_getCompManager(&gs->ces, "position");
+	ComponentManager* relComp = CES_getCompManager(&gs->ces, "relativeInfo");
+	ComponentManager* rotComp = CES_getCompManager(&gs->ces, "rotation");
+	
+	CompManIter pindex, rindex, rotindex;
+	CompManIter p_pindex, p_rotindex; // parents 
+	
+	
+	ComponentManager_start(relComp, &rindex);
+	ComponentManager_start(posComp, &pindex);
+	ComponentManager_start(rotComp, &rotindex);
+
+	ComponentManager_start(posComp, &p_pindex);
+	ComponentManager_start(rotComp, &p_rotindex);
+	
+	
+	uint32_t eid = 0;
+	C_RelativeInfo* ri;
+	while(ri = ComponentManager_next(relComp, &rindex, &eid)) { 
+		
+// 		printf("\nrelinfo eid: %d\n", eid);
+		
+		Vector* pos;
+		if((pos = ComponentManager_nextEnt(posComp, &pindex, eid))) {
+// 			printf(" child has pos %d\n", eid);
+			Vector* p_pos;
+			if((p_pos = ComponentManager_nextEnt(posComp, &p_pindex, ri->parentEID))) {
+				vAdd(p_pos, &ri->pos, pos); 
+// 				printf("has 2 pos %d: %f,%f,%f \n", eid, pos->x, pos->y, pos->z);
+// 				printf("  parent has pos %d->%d: %f,%f,%f \n", ri->parentEID, eid, p_pos->x, p_pos->y, p_pos->z);
+// 				printf("has 2 pos %d: %f,%f,%f \n", eid, ri->pos.x, ri->pos.y, ri->pos.z);
+			}
+		}
+		
+		// TODO: rotation of the parent should change the position of the child instead of rotating it too 
+		
+		C_Rotation* crot;
+		if((crot = ComponentManager_nextEnt(rotComp, &rotindex, eid))) {
+			
+			C_Rotation* p_crot;
+			if((p_crot = ComponentManager_nextEnt(rotComp, &p_rotindex, ri->parentEID))) {
+				vAdd(&p_crot->axis, &ri->rotAxis, &crot->axis); 
+				crot->theta = ri->rotTheta + p_crot->theta; 
+				//printf("av: %f %f %f\n", p_crot->theta, ri->rotTheta, crot->theta);
+			}
+		}
+		
+		// todo: scale
+		
+		
+	}
+}
+
 
 // temp hack
 void runSystems(GameState* gs, InputState* is) {
@@ -1199,6 +1256,7 @@ void runSystems(GameState* gs, InputState* is) {
 		}
 		
 		rot->theta = fmod(rot->theta + (gs->frameSpan * *av), F_2PI);
+		
 	}
 	
 	// --------------------------------
@@ -1222,7 +1280,9 @@ void runSystems(GameState* gs, InputState* is) {
 	//	break;
 	//	printf("eid %d \n", eid);
 		Vector* pos;
-		break;
+		
+		break; // HACK
+		
 		if(!(pos = ComponentManager_nextEnt(posComp, &pindex, eid))) {
 	//		printf("m\n");
 			 continue;
@@ -1259,6 +1319,10 @@ void runSystems(GameState* gs, InputState* is) {
 	*/
 	
 	roadWanderSystem(gs, is);
+	
+	
+	// should be the last thing run
+	runRelPosUpdate(gs, is);
 }
 
 

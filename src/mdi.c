@@ -15,11 +15,11 @@ static void postFrame(MultiDrawIndirect* mdi);
 
 
 
-MultiDrawIndirect* MultiDrawIndirect_alloc(VAOConfig* vaoConfig, int maxInstances) {
+MultiDrawIndirect* MultiDrawIndirect_alloc(VAOConfig* vaoConfig, int maxInstances, char* label) {
 	MultiDrawIndirect* mdi;
 	
 	pcalloc(mdi);
-	MultiDrawIndirect_init(mdi, vaoConfig, maxInstances);
+	MultiDrawIndirect_init(mdi, vaoConfig, maxInstances, label);
 	
 	return mdi;
 }
@@ -27,7 +27,9 @@ MultiDrawIndirect* MultiDrawIndirect_alloc(VAOConfig* vaoConfig, int maxInstance
 
 
 
-void MultiDrawIndirect_init(MultiDrawIndirect* mdi, VAOConfig* vaoConfig, int maxInstances) {
+void MultiDrawIndirect_init(MultiDrawIndirect* mdi, VAOConfig* vaoConfig, int maxInstances, char* label) {
+	
+	if(label) mdi->label = label;
 	
 	mdi->primMode = GL_TRIANGLES;
 	mdi->isIndexed = 0;
@@ -35,6 +37,19 @@ void MultiDrawIndirect_init(MultiDrawIndirect* mdi, VAOConfig* vaoConfig, int ma
 	VEC_INIT(&mdi->meshes);
 	mdi->maxInstances = maxInstances;
 	mdi->vaoConfig = vaoConfig;
+	
+	char* instLabelAdd = ", mdi instVB"; 
+	char* instLabel = calloc(1, strlen(mdi->label) + strlen(instLabelAdd) + 1);
+	strcat(instLabel, mdi->label);
+	strcat(instLabel, instLabelAdd);
+	
+	char* cmdsLabelAdd = ", mdi drawCmds"; 
+	char* cmdsLabel = calloc(1, strlen(mdi->label) + strlen(cmdsLabelAdd) + 1);
+	strcat(cmdsLabel, mdi->label);
+	strcat(cmdsLabel, cmdsLabelAdd);
+	
+	mdi->instVB.label = instLabel; 
+	mdi->indirectCmds.label = cmdsLabel; 
 }
 
 void MultiDrawIndirect_initGL(MultiDrawIndirect* mdi) {

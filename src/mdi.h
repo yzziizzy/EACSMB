@@ -49,14 +49,15 @@ typedef struct MultiDrawIndirect {
 	void (*instanceSetup)(void* /*data*/, void* /*vmem*/, MDIDrawInfo**, int /*diCount*/, PassFrameParams*);
 	void (*uniformSetup)(void* /*data*/, GLuint progID);
 
-
 	void* data;
+	
+	char* label;
 	
 } MultiDrawIndirect;
 
 
-MultiDrawIndirect* MultiDrawIndirect_alloc(VAOConfig* vaoConfig, int maxInstances);
-void MultiDrawIndirect_init(MultiDrawIndirect* mdi, VAOConfig* vaoConfig, int maxInstances);
+MultiDrawIndirect* MultiDrawIndirect_alloc(VAOConfig* vaoConfig, int maxInstances, char* label);
+void MultiDrawIndirect_init(MultiDrawIndirect* mdi, VAOConfig* vaoConfig, int maxInstances, char* label);
 void MultiDrawIndirect_initGL(MultiDrawIndirect* mdi);
 void MultiDrawIndirect_updateGeometry(MultiDrawIndirect* mdi);
 int MultiDrawIndirect_addMesh(MultiDrawIndirect* mdi, MDIDrawInfo* di);

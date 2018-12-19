@@ -99,12 +99,12 @@ void World_init(World* w) {
 		alpha: 0.5,
 		texIndex: 2,
 	};
-	dynamicMeshManager_addInstance(w->dmm, building_ind, &inst);
+	//dynamicMeshManager_addInstance(w->dmm, building_ind, &inst);
 	//printf("^^^^ %d\n", building_ind);
 	Vector v = {50,50,0};
 	
 	
-	World_spawnAt_DynamicMesh(w, building_ind, &v);
+	//World_spawnAt_DynamicMesh(w, building_ind, &v);
 	
 	// -----------------------------------
 	
@@ -115,17 +115,17 @@ void World_init(World* w) {
 	
 	
 	int nn = 0;
-	for(int y = 0; y < 512; y+=2) {
-		for(int x = 0; x < 512; x+=2) {
+	for(int y = 2; y < 510; y+=2) {
+		for(int x = 2; x < 510; x+=2) {
 			Vector v = {
 				.x = x + frand(-2, 2),
 				.y = y + frand(-2, 2),
-				.z = 30,
+				.z = 0,
 			};
 			
 			float f = fabs(PerlinNoise_2D((0 + x) / 512.0, (0 + y) / 512.0, .2, 6));
 			
-			//if(nn > 4) goto DONE;
+			if(nn > 4) goto DONE;
 			//printf("f = %f\n", f);
 // 			if(f < -0.01) continue; 
 // 			if(frandNorm() < .5) continue;
@@ -308,42 +308,70 @@ static ItemInstance* allocItemInstance(Item* item) {
 	inst = calloc(1, sizeof(*inst) + (sizeof(inst->parts[0]) * item->numParts));
 	CHECK_OOM(inst);
 	
+	inst->eid = newEID();
 	inst->item = item;
 	
 	return inst;
 }
 
-static int spawnPart(World* w, ItemPart* part, Vector* center) {
+static uint32_t spawnPart(World* w, ItemPart* part, uint32_t parentEID, Vector* center) {
 	Vector loc;
+	uint32_t eid = (1 << 31) - 2;
 	
 	vAdd(center, &part->offset, &loc);
 	
 	switch(part->type) {
 		case ITEM_TYPE_DYNAMICMESH:
-			return World_spawnAt_DynamicMesh(w, part->index, &loc);
+			eid = World_spawnAt_DynamicMesh(w, part->index, &loc);
+			break;
 		
 		case ITEM_TYPE_STATICMESH:
 			printf("!!! StaticMeshManager is obsolete. use DynamicMeshManager.\n");
-			return -1;
+			return 1 << 31;
 		
 		case ITEM_TYPE_EMITTER:
-			return World_spawnAt_Emitter(w, part->index, &loc);
+			eid = World_spawnAt_Emitter(w, part->index, &loc);
+			break;
 
 		case ITEM_TYPE_LIGHT:
-			return World_spawnAt_Light(w, part->index, &loc);
+			eid = World_spawnAt_Light(w, part->index, &loc);
+			break;
 
 		case ITEM_TYPE_DECAL:
-			return World_spawnAt_Decal(w, part->index, &loc);
+			eid = World_spawnAt_Decal(w, part->index, &loc);
+			break;
 			
 //		case ITEM_TYPE_CUSTOMDECAL: // TODO figure out spawning info
-//			return World_spawnAt_CustomDecal(w, part->index, &loc);
+//			eid = World_spawnAt_CustomDecal(w, part->index, &loc);
+// 			break;
 
 		case ITEM_TYPE_MARKER:
-			return World_spawnAt_Marker(w, part->index, &loc);
+			eid = World_spawnAt_Marker(w, part->index, &loc);
+			break;
 	
 		default:
 			printf("unknown part item type: %d, %d\n", part->type, part->index);
+			return (1 << 31) - 1;
 	}
+	
+	
+	
+	
+	float h = Map_getTerrainHeight3f(&w->map, loc);
+	
+	
+	C_RelativeInfo ri = {
+		.parentEID = parentEID,
+		.pos = (Vector){part->offset.x, part->offset.y, part->offset.z},
+		.rotAxis = part->rotAxis,
+		.rotTheta = part->rotTheta,
+	};
+	
+	
+	CES_addComponentName(&w->gs->ces, "relativeInfo", eid, &ri);
+	
+	
+	return eid;
 }
 
 
@@ -372,9 +400,21 @@ int World_spawnAt_ItemPtr(World* w, Item* item, Vector* location) {
 	
 	for(i = 0; i < item->numParts; i++) {
 	//	printf("trying to spawn %d : %d, %s\n", item->parts[i].index, i, itemName);
-		spawnPart(w, &item->parts[i], location);
+		uint32_t peid = spawnPart(w, &item->parts[i], inst->eid, location);
+		inst->parts[i].eid = peid;
+		inst->parts[i].part = &item->parts[i];
 		
+		inst->parts[i].parentItemEID = inst->eid;
 	}
+	
+	
+	float h = Map_getTerrainHeight3f(&w->map, *location);
+	
+// 	float av = 1.0;
+// 	CES_addComponentName(&w->gs->ces, "angularVelocity", inst->eid, &av);
+	CES_addComponentName(&w->gs->ces, "position", inst->eid, &(Vector){location->x, location->y, location->z + h});
+	C_Rotation rot = {{1.0, 0,0}, 2};
+// 	CES_addComponentName(&w->gs->ces, "rotation", inst->eid, &rot);
 	
 }
 
@@ -431,7 +471,7 @@ int World_spawnAt_DynamicMesh(World* w, int dmIndex, Vector* location) {
 	};
 //	CES_addComponentName(&w->gs->ces, "pathFollow", eid, &pf);
 	
-	
+	return eid;
 }
 
 
@@ -457,7 +497,8 @@ int World_spawnAt_Emitter(World* w, int emitterIndex, Vector* location) {
 	};
 	emitterIndex = 0;
 	EmitterManager_addInstance(w->em, emitterIndex, &inst); 
-
+	
+	return newEID();
 }
 
 int World_spawnAt_Marker(World* w, int markerIndex, Vector* location) {
@@ -479,7 +520,7 @@ int World_spawnAt_Marker(World* w, int markerIndex, Vector* location) {
 	
 	MarkerManager_addInstance(w->mm, markerIndex, &inst); 
 	
-	
+	return newEID();
 }
 
 int World_spawnAt_Light(World* w, int lightIndex, Vector* location) {
@@ -501,6 +542,7 @@ int World_spawnAt_Light(World* w, int lightIndex, Vector* location) {
 	
 	LightManager_AddPointLight(w->lm, groundloc, 10.0, 0.02);
 	
+	return newEID();
 }
 
 int World_spawnAt_Decal(World* w, int index, Vector* location) {
@@ -532,6 +574,7 @@ int World_spawnAt_Decal(World* w, int index, Vector* location) {
 	
 	DecalManager_AddInstance(w->dm, index, &di);
 	
+	return newEID();
 }
 
 
@@ -588,6 +631,7 @@ int World_spawnAt_CustomDecal(World* w, int cdecalIndex, float width, const Vect
 	
 	CustomDecalManager_AddInstance(w->cdm, cdecalIndex, &di);
 	
+	return newEID();
 }
 
 

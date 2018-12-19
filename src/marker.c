@@ -63,7 +63,7 @@ void MarkerManager_init(MarkerManager* mm, GlobalSettings* gs) {
 		{0, 0, 0}
 	};
 	
-	mm->mdi = MultiDrawIndirect_alloc(vaoopts, mm->maxInstances);
+	mm->mdi = MultiDrawIndirect_alloc(vaoopts, mm->maxInstances, "markerManager");
 	mm->mdi->isIndexed = 1;
 	mm->mdi->indexSize = 2;
 	mm->mdi->primMode = GL_TRIANGLES;

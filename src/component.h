@@ -99,6 +99,18 @@ typedef struct C_Rotation {
 } C_Rotation;
 
 
+// offset info for child meshes
+typedef struct C_RelativeInfo {
+	uint32_t parentEID;
+	Vector pos;
+	Vector rotAxis;
+	float rotTheta;
+	float scale;
+} C_RelativeInfo;
+
+
+
+
 #include "path.h"
 
 typedef struct C_PathFollow {

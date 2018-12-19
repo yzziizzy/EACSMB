@@ -159,7 +159,7 @@ void dynamicMeshManager_init(DynamicMeshManager* dmm, GlobalSettings* gs) {
 	
 	dmm->maxInstances = gs->DynamicMeshManager_maxInstances;
 	
-	dmm->mdi = MultiDrawIndirect_alloc(vao_opts, dmm->maxInstances);
+	dmm->mdi = MultiDrawIndirect_alloc(vao_opts, dmm->maxInstances, "dynamicMeshManager");
 	dmm->mdi->isIndexed = 1;
 	dmm->mdi->indexSize = 2;
 	dmm->mdi->primMode = GL_TRIANGLES;
@@ -298,13 +298,13 @@ static void instanceSetup(DynamicMeshManager* dmm, DynamicMeshInstShader* vmem, 
 	uint32_t eid;
 	uint16_t* meshIndex;
 	while(meshIndex = ComponentManager_next(meshComp, &cindex, &eid)) {
-		//printf("eid %d %d %d\n", eid, cindex, pindex);
 		Vector* pos;
 		//printf("\nseeking in mesh man for %d\n", eid);
 		if(!(pos = ComponentManager_nextEnt(posComp, &pindex, eid))) {
 		//	 printf("continued\n");
 			 continue;
 		}
+// 		printf("mesh eid %d %d %d\n", eid, cindex, pindex);
 		
 		DynamicMesh* dm = VEC_ITEM(&dmm->meshes, *meshIndex);
 		

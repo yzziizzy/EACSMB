@@ -60,7 +60,7 @@ void EmitterManager_init(EmitterManager* em, GlobalSettings* gs) {
 	};
 	
 	
-	em->mdi = MultiDrawIndirect_alloc(vaoopts, gs->EmitterManager_maxInstances);
+	em->mdi = MultiDrawIndirect_alloc(vaoopts, gs->EmitterManager_maxInstances, "emitterManager");
 	em->mdi->isIndexed = 0;
 	em->mdi->primMode = GL_POINTS;
 	em->mdi->uniformSetup = (void*)uniformSetup;

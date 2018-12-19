@@ -7,7 +7,7 @@
 
 
 
-static int waitSync(GLsync id); 
+static int waitSync(GLsync id, char* label); 
 
 
 PCBuffer* PCBuffer_alloc(size_t size, GLenum type) {
@@ -67,7 +67,7 @@ size_t PCBuffer_getOffset(PCBuffer* b) {
 void* PCBuffer_beginWrite(PCBuffer* b) {
 	// the fence at index n protects from writing to index n.
 	// it is set after commands for n - 1;
-	waitSync(b->fences[b->nextRegion]);
+	waitSync(b->fences[b->nextRegion], b->label);
 	
 	return b->dataPtr + (b->nextRegion * b->bufferSize);
 }
@@ -94,7 +94,7 @@ void PCBuffer_bind(PCBuffer* b) {
 
 
 // terrible code, but use for now
-static int waitSync(GLsync id) {
+static int waitSync(GLsync id, char* label) {
 	GLenum ret;
 	if(!id || !glIsSync(id)) return 1;
 	int n = 0;
@@ -102,14 +102,19 @@ static int waitSync(GLsync id) {
 		ret = glClientWaitSync(id, GL_SYNC_FLUSH_COMMANDS_BIT, 1);
 		glexit("");
 		if(ret == GL_ALREADY_SIGNALED || ret == GL_CONDITION_SATISFIED)
-			return 0;
+			break;
 		
 		n++;
-		if(n > 6) {
-			printf("\n\nserious pipeline stall in pcBuffer! (%d)\n\n", n);
-			//int z = *((int*)0); 
-		}
 	}
+	
+	// check for stalls
+	if(n > 6) {
+		printf("\n\nserious pipeline stall in '%s' pcBuffer! (%d)\n\n", label, n);
+		//int z = *((int*)0); 
+	}
+	
+	// normal healthy return
+	return 0;
 }
 
 

@@ -53,6 +53,9 @@ typedef struct { // info about how the part relates to the item
 	int index;
 	int partIndex;
 	Vector offset; // rotation, scale, etc
+	Vector rotAxis;
+	float rotTheta;
+	
 	
 	enum PartFlag flags;
 	
@@ -64,15 +67,13 @@ typedef struct Item {
 	int numParts;
 	ItemPart* parts;
 	
-	
-	
 } Item;
 
 
 
 typedef struct {
 	ItemPart* part;
-	int parentItemInst;
+	uint32_t parentItemEID;
 	uint32_t eid;
 } PartInstance;
 

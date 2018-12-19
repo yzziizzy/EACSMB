@@ -25,6 +25,8 @@ typedef struct PCBuffer {
 	GLuint bo;
 	void* dataPtr;
 	
+	char* label;
+	
 } PCBuffer;
 
 

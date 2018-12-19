@@ -489,7 +489,7 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 // 	printf("sm------\n");
 	query_queue_start(&gs->queries.sunShadow);
-	ShadowMap_Render(gs->world->sunShadow, &pfp, &gs->sunNormal);
+//	ShadowMap_Render(gs->world->sunShadow, &pfp, &gs->sunNormal);
 	query_queue_stop(&gs->queries.sunShadow);
 // 	printf("sm^^^^^^\n");
 	

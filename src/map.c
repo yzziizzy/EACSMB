@@ -1320,7 +1320,7 @@ void MapInfo_Init(MapInfo* mi, GlobalSettings* gs) {
 		{0, 0, 0}
 	};
 	
-	mi->blockPatch = MultiDrawIndirect_alloc(vao_opts, 64);
+	mi->blockPatch = MultiDrawIndirect_alloc(vao_opts, 64, "map");
 	
 	
 	

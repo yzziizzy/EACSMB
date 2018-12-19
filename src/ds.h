@@ -468,4 +468,53 @@ else \
 
 
 
+// lockless queue
+
+
+#define LLQUEUE_DECL(type, prop) \
+typedef struct type ## _LLQLink { \
+	struct type ## _LLQLink *next; \
+	type prop; \
+} type ## _LLQLink; \
+typedef struct type ## _LLQList { \
+	struct type ## _LLQLink *head, *tail; \
+	int length; \
+} type ## _LLQueue; 
+
+
+#define LLQ_INIT(list) \
+(list)->head = NULL; \
+(list)->tail = NULL; \
+(list)->length = 0; 
+
+/*
+#define LLQ_PUSH_HEAD(list, prop, x) \
+do { 
+	typeof((list)->head) __new_link = calloc(1, sizeof(*__new_link)); \
+	
+	typeof((list)->head) __p;
+	
+	do{
+		__p = (list)->head;
+	} while(atomic_compare_exchange_strong(&(list)->head, &__p, __new_link);
+	
+	__new_link->next = __p;
+	
+	(list)->tail = __new_link; \
+	if((list)->head == NULL) (list)->head = __new_link; \
+	__new_link->prop = (x); \
+	(list)->length++; \
+} while(0);
+*/
+
+
+
+
+
+
+
+
+
+
+
 #endif // __DS_H__
