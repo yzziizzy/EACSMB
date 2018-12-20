@@ -53,6 +53,7 @@ eacsmb_SOURCES = main.c \
 	shadowMap.c \
 	sim.c \
 	sound.c \
+	sound/vorbis.c \
 	staticMesh.c \
 	text/fcfg.c \
 	text/text.c \
@@ -76,7 +77,8 @@ eacsmb_LDADD =  \
 	-lm \
 	-lX11 -lfreetype -lfontconfig -lpng \
 	-lGL -lGLU -lGLEW \
-	-lasound
+	-lasound \
+	-lvorbisfile
 	 
 AM_CFLAGS = "-I/usr/include/freetype2" -std=gnu11 -g -DLINUX \
 	-pthread \

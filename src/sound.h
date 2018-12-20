@@ -10,6 +10,8 @@
 
 #include "c_json/json.h"
 
+// optional libraries provide stubs when there is no support
+#include "sound/vorbis.h"
 
 
 
@@ -18,7 +20,7 @@ typedef struct SoundClip {
 	int channels;
 	float* data;
 	
-	int numSamples;
+	int64_t numSamples;
 	int sampleRate;
 	
 	float length; // in seconds

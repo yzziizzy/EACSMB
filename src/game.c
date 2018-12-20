@@ -137,6 +137,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	SoundManager_start(gs->sound);
 	
 	SoundClip* sc = SoundClip_fromWAV("./assets/sounds/ohno.wav");
+// 	SoundClip* sc = SoundClip_fromVorbis("./assets/sounds/ooo.ogg");
 	SoundManager_addClip(gs->sound, sc, "ohno");
 
 	

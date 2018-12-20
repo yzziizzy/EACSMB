@@ -188,7 +188,7 @@ void SoundManager_tick(SoundManager* sm, double newGlobalTime) {
 		// add to buffer
 		for(int i = 0; i < n; i++) {
 			for(int c = 0; c < 2; c++) {
-				sm->alsabuf[i * 2 + c] = sc->data[(si->lastSampleWritten + i) % sc->numSamples] * 32768;
+				sm->alsabuf[i * 2 + c] = sc->data[((si->lastSampleWritten + i) % sc->numSamples) * 2 + c] * 32768;
 			}
 		}
 	
