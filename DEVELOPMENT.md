@@ -180,10 +180,11 @@ config. See `texgen.[ch]`
 * Finish API.
 * Integrate with main itemLoader config.
 * Integer WAV support.
+* Adjustable channel count
 * Finish/fix the SoundClip rate resampler.
 * Implement the mixer, with auto-ranging volume on overflow.
 * Make sound/ALSA support optional in makefile.
-* OGG/Vorbis support. (optional)
+* Make OGG/Vorbis support optional.
 * libav/ffmpeg support. (optional)
 * PulseAudio support. (optional)
 * JACK support. (optional)

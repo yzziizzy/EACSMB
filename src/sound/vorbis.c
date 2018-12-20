@@ -7,8 +7,9 @@
 #include "../utilities.h"
 #include "../sound.h"
 
-#define HAS_LIBVORBISFILE 1
-#if HAS_LIBVORBISFILE
+
+
+#ifdef HAVE_VORBIS
 
 
 #include <vorbis/codec.h>
@@ -87,9 +88,9 @@ BAIL:
 }
 
 
-#else // HAS_LIBVORBISFILE
+#else // HAVE_VORBIS
 
-struct SoundClip* SoundClip_loadVorbis(char* path) {
+struct SoundClip* SoundClip_fromVorbis(char* path) {
 	fprintf(stderr, "Attempted to load an OGG/Vorbis file without OGG/Vorbis support compiled in. (%s)\n", path);
 	return NULL;
 }

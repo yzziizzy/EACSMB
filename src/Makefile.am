@@ -2,6 +2,7 @@
 
 bin_PROGRAMS = eacsmb
 
+
 eacsmb_SOURCES = main.c \
 	btree.c \
 	builder/render.c \
@@ -76,11 +77,10 @@ eacsmb_SOURCES = main.c \
 eacsmb_LDADD =  \
 	-lm \
 	-lX11 -lfreetype -lfontconfig -lpng \
-	-lGL -lGLU -lGLEW \
-	-lasound \
-	-lvorbisfile
+	-lGL -lGLU -lGLEW 
 	 
 AM_CFLAGS = "-I/usr/include/freetype2" -std=gnu11 -g -DLINUX \
+	-include "../config.h" \
 	-pthread \
 	-Wno-unused-result \
 	-Werror-implicit-function-declaration
