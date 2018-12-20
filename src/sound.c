@@ -365,18 +365,23 @@ FOUND_DATA:
 	datalen = *((uint32_t*)(chunkBase + 4));
 	cursor = chunkBase + 8;
 	
+	int lindex, rindex;
+	lindex = 0;
+	rindex = sc->channels == 1 ? 0 : 1;
+	
 	// grab the data
 	if(fmt->FormatTag == 3) { //32-bit float
 		sc->numSamples = datalen / fmt->BlockAlign;
-		sc->channels = fmt->Channels;
+		sc->channels = 2;// fmt->Channels;  pin it to 2 for now
 		sc->sampleRate = fmt->SamplesPerSec;
 		sc->length = (float)sc->numSamples / (float)sc->sampleRate;
 		sc->data = calloc(1, sc->numSamples * sc->channels * sizeof(*sc->data));
 		
 		for(int i = 0; i < sc->numSamples; i++) {
-			for(int c = 0; c < fmt->Channels; c++) {
-				sc->data[i * sc->channels + c] = *((float*)(cursor + (i * fmt->BlockAlign) + (c * sizeof(float))));
-			}
+// 			for(int c = 0; c < fmt->Channels; c++) {
+				sc->data[i * sc->channels + 0] = *((float*)(cursor + (i * fmt->BlockAlign) + (lindex * sizeof(float))));
+				sc->data[i * sc->channels + 1] = *((float*)(cursor + (i * fmt->BlockAlign) + (rindex * sizeof(float))));
+// 			}
 		}
 		
 	}
