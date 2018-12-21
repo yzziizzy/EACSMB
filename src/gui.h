@@ -105,6 +105,7 @@ typedef struct GUIHeader {
 	struct GUIManager* gm;
 	GUIObject* parent;
 	struct gui_vtbl* vt;
+	char* name;
 
 	// fallback for easy hit testing
 	VEC(union GUIObject*) children;
@@ -165,8 +166,6 @@ union GUIObject {
 	GUIColumnLayout columnLayout;
 	GUIGridLayout gridLayout;
 };
-
-
 
 
 
@@ -249,6 +248,8 @@ GUIObject* GUIManager_hitTest(GUIManager* gm, Vector2 testPos);
 void GUIObject_triggerClick(GUIObject* go, Vector2 testPos);
 GUIObject* GUIManager_triggerClick(GUIManager* gm, Vector2 testPos);
 
+GUIObject* GUIObject_findChild(GUIObject* obj, char* childName);
+
 
 // GUIObject* guiHitTest(GUIObject* go, Vector2 testPos);
 void guiDelete(GUIObject* go);
@@ -269,6 +270,15 @@ Vector2 guiGetClientSize(GUIObject* go);
 Vector2 guiRecalcClientSize(GUIObject* go);
 void guiAddClient(GUIObject* parent, GUIObject* child);
 void guiRemoveClient(GUIObject* parent, GUIObject* child);
+
+
+
+
+
+#include "ui/configLoader.h"
+
+
+
 
 
 #endif // __EACSMB_GUI_H__

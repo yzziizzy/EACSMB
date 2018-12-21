@@ -1,0 +1,26 @@
+{
+	elemType: 'root',
+	children: [
+		{
+			elemType: 'columnLayout',
+			name: "perfstats",
+			pos: [10, 10],
+			gravity: 'TOP_LEFT'
+			children: [
+				{ elemType: 'text', name: "terrain" },
+				{ elemType: 'text', name: "solids" },
+				{ elemType: 'text', name: "selection" },
+				{ elemType: 'text', name: "decals" },
+				{ elemType: 'text', name: "emitters" },
+				{ elemType: 'text', name: "effects" },
+				{ elemType: 'text', name: "lighting" },
+				{ elemType: 'text', name: "sunShadow" },
+				{ elemType: 'text', name: "shading" },
+				{ elemType: 'text', name: "gui" },
+			]
+		},
+		
+		
+		
+	],
+}

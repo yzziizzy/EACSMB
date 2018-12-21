@@ -1046,3 +1046,18 @@ Vector2 cui_parent2ChildGrav(GUIHeader* child, GUIHeader* parent, Vector2 pt) {
 		.y = pt.y - ctl.y
 	};
 }
+
+
+
+
+
+
+
+
+GUIObject* GUIObject_findChild(GUIObject* obj, char* childName) {
+	if(!obj) return NULL;
+	VEC_EACH(&obj->h.children, i, child) {
+		if(child->h.name && 0 == strcmp(child->h.name, childName)) return child;
+	}
+	return NULL;
+}

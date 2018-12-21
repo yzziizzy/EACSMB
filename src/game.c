@@ -254,21 +254,11 @@ void initGame(XStuff* xs, GameState* gs) {
 void initGameGL(XStuff* xs, GameState* gs) {
 	
 	
-	
-	
-
-	
 	glerr("left over error on game init");
 	
 	
 	GUIManager_initGL(gs->gui, &gs->globalSettings);
 	gs->guiPass = GUIManager_CreateRenderPass(gs->gui);
-
-	
-
-	
-	
-
 	
 	/*
 	
@@ -285,19 +275,11 @@ void initGameGL(XStuff* xs, GameState* gs) {
 	soilProg = loadCombinedProgram("mg_soil");
 	
 
-
-	
-	//printf("w: %d, h: %d\n", ww, wh);
-	
 	
 	initUniformBuffers();
 	
 	uniformBuffer_init(&gs->perViewUB, sizeof(PerViewUniforms));
 	uniformBuffer_init(&gs->perFrameUB, sizeof(PerFrameUniforms));
-	
-	
-	//printf("diffuse2: %d\n",gs->diffuseTexBuffer);
-	// set up the Geometry Buffer
 
 	initRenderLoop(gs);
 	initRenderPipeline();
@@ -334,17 +316,6 @@ void initGameGL(XStuff* xs, GameState* gs) {
 	
 	*/
 	
-
-
-	
-	
-	// perspective matrix, pretty standard
-// 	msPerspective(60, 1.0, 01000.0f, 100000.0f, proj);
-// 		msOrtho(0, 1, 0, 1, .01, 100000, proj);
-
-
-	
-	
 	
 	
 	initTextures();
@@ -364,71 +335,12 @@ void initGameGL(XStuff* xs, GameState* gs) {
 	Scene_init(&gs->scene);
 	
 	
-	
-	gw_test = GUIWindow_new(gs->gui);
-	gw_test->header.size = (Vector2){50, 50};
-	gw_test->header.gravity = GUI_GRAV_CENTER_BOTTOM;
-	gw_test->color = (Vector){.1, .8, .1};
-	
-	gw_test2 = GUIWindow_new(gs->gui);
-	gw_test2->header.size = (Vector2){5, 5};
-	gw_test2->header.gravity = GUI_GRAV_CENTER_LEFT;
-	gw_test2->color = (Vector){.2, .6, 1};
-	
 	gt = GUIText_new(gs->gui, "", "Arial", 3.0f);
-	gt_terrain = GUIText_new(gs->gui, "", "Arial", 3.0f);
-	//gt_terrain->header.topleft = (Vector2){20,20};
-	gt_solids = GUIText_new(gs->gui, "", "Arial", 3.0f);
-	gt_selection = GUIText_new(gs->gui, "", "Arial", 3.0f);
-	gt_decals = GUIText_new(gs->gui, "", "Arial", 3.0f);
-	gt_emitters = GUIText_new(gs->gui, "", "Arial", 3.0f);
-	gt_effects = GUIText_new(gs->gui, "", "Arial", 3.0f);
-	gt_lighting = GUIText_new(gs->gui, "", "Arial", 3.0f);
-	gt_sunShadow = GUIText_new(gs->gui, "", "Arial", 3.0f);
-	gt_shading = GUIText_new(gs->gui, "", "Arial", 3.0f);
-	gt_gui = GUIText_new(gs->gui, "", "Arial", 3.0f);
-	
-	gt_img = GUIImage_new(gs->gui, "pre/building");
 	
 	gtRenderMode = GUIText_new(gs->gui, "", "Arial", 6.0f);
 	gtSelectionDisabled = GUIText_new(gs->gui, "", "Arial", 6.0f);
 	
-	
-//	gibTest = guiImageButtonNew((Vector2){0.5,0.1}, (Vector2){0.1,0.1}, 7.0f, "foo");
 
-// 	gwTest = guiWindowNew((Vector2){.2, .2}, (Vector2){.7, .7}, 0);
-// 	gwTest->header.onClick = testClick;
-	
-//	gswTest = guiSimpleWindowNew((Vector2){.2, .2}, (Vector2){.7, .7}, 0);
-	//gswTest->header.onClick = testClick;
-	
-// 	giTest = guiImageNew((Vector2){.1,.2}, (Vector2){.8,.8}, 0, 0);
-	
-	
-	gclTest = GUIColumnLayout_new(gs->gui, (Vector2){.01,.01}, .02, 0);
-	gclTest->header.topleft = (Vector2){10,10};
-	gclTest->spacing = 2;
-	gclTest->header.gravity = GUI_GRAV_TOP_LEFT;
-	
-
-// 	GUIRegisterObject(gw_test, NULL);
-// 	GUIRegisterObject(gw_test2, gw_test);
-	
-	GUIRegisterObject(gclTest, NULL);
-	GUIRegisterObject(gt_terrain, gclTest);
-// 	GUIRegisterObject(gt_terrain, NULL);
-	GUIRegisterObject(gt_solids, gclTest);
-	GUIRegisterObject(gt_decals, gclTest);
-	//GUIRegisterObject(gt_emitters, gclTest);
-	GUIRegisterObject(gt_effects, gclTest);
-	GUIRegisterObject(gt_lighting, gclTest);
-	GUIRegisterObject(gt_sunShadow, gclTest);
-	GUIRegisterObject(gt_shading, gclTest);
-	GUIRegisterObject(gt_gui, gclTest);
-	
-// 	GUIRegisterObject(gt_img, gclTest);
-	
-	
 	
 	char* iconNames[] = {
 		"pre/audio",
@@ -470,6 +382,32 @@ void initGameGL(XStuff* xs, GameState* gs) {
 	}
 	
 	GUIRegisterObject(gglTest, NULL);
+
+	
+	
+	
+	
+	json_file_t* guijsf;
+	
+	guijsf = json_load_path("assets/config/main_ui.json");
+	json_value_t* kids;
+	json_obj_get_key(guijsf->root, "children", &kids);
+	
+	GUICL_LoadChildren(gs->gui, gs->gui->root, kids);
+	
+	GUIObject* ps = GUIObject_findChild(gs->gui->root, "perfstats");
+	gt_terrain = GUIObject_findChild(ps, "terrain");
+	gt_solids = GUIObject_findChild(ps, "solids");
+	gt_selection = GUIObject_findChild(ps, "selection");
+	gt_decals = GUIObject_findChild(ps, "decals");
+	gt_emitters = GUIObject_findChild(ps, "emitters");
+	gt_effects = GUIObject_findChild(ps, "effects");
+	gt_lighting = GUIObject_findChild(ps, "lighting");
+	gt_sunShadow = GUIObject_findChild(ps, "sunShadow");
+	gt_shading = GUIObject_findChild(ps, "shading");
+	gt_gui = GUIObject_findChild(ps, "gui");
+	
+	
 
 	
 	// commented out for hitTest testing
@@ -566,26 +504,6 @@ void preFrame(GameState* gs) {
 		query_update_gui(shading);
 		query_update_gui(lighting);
 		query_update_gui(gui);
-		
-		//if(!query_queue_try_result(&gs->queries.draw, &qtime)) {
-			//sdtime = ((double)qtime) / 1000000.0;
-		//}
-		//snprintf(frameCounterBuf, 128, "dtime:  %.2fms", sdtime);
-		//GUIText_setString(gt, frameCounterBuf);
-
-
-		//if(!query_queue_try_result(&gs->queries.selection, &qtime)) {
-			//sseltime = ((double)qtime) / 1000000.0;
-		//}
-		//snprintf(frameCounterBuf, 128, "seltime:  %.2fms", sseltime);
-		//GUIText_setString(gt_sel, frameCounterBuf);
-		
-		
-		//if(!query_queue_try_result(&gs->queries.emitters, &qtime)) {
-			//semittime = ((double)qtime) / 1000000.0;
-		//}
-		//snprintf(frameCounterBuf, 128, "emittime:  %.2fms", semittime);
-		//GUIText_setString(gt_emit, frameCounterBuf);
 		
 		lastPoint = now;
 	}
@@ -872,48 +790,9 @@ static void main_click_handler(InputEvent* ev, GameState* gs) {
 	}
 }
 
-void handleInput(GameState* gs, InputState* is) {
-	
-	printf("\n------ handInput is deprecated ------\n\n");
-	
-	
-	static int dragstart = -1;
-	if(is->buttonDown == 1) {
-		gs->mouseDownPos.x = gs->cursorPos.x;
-		gs->mouseDownPos.y = gs->cursorPos.y;
-		dragstart = getCurrentTime();
-		//printf("start dragging at (%d,%d)\n", (int)gs->cursorPos.x, (int)gs->cursorPos.y);
-	}
-	if(is->buttonUp == 1) {
-		double dragtime = timeSince(dragstart);
-		if(dragtime < 0.7) {
-			//printf("ignoring drag, too short: %.8f\n", dragtime);
-		}
-		else {
-		//vCopy(&gs->cursorPos, &gs->mouseDownPos);
-			//printf("stopped dragging at (%d,%d)\n", (int)gs->cursorPos.x, (int)gs->cursorPos.y);
-			
-			World_spawnAt_Road(gs->world, &gs->mouseDownPos, &gs->cursorPos);
-		}
-		
-		
-		
-	}
-	
-	if(is->clickButton == 2) {
-		gs->activeTool = (gs->activeTool + 1) % 3;
-	}
-
-
-}
 
 
 
-
-void setUpView(GameState* gs) {
-	
-	
-}
 
 
 
@@ -1361,10 +1240,8 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	preFrame(gs);
 		PF_STOP(preframe);
 	
-	//handleInput(gs, is);
 	InputFocusStack_DispatchPerFrame(&gs->ifs, is, gs->frameSpan);
 	
-	//setUpView(gs);
 	updateView(xs, gs, is);
 	
 	checkCursor(gs, is);
