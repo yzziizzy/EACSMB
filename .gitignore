@@ -70,6 +70,10 @@ src/simplex.png
 # too much junk in the untracked list
 /assets/**/*
 
+# mods folder layout and naming will be changed later
+/mods
+!/mods/MODS_README.md
+
 # saved sdf font data
 *.sdf
 *.atlas

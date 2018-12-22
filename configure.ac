@@ -10,6 +10,10 @@ AC_CONFIG_HEADERS([config.h])
 # Checks for programs.
 AC_PROG_CC
 
+AC_MSG_NOTICE([Scanning for mods...])
+./scanMods.sh
+AC_MSG_NOTICE([...mod scan complete])
+
 # Checks for required libraries.
 AC_CHECK_LIB([GL], [glFlush])
 AC_CHECK_LIB([GLEW], [glewInit])
