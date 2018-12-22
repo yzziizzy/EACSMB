@@ -29,17 +29,20 @@ do { \
 
 #define LL_HEAD(list) LL_DATA((list)->head)
 
-
-
+struct RoadEdge;
+typedef struct RoadEdge RoadEdge;
 
 typedef struct RoadNode {
 	Vector2 pos;
+	
+	VEC(RoadEdge*) outEdges;
+// 	VEC(int) inEdges;
 	
 	uint32_t eid;
 } RoadNode;
 
 typedef struct RoadEdge {
-	int from, to;
+	RoadNode* from, *to;
 	float length;
 	
 	uint32_t eid;
@@ -49,11 +52,11 @@ typedef struct RoadEdge {
 typedef struct RoadNetwork {
 	
 	VEC(RoadNode*) nodes;
-	VEC(RoadEdge) edges;
+	VEC(RoadEdge*) edges;
 	
 	
-	VEC(int) edgeDirtyList;
-	VEC(int) nodeDirtyList;
+	VEC(RoadEdge*) edgeDirtyList;
+	VEC(RoadNode*) nodeDirtyList;
 	
 } RoadNetwork;
 
@@ -64,22 +67,19 @@ typedef struct RoadNetwork {
 RoadNetwork* RoadNetwork_alloc();
 void RoadNetwork_init(RoadNetwork* rn);
 
-int RoadNetwork_AddNode(RoadNetwork* rn, RoadNode* n); 
-void Road_AddEdge(RoadNetwork* rn, int from, int to);
+RoadNode* RoadNetwork_AddNode(RoadNetwork* rn, Vector2 pos);
+void Road_AddEdge(RoadNetwork* rn, RoadNode* from, RoadNode* to);
 void Road_AddEdge1Way(RoadNetwork* rn, int from, int to);
-Vector2 RoadNetwork_Lerp(RoadNetwork* rn, int from, int to, float t);
+Vector2 RoadNetwork_Lerp(RoadNetwork* rn, RoadNode* from, RoadNode* to, float t);
 Vector2 RoadNetwork_LerpEdge(RoadNetwork* rn, int e, float t);
 
-// -1 for not found
-int RoadNetwork_GetNodeRadius(RoadNetwork* rn, Vector2* pos, float radius);
+
+RoadNode* RoadNetwork_GetNodeRadius(RoadNetwork* rn, Vector2* pos, float radius);
 int RoadNetwork_GetClosestNode(RoadNetwork* rn, Vector2* pos);
 int RoadNetwork_GetClosest2Nodes(RoadNetwork* rn, Vector2* pos, int* closest, int* nextClosest);
 
+RoadEdge* RoadNode_GetRandomOutEdge(RoadNetwork* rn, RoadNode* n);
 
-
-static inline RoadNode* RoadNetwork_GetNode(RoadNetwork* rn, int index) {
-	return VEC_LEN(&rn->nodes) > index && index >= 0 ? VEC_ITEM(&rn->nodes, index) : NULL;
-} 
 
 
 struct World;

@@ -416,6 +416,7 @@ int World_spawnAt_ItemPtr(World* w, Item* item, Vector* location) {
 	C_Rotation rot = {{1.0, 0,0}, 2};
 // 	CES_addComponentName(&w->gs->ces, "rotation", inst->eid, &rot);
 	
+	return inst->eid;
 }
 
 
@@ -639,29 +640,23 @@ int World_spawnAt_CustomDecal(World* w, int cdecalIndex, float width, const Vect
 void World_spawnAt_Road(World* w, Vector2* start,  Vector2* stop) {
 	
 	
-	RoadNode* n, *n2;
 	
 	//printf("start/stop: %f,%f / %f,%f\n", start->x, start->y, stop->x, stop->y);
 	
-	int i1 = RoadNetwork_GetNodeRadius(w->roads, start, 10);
-	int i2 = RoadNetwork_GetNodeRadius(w->roads, stop, 10);
+	RoadNode* i1 = RoadNetwork_GetNodeRadius(w->roads, start, 10);
+	RoadNode* i2 = RoadNetwork_GetNodeRadius(w->roads, stop, 10);
 	
-	if(i1 == -1) {
-		n = pcalloc(n);
-		n->pos = *start;
-		i1 = RoadNetwork_AddNode(w->roads, n);
+	if(i1 == NULL) {
+		i1 = RoadNetwork_AddNode(w->roads, *start);
 	}
 	
-	if(i2 == -1 || i1 == i2) { // duplicate nodes can cause an fp exception deeper in the decal calculation
-		n2 = pcalloc(n2);
-		n2->pos = *stop;
-		i2 = RoadNetwork_AddNode(w->roads, n2);
+	if(i2 == NULL || i1 == i2) { // duplicate nodes can cause an fp exception deeper in the decal calculation
+		i2 = RoadNetwork_AddNode(w->roads, *stop);
 	}
 		
-	Road_AddEdge1Way(w->roads, i1, i2);
+	Road_AddEdge(w->roads, i1, i2);
 	
 	RoadNetwork_FlushDirty(w->roads, w);
-	
 	
 }
 

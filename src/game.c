@@ -995,18 +995,18 @@ void runLogic(GameState* gs, InputState* is) {
 		
 		// choose a random road intersection
 		int n = rand() % VEC_LEN(&rn->edges);
-		printf("n: %d\n", n);
-		RoadEdge* edge = &VEC_ITEM(&rn->edges, n);
-		RoadNode* node = VEC_ITEM(&rn->nodes, edge->from);
+// 		printf("n: %d\n", n);
+		RoadEdge* edge = VEC_ITEM(&rn->edges, n);
+		RoadNode* node = edge->from;
 		
 		// put a tree at the intersection
-		Vector v = {node->pos.x, node->pos.y, 20};
+		Vector v = {node->pos.x, node->pos.y, 0};
 		uint32_t eid = World_spawnAt_Item(gs->world, "tree", &v);
-		printf("adding eid: %d\n", eid);
+// 		printf("adding eid: %d\n", eid);
 		
 		// have it wander around
 		C_RoadWander crw;
-		crw.speed = .5;
+		crw.speed = 7.5;
 		crw.distTravelled = 0;
 		crw.edge = edge;
 		
@@ -1028,22 +1028,25 @@ void roadWanderSystem(GameState* gs, InputState* is) {
 	
 	ComponentManager_start(wanderComp, &windex);
 	ComponentManager_start(posComp, &pindex);
-	//pindex.index = -1;
 	
 	uint32_t eid = 0;
 	C_RoadWander* rw;
 	while(rw = ComponentManager_next(wanderComp, &windex, &eid)) { 
-	//	break;
 		Vector* pos;
 		
 		if(!(pos = ComponentManager_nextEnt(posComp, &pindex, eid))) {
-	//		printf("m\n");
 			 continue;
 		}
-	//	printf("eid %d \n", eid);
+
+		rw->distTravelled = rw->distTravelled + (rw->speed * gs->frameSpan * (1 / rw->edge->length));
 		
-		//printf("%f,%f,%f\n", pos->x, pos->y, pos->z);
-		rw->distTravelled += fmod(rw->speed * gs->frameSpan, 1.0) ;
+		if(rw->distTravelled >= 1.0) {
+			RoadEdge* e = RoadNode_GetRandomOutEdge(gs->world->roads, rw->edge->to);
+			if(e) rw->edge = e;
+			
+			rw->distTravelled = fmod(rw->distTravelled, 1.0);
+		}
+		
 		Vector2 p2 = RoadNetwork_Lerp(gs->world->roads, rw->edge->from, rw->edge->to, rw->distTravelled);
 		
 		pos->x = p2.x;
