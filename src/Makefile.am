@@ -2,7 +2,8 @@
 
 bin_PROGRAMS = eacsmb
 
-
+# add modscan to the list below for automatic scanning
+#  it kills rebuild performance
 eacsmb_SOURCES = main.c \
 	btree.c \
 	builder/render.c \
@@ -87,6 +88,7 @@ AM_CFLAGS = "-I/usr/include/freetype2" -std=gnu11 -g -DLINUX \
 	-Werror-implicit-function-declaration
 	
 AM_CXXFLAGS = $(AM_CFLAGS)
+
 
 
 

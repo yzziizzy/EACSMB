@@ -245,10 +245,14 @@ void initGame(XStuff* xs, GameState* gs) {
 	msIdent(proj);
 	
 	
+	#include "../mods/GameState_init.generated_thunk.c" 
+	
+	
 	gs->world = calloc(1, sizeof(*gs->world));
 	gs->world->gs = gs;
 	World_init(gs->world);
 
+	
 }
 
 void initGameGL(XStuff* xs, GameState* gs) {
@@ -419,10 +423,10 @@ void initGameGL(XStuff* xs, GameState* gs) {
 	//GUIRegisterObject(geditTest, NULL);
 	//InputFocusStack_PushTarget(&gs->ifs, geditTest, inputHandlers);
 
+		
+	#include "../mods/GameState_initGL.generated_thunk.c" 
 	
-// 	gs->world = calloc(1, sizeof(*gs->world));
-// 	gs->world->gs = gs;
-// 	World_init(gs->world);
+	
 	World_initGL(gs->world);
 	
 	

@@ -180,6 +180,8 @@ typedef struct GameState {
 	SoundManager* sound;
 #endif
 	
+	#include "../mods/GameState.generated_mixin.h" 
+	
 } GameState;
 
 

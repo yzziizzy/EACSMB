@@ -1,12 +1,13 @@
 
-# juuunk := $(shell ./scanMods.sh)
+
+# kills build caching atm
 modscan:
 	./scanMods.sh --quiet
-
-bin_SCRIPTS = modscan
+#BUILT_SOURCES = modscan
 
 
 SUBDIRS = src
+
 
 ACLOCAL_AMFLAGS = -I m4
 

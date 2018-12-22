@@ -178,6 +178,8 @@ void World_init(World* w) {
 	
 // 	World_spawnAt_CustomDecal(w, 0, 1, &(Vector2){100, 100}, &(Vector2){300, 300});
 	
+	#include "../mods/World_init.generated_thunk.c" 
+	
 }
 
 void World_initGL(World* w) {
@@ -284,7 +286,7 @@ void World_initGL(World* w) {
 	ShadowMap_addPass(w->sunShadow, shadPass);
 	ShadowMap_addPass(w->sunShadow, shadPass1);
 	
-	
+	#include "../mods/World_initGL.generated_thunk.c" 
 }
 
 

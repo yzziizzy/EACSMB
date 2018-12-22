@@ -156,8 +156,8 @@ typedef struct World {
 	VEC(ItemInstance*) itemInstances;
 	VEC(PartInstance*) partInstances;
 	
-
 	
+	#include "../mods/World.generated_mixin.h" 
 	
 } World;
 

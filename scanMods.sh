@@ -2,14 +2,14 @@
 
 STRUCTS="
 World
-Game
+GameState
 "
 
 THUNKS="
 World_init
 World_initGL
-Game_init
-Game_initGL
+GameState_init
+GameState_initGL
 "
 
 
