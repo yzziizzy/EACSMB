@@ -219,19 +219,23 @@ config. See `texgen.[ch]`
 	* Menu boxes
 	* Scroll bars and scrollable windows (depends on clipping)
 	* Input fields and text areas
+	* Image-based radio buttons (tool selection)
+	* Tab Control
 * SDF calculation on the GPU. (current multithreaded version is not *too* bad.)
 * 3D gui (positioned in the world rather than overlayed in 2D.)
 * Consistent z offsets for child windows to prevent flickering from inconsistent sorting
 * Animations
 
+
 ## Petty Basic Optimization
 * TextureAtlas_addFolder()
 * Many of the texgen algorithms
+* `const` in function arguments where needed
 
 ## Gameplay
 * Road networks
 * Pipe Lines (sequences of meshes in a line, like sewer pipes - needs better name)
-
+* Code to find an area to place something beside roads
 
 
 # Reference

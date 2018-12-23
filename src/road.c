@@ -10,6 +10,15 @@
 
 
 
+static int isOutEdge(const RoadEdge* const e, const RoadNode* const from) {
+	return (e->flags & ROADFLAG_2WAY || from == e->from);
+} 
+
+static int isInEdge(const RoadEdge* const e, const RoadNode* const to) {
+	return (e->flags & ROADFLAG_2WAY || to == e->to);
+} 
+
+
 
 
 
@@ -46,6 +55,7 @@ RoadNode* RoadNetwork_AddNode(RoadNetwork* rn, Vector2 pos) {
 }
 
 
+
 RoadEdge* RoadNode_GetRandomOutEdge(RoadNetwork* rn, RoadNode* n) {
 	int len = VEC_LEN(&n->outEdges);
 	if(len == 0) return NULL;
@@ -68,16 +78,15 @@ RoadEdge* RoadEdge_alloc(RoadNode* from, RoadNode* to) {
 // bidirection
 void Road_AddEdge(RoadNetwork* rn, RoadNode* from, RoadNode* to) {
 	
-	RoadEdge* ft = RoadEdge_alloc(from, to);
-	RoadEdge* tf = RoadEdge_alloc(to, from);
+	RoadEdge* e = RoadEdge_alloc(from, to);
+	e->flags |= ROADFLAG_2WAY;
 	
 	float l = vDist2(&from->pos, &to->pos);
-	VEC_PUSH(&rn->edges, ft);
-	VEC_PUSH(&rn->edges, tf);
-	VEC_PUSH(&from->outEdges, ft);
-	VEC_PUSH(&to->outEdges, tf);
+	VEC_PUSH(&rn->edges, e);
+	VEC_PUSH(&from->outEdges, e);
+	VEC_PUSH(&to->outEdges, e);
 	
-	VEC_PUSH(&rn->edgeDirtyList, ft);
+	VEC_PUSH(&rn->edgeDirtyList, e);
 }
 
 // unidirectional
@@ -109,10 +118,10 @@ Vector2 RoadNetwork_LerpEdge(RoadNetwork* rn, int e, float t) {
 // 	return out;
 }
 
-Vector2 RoadNetwork_Lerp(RoadNetwork* rn, RoadNode* from, RoadNode* to, float t) {
+Vector2 RoadNetwork_Lerp(RoadNetwork* rn, RoadNode* from, RoadNode* to, float t, char backwards) {
 	Vector2 out;
 	
-	vLerp2(&from->pos, &to->pos, t, &out);
+	vLerp2(backwards ? &to->pos : &from->pos, backwards ? &from->pos : &to->pos, t, &out);
 	
 	return out;
 }

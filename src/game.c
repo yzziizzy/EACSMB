@@ -735,7 +735,32 @@ static void main_key_handler(InputEvent* ev, GameState* gs) {
 	}
 	
 	if(ev->character == 'k') {
+		RoadNetwork* rn = gs->world->roads; 
+	
+
+		if(VEC_LEN(&rn->edges) == 0) return;
 		
+		// choose a random road intersection
+		int n = rand() % VEC_LEN(&rn->edges);
+// 		printf("n: %d\n", n);
+		RoadEdge* edge = VEC_ITEM(&rn->edges, n);
+		RoadNode* node = edge->from;
+		
+		// put a tree at the intersection
+		Vector v = {node->pos.x, node->pos.y, 0};
+		uint32_t eid = World_spawnAt_Item(gs->world, "tree", &v);
+// 		printf("adding eid: %d\n", eid);
+		
+		// have it wander around
+		C_RoadWander crw;
+		crw.speed = 7.5;
+		crw.distTravelled = 0;
+		crw.edge = edge;
+		
+		CES_addComponentName(&gs->ces, "roadWander", eid, &crw);
+	
+
+
 		
 	}
 }  
@@ -988,11 +1013,11 @@ void checkResize(XStuff* xs, GameState* gs) {
 // temp hack
 void runLogic(GameState* gs, InputState* is) {
 	static double spawnTimer = 0;
-	
+	return;
 	RoadNetwork* rn = gs->world->roads; 
 	
 	spawnTimer += gs->frameSpan;
-	if(spawnTimer > 3.0) {
+	if(spawnTimer > 6.0) {
 		spawnTimer = 0;
 		
 		if(VEC_LEN(&rn->edges) == 0) return;
@@ -1045,13 +1070,20 @@ void roadWanderSystem(GameState* gs, InputState* is) {
 		rw->distTravelled = rw->distTravelled + (rw->speed * gs->frameSpan * (1 / rw->edge->length));
 		
 		if(rw->distTravelled >= 1.0) {
-			RoadEdge* e = RoadNode_GetRandomOutEdge(gs->world->roads, rw->edge->to);
+			RoadEdge* oe = rw->edge;
+			RoadNode* at = rw->backwards ? rw->edge->from : rw->edge->to; 
+		
+			RoadEdge* e = RoadNode_GetRandomOutEdge(gs->world->roads, at);
 			if(e) rw->edge = e;
 			
+			
+			rw->backwards = e->from != at;
+			//printf("\nat: %p \n", at);
+			//printf("backwards %d %p %p / %p %p\n", rw->backwards, e->from, e->to, oe->from, oe->to);
 			rw->distTravelled = fmod(rw->distTravelled, 1.0);
 		}
 		
-		Vector2 p2 = RoadNetwork_Lerp(gs->world->roads, rw->edge->from, rw->edge->to, rw->distTravelled);
+		Vector2 p2 = RoadNetwork_Lerp(gs->world->roads, rw->edge->from, rw->edge->to, rw->distTravelled, rw->backwards);
 		
 		pos->x = p2.x;
 		pos->y = p2.y;

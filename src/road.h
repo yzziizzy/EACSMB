@@ -29,6 +29,10 @@ do { \
 
 #define LL_HEAD(list) LL_DATA((list)->head)
 
+
+#define ROADFLAG_2WAY 0x0001
+
+
 struct RoadEdge;
 typedef struct RoadEdge RoadEdge;
 
@@ -44,6 +48,10 @@ typedef struct RoadNode {
 typedef struct RoadEdge {
 	RoadNode* from, *to;
 	float length;
+	
+	uint16_t flags;
+	
+	uint16_t type;
 	
 	uint32_t eid;
 } RoadEdge;
@@ -70,7 +78,7 @@ void RoadNetwork_init(RoadNetwork* rn);
 RoadNode* RoadNetwork_AddNode(RoadNetwork* rn, Vector2 pos);
 void Road_AddEdge(RoadNetwork* rn, RoadNode* from, RoadNode* to);
 void Road_AddEdge1Way(RoadNetwork* rn, int from, int to);
-Vector2 RoadNetwork_Lerp(RoadNetwork* rn, RoadNode* from, RoadNode* to, float t);
+Vector2 RoadNetwork_Lerp(RoadNetwork* rn, RoadNode* from, RoadNode* to, float t, char backwards);
 Vector2 RoadNetwork_LerpEdge(RoadNetwork* rn, int e, float t);
 
 

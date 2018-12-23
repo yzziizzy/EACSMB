@@ -23,8 +23,8 @@ function processStruct() {
 	
 	if [ -f $dir/$hname.mixin.h ]; then
 		echo "  struct $hname"
-		echo -e "// from ENGINE_ROOT/$dir/$hname.mixin.h \nstruct {" >> $MODSDIR/$hname.generated_mixin.h
-		echo -e "#include \"$dir/$hname.mixin.h\"" >> $MODSDIR/$hname.generated_mixin.h 
+		echo -e "\nstruct {" >> $MODSDIR/$hname.generated_mixin.h
+		echo -e "#include \"$dir/$hname.mixin.h\"" | sed s/^/\\t/  >> $MODSDIR/$hname.generated_mixin.h 
 		echo -e "} mod_$modname;\n" >> $MODSDIR/$hname.generated_mixin.h
 	fi
 	
@@ -37,7 +37,7 @@ function processThunk() {
 	
 	if [ -f $dir/$hname.thunk.c ]; then
 		echo "  thunk $hname"
-		echo -e "// from ENGINE_ROOT/$dir/$hname.thunk.c \n{" >> $MODSDIR/$hname.generated_thunk.c
+		echo -e "\n{" >> $MODSDIR/$hname.generated_thunk.c
 		echo -e "#include \"$dir/$hname.thunk.c\"" | sed s/^/\\t/ >> $MODSDIR/$hname.generated_thunk.c 
 		echo -e "};\n" >> $MODSDIR/$hname.generated_thunk.c
 	fi

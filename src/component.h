@@ -128,6 +128,7 @@ typedef struct C_RoadWander {
 	struct RoadEdge* edge;
 	float speed;
 	float distTravelled;
+	char backwards;
 } C_RoadWander;
 
 
