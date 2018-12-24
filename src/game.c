@@ -156,6 +156,7 @@ void initGame(XStuff* xs, GameState* gs) {
 		{"rotation", sizeof(C_Rotation)},
 		{"mapHeightUpdate", sizeof(uint8_t)},
 		{"angularVelocity", sizeof(float)},
+		{"agent", sizeof(C_Agent)},
 		{"pathFollow", sizeof(C_PathFollow)},
 		{"roadWander", sizeof(C_RoadWander)},
 		{0, 0},
@@ -388,8 +389,10 @@ void initGameGL(XStuff* xs, GameState* gs) {
 	GUIRegisterObject(gglTest, NULL);
 
 	
-	
-	
+	GUIFloatMonitor* gfm = GUIFloatMonitor_new(gs->gui, "the num: %f", &gs->zoom);
+	gfm->header.topleft = (Vector2){300, 0};
+	GUIRegisterObject(gfm, NULL);
+
 	
 	json_file_t* guijsf;
 	

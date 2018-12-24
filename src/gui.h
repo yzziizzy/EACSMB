@@ -6,7 +6,6 @@
 #include "common_gl.h"
 #include "common_math.h"
 
-#include "text/text.h"
 #include "input.h"
 #include "texture.h"
 // #include "game.h"
@@ -153,6 +152,7 @@ typedef struct GUIHeader {
 #include "ui/edit.h"
 #include "ui/columnLayout.h"
 #include "ui/gridLayout.h"
+#include "ui/monitors.h"
 
 
 
