@@ -389,7 +389,7 @@ void initGameGL(XStuff* xs, GameState* gs) {
 	GUIRegisterObject(gglTest, NULL);
 
 	
-	GUIFloatMonitor* gfm = GUIFloatMonitor_new(gs->gui, "the num: %f", &gs->zoom);
+	GUIValueMonitor* gfm = GUIValueMonitor_new(gs->gui, "dynamic meshes: %d", &gs->world->dmm->totalInstances, 'i');
 	gfm->header.topleft = (Vector2){300, 0};
 	GUIRegisterObject(gfm, NULL);
 

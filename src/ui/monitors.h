@@ -2,22 +2,23 @@
 #define __EACSMB_ui_monitors_h__
 
 
-typedef struct GUIFloatMonitor {
+typedef struct GUIValueMonitor {
 	GUIHeader header;
 	
 	GUIText* text;
 	
 	char* format;
-	float* target;
+	void* target;
+	char type;
 	
 	char* buffer;
 	size_t bufferLen;
 	
-} GUIFloatMonitor;
+} GUIValueMonitor;
 
 
 
-GUIFloatMonitor* GUIFloatMonitor_new(GUIManager* gm, char* format, float* target);
+GUIValueMonitor* GUIValueMonitor_new(GUIManager* gm, char* format, void* target, char type);
 
 
 

@@ -165,6 +165,7 @@ union GUIObject {
 	GUIImage image;
 	GUIColumnLayout columnLayout;
 	GUIGridLayout gridLayout;
+	GUIValueMonitor valueMonitor;
 };
 
 
