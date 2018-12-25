@@ -17,9 +17,10 @@
 
 #include "c3dlas/c3dlas.h"
 #include "c3dlas/meshgen.h"
-#include "text/text.h"
 #include "c_json/json.h"
 #include "json_gl.h"
+
+#include "mempool.h"
 
 #include "utilities.h"
 #include "config.h"

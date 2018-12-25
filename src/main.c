@@ -22,7 +22,6 @@
 
 #include "c3dlas/c3dlas.h"
 #include "c3dlas/meshgen.h"
-#include "text/text.h"
 
 #include "log.h"
 

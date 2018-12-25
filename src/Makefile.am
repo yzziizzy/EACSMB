@@ -22,6 +22,7 @@ eacsmb_SOURCES = main.c \
 	dynamicMesh.c \
 	emitter.c \
 	fbo.c \
+	fcfg.c \
 	font.c \
 	game.c \
 	gui.c \
@@ -36,6 +37,7 @@ eacsmb_SOURCES = main.c \
 	map.c \
 	mapgen.c \
 	marker.c \
+	mempool.c \
 	MurmurHash3.c \
 	objloader.c \
 	opensimplex.c \
@@ -57,8 +59,6 @@ eacsmb_SOURCES = main.c \
 	sound.c \
 	sound/vorbis.c \
 	staticMesh.c \
-	text/fcfg.c \
-	text/text.c \
 	texgen.c \
 	texture.c \
 	textureAtlas.c \

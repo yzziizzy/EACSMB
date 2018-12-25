@@ -11,7 +11,7 @@
 #include <sys/sysinfo.h>
 
 // FontConfig
-#include "text/fcfg.h"
+#include "fcfg.h"
 
 // for sdf debugging
 #include "dumpImage.h"
