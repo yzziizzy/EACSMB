@@ -8,6 +8,8 @@
 #include "ds.h"
 #include "hash.h"
 
+#include "mempool.h"
+
 #include "settings.h"
 #include "texture.h"
 #include "pcBuffer.h"
@@ -43,6 +45,8 @@ typedef struct CustomDecalInstance {
 	
 }  __attribute__ ((packed)) CustomDecalInstance;
 
+
+// mostly used for render order
 typedef struct CustomDecal {
 	char* name;
 	
@@ -51,7 +55,8 @@ typedef struct CustomDecal {
 	float renderWeight;
 	
 	float thickness;
-	VEC(CustomDecalInstance) instances;
+	VECMP(CustomDecalInstance) instances;
+	VEC(CustomDecalInstance*) ephInstances;
 	int numToDraw; // todo: move
 } CustomDecal;
 
@@ -77,6 +82,7 @@ typedef struct CustomDecalManager {
 	
 	TextureManager* tm;
 
+	MemPool* instPool;
 
 } CustomDecalManager;
 
@@ -88,6 +94,10 @@ int CustomDecalManager_AddDecal(CustomDecalManager* dm, char* name, CustomDecal*
 void CustomDecalManager_updateMatrices(CustomDecalManager* dm, PassFrameParams* pfp);
 int CustomDecalManager_lookupName(CustomDecalManager* dm, char* name);
 int CustomDecalManager_AddInstance(CustomDecalManager* dm, int index, const CustomDecalInstance* di);
+
+CustomDecalInstance* CustomDecalManager_AddEphInstance(CustomDecalManager* dm, int index, const CustomDecalInstance* di);
+void CustomDecalManager_DelEphInstance(CustomDecalManager* dm, CustomDecalInstance* di);
+
 CustomDecalManager* CustomDecalManager_alloc(GlobalSettings* gs); 
 void CustomDecalManager_init(CustomDecalManager* dm, GlobalSettings* gs); 
 void CustomDecalManager_initGL(CustomDecalManager* dm, GlobalSettings* gs); 

@@ -15,6 +15,7 @@
 #include "objloader.h"
 #include "shader.h"
 #include "pass.h"
+#include "component.h"
 
 #include "c_json/json.h"
 
@@ -220,6 +221,8 @@ void CustomDecalManager_init(CustomDecalManager* dm, GlobalSettings* gs) {
 	HT_init(&dm->lookup, 6);
 	
 	dm->maxInstances = gs->CustomDecalManager_maxInstances;
+	
+	dm->instPool = MemPool_alloc(sizeof(CustomDecalInstance), 1024 * 64);
 }
 
 
@@ -271,8 +274,8 @@ int CustomDecalManager_AddInstance(CustomDecalManager* dm, int index, const Cust
 	//printf("adding instance: %d ", meshIndex);
 	d = VEC_ITEM(&dm->decals, index);
 	
-	VEC_PUSH(&d->instances, *di);
-	ldi = &VEC_TAIL(&d->instances);
+	VECMP_INSERT(&d->instances, *di);
+	ldi = VECMP_LAST_INSERT(&d->instances);
 	ldi->thickness = d->thickness;
 	ldi->texIndex = d->texIndex;
 	printf("texindex: %d\n", d->texIndex);
@@ -281,7 +284,41 @@ int CustomDecalManager_AddInstance(CustomDecalManager* dm, int index, const Cust
 	
 	//printf("add instance: %d", mm->totalInstances, VEC_LEN(&msh->instances[0]));
 	
-	return VEC_LEN(&d->instances);
+	//return ldi;
+	return VECMP_LEN(&d->instances);
+}
+
+
+CustomDecalInstance* CustomDecalManager_AddEphInstance(CustomDecalManager* dm, int index, const CustomDecalInstance* di) {
+	CustomDecalInstance* l_cdi;
+	CustomDecal* d; 
+	
+	d = VEC_ITEM(&dm->decals, index);
+	
+	l_cdi = MemPool_malloc(dm->instPool);
+	if(di) *l_cdi = *di;
+	l_cdi->thickness = d->thickness;
+	l_cdi->texIndex = d->texIndex;
+	
+	VEC_PUSH(&d->ephInstances, l_cdi);
+	
+	dm->totalInstances++;
+	
+	return l_cdi;
+}
+
+void CustomDecalManager_DelEphInstance(CustomDecalManager* dm, CustomDecalInstance* di) {
+	
+	// shit. fix later.
+	VEC_EACH(&dm->decals, i1, d) {
+		VEC_EACH(&d->ephInstances, i2, ldi) {
+			VEC_RM(&d->ephInstances, i2);
+			dm->totalInstances--;
+			MemPool_free(dm->instPool, di);
+			return;
+		}
+	}
+	
 }
 
 // returns the index of the instance
@@ -302,6 +339,8 @@ int CustomDecalManager_lookupName(CustomDecalManager* dm, char* name) {
 // returns the index if the decal
 int CustomDecalManager_AddDecal(CustomDecalManager* dm, char* name, CustomDecal* d) {
 	int index;
+	
+	VECMP_INIT(&d->instances, 1024 * 1024);
 	
 	VEC_PUSH(&dm->decals, d);
 	//mm->totalVertices += m->vertexCnt;
@@ -337,9 +376,10 @@ void CustomDecalManager_updateMatrices(CustomDecalManager* dm, PassFrameParams* 
 		CustomDecal* d = VEC_ITEM(&dm->decals, decal_index);
 		d->numToDraw = 0;
 		
+		// normal instances are intended to have long lifespans
+		
 		// TODO make instances switch per frame
-		for(i = 0; i < VEC_LEN(&d->instances); i++) {
-			CustomDecalInstance* di = &VEC_ITEM(&d->instances, i);
+		VECMP_EACH(&d->instances, i, di) {
 // 			printf("cdi: %d\n", di->texIndex);
 			float dist = vDist(&di->pos1, &pfp->dp->eyePos);
 				
@@ -355,6 +395,18 @@ void CustomDecalManager_updateMatrices(CustomDecalManager* dm, PassFrameParams* 
 			
 			vmem++;
 		}
+
+		// ephemeral instances are temporary by design and used 
+		// for things like cursors and user feedback
+		VEC_EACH(&d->ephInstances, i, di) {
+			// ephemeral instances of custom decal are always drawn. 
+			d->numToDraw++;
+			
+			// only write sequentially. random access is very bad.
+			*vmem = *di;
+			vmem++;
+		}
+		
 		//vmem += VEC_LEN(&dm->instances);
 		//printf("num to draw %d\n", d->numToDraw);
 	}
@@ -399,7 +451,8 @@ static void preFrame(PassFrameParams* pfp, CustomDecalManager* dm) {
 		//printf("instances %d %d \n", ro_index, d->numToDraw );
 		
 		// index_offset += 36;// decals only have one mesh
-		instance_offset += VEC_LEN(&d->instances);
+		// TODO BUG what? seems wrong
+		instance_offset += VECMP_LEN(&d->instances);
 	}
 }
 
@@ -443,7 +496,7 @@ glexit("");
 	glBindBuffer(GL_ARRAY_BUFFER, geomVBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geomIBO);
 	
-	PCBuffer_bind(&dm->instVB);	
+	PCBuffer_bind(&dm->instVB);
 	PCBuffer_bind(&dm->indirectCmds);
 	
 	// there's just one mesh for decals atm
