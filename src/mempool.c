@@ -200,15 +200,15 @@ int MemPoolT_isSlotUsed(MemPoolT* mp, size_t index) {
 
 void* MemPoolT_getNextUsedIndex(MemPoolT* mp, size_t* index) { 
 	if(mp->fill <= 0) return NULL;
+	
 	while(!mpt_get_bit(mp, *index + 1)) {
 		*index++;
-		printf("skipping index: %d\n", *index);
+		
 		if(*index >= mp->highestUsed - 1) {
-			printf("highest used: %d, %d \n", *index, mp->highestUsed);
 			return NULL;
 		}
 	}
-	printf("next item: %d %d\n", *index, mp->highestUsed);
+
 	if(*index >= mp->highestUsed - 1) return NULL;
 	
 	return mp->pool + (*index * mp->itemSize);
