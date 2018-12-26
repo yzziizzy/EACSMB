@@ -222,7 +222,7 @@ void CustomDecalManager_init(CustomDecalManager* dm, GlobalSettings* gs) {
 	
 	dm->maxInstances = gs->CustomDecalManager_maxInstances;
 	
-	dm->instPool = MemPool_alloc(sizeof(CustomDecalInstance), 1024 * 64);
+// 	dm->instPool = MemPool_alloc(sizeof(CustomDecalInstance), 1024 * 64);
 }
 
 
@@ -259,7 +259,7 @@ int CustomDecalManager_AddInstanceStrip(CustomDecalManager* dm, int index, Vecto
 
 
 // returns the index of the instance
-int CustomDecalManager_AddInstance(CustomDecalManager* dm, int index, const CustomDecalInstance* di) {
+CustomDecalInstance* CustomDecalManager_AddInstance(CustomDecalManager* dm, int index, const CustomDecalInstance* di) {
 	
 	CustomDecal* d; 
 	CustomDecalInstance* ldi;
@@ -284,11 +284,20 @@ int CustomDecalManager_AddInstance(CustomDecalManager* dm, int index, const Cust
 	
 	//printf("add instance: %d", mm->totalInstances, VEC_LEN(&msh->instances[0]));
 	
-	//return ldi;
-	return VECMP_LEN(&d->instances);
+	return ldi;
+}
+
+void CustomDecalManager_DelInstance(CustomDecalManager* dm, CustomDecalInstance* di) {
+	VEC_EACH(&dm->decals, i, d) {
+		if(VECMP_OWNS_PTR(&d->instances, di)) {
+			VECMP_DELETE(&d->instances, di);
+			return;
+		}
+	}
 }
 
 
+/*
 CustomDecalInstance* CustomDecalManager_AddEphInstance(CustomDecalManager* dm, int index, const CustomDecalInstance* di) {
 	CustomDecalInstance* l_cdi;
 	CustomDecal* d; 
@@ -319,7 +328,7 @@ void CustomDecalManager_DelEphInstance(CustomDecalManager* dm, CustomDecalInstan
 		}
 	}
 	
-}
+}*/
 
 // returns the index of the instance
 int CustomDecalManager_lookupName(CustomDecalManager* dm, char* name) {
@@ -395,7 +404,7 @@ void CustomDecalManager_updateMatrices(CustomDecalManager* dm, PassFrameParams* 
 			
 			vmem++;
 		}
-
+/*
 		// ephemeral instances are temporary by design and used 
 		// for things like cursors and user feedback
 		VEC_EACH(&d->ephInstances, i, di) {
@@ -406,7 +415,7 @@ void CustomDecalManager_updateMatrices(CustomDecalManager* dm, PassFrameParams* 
 			*vmem = *di;
 			vmem++;
 		}
-		
+		*/
 		//vmem += VEC_LEN(&dm->instances);
 		//printf("num to draw %d\n", d->numToDraw);
 	}

@@ -28,7 +28,7 @@ typedef struct CustomDecalVertex {
 
 
 typedef struct CustomDecalInstance {
-	Vector pos1; // shouldn't this only be 2 components?
+	Vector pos1; // shouldn't this only be 2D?
 	float thickness;
 	
 	Vector pos2;
@@ -56,7 +56,7 @@ typedef struct CustomDecal {
 	
 	float thickness;
 	VECMP(CustomDecalInstance) instances;
-	VEC(CustomDecalInstance*) ephInstances;
+// 	VEC(CustomDecalInstance*) ephInstances;
 	int numToDraw; // todo: move
 } CustomDecal;
 
@@ -82,7 +82,7 @@ typedef struct CustomDecalManager {
 	
 	TextureManager* tm;
 
-	MemPool* instPool;
+// 	MemPool* instPool;
 
 } CustomDecalManager;
 
@@ -93,10 +93,11 @@ RenderPass* CustomDecalManager_CreateRenderPass(CustomDecalManager* lm);
 int CustomDecalManager_AddDecal(CustomDecalManager* dm, char* name, CustomDecal* d);
 void CustomDecalManager_updateMatrices(CustomDecalManager* dm, PassFrameParams* pfp);
 int CustomDecalManager_lookupName(CustomDecalManager* dm, char* name);
-int CustomDecalManager_AddInstance(CustomDecalManager* dm, int index, const CustomDecalInstance* di);
+CustomDecalInstance* CustomDecalManager_AddInstance(CustomDecalManager* dm, int index, const CustomDecalInstance* di);
+void CustomDecalManager_DelInstance(CustomDecalManager* dm, CustomDecalInstance* di);
 
-CustomDecalInstance* CustomDecalManager_AddEphInstance(CustomDecalManager* dm, int index, const CustomDecalInstance* di);
-void CustomDecalManager_DelEphInstance(CustomDecalManager* dm, CustomDecalInstance* di);
+// CustomDecalInstance* CustomDecalManager_AddEphInstance(CustomDecalManager* dm, int index, const CustomDecalInstance* di);
+// void CustomDecalManager_DelEphInstance(CustomDecalManager* dm, CustomDecalInstance* di);
 
 CustomDecalManager* CustomDecalManager_alloc(GlobalSettings* gs); 
 void CustomDecalManager_init(CustomDecalManager* dm, GlobalSettings* gs); 

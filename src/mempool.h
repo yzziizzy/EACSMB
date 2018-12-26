@@ -9,10 +9,11 @@
 //  interrupts when a new page of virtual memory is written to for the first time.
 
 // Does not:
-//   Handle doulbe free()'s. Only call free once.
+//   Handle double free()'s. Only call free once.
 //   Handle threads. Manage synchronization yourself.
 //   Grow the pool dynamically. Request enough space from the start.
 //   Reserve physical memory with the OS. It's purely virtual until you use it.
+//   Check if the pointer you feed to free belongs to this pool. Be careful.
 
 
 
@@ -54,12 +55,13 @@ void MemPool_free(MemPool* mp, void* ptr);
 //
 
 // Does:
-//   Handle doulbe free()'s. Call free as much as you want.
+//   Handle double free()'s. Call free as much as you want.
 
 // Does not:
 //   Handle threads. Manage synchronization yourself.
 //   Grow the pool dynamically. Request enough space from the start.
 //   Reserve physical memory with the OS. It's purely virtual until you use it.
+//   Check if the pointer you feed to free belongs to this pool. Be careful.
 
 
 
@@ -96,6 +98,7 @@ void MemPoolT_free(MemPoolT* mp, void* ptr);
 // these are 0-based indices used for iteration
 int MemPoolT_isSlotUsed(MemPoolT* mp, size_t index);
 void* MemPoolT_getNextUsedIndex(MemPoolT* mp, size_t* index);
+int MemPoolT_ownsPointer(MemPoolT* mp, void* ptr);
 
 static inline size_t MemPoolT_maxIndex(MemPoolT* mp) { 
 	return mp->highestUsed == 0 ? 0 : mp->highestUsed - 1;
@@ -149,9 +152,7 @@ do { \
 
 
 #define VECMP_LEN(x) ((x)->pool.fill) 
-
-
-
+#define VECMP_OWNS_PTR(x, ptr) (MemPoolT_ownsPointer(&(x)->pool, ptr)) 
 
 
 
@@ -183,6 +184,9 @@ else \
 							VECMP__MAINLOOP(index, val) :
 							
 							//	{ user block; not in macro }
+
+
+
 
 
 

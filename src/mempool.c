@@ -182,8 +182,8 @@ void MemPoolT_free(MemPoolT* mp, void* ptr) {
 	size_t ooff = mp->itemSize * (mp->firstFree - 1);
 	size_t noff = (ptr - mp->pool) / mp->itemSize;
 	
-	if(mpt_get_bit(mp, noff)) {
-		mpt_clear_bit(mp, noff);
+	if(mpt_get_bit(mp, noff + 1)) {
+		mpt_clear_bit(mp, noff + 1);
 		
 		*(size_t*)(mp->pool + ooff) = noff + 1;
 		
@@ -215,4 +215,6 @@ void* MemPoolT_getNextUsedIndex(MemPoolT* mp, size_t* index) {
 }
 
 
-
+int MemPoolT_ownsPointer(MemPoolT* mp, void* ptr) { 
+	return ptr >= mp->pool && ptr < mp->pool + (mp->itemSize * mp->maxItems);
+}
