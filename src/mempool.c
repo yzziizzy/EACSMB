@@ -142,13 +142,15 @@ static inline uint64_t mpt_get_bf_mask(MemPoolT* mp, size_t index) {
 }
 
 static inline void mpt_set_bit(MemPoolT* mp, size_t index) {
-	mp->bitfield[mpt_get_bf_index(mp, index)] |= mpt_get_bf_bit(mp, index);
+	uint64_t mask = mpt_get_bf_mask(mp, index);
+	int i = mpt_get_bf_index(mp, index);
+	mp->bitfield[i] |= mask;
 }
 static inline void mpt_clear_bit(MemPoolT* mp, size_t index) {
-	mp->bitfield[mpt_get_bf_index(mp, index)] &= ~mpt_get_bf_bit(mp, index);
+	mp->bitfield[mpt_get_bf_index(mp, index)] &= ~mpt_get_bf_mask(mp, index);
 }
 static inline int mpt_get_bit(MemPoolT* mp, size_t index) {
-	return 0 != (mp->bitfield[mpt_get_bf_index(mp, index)] & ~mpt_get_bf_bit(mp, index));
+	return 0 != (mp->bitfield[mpt_get_bf_index(mp, index)] & mpt_get_bf_mask(mp, index));
 }
 
 
