@@ -44,7 +44,7 @@ GUIValueMonitor* GUIValueMonitor_new(GUIManager* gm, char* format, void* target,
 
 /*
 static void updatePos(GUIWindow* gw, GUIRenderParams* grp, PassFrameParams* pfp) {
-	Vector2 tl = cui_calcPosGrav(&gw->header, grp);
+	Vector2 tl = gui_calcPosGrav(&gw->header, grp);
 }*/
 
 static void render(GUIValueMonitor* gfm, PassFrameParams* pfp) {

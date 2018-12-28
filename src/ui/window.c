@@ -69,7 +69,7 @@ GUIWindow* GUIWindow_new(GUIManager* gm) {
 
 /*
 static void updatePos(GUIWindow* gw, GUIRenderParams* grp, PassFrameParams* pfp) {
-	Vector2 tl = cui_calcPosGrav(&gw->header, grp);
+	Vector2 tl = gui_calcPosGrav(&gw->header, grp);
 }*/
 
 static void render(GUIWindow* gw, PassFrameParams* pfp) {
@@ -81,7 +81,7 @@ static void render(GUIWindow* gw, PassFrameParams* pfp) {
 	//gw->header.gravity = (gw->header.gravity + 1) % 8;
 	
 	
-	Vector2 tl = gw->header.absTopLeft;//cui_calcPosGrav(&gw->header, grp);
+	Vector2 tl = gw->header.absTopLeft;//gui_calcPosGrav(&gw->header, grp);
 	
 	//printf("tl: %f, %f\n", tl.x, tl.y);
 	
@@ -93,7 +93,7 @@ static void render(GUIWindow* gw, PassFrameParams* pfp) {
 // 			gw->header.topleft.x + gw->header.size.x, gw->header.topleft.y + gw->header.size.y},
 		.pos = {tl.x /*+ gw->header.topleft.x*/, tl.y /*+ gw->header.topleft.y*/,
 			tl.x + /*gw->header.topleft.x +*/ gw->header.size.x, tl.y + /*gw->header.topleft.y +*/ gw->header.size.y},
-		.clip = {150, 110, 800, 600},
+		.clip = {0, 0, 800, 800},
 		
 		.texIndex1 = 0,
 		.texIndex2 = 0,

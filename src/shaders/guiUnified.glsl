@@ -41,10 +41,7 @@ void main() {
 //	vertex.lt_rb = vec4(.5, .5, -.5, -.5);
 	
 	// convert to clip space
-	vertex.clip = (clip_in / vec4(targetSize.xy, targetSize.xy));
-	vertex.clip.x = targetSize.y - vertex.clip.x;
-	vertex.clip.z = targetSize.y - vertex.clip.z;
-	
+	vertex.clip = clip_in;
 	vertex.wh = vec2(abs(lt_rb_in.x - lt_rb_in.z), abs(lt_rb_in.y - lt_rb_in.w)) / 1000;
 	vertex.opacity = .7; 
 	
@@ -163,11 +160,11 @@ uniform sampler2DArray atlasTex;
 void main(void) {
 	
 	// clipping
-	if(gl_FragCoord.x < gs_clip.y || gl_FragCoord.x > gs_clip.w
-		|| gl_FragCoord.y < gs_clip.z || gl_FragCoord.y > gs_clip.x) {
+	if(gl_FragCoord.x < gs_clip.x || gl_FragCoord.x > gs_clip.z
+		|| gl_FragCoord.y < gs_clip.y || gl_FragCoord.y > gs_clip.w) {
 		
-		//out_Color = vec4(1,.1,.1,.4);
-		//return;
+		out_Color = vec4(1,.1,.1,.4);
+		return;
 		
 	//	discard;
 	}

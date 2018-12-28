@@ -77,7 +77,7 @@ static void updatePos(GUIGridLayout* gl, GUIRenderParams* grp, PassFrameParams* 
 	gl->header.size.y = actualRows * gl->spacing.y;
 	gl->header.size.x = gl->maxCols * gl->spacing.x;
 	
-	Vector2 tl = cui_calcPosGrav(&gl->header, grp);
+	Vector2 tl = gui_calcPosGrav(&gl->header, grp);
 	
 	gl->header.absTopLeft = tl;
 	

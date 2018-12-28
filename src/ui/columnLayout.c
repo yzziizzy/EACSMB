@@ -71,7 +71,7 @@ static void updatePos(GUIColumnLayout* cl, GUIRenderParams* grp, PassFrameParams
 	cl->header.size.y = total_h;
 	cl->header.size.x = max_w;
 	
-	Vector2 tl = cui_calcPosGrav(&cl->header, grp);
+	Vector2 tl = gui_calcPosGrav(&cl->header, grp);
 	
 	// columnlayout works by spoofing the renderparams supplied to each child
 	total_h = 0.0;
@@ -84,7 +84,8 @@ static void updatePos(GUIColumnLayout* cl, GUIRenderParams* grp, PassFrameParams
 			.offset = {
 				.x = tl.x,
 				.y = tl.y + total_h 
-			}
+			},
+			.baseZ = grp->baseZ + cl->header.z,
 		};
 		
 		GUIHeader_updatePos(child, &grp2, pfp);

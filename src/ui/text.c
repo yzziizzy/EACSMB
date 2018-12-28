@@ -54,7 +54,7 @@ GUIText* GUIText_new(GUIManager* gm, char* str, char* fontname, float fontSize) 
 /* standard for text
 static void updatePos(GUIText* gt, GUIRenderParams* grp, PassFrameParams* pfp) {
 	GUIHeader* h = &gt->header; 
-	Vector2 tl = cui_calcPosGrav(h, grp);
+	Vector2 tl = gui_calcPosGrav(h, grp);
 	h->absTopLeft = tl;
 	h->absClip = grp->clip;
 	h->absZ = grp->baseZ + h->z;
@@ -68,8 +68,8 @@ static void render(GUIText* gt, GUIRenderParams* grp, PassFrameParams* pfp) {
 	Vector2 tl = gt->header.absTopLeft;
 	
 	float size = 0.45; // HACK
-	float hoff = tl.y +  gt->header.size.y * .75; // HACK
-	float adv = tl.x;
+	float hoff = gt->header.size.y * .75; // HACK
+	float adv = 0;
 	
 	float spaceadv = f->regular[' '].advance;
 	
@@ -81,7 +81,13 @@ static void render(GUIText* gt, GUIRenderParams* grp, PassFrameParams* pfp) {
 		
 		if(c != ' ') {
 			GUIUnifiedVertex* v = GUIManager_checkElemBuffer(gm, 1);
-			writeCharacterGeom(v, ci, gt->header.topleft, size, adv, hoff);
+			writeCharacterGeom(v, ci, gt->header.absTopLeft, size, adv, hoff);
+			
+			v->clip.t = gt->header.absClip.min.y;
+			v->clip.l = gt->header.absClip.min.x;
+			v->clip.b = gt->header.absClip.max.y;
+			v->clip.r = gt->header.absClip.max.x;
+			
 			adv += ci->advance * size; // BUG: needs sdfDataSize added in?
 			v->fg = (struct Color4){255, 128, 64, 255},
 			//v++;

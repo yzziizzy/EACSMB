@@ -130,7 +130,7 @@ void updarePos(GUIImage* go, GUIRenderParams* grp, PassFrameParams* pfp) {
 	
 	GUIHeader* h = &go->header;
 		
-	Vector2 tl = cui_calcPosGrav(h, grp);
+	Vector2 tl = gui_calcPosGrav(h, grp);
 	h->absTopLeft = tl;
 	h->absClip = grp->clip;
 	h->absZ = grp->baseZ + h->z;
@@ -156,7 +156,7 @@ static void render(GUIImage* im, PassFrameParams* pfp) {
 	
 	//just a clipped box
 	
-	Vector2 tl = im->header.absTopLeft; //cui_calcPosGrav(&im->header, grp);
+	Vector2 tl = im->header.absTopLeft; //gui_calcPosGrav(&im->header, grp);
 	
 	
 	GUIUnifiedVertex* v = GUIManager_reserveElements(im->header.gm, 1);
@@ -167,7 +167,10 @@ static void render(GUIImage* im, PassFrameParams* pfp) {
 		.pos.b = tl.y + im->header.size.y,
 		.pos.r = tl.x + im->header.size.x,
 		
-		.clip = {150, 110, 800, 600},
+		.clip.l = im->header.absClip.min.x,
+		.clip.t = im->header.absClip.min.y,
+		.clip.r = im->header.absClip.max.x,
+		.clip.b = im->header.absClip.max.y,
 		
 		.texIndex1 = im->texIndex,
 		.texIndex2 = 0,

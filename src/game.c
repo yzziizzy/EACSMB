@@ -390,10 +390,19 @@ void initGameGL(XStuff* xs, GameState* gs) {
 	GUIRegisterObject(gglTest, NULL);
 
 	
-	GUIValueMonitor* gfm = GUIValueMonitor_new(gs->gui, "dynamic meshes: %d", &gs->world->dmm->totalInstances, 'i');
-	gfm->header.topleft = (Vector2){300, 0};
-	GUIRegisterObject(gfm, NULL);
 
+
+	
+	GUIScrollWindow* gsw = GUIScrollWindow_new(gs->gui);
+	gsw->header.topleft = (Vector2){300, 300};
+	gsw->header.size = (Vector2){100, 100};
+	GUIRegisterObject(gsw, NULL);
+
+	
+	GUIValueMonitor* gfm = GUIValueMonitor_new(gs->gui, "dynamic meshes: %d", &gs->world->dmm->totalInstances, 'i');
+	gfm->header.topleft = (Vector2){200,200};
+	GUIRegisterObject(gfm, gsw);
+	
 	
 	json_file_t* guijsf;
 	

@@ -147,6 +147,7 @@ typedef struct GUIHeader {
 
 #include "ui/window.h"
 #include "ui/text.h"
+#include "ui/scrollWindow.h"
 #include "ui/simpleWindow.h"
 #include "ui/image.h"
 #include "ui/edit.h"

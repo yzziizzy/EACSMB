@@ -48,15 +48,15 @@ GUIManager* GUIManager_alloc(GlobalSettings* gs) {
 
 
 static void updatePosRoot(GUIHeader* gh, GUIRenderParams* always_null, PassFrameParams* pfp) {
-// 	GUIRenderParams grp = {
-// 		.size = h->size,
-// 		.offset = {0,0},
-// 		.clip = {{0,0}, h->size},
-// 		.baseZ = 0,
-// 	};
+	GUIRenderParams grp = {
+		.size = gh->size,
+		.offset = {0,0},
+		.clip = {{0,0}, gh->size},
+		.baseZ = 0,
+	};
 	
 	VEC_EACH(&gh->children, ind, child) {
-		GUIHeader_updatePos(child, always_null, pfp);
+		GUIHeader_updatePos(child, &grp, pfp);
 	}
 }
 
@@ -792,7 +792,7 @@ void gui_defaultUpdatePos(GUIObject* go, GUIRenderParams* grp, PassFrameParams* 
 	
 	GUIHeader* h = &go->h;
 	
-	Vector2 tl = cui_calcPosGrav(h, grp);
+	Vector2 tl = gui_calcPosGrav(h, grp);
 	h->absTopLeft = tl;
 	h->absClip = grp->clip;
 	h->absZ = grp->baseZ + h->z;
@@ -811,6 +811,7 @@ void gui_defaultUpdatePos(GUIObject* go, GUIRenderParams* grp, PassFrameParams* 
 	}
 	
 }
+
 
 
 void GUIObject_triggerClick(GUIObject* go, Vector2 testPos) {
@@ -964,7 +965,7 @@ void GUIHeader_renderChildren(GUIHeader* gh, PassFrameParams* pfp) {
 
 
 // returns absolute top/left offset coordinates for a gui object based on the RP from the parent
-Vector2 cui_calcPosGrav(GUIHeader* h, GUIRenderParams* grp) {
+Vector2 gui_calcPosGrav(GUIHeader* h, GUIRenderParams* grp) {
 	/*
 	printf("grav: %d - %f,%f, %f,%f, %f,%f, %f,%f, \n",
 		   h->gravity,
@@ -1030,7 +1031,7 @@ Vector2 cui_calcPosGrav(GUIHeader* h, GUIRenderParams* grp) {
 
 // returns child coordinates from parent coordinates
 // pt is in parent coordinates
-Vector2 cui_parent2ChildGrav(GUIHeader* child, GUIHeader* parent, Vector2 pt) {
+Vector2 gui_parent2ChildGrav(GUIHeader* child, GUIHeader* parent, Vector2 pt) {
 	
 	// pretend the parent is a root element
 	GUIRenderParams grp = {
@@ -1039,7 +1040,7 @@ Vector2 cui_parent2ChildGrav(GUIHeader* child, GUIHeader* parent, Vector2 pt) {
 	};
 
 	// child's top left in parent coordinates
-	Vector2 ctl = cui_calcPosGrav(child, &grp);
+	Vector2 ctl = gui_calcPosGrav(child, &grp);
 	printf("ctl: %f, %f | %f, %f\n", pt.x, pt.y, ctl.x, ctl.y);
 	return (Vector2) {
 		.x = pt.x - ctl.x,
