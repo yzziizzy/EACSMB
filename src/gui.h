@@ -6,6 +6,8 @@
 #include "common_gl.h"
 #include "common_math.h"
 
+#include "utilities.h"
+
 #include "input.h"
 #include "texture.h"
 // #include "game.h"
@@ -141,10 +143,12 @@ typedef struct GUIHeader {
 
 
 
+// Animations
+#include "ui/animations/pulse.h"
 
 
 
-
+// GUI elements
 #include "ui/window.h"
 #include "ui/text.h"
 #include "ui/scrollWindow.h"
