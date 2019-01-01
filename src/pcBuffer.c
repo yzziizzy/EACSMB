@@ -92,6 +92,15 @@ void PCBuffer_bind(PCBuffer* b) {
 	glBindBuffer(b->type, b->bo);
 }
 
+// Can only be used for: 
+//   GL_ATOMIC_COUNTER_BUFFER
+//   GL_TRANSFORM_FEEDBACK_BUFFER
+//   GL_UNIFORM_BUFFER
+//   GL_SHADER_STORAGE_BUFFER
+void PCBuffer_bindActiveRange(PCBuffer* b) {
+	glBindBufferRange(b->type, 0, b->bo, (GLintptr)PCBuffer_getOffset(b), (GLuintptr)b->bufferSize);
+}
+
 
 // terrible code, but use for now
 static int waitSync(GLsync id, char* label) {

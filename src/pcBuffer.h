@@ -37,6 +37,14 @@ void PCBuffer_finishInit(PCBuffer* b);
 void* PCBuffer_beginWrite(PCBuffer* b);
 void PCBuffer_afterDraw(PCBuffer* b);
 void PCBuffer_bind(PCBuffer* b);
+
+// Can only be used for: 
+//   GL_ATOMIC_COUNTER_BUFFER
+//   GL_TRANSFORM_FEEDBACK_BUFFER
+//   GL_UNIFORM_BUFFER
+//   GL_SHADER_STORAGE_BUFFER
+void PCBuffer_bindActiveRange(PCBuffer* b);
+
 size_t PCBuffer_getOffset(PCBuffer* b); // in bytes
 
 
