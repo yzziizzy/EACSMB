@@ -9,7 +9,11 @@
 typedef uint32_t bpt_key_t;
 typedef void* bpt_val_t;
 
+// node organization: 
+// ptr[0] | key[0] | ptr[1] | key[1] | ... | key[N-2] | ptr[N-1]
 
+// leaf organization: 
+// val[0] | key[0] | val[1] | key[1] | ... | val[L-1] | key[L-1] | BPTNode* next
 
 typedef struct BPTNode {
 	unsigned int type: 1; // 0 is leaf, 1 is internal node
@@ -62,7 +66,7 @@ void bpt_free(BPlusTree* tree, int free_data);
 void bpt_insert(BPlusTree* tree, bpt_key_t key, void* val);
 
 
-// finds a key. returns 1 if found, 0 if not found
+// finds a key. returns 1 if found, 0 if not found -- Why is this backwards? fix it?
 int bpt_find(BPlusTree* tree, bpt_key_t key, void** val);
 // like find but also returns info for iteration
 int bpt_find_iter(BPlusTree* tree, bpt_key_t key, void** val, int* iter, BPTNode** node);
@@ -115,8 +119,10 @@ static inline void bpt_put_val_leaf(BPlusTree* tree, BPTNode* n, int index, bpt_
 
 
 static inline void* bpt_seek_node_index(BPlusTree* tree, BPTNode* n, void* p, int seek) {
-static inline BPTNode* bpt_get_node_ptr(BPlusTree* tree, BPTNode* n, int index) {
-static inline bpt_key_t bpt_get_node_key(BPlusTree* tree, BPTNode* n, int index) {
+static inline BPTNode** bpt_get_node_ptr_p(BPlusTree* tree, BPTNode* n, int index) 
+static inline BPTNode*  bpt_get_node_ptr(BPlusTree* tree, BPTNode* n, int index) {
+static inline bpt_key_t* bpt_get_node_key_p(BPlusTree* tree, BPTNode* n, int index) 
+static inline bpt_key_t  bpt_get_node_key(BPlusTree* tree, BPTNode* n, int index) {
 static inline void* bpt_get_node_index(BPlusTree* tree, BPTNode* n, int index) {
 static void bpt_node_find_key_index(BPlusTree* tree, BPTNode* n, bpt_key_t key) {
 

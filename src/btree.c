@@ -142,13 +142,15 @@ static void bpt_free_node(BPlusTree* tree, BPTNode* n, int free_data) {
 }
 
 
+#define MIN(a,b) (a > b ? b : a)
 
-void _print_node(BPlusTree* tree, BPTNode* n, int indent) {
+
+void  _print_node(BPlusTree* tree, BPTNode* n, int indent) {
 	int i;
 	
 	printf("%*scontents [%d] of node %p (parent %p)\n", indent, " ", n->fill, n, n->parent);
 	
-	for(i = 0; i < n->fill; i++) {
+	for(i = 0; i < MIN(n->fill, 30); i++) {
 		bpt_key_t k = bpt_get_node_key(tree, n, i);
 		BPTNode* p = bpt_get_node_ptr(tree, n, i);
 		if(!bpt_is_leaf(p)) {
@@ -176,7 +178,7 @@ void _print_leaf(BPlusTree* tree, BPTNode* n, int indent) {
 	printf("%*scontents [%d] of leaf %p (parent %p)\n%*s> ", indent, " ", n->fill, n, n->parent, indent, " ");
 	
 	
-	for(i = 0; i < n->fill; i++) {
+	for(i = 0; i < MIN(n->fill, 30); i++) {
 		bpt_key_t k = bpt_get_leaf_key(tree, n, i);
 		uint64_t v = *((uint64_t*)bpt_get_leaf_val_p(tree, n, i));
 		printf("%d=%d, ", k, v);
@@ -184,7 +186,7 @@ void _print_leaf(BPlusTree* tree, BPTNode* n, int indent) {
 	
 	
 	BPTNode** pp = bpt_get_leaf_next_ptr(tree, n);
-	printf("-> %p %p\n%*s>----------------------\n", pp, *pp, indent, " ");
+	printf("\n%*s-next-> %p\n%*s>----------------------\n", indent, " ", *pp, indent, " ");
 }
 
 void print_leaf(BPlusTree* tree, BPTNode* n) { return;
@@ -249,7 +251,7 @@ static int bpt_find_key_index_leaf(BPlusTree* tree, BPTNode* n, bpt_key_t key) {
 	
 	for(i = 0; i < n->fill; i++) {
 		bpt_key_t k = bpt_get_leaf_key(tree, n, i);
-		if(key < k) {
+		if(key <= k) {
 			return i;
 		}
 	}
@@ -721,9 +723,176 @@ int bpt_find_iter(BPlusTree* tree, bpt_key_t key, void** val, int* iter, BPTNode
 }
 
 
+
+
+// merges the right node into the left node, under the same parent
+static BPTNode* bpt_merge_leaves(BPlusTree* tree, BPTNode* l, BPTNode* r) {
+	BPTNode** l_next;
+	void* r_src, *l_dest;
+	size_t size;
+	
+	_print_leaf(tree, n, 5);
+	
+	
+	// TODO: test and swap l and r
+	if(*bpt_get_leaf_ptr(tree, l) != r) {
+		BPTNode* tmp = l;
+		l = r;
+		r = tmp;
+	}
+	
+	// append the right node's keys into the left node
+	r_src = bpt_get_leaf_index(tree, r, 0);
+	l_dest = bpt_get_leaf_index(tree, l, l->fill);
+		
+	size = ((r->fill) * (tree->keySz + tree->valSz)) + sizeof(BPTNode*);
+		//printf("make_room_leaf: %d\n", size);
+	memmove(l_dest, r_src, size);
+		
+	l->fill += r->fill;
+	
+	// set the left's list pointer to the right's list pointer 
+	l_next = bpt_get_leaf_next_ptr(tree, l);
+	*l_next = *bpt_get_leaf_next_ptr(tree, r);
+	
+	// clear the right node's fill
+	r->fill = 0; // unnecessary?
+	
+	// caller must free the right node
+	
+	return r;
+}
+
+
+static BPTNode* bpt_get_immediate_sibling(BPlusTree* tree, BPTNode* n) {
+	BPTNode* sib;
+	BPTNode* parent;
+	
+	sib = *bpt_get_leaf_next_ptr(tree, n);
+	printf("  sib: %p, n: %p\n", sib, n); 
+	
+	
+	
+	// easy case, return early
+	if(sib->parent == n->parent) return sib;
+	printf("  sib->parent: %p, n->parent %p \n", sib->parent, n->parent);
+	
+	printf("\nn:\n");
+	_print_leaf(tree, n, 5);
+	printf("\nsib:\n");
+ 	_print_leaf(tree, sib, 5);
+	printf("\nn->parent:\n");
+	_print_node(tree, n->parent, 5);
+
+	
+	// n is the right-most sibling in the parent node
+	parent = n->parent;
+	
+	sib = bpt_get_node_ptr(tree, parent, parent->fill - 1); // BUG: this index might be off
+	printf("  sib from parent: %p\n ", sib);
+	// this should be true if n is not an only child
+	if(*bpt_get_leaf_next_ptr(tree, sib) == n) return sib;
+	
+	// hopefully the b+ tree's definition keeps us from getting here.
+	// BUG: we shall see
+	printf("failure to find sibling in %s\n", __func__);
+	return NULL;
+} 
+
+// called after a leaf merge
+static void bpt_repair_node_keys(BPlusTree* tree, BPTNode* n) {
+	printf("  repairing node\n");
+	_print_node(tree, n, 5);
+	
+	for(int i = 0; i < n->fill; i++) {
+		BPTNode* p = bpt_get_node_ptr(tree, n, i + 1);
+		bpt_key_t* kp = bpt_get_node_key_p(tree, n, i);
+		
+		*kp = bpt_get_leaf_key(tree, p, 0);
+	}
+	
+	
+	_print_node(tree, n, 5);
+	
+	printf("  repnode^^^^^^^^^^^^^^^\n");
+// 	printf("NIH: bpt_repair_node_keys\n");
+	//exit(1);
+}
+
+
+// if a leaf is not empty, delete the key and move the data down
+// if a leaf runs out of keys, merge with a sibling (delete the leaf)
+
+// when a node runs out of keys, merge with a sibling
+// when the second to last node runs out of keys, leaving the parent with only one child,
+//    bring a key down from the parent
+// when the root runs out of keys delete it and make the single remaining child the new root
+
+
 int bpt_delete(BPlusTree* tree, bpt_key_t key) { 
+	int index;
+	BPTNode* n;
+	bpt_key_t k;
 	
+	index = bpt_find_key_index(tree, tree->root, key, &n);
 	
+	k = bpt_get_leaf_key(tree, n, index);
+	if(k != key) {
+		printf("bpt_delete: key not found %d, %d, %d\n", key, index, k);
+		return 0;
+	}
+	
+	// the key is in the node
+	
+	// check if this is the last one
+	if(n->fill == 1) {
+		printf(" delete: (%d) merging with sibling\n", key);
+		// try merge with sibling
+		BPTNode* sibling = bpt_get_immediate_sibling(tree, n);
+		if(!sibling) {
+			printf("failed to get sibling in %s\n", __func__);
+			
+			// ???
+			// merge parent and sibling
+			
+		}
+		
+		// returns the node to delete
+		BPTNode* dead = bpt_merge_leaves(tree, n, sibling);
+		free(dead);
+		
+		bpt_repair_node_keys(tree, dead == n ? sibling->parent : n->parent);
+	}
+	else {
+		printf(" delete: (%d) moving items down\n", key);
+		// move other items down and decrement fill
+		void* src, *dest;
+		size_t size;
+		
+		_print_leaf(tree, n, 4);
+		
+		src = bpt_get_leaf_index(tree, n, index + 1);
+		dest = bpt_get_leaf_index(tree, n, index);
+		
+		// TODO:                                                        fix this voodoo
+		size = ((n->fill - index - 1) * (tree->keySz + tree->valSz)) + (2*sizeof(BPTNode*));
+		//printf("make_room_leaf: %d\n", size);
+		memmove(dest, src, size);
+		
+		
+		
+		n->fill--;
+		
+		_print_leaf(tree, n, 4);
+		
+		printf(" del^^^^^^^^^^^^^^^\n");
+		
+		// new lowest keys don't need to be propagated 
+		//   upward because the old value still works
+		
+	}
+	
+	return 0;
 }
 
 
