@@ -60,6 +60,105 @@ float linearizeDepth(float depth, vec2 clip) {
 
 out vec4 FragColor;
 
+
+
+
+
+
+
+/*
+from glTF 2.0 launch doc (which has numerous errors; shame, shame, Khronos)
+https://www.khronos.org/assets/uploads/developers/library/2017-web3d/glTF-2.0-Launch_Jun17.pdf
+
+extra (correct) reference:
+http://www.trentreed.net/blog/physically-based-shading-and-image-based-lighting/
+
+
+l is light direction
+n is normal vector
+h is half vector
+v is view direction
+
+f(l,v,h) = Diff(l,h) + ( (F(l,n) * G(l,v,n) * D(h)) / (4 * dot(n,l) * dot(n,v)) ) 
+
+Diff(l,h) = (1 - F(v, h)) * (Cdiff / pi)
+
+const dielectricSpecular = rgb(0.04, 0.04, 0.04)
+const black = rgb(0, 0, 0)
+
+Cdiff = lerp(baseColor.rgb * (1 - dielectricSpecular), black, metallic)
+
+// Fresnel Function: (schlick)
+F(v,h) = F_0 + dot((1 - F_0), (1 - dot(v,h))^5)
+
+// F_0 is the specular reflectance at normal incidence
+F_0 = lerp(dielectricSpecular, baseColor.rgb, metallic)
+
+//G is the geometric occlusion derived from a normal distribution function like Smith’s function
+G(l,v,n) = G_1(n,l) * G_1(n,v)
+
+G_1(n,v) = (2 * dot(n,v)) / ( dot(n,v) + sqrt(a^2 + (1 - a^2) * dot(n,v)^2) )
+
+a = roughness^2
+
+// D is the normal distribution function like GGX that defines the statistical distribution of microfacets
+D(h) = a^2 / ( pi * (dot(n,h)^2 * (a - 1) + 1)^2 )
+*/
+
+#define PI 3.1415926535897932384626433832795
+
+float D_GGX(float d_nh, float a) {
+	vec3 q = d_nh * d_nh * (a - 1) + 1;
+	return (a * a) / (PI * q * q);
+}
+
+float G_1_Smith(float d_nv, float a2) {
+	return (2 * d_nv) / (d_nv + sqrt(a2 + (1 - a2) * d_nv * d_nv));
+}
+
+float G_Smith(float d_nl, float d_nv, float a2) {
+	return G_1_Smith(d_nl, a2) * G_1_Smith(d_nv, a2);
+}
+
+vec3 F_Schlick(vec3 dielectricSpecular, vec3 basecolor, float metallic, float d_vh) {
+	vec3 F_0 = lerp(dielectricSpecular, baseColor, metallic);
+	return F_0 + dot(1 - F_0, pow(1 - d_vh, 5));
+}
+
+vec3 Diff(vec3 dielectricSpecular, vec3 basecolor, float metallic, float d_vh) {
+	vec3 black = vec3(0,0,0);
+	return (1 - F_Schlick(dielectricSpecular, baseColor, metallic, d_vh)) *
+		(lerp(baseColor * (1 - dielectricSpecular), black, metallic) / PI);
+}
+
+vec3 f_Schlick_Smith_GGX(
+	vec3 n, vec3, h, vec3 l, vec3 v, 
+	vec3 dielectricSpecular, vec3 baseColor,
+	float metallic, float roughness
+) {
+	
+	float a = roughness * roughness;
+	float a2 = a * a;
+	
+	float d_nh = dot(n, h);
+	float d_nv = dot(n, v);
+	float d_vh = dot(v, h);
+	
+	return Diff(dielectricSpecular, baseColor, metallic, d_lh) + (
+		(
+			F_Schlick(dielectricSpecular, baseColor, metallic, d_lh) * // BUG: last arg may be wrong
+			G_Smith(d_nl, d_nv, a2) *
+			D_GGX(d_nh, a)
+		) / (4 * d_nl * d_nv)
+	);
+}
+
+
+
+
+
+
+
 void main() {
 	vec2 tex = gl_FragCoord.xy / resolution.xy;
 	vec4 raw_normal = texture(sNormals, tex);
@@ -245,7 +344,48 @@ void main() {
 		FragColor = vec4(vec3(nd),  1.0);
 	//	FragColor = vec4(texture(sShadow, tex).rrr,  1.0);
 	}
+	else if(debugMode == 7) {
+		// experimental PBR
+		
+		// normal rendering
+		// reconstruct world coordinates
+		vec2 screenCoord = gl_FragCoord.xy / resolution.xy;
+		
+		float depth = texture(sDepth, screenCoord).r;
+		if (depth > 0.99999) {
+		//	discard; // probably shouldn't be here
+		}
+		
+		float ndc_depth = depth * 2.0 - 1.0;
+		
+// 		mat4 invVP = inverse(mViewProj * mWorldView);
+		mat4 invVP = inverse(mViewProj * mWorldView);
+// 		
+		vec4 tmppos = invVP * vec4(screenCoord * 2.0 - 1.0, ndc_depth, 1.0);
+		vec3 pos = tmppos.xyz / tmppos.w;
+		// --------------------------------
+		// pos is in world coordinates now
+		
+		vec3 viewdir_w = normalize((inverse(mViewProj * mWorldView) * vec4(0,0,1,1)).xyz);
 	
-	
+		
+		
+		
+		// TODO: gather inputs
+		vec3 dielectricSpecular = vec3(0.45, 0.45, 0.45);
+		vec3 baseColor = vec3(0.45, 0.45, 0.45);
+		float roughness = .4; // sampled from tex
+		
+		// TODO: gather vectors
+		vec3 h = vec3(0,1,0); // half-vector
+		vec3 l = vec3(0,1,0); // light direction
+		
+		FragColor = f_Schlick_Smith_GGX(
+			normal, h, l, viewdir_w, 
+			dielectricSpecular, baseColor, 
+			metallic, roughness);
+		
+	}
+		
 //	FragColor = vec4(texture(sNormals, tex).rgb,  1.0);
 }
