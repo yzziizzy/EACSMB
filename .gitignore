@@ -74,6 +74,10 @@ src/simplex.png
 /mods
 !/mods/MODS_README.md
 
+
+# this is a symlink that was needed to get the game to run in nvidia's profiler
+/src/assets
+
 # saved sdf font data
 *.sdf
 *.atlas

@@ -85,6 +85,7 @@ Use DynamicMeshManager as the example.
 
 * Vectors (dynamic array): `VEC([type])`, `ds.h`
 	Built with type-safe macros.
+* VECMP, a typesafe vector with stable memory addresses using Linux's lazy allocation of physical memory. `VECMP([type])`, `mempool.h`
 * Linked lists: various helper macros at the bottom of `ds.h`. 
 	See `building.c` for usage example. Very new, may have bugs.
 * Hash Tables: `HashTable([type])`, `hash.h`
@@ -230,7 +231,7 @@ config. See `texgen.[ch]`
 ## Petty Basic Optimization
 * TextureAtlas_addFolder()
 * Many of the texgen algorithms
-* `const` in function arguments where needed
+* `const` and `restrict` in function arguments where needed
 
 ## Gameplay
 * Road networks
