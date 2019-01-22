@@ -139,41 +139,42 @@ void World_init(World* w) {
 	
 	
 	
-// 	CustomDecal* cd;
+ 	CustomDecal* cd;
+
 	DONE:
-	return;
-// 	cd = pcalloc(cd); 
-// 	cd->thickness = 9.0f;
+
+ 	cd = pcalloc(cd); 
+ 	cd->thickness = 9.0f;
 	
 	
-// 	CustomDecalManager_AddDecal(w->cdm, "test", cd);
+ 	CustomDecalManager_AddDecal(w->cdm, "test", cd);
 	
-// 	Matrix rm;
-// 	
-// 	mIdent(&rm);
-// 	mTrans3f(100, 100, 0, &rm);
-// 	mRotZ(1, &rm);
-// 
-// 	Vector pos1 = {40, 55, 20};
-// 	Vector pos2 = {40, 95, 20};
-// 	Vector pos3 = {100, 30, 20};
-// 	Vector pos4 = {90, 110, 20};
-// 	
-// 	vMatrixMul(&pos1, &rm, &pos1);
-// 	vMatrixMul(&pos2, &rm, &pos2);
-// 	vMatrixMul(&pos3, &rm, &pos3);
-// 	vMatrixMul(&pos4, &rm, &pos4);
-// 	
-// 	CustomDecalManager_AddInstance(w->cdm, 0, &(CustomDecalInstance){
-// 		.pos1 = pos1,
-// 		.pos2 = pos2,
-// 		.pos3 = pos3,
-// 		.pos4 = pos4,
-// 		.thickness = 5,
-// 		.tex12 = .5,
-// 		.tex34 = 2,
-// 	});
-// 	
+	Matrix rm;
+	
+	mIdent(&rm);
+	mTrans3f(100, 100, 0, &rm);
+	mRotZ(1, &rm);
+
+	Vector pos1 = {40, 55, 20};
+	Vector pos2 = {40, 95, 20};
+	Vector pos3 = {100, 30, 20};
+	Vector pos4 = {90, 110, 20};
+	
+	vMatrixMul(&pos1, &rm, &pos1);
+	vMatrixMul(&pos2, &rm, &pos2);
+	vMatrixMul(&pos3, &rm, &pos3);
+	vMatrixMul(&pos4, &rm, &pos4);
+	
+	w->cursor = CustomDecalManager_AddInstance(w->cdm, 0, &(CustomDecalInstance){
+		.pos1 = pos1,
+		.pos2 = pos2,
+		.pos3 = pos3,
+		.pos4 = pos4,
+		.thickness = 5,
+		.tex12 = .5,
+		.tex34 = 2,
+	});
+ 	
 	
 	
 // 	World_spawnAt_CustomDecal(w, 0, 1, &(Vector2){100, 100}, &(Vector2){300, 300});
@@ -183,9 +184,6 @@ void World_init(World* w) {
 }
 
 void World_initGL(World* w) {
-	
-
-	
 	
 	
 	LightManager_Init(w->lm);
@@ -204,7 +202,6 @@ void World_initGL(World* w) {
 	MarkerManager_initGL(w->mm, &w->gs->globalSettings);
 	EmitterManager_initGL(w->em, &w->gs->globalSettings);
 
-//	MarkerManager_addMesh(w->mm, "marker", 20); 
 
 	
 	float shadSz = w->gs->globalSettings.SunShadow_size;
@@ -221,8 +218,25 @@ void World_initGL(World* w) {
 	Map_readConfigFile(&w->map, "assets/config/terrain.json");
 	
 	
+	Marker* marker = pcalloc(marker);
+	int markerIndex = MarkerManager_addMesh(w->mm, marker, "marker", 20); 
 	
-	
+	{
+		Vector2i loci;
+		//printf("dynamic mesh spawn");
+		loci.x = 30;
+		loci.y = 30;
+		
+		// look up the height there.
+		//getTerrainHeight(&w->map, &loci, 1, &h);
+		float h = Map_getTerrainHeight(&w->map, loci);
+		
+		MarkerInstance inst;
+		inst.pos = (Vector){loci.x, loci.y, h};
+		inst.radius = 12;
+		
+		MarkerManager_addInstance(w->mm, markerIndex, &inst); 
+	}
 	// old bezier roads
 	//w->roads = calloc(1, sizeof(*w->roads));
 	//initRoadBlock(w->roads);

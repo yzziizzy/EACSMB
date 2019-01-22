@@ -98,7 +98,7 @@ void PCBuffer_bind(PCBuffer* b) {
 //   GL_UNIFORM_BUFFER
 //   GL_SHADER_STORAGE_BUFFER
 void PCBuffer_bindActiveRange(PCBuffer* b) {
-	glBindBufferRange(b->type, 0, b->bo, (GLintptr)PCBuffer_getOffset(b), (GLuintptr)b->bufferSize);
+	glBindBufferRange(b->type, 0, b->bo, (GLintptr)PCBuffer_getOffset(b), (GLintptr)b->bufferSize);
 }
 
 

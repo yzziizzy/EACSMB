@@ -262,14 +262,13 @@ GLuint makeVAO(VAOConfig* details) {
 
 size_t calcVAOStride(int bufferIndex, VAOConfig* details) {
 	int i;
-	int startIndex = -1, endIndex = -1;
 	int stride = 0;
 	
 	// determine the buffer's range
-	for(i = 0; details[i].sz != 0 && endIndex == -1; i++) {
+	for(i = 0; details[i].sz != 0; i++) {
 		if(details[i].bufferIndex == bufferIndex) {
 			stride += details[i].sz * attrib_type_size(details[i].type);
-		}		
+		}
 	}
 	
 	return stride;

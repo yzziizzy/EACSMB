@@ -97,9 +97,9 @@ typedef struct GameState {
 	MatrixStack view;
 	MatrixStack proj;
 	
-	// temp. 
-	Matrix invView;
+	Matrix invView; // TODO: rename these
 	Matrix invProj;
+	Matrix mProjWorld;
 	
 	double nearClipPlane;
 	double farClipPlane;

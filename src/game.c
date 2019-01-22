@@ -112,6 +112,7 @@ static void main_drag_handler(InputEvent* ev, GameState* gs);
 static void main_key_handler(InputEvent* ev, GameState* gs);
 static void main_perframe_handler(InputState* is, float frameSpan, GameState* gs);
 static void main_click_handler(InputEvent* ev, GameState* gs);
+static void main_move_handler(InputEvent* ev, GameState* gs);
 
 
 // nothing in here can use opengl at all.
@@ -157,6 +158,7 @@ void initGame(XStuff* xs, GameState* gs) {
 		{"rotation", sizeof(C_Rotation)},
 		{"mapHeightUpdate", sizeof(uint8_t)},
 		{"angularVelocity", sizeof(float)},
+		{"customDecal", sizeof(CustomDecalInstance)},
 		{"agent", sizeof(C_Agent)},
 		{"pathFollow", sizeof(C_PathFollow)},
 		{"roadWander", sizeof(C_RoadWander)},
@@ -172,7 +174,6 @@ void initGame(XStuff* xs, GameState* gs) {
 		);
 	}
 	
-
 	json_file_t* j_ces_conf = json_load_path("assets/config/CES.json");
 	ComponentManager_loadConfig(&gs->ces, j_ces_conf->root);
 	
@@ -180,6 +181,24 @@ void initGame(XStuff* xs, GameState* gs) {
 	free(j_ces_conf);
 	
 	//^^^^^^^^^^ CES system ^^^^^^^^^^^^^
+	/*
+	
+	float fff = 33.33;
+	for(int i = 0; i < 6000; i++) { 
+		
+		CES_addComponentName(&gs->ces, "angularVelocity", i, &fff);
+	}
+	
+	for(int i = 1000; i < 1024; i+=1) { 
+		CES_delComponentName(&gs->ces, "angularVelocity", i);
+	}
+	
+	printf("debug exit at %s:%d\n", __FILE__, __LINE__);
+	exit(1);
+	
+	*/
+	// ces delete test ^^^^^^^^^^
+	
 	
 	
 	// input handlers
@@ -188,6 +207,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	gs->defaultInputHandlers->keyUp = (void*)main_key_handler;
 	gs->defaultInputHandlers->perFrame = (void*)main_perframe_handler;
 	gs->defaultInputHandlers->click = (void*)main_click_handler;
+	gs->defaultInputHandlers->mouseMove = (void*)main_move_handler;
 	InputFocusStack_PushTarget(&gs->ifs, gs, defaultInputHandlers);
 	
 	
@@ -254,7 +274,6 @@ void initGame(XStuff* xs, GameState* gs) {
 	gs->world->gs = gs;
 	World_init(gs->world);
 
-	
 }
 
 void initGameGL(XStuff* xs, GameState* gs) {
@@ -835,11 +854,29 @@ static void main_click_handler(InputEvent* ev, GameState* gs) {
 
 
 
+static void main_move_handler(InputEvent* ev, GameState* gs) {
+	
+	Vector2i ci;
+// 	Vector c;
+	
 
+	getTileFromScreenCoords(gs, ev->normPos, &ci);
+	
+	Vector c = {ci.x, ci.y, 0};
+	Vector pos1 = {-10, -10, 20};
+	Vector pos2 = {-10, 10, 20};
+	Vector pos3 = {10, -10, 20};
+	Vector pos4 = {10, 10, 20};
+	
+	vAdd(&pos1, &c, &gs->world->cursor->pos1);
+	vAdd(&pos2, &c, &gs->world->cursor->pos2);
+	vAdd(&pos3, &c, &gs->world->cursor->pos3);
+	vAdd(&pos4, &c, &gs->world->cursor->pos4);
+}
 
 
 void updateView(XStuff* xs, GameState* gs, InputState* is) {
-		
+	
 	gs->sunTheta = fmod(gs->sunTheta + gs->sunSpeed * gs->frameSpan, F_2PI);
 	gs->sunNormal.x = cos(gs->sunTheta);
 	gs->sunNormal.y = 0.0;
@@ -886,6 +923,8 @@ void updateView(XStuff* xs, GameState* gs, InputState* is) {
 	vMatrixMul(&eyeCoord, &invv, &worldCoord);
 	vNorm(&worldCoord, &worldCoord);
 	
+	mFastMul(&invp, &invv, &gs->mProjWorld);
+	
 	Vector zero = {0,0,0};
 	vMatrixMul(&zero, &invv, &gs->eyePos);
 	
@@ -893,7 +932,7 @@ void updateView(XStuff* xs, GameState* gs, InputState* is) {
 	PerViewUniforms* pvu = uniformBuffer_begin(&gs->perViewUB);
 	
 	memcpy(&pvu->view , msGetTop(&gs->view), sizeof(Matrix));
-	memcpy(&pvu->proj , msGetTop(&gs->proj), sizeof(Matrix));	
+	memcpy(&pvu->proj , msGetTop(&gs->proj), sizeof(Matrix));
 	
 	uniformBuffer_bindRange(&gs->perViewUB);
 }
@@ -987,6 +1026,7 @@ void checkCursor(GameState* gs, InputState* is) {
 		gs->lookCenter.x = gs->cursorPos.x;
 		gs->lookCenter.y = gs->cursorPos.y;
 	}
+
 	
 	
 	// wove a window with the cursor
@@ -1022,6 +1062,58 @@ void checkResize(XStuff* xs, GameState* gs) {
 		//printf("diffuse2: %d\n",gs->diffuseTexBuffer);
 	}
 }
+
+
+
+void mapRayCastHitTest(GameState* gs, Vector2 screenpos) {
+	Vector ws_ray; // ray in world space
+	
+	// convert from screen space through ndc into world space
+	Vector ss_ray = { // ray in screen space
+		(screenpos.x / gs->screen.wh.x) * 2.0 - 1.0,
+		(screenpos.y / gs->screen.wh.y) * 2.0 - 1.0,
+		-1
+	};
+	
+	vMatrixMul(&ss_ray, &gs->mProjWorld, &ws_ray);
+	
+	vNorm(&ws_ray, &ws_ray);
+	
+	// ws_ray is now a world-space unit vector pointing away from the mouse
+	
+	Vector ws_campos;
+	vMatrixMul(&(Vector){0,0,0}, &gs->mProjWorld, &ws_campos);
+	
+	
+	MapLayer* terr = gs->world->map.block->terrain;
+	
+	// walk along the ray projected onto the x/y plane sampling terrain height
+	// start at the camera pos and continue until we hit something or fall off the map
+	
+	Vector groundDir;
+	Plane plane = {.n = {0,1,0}, .d = 0};
+	vProjectOntoPlaneNormalized(&ws_ray, &plane, &groundDir);
+	
+	// epsilons
+	float ex = 1.0;
+	float ey = 1.0;
+	
+	//while(1) {
+		
+	//	float h = Map_getTerrainHeightf(&w->map, loci);
+		
+	//}
+	
+	
+}
+
+
+
+
+
+
+
+
 
 // temp hack
 void runLogic(GameState* gs, InputState* is) {

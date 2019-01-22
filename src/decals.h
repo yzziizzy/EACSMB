@@ -57,13 +57,14 @@ typedef struct DecalTriInstance {
 */
 
 
-
+// Decal is mostly used to coordinate a render order
+// it is also a template for isntance creation, but instances can ignore it
 typedef struct Decal {
 	char* name;
 	
 	int texIndex;
 	
-	float renderWeight;
+	float renderWeight; // render order weight
 	
 	float size;
 	VEC(DecalInstance) instances;
@@ -72,6 +73,7 @@ typedef struct Decal {
 
 
 typedef struct DecalManager {
+	
 	
 	VEC(Decal*) decals;
 	HashTable(int) lookup;

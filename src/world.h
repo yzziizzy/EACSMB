@@ -156,6 +156,7 @@ typedef struct World {
 	VEC(ItemInstance*) itemInstances;
 	VEC(PartInstance*) partInstances;
 	
+	CustomDecalInstance* cursor;
 	
 	#include "../mods/World.generated_mixin.h" 
 	
