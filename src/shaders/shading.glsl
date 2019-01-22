@@ -108,7 +108,7 @@ D(h) = a^2 / ( pi * (dot(n,h)^2 * (a - 1) + 1)^2 )
 #define PI 3.1415926535897932384626433832795
 
 float D_GGX(float d_nh, float a) {
-	vec3 q = d_nh * d_nh * (a - 1) + 1;
+	float q = d_nh * d_nh * (a - 1) + 1;
 	return (a * a) / (PI * q * q);
 }
 
@@ -120,19 +120,19 @@ float G_Smith(float d_nl, float d_nv, float a2) {
 	return G_1_Smith(d_nl, a2) * G_1_Smith(d_nv, a2);
 }
 
-vec3 F_Schlick(vec3 dielectricSpecular, vec3 basecolor, float metallic, float d_vh) {
-	vec3 F_0 = lerp(dielectricSpecular, baseColor, metallic);
-	return F_0 + dot(1 - F_0, pow(1 - d_vh, 5));
+vec3 F_Schlick(vec3 dielectricSpecular, vec3 baseColor, float metallic, float d_vh) {
+	vec3 F_0 = mix(dielectricSpecular, baseColor, metallic);
+	return F_0 + (1 - F_0) * pow(1 - d_vh, 5);
 }
 
-vec3 Diff(vec3 dielectricSpecular, vec3 basecolor, float metallic, float d_vh) {
+vec3 Diff(vec3 dielectricSpecular, vec3 baseColor, float metallic, float d_vh) {
 	vec3 black = vec3(0,0,0);
 	return (1 - F_Schlick(dielectricSpecular, baseColor, metallic, d_vh)) *
-		(lerp(baseColor * (1 - dielectricSpecular), black, metallic) / PI);
+		(mix(baseColor * (1 - dielectricSpecular), black, metallic) / PI);
 }
 
 vec3 f_Schlick_Smith_GGX(
-	vec3 n, vec3, h, vec3 l, vec3 v, 
+	vec3 n, vec3 h, vec3 l, vec3 v, 
 	vec3 dielectricSpecular, vec3 baseColor,
 	float metallic, float roughness
 ) {
@@ -141,6 +141,8 @@ vec3 f_Schlick_Smith_GGX(
 	float a2 = a * a;
 	
 	float d_nh = dot(n, h);
+	float d_nl = dot(n, l);
+	float d_lh = dot(l, h);
 	float d_nv = dot(n, v);
 	float d_vh = dot(v, h);
 	
@@ -371,19 +373,21 @@ void main() {
 		
 		
 		
+		
 		// TODO: gather inputs
 		vec3 dielectricSpecular = vec3(0.45, 0.45, 0.45);
+		float metallic = 0.45;
 		vec3 baseColor = vec3(0.45, 0.45, 0.45);
-		float roughness = .4; // sampled from tex
+		float roughness = 0.4; // sampled from tex
 		
 		// TODO: gather vectors
 		vec3 h = vec3(0,1,0); // half-vector
 		vec3 l = vec3(0,1,0); // light direction
 		
-		FragColor = f_Schlick_Smith_GGX(
+		FragColor = vec4(f_Schlick_Smith_GGX(
 			normal, h, l, viewdir_w, 
 			dielectricSpecular, baseColor, 
-			metallic, roughness);
+			metallic, roughness), 1);
 		
 	}
 		
