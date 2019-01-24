@@ -39,14 +39,15 @@ void main() {
 	// convert to NDC
  	vertex.lt_rb = toNDC(lt_rb_in / vec4(targetSize.xy, targetSize.xy));
 //	vertex.lt_rb = vec4(.5, .5, -.5, -.5);
-	
-	// convert to clip space
+
+	// flip y
 	vertex.clip = vec4(
-		min(clip_in.x, clip_in.z),
-		min(clip_in.y, clip_in.w),
-		max(clip_in.x, clip_in.z),
-		max(clip_in.y, clip_in.w)
+		clip_in.x,
+		targetSize.y - clip_in.w, // w and y are swapped on purpose
+		clip_in.z,
+		targetSize.y - clip_in.y
 	);
+
 	vertex.wh = vec2(abs(lt_rb_in.x - lt_rb_in.z), abs(lt_rb_in.y - lt_rb_in.w)) / 1000;
 	vertex.opacity = .7; 
 	
@@ -166,12 +167,12 @@ void main(void) {
 	
 	// clipping
 	if(gl_FragCoord.x < gs_clip.x || gl_FragCoord.x > gs_clip.z
-		|| gl_FragCoord.y < gs_clip.y || gl_FragCoord.y > gs_clip.w) {
+		|| gl_FragCoord.y < gs_clip.y || gl_FragCoord.y > gs_clip.w) { // y is upside down
 		
-		out_Color = vec4(1,.1,.1,.4);
-		return;
+// 		out_Color = vec4(1,.1,.1,.4);
+// 		return;
 		
-	//	discard;
+		discard;
 	}
 	
 	//out_Color = vec4(1,.1,.1, 1);

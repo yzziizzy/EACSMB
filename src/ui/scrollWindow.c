@@ -95,20 +95,12 @@ static void updatePos(GUIScrollWindow* gw, GUIRenderParams* grp, PassFrameParams
 	Vector2 tl = gui_calcPosGrav(h, grp);
 	h->absTopLeft = tl;
 // 	h->absClip = gui_clipTo(grp->clip, (AABB2){tl, { clientArea.x + tl.x, clientArea.y + tl.y}}); // TODO: clip this to grp->clip
-// 	h->absClip = (AABB2){tl, { clientArea.x + tl.x, clientArea.y + tl.y}}; // TODO: clip this to grp->clip
-	h->absClip = (AABB2){300, 300, 400, 400}; // TODO: clip this to grp->clip
+	h->absClip = (AABB2){tl, { clientArea.x + tl.x, clientArea.y + tl.y}}; // TODO: clip this to grp->clip
 
-// 		printf("%f %f, \n", h->absClip.min.x, h->absClip.min.y);
-// 	printf(" - %f %f, \n", h->absClip.max.x, h->absClip.max.y);
-
-	
-	//h->absClip = (AABB2){{300,300}, {400,400}}; // TODO: clip this to grp->clip
 	h->absZ = grp->baseZ + h->z;
 	
 	
-	
-	
-		GUIUnifiedVertex* v = GUIManager_reserveElements(gw->header.gm, 1);
+	GUIUnifiedVertex* v = GUIManager_reserveElements(gw->header.gm, 1);
 
 	*v = (GUIUnifiedVertex){
 // 		.pos = {gw->header.topleft.x, gw->header.topleft.y,
