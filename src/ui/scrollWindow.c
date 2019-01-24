@@ -80,7 +80,7 @@ static void updatePos(GUIScrollWindow* gw, GUIRenderParams* grp, PassFrameParams
 	
 	
 	gw->scrollPos.x = 200 * fabs(sin(1 * pfp->gameTime));
-	gw->scrollPos.y = 200 * fabs(sin(1 * pfp->gameTime));
+	gw->scrollPos.y = 200 * fabs(cos(1 * pfp->gameTime));
 	
 	
 	float ymargin = gw->internalSize.x <= h->size.x ? 0.0 : gw->sbWidth;
@@ -95,7 +95,8 @@ static void updatePos(GUIScrollWindow* gw, GUIRenderParams* grp, PassFrameParams
 	Vector2 tl = gui_calcPosGrav(h, grp);
 	h->absTopLeft = tl;
 // 	h->absClip = gui_clipTo(grp->clip, (AABB2){tl, { clientArea.x + tl.x, clientArea.y + tl.y}}); // TODO: clip this to grp->clip
-	h->absClip = (AABB2){tl, { clientArea.x + tl.x, clientArea.y + tl.y}}; // TODO: clip this to grp->clip
+// 	h->absClip = (AABB2){tl, { clientArea.x + tl.x, clientArea.y + tl.y}}; // TODO: clip this to grp->clip
+	h->absClip = (AABB2){300, 300, 400, 400}; // TODO: clip this to grp->clip
 
 // 		printf("%f %f, \n", h->absClip.min.x, h->absClip.min.y);
 // 	printf(" - %f %f, \n", h->absClip.max.x, h->absClip.max.y);
@@ -108,13 +109,15 @@ static void updatePos(GUIScrollWindow* gw, GUIRenderParams* grp, PassFrameParams
 	
 	
 		GUIUnifiedVertex* v = GUIManager_reserveElements(gw->header.gm, 1);
-	
+
 	*v = (GUIUnifiedVertex){
 // 		.pos = {gw->header.topleft.x, gw->header.topleft.y,
 // 			gw->header.topleft.x + gw->header.size.x, gw->header.topleft.y + gw->header.size.y},
 		.pos = {tl.x , tl.y,
 			tl.x + gw->header.size.x, tl.y + gw->header.size.y},
-		.clip = {200, 200, 500, 500},
+//		.clip = {tl.x , tl.y,
+//			tl.x + gw->header.size.x, tl.y + gw->header.size.y},
+ 		.clip = {100, 100, 700, 700},
 		
 		.texIndex1 = 0,
 		.texIndex2 = 0,

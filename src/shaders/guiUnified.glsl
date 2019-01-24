@@ -41,7 +41,12 @@ void main() {
 //	vertex.lt_rb = vec4(.5, .5, -.5, -.5);
 	
 	// convert to clip space
-	vertex.clip = clip_in;
+	vertex.clip = vec4(
+		min(clip_in.x, clip_in.z),
+		min(clip_in.y, clip_in.w),
+		max(clip_in.x, clip_in.z),
+		max(clip_in.y, clip_in.w)
+	);
 	vertex.wh = vec2(abs(lt_rb_in.x - lt_rb_in.z), abs(lt_rb_in.y - lt_rb_in.w)) / 1000;
 	vertex.opacity = .7; 
 	
