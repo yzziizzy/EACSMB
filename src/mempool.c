@@ -64,6 +64,11 @@ void* MemPool_malloc(MemPool* mp) {
 	return mp->pool + off;
 }
 
+void* MemPool_calloc(MemPool* mp) {
+	void* p = MemPool_malloc(mp);
+	memset(p, 0, mp->itemSize);
+	return p;
+}
 
 void MemPool_free(MemPool* mp, void* ptr) {
 	

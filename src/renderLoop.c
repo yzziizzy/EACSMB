@@ -644,6 +644,15 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	shadingPass(gs, &pfp);
 	
+	
+	glDisable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	
+	QuadTree_renderDebugVolumes(&gs->world->qt, &pfp);
+	glDisable(GL_BLEND);
+	glEnable(GL_DEPTH_TEST);
+	
 	glXSwapBuffers(xs->display, xs->clientWin);
 }
 

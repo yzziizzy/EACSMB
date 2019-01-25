@@ -3,7 +3,7 @@
 
 #include "pass.h"
 
-
+/*
 typedef struct SceneItemInfo {
 	AABB2 aabb;
 	
@@ -33,7 +33,7 @@ typedef struct QuadTree {
 	
 	
 	QuadTreeNode* root;
-} QuadTree;
+} QuadTree;*/
 
 
 
@@ -54,7 +54,7 @@ void Scene_init(Scene* sc);
 
 
 
-
+/*
 
 
 QuadTreeNode* QTNode_alloc(QuadTreeNode* parent, char ix, char iy);
@@ -62,7 +62,7 @@ void QTNode_init(QuadTreeNode* n, QuadTreeNode* parent, char ix, char iy);
 void QuadTree_insert(QuadTree* qt, SceneItemInfo* info);
 
 
-
+*/
 
 
 

@@ -40,6 +40,7 @@ void MemPool_init(MemPool* mp, size_t itemSize, size_t maxItems);
 // USE THIS:
 // these allocate chunks of memory from the pool
 void* MemPool_malloc(MemPool* mp);
+void* MemPool_calloc(MemPool* mp);
 void MemPool_free(MemPool* mp, void* ptr);
 
 

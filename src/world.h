@@ -93,6 +93,50 @@ typedef struct {
 
 
 
+typedef struct SceneItemInfo {
+	AABB2 aabb;
+	
+	uint32_t selectable : 1;
+	
+	uint32_t eid;
+	void* data;
+} SceneItemInfo;
+
+
+typedef struct QuadTreeNode {
+	AABB2 aabb;
+	int level;
+	VEC(SceneItemInfo*) items;
+	
+	struct QuadTreeNode* parent;
+	struct QuadTreeNode* kids[2][2];
+} QuadTreeNode;
+
+
+typedef struct QuadTree {
+	int maxLevels;
+	int nodeMaxCount; // trigger to subdivide
+	int nodeMinCount; // trigger to recombine // ignored for now
+	
+	int totalCount;
+	int totalNodes;
+	
+	MemPool siPool;
+	
+	QuadTreeNode* root;
+} QuadTree;
+
+
+void QuadTree_init(QuadTree* qt, AABB2 bounds);
+void QuadTree_insert(QuadTree* qt, SceneItemInfo* siNew);
+SceneItemInfo* QuadTree_allocSceneItem(QuadTree* qt);
+
+// temp
+ int QuadTreeNode_split(QuadTree* qt, QuadTreeNode* n);
+
+
+void QuadTree_renderDebugVolumes(QuadTree* qt, PassFrameParams* pfp);
+
 
 static const uint32_t ITEM_BASE_IDS[] = {
 	[ITEM_TYPE_UNKNOWN] =     4000000000,
@@ -144,6 +188,7 @@ typedef struct World {
 	
 	WaterPlane* wp;
 	
+	QuadTree qt;
 	MapInfo map; 
 	RoadNetwork* roads;
 	

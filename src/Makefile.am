@@ -48,6 +48,7 @@ eacsmb_SOURCES = main.c \
 	perlin.c \
 	pipe.c \
 	qsort_r.c \
+	qtree.c \
 	renderLoop.c \
 	road.c \
 	scene.c \
@@ -62,6 +63,7 @@ eacsmb_SOURCES = main.c \
 	texgen.c \
 	texture.c \
 	textureAtlas.c \
+	ui/animations/pulse.c \
 	ui/columnLayout.c \
 	ui/configLoader.c \
 	ui/edit.c \

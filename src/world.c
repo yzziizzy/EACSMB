@@ -29,6 +29,12 @@ void World_init(World* w) {
 	
 	MapInfo_Init(&w->map, &w->gs->globalSettings);
 	
+	QuadTree_init(&w->qt, (AABB2){{0,0}, {512, 512}});
+	QuadTreeNode_split(&w->qt, w->qt.root);
+	QuadTreeNode_split(&w->qt, w->qt.root->kids[0][1]);
+	QuadTreeNode_split(&w->qt, w->qt.root->kids[0][1]->kids[1][0]);
+	QuadTreeNode_split(&w->qt, w->qt.root->kids[0][1]->kids[1][0]->kids[1][1]);
+	
 	w->lm = calloc(1, sizeof(*w->lm));
 	
 	w->dmm = dynamicMeshManager_alloc(&w->gs->globalSettings);
@@ -728,7 +734,6 @@ void World_drawDecals(World* w, PassFrameParams* pfp) {
 	RenderPass_renderAll(w->decalPass, pfp->dp);
 	RenderPass_postFrameAll(w->decalPass);
 	
-
 }
 
 

@@ -21,10 +21,10 @@
 
 
 
-// for easy pooling later
-SceneItemInfo* SceneItemInfo_alloc() {
-	return calloc(1, sizeof(SceneItemInfo)); 
-}
+// // for easy pooling later
+// SceneItemInfo* SceneItemInfo_alloc() {
+// 	return calloc(1, sizeof(SceneItemInfo)); 
+// }
 
 /*
 
@@ -126,7 +126,7 @@ void initScene(Scene* sc) {
 	
 };
 */
-
+/*
 static void qtnode_insert(QuadTree* qt, QuadTreeNode* n, SceneItemInfo* info);
 
 
@@ -245,7 +245,7 @@ static void nodeInsertItem(QuadTree* qt, QuadTreeNode* n, SceneItemInfo* sii) {
 }
 
 
-
+*/
 
 
 
