@@ -64,6 +64,29 @@ int CES_addComponentName(CES* ces, char* name, uint32_t eid, void* value) {
 }
 
 
+int CES_delComponent(CES* ces, int compID, uint32_t eid) {
+	ComponentManager* cm = VEC_ITEM(&ces->cms, compID);
+	
+	ComponentManager_del(cm, eid);
+	
+	return 0;
+}
+
+int CES_delComponentName(CES* ces, char* name, uint32_t eid) {
+	uint64_t index;
+	
+	if(HT_get(&ces->nameLookup, name, &index)) {
+		fprintf("component not found: %s\n", name);
+		return -1;
+	}
+	
+	return CES_delComponent(ces, index, eid);
+}
+
+
+
+
+
 ComponentManager* CES_getCompManager(CES* ces, char* name) {
 	uint64_t index;
 	
@@ -101,7 +124,13 @@ int ComponentManager_init(ComponentManager* cm, char* name, size_t compSize, int
 	else if(backend == 1) { // b+ tree
 		cm->bptree.keySz = sizeof(uint32_t);
 		cm->bptree.valSz = compSize;
-		bpt_init(&cm->bptree, 4, 16); // these numbers should be more like 32, 4096
+		
+		int N = 4;
+		int L = 16;
+		if(N < 32 || L < 2048) 
+			printf("WARNING: b+ tree node values in debug mode: N=%d L=%d\n", N, L);
+		
+		bpt_init(&cm->bptree, N, L); // these numbers should be more like 32, 4096
 	}
 	
 	
@@ -129,16 +158,27 @@ void ComponentManager_add(ComponentManager* cm, uint32_t eid, void* value) {
 	}
 }
 
-void ComponentManager_compact() {
-	// leave internal spaces for additions sometimes?
+
+void ComponentManager_del(ComponentManager* cm, uint32_t eid) {
+	if(cm->backend == 0) {
+		printf("Component delete operation is not supported on old backend\n");
+	}
+	else if(cm->backend == 1) {
+		bpt_delete(&cm->bptree, eid);
+	}
 }
 
 
 
 // returns null if not found
-void* ComponentManager_get(ComponentManager* cm, uint32_t eid) {
-	// binary search of entIDS
+void* ComponentManager_find(ComponentManager* cm, uint32_t eid) {
+	void* val;
 	
+	if(bpt_find(&cm->bptree, eid, &val)) {
+		return val;
+	}
+	
+	return NULL;
 }
 
 

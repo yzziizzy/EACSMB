@@ -30,10 +30,6 @@ void World_init(World* w) {
 	MapInfo_Init(&w->map, &w->gs->globalSettings);
 	
 	QuadTree_init(&w->qt, (AABB2){{0,0}, {512, 512}});
-	QuadTreeNode_split(&w->qt, w->qt.root);
-	QuadTreeNode_split(&w->qt, w->qt.root->kids[0][1]);
-	QuadTreeNode_split(&w->qt, w->qt.root->kids[0][1]->kids[1][0]);
-	QuadTreeNode_split(&w->qt, w->qt.root->kids[0][1]->kids[1][0]->kids[1][1]);
 	
 	w->lm = calloc(1, sizeof(*w->lm));
 	
@@ -131,7 +127,7 @@ void World_init(World* w) {
 			
 			float f = fabs(PerlinNoise_2D((0 + x) / 512.0, (0 + y) / 512.0, .2, 6));
 			
-			if(nn > 4) goto DONE;
+// 			if(nn > 4) goto DONE;
 			//printf("f = %f\n", f);
 // 			if(f < -0.01) continue; 
 // 			if(frandNorm() < .5) continue;
@@ -437,6 +433,17 @@ int World_spawnAt_ItemPtr(World* w, Item* item, Vector* location) {
 	CES_addComponentName(&w->gs->ces, "position", inst->eid, &(Vector){location->x, location->y, location->z + h});
 	C_Rotation rot = {{1.0, 0,0}, 2};
 // 	CES_addComponentName(&w->gs->ces, "rotation", inst->eid, &rot);
+	
+	
+	// insert into quadtree
+	SceneItemInfo* si = QuadTree_allocSceneItem(&w->qt);
+	si->aabb = (AABB2){
+		{location->x - 1, location->y - 1},
+		{location->x + 1, location->y + 1}
+	};
+	si->eid = inst->eid;
+	QuadTree_insert(&w->qt, si);
+	
 	
 	return inst->eid;
 }

@@ -65,6 +65,8 @@ void CES_init(CES* ces);
 int CES_addComponentManager(CES* ces, ComponentManager* cm);
 int CES_addComponent(CES* ces, int compID, uint32_t eid, void* value);
 int CES_addComponentName(CES* ces, char* name, uint32_t eid, void* value);
+int CES_delComponent(CES* ces, int compID, uint32_t eid);
+int CES_delComponentName(CES* ces, char* name, uint32_t eid);
 
 ComponentManager* CES_getCompManager(CES* ces, char* name);
 
@@ -76,6 +78,7 @@ ComponentManager* ComponentManager_alloc(char* name, size_t compSize, int initia
 int ComponentManager_init(ComponentManager* cm, char* name, size_t compSize, int initialAlloc, int backend);
 
 void ComponentManager_add(ComponentManager* cm, uint32_t eid, void* value);
+void ComponentManager_del(ComponentManager* cm, uint32_t eid);
 
 
 void* ComponentManager_start(ComponentManager* cm, CompManIter* iter);
@@ -132,5 +135,12 @@ typedef struct C_RoadWander {
 } C_RoadWander;
 
 
+
+// a sort of thing that makes decisions
+typedef struct C_Agent {
+	uint32_t agentID;
+	
+	
+} C_Agent;
 
 #endif // __EACSMB__component_h__

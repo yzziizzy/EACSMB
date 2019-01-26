@@ -731,11 +731,12 @@ static BPTNode* bpt_merge_leaves(BPlusTree* tree, BPTNode* l, BPTNode* r) {
 	void* r_src, *l_dest;
 	size_t size;
 	
-	_print_leaf(tree, n, 5);
+// 	_print_leaf(tree, r, 5);
+// 	_print_leaf(tree, l, 5);
 	
 	
 	// TODO: test and swap l and r
-	if(*bpt_get_leaf_ptr(tree, l) != r) {
+	if(*bpt_get_leaf_next_ptr(tree, l) != r) {
 		BPTNode* tmp = l;
 		l = r;
 		r = tmp;
@@ -802,7 +803,7 @@ static BPTNode* bpt_get_immediate_sibling(BPlusTree* tree, BPTNode* n) {
 // called after a leaf merge
 static void bpt_repair_node_keys(BPlusTree* tree, BPTNode* n) {
 	printf("  repairing node\n");
-	_print_node(tree, n, 5);
+	//_print_node(tree, n, 5);
 	
 	for(int i = 0; i < n->fill; i++) {
 		BPTNode* p = bpt_get_node_ptr(tree, n, i + 1);
@@ -820,19 +821,32 @@ static void bpt_repair_node_keys(BPlusTree* tree, BPTNode* n) {
 }
 
 
-// if a leaf is not empty, delete the key and move the data down
-// if a leaf runs out of keys, merge with a sibling (delete the leaf)
+// 1. if a leaf is not empty, delete the key and move the data down
+// 2. if a leaf runs out of keys, delete it
+//    a. remove key from parent node
 
-// when a node runs out of keys, merge with a sibling
-// when the second to last node runs out of keys, leaving the parent with only one child,
-//    bring a key down from the parent
-// when the root runs out of keys delete it and make the single remaining child the new root
+// 3. if a node runs out of keys, merge with a sibling
+//    a. find a sibling
+//       ii. look to the parent node for a previous sibling
+//       iii. return NULL, meaning no sibling left
+//    b. copy half the keys from the sibling
+//    c. update child parent pointers for both
+
+// 4. if a node runs out of keys, pull a key/pointer down from the parent to fill it in 
+
+
+// n. when the second to last node runs out of keys, leaving the parent with only one child,
+//      bring a key down from the parent
+// n+!. when the root runs out of keys delete it and make the single remaining child the new root
 
 
 int bpt_delete(BPlusTree* tree, bpt_key_t key) { 
 	int index;
 	BPTNode* n;
 	bpt_key_t k;
+	
+	printf("!!! debug return in bpt_delete\n");
+	return 0;
 	
 	index = bpt_find_key_index(tree, tree->root, key, &n);
 	
@@ -845,7 +859,7 @@ int bpt_delete(BPlusTree* tree, bpt_key_t key) {
 	// the key is in the node
 	
 	// check if this is the last one
-	if(n->fill == 1) {
+	if(n->fill == 1) { // 2. if a leaf runs out of keys, merge with a sibling
 		printf(" delete: (%d) merging with sibling\n", key);
 		// try merge with sibling
 		BPTNode* sibling = bpt_get_immediate_sibling(tree, n);
@@ -863,7 +877,7 @@ int bpt_delete(BPlusTree* tree, bpt_key_t key) {
 		
 		bpt_repair_node_keys(tree, dead == n ? sibling->parent : n->parent);
 	}
-	else {
+	else { // 1. if a leaf is not empty, delete the key and move the data down
 		printf(" delete: (%d) moving items down\n", key);
 		// move other items down and decrement fill
 		void* src, *dest;

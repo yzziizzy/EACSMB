@@ -413,13 +413,13 @@ void initGameGL(XStuff* xs, GameState* gs) {
 
 	
 	GUIScrollWindow* gsw = GUIScrollWindow_new(gs->gui);
-	gsw->header.topleft = (Vector2){300, 300};
+	gsw->header.topleft = (Vector2){200, 200};
 	gsw->header.size = (Vector2){100, 100};
 	GUIRegisterObject(gsw, NULL);
 
 	
 	GUIValueMonitor* gfm = GUIValueMonitor_new(gs->gui, "dynamic meshes: %d", &gs->world->dmm->totalInstances, 'i');
-	gfm->header.topleft = (Vector2){200,200};
+	gfm->header.topleft = (Vector2){0,0};
 	GUIRegisterObject(gfm, gsw);
 	
 	
@@ -821,14 +821,42 @@ static void main_click_handler(InputEvent* ev, GameState* gs) {
 			getTileFromScreenCoords(gs, ev->normPos, &tile);
 			printf("x: %d, y: %d\n", tile.x, tile.y);
 			Vector2 tilef = {tile.x, tile.y};
-			//BUG: convert this to tile coords
-			World_spawnAt_Item(gs->world, "gazebbq", &tilef);
 			
-			SoundInstance* si = calloc(1, sizeof(*si));
+			
+			SceneItemInfo* sii = QuadTree_findFirst(&gs->world->qt, tilef);
+			if(sii) {
+				printf("found item\n");
+				QuadTree_purge(&gs->world->qt, sii);
+			}
+			
+			VEC(SceneItemInfo*) dead;
+			VEC_INIT(&dead);
+			
+			int purge(SceneItemInfo* s, void* _qt) {
+				QuadTree* qt = _qt;
+				VEC_PUSH(&dead, s);
+				return 0;
+			}
+			
+			QuadTree_findAllArea(&gs->world->qt, (AABB2){
+				tilef.x - 10, tilef.y - 10,
+				tilef.x + 10, tilef.y + 10,
+			}, purge, &gs->world->qt);
+			
+			VEC_EACH(&dead, sii, si) {
+				QuadTree_purge(&gs->world->qt, si);
+			}
+			
+			VEC_FREE(&dead);
+			
+			//BUG: convert this to tile coords
+// 			World_spawnAt_Item(gs->world, "gazebbq", &tilef);
+			
+		/*	SoundInstance* si = calloc(1, sizeof(*si));
 			si->flags = 0;//SOUNDFLAG_LOOP;
 			si->globalStartTime = 2.0;
 			si->volume = 0.8;
-			SoundManager_addClipInstance(gs->sound, "ohno", si);
+		*/	//SoundManager_addClipInstance(gs->sound, "ohno", si);
 		}
 		/*
 		flattenArea(gs->map.tb,

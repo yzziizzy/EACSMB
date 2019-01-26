@@ -6,16 +6,22 @@
 
 static QuadTreeNode* QTNode_alloc(QuadTree* qt, QuadTreeNode* parent, char x, char y);
 static int QuadTreeNode_addSII(QuadTreeNode* n, SceneItemInfo* siNew);
+static int QuadTreeNode_remSII(QuadTreeNode* n, SceneItemInfo* siDead);
 static int QuadTreeNode_insert(QuadTree* qt, QuadTreeNode* n, SceneItemInfo* siNew);
- int QuadTreeNode_split(QuadTree* qt, QuadTreeNode* n);
+static int QuadTreeNode_purge(QuadTree* qt, QuadTreeNode* n, SceneItemInfo* siDead);
+static SceneItemInfo* QuadTreeNode_findFirst(QuadTree* qt, QuadTreeNode* n, Vector2 pt);
+static int QuadTreeNode_findAll(QuadTree* qt, QuadTreeNode* n, Vector2 pt, QuadTreeFindFn fn, void* data);
+static int QuadTreeNode_findAllArea(QuadTree* qt, QuadTreeNode* n, AABB2 aabb, QuadTreeFindFn fn, void* data);
+// int QuadTreeNode_split(QuadTree* qt, QuadTreeNode* n);
+
 
 
 void QuadTree_init(QuadTree* qt, AABB2 bounds) {
 	
 	*qt = (QuadTree){};
 	
-	qt->maxLevels = 4;
-	qt->nodeMaxCount = 100;
+	qt->maxLevels = 5;
+	qt->nodeMaxCount = 30;
 	qt->nodeMinCount = 1;
 	
 	MemPool_init(&qt->siPool, sizeof(SceneItemInfo), 1024*1024);
@@ -35,6 +41,9 @@ SceneItemInfo* QuadTree_allocSceneItem(QuadTree* qt) {
 
 void QuadTree_insert(QuadTree* qt, SceneItemInfo* siNew) {
 	QuadTreeNode_insert(qt, qt->root, siNew);
+}
+void QuadTree_purge(QuadTree* qt, SceneItemInfo* siDead) {
+	QuadTreeNode_purge(qt, qt->root, siDead);
 }
 
 
@@ -67,6 +76,18 @@ static int QuadTreeNode_addSII(QuadTreeNode* n, SceneItemInfo* siNew) {
 	VEC_PUSH(&n->items, siNew);
 	return 1;
 }
+// TODO: add a perf timer on this to see if a better algothms should be used
+// returns 1 if a pointer was removed, 0 otherwise
+static int QuadTreeNode_remSII(QuadTreeNode* n, SceneItemInfo* siDead) {
+	VEC_EACH(&n->items, sii, si) {
+		if(si == siDead) {
+			VEC_RM(&n->items, sii);
+			return 1;
+		}
+	}
+	
+	return 0;
+}
 
 
 static int QuadTreeNode_insert(QuadTree* qt, QuadTreeNode* n, SceneItemInfo* siNew) {
@@ -98,6 +119,28 @@ static int QuadTreeNode_insert(QuadTree* qt, QuadTreeNode* n, SceneItemInfo* siN
 }
 
 
+static int QuadTreeNode_purge(QuadTree* qt, QuadTreeNode* n, SceneItemInfo* siDead) {
+	
+	if(boxDisjoint2(&siDead->aabb, &n->aabb)) {
+		return 0;
+	}
+	
+	// purge from this node's list
+	int c = QuadTreeNode_remSII(n, siDead);
+	
+	if(!n->kids[0][0]) return c;
+	
+	// purge from subnodes
+	for(int x = 0; x <= 1; x++) {
+		for(int y = 0; y <= 1; y++) {
+			c += QuadTreeNode_purge(qt, n->kids[x][y], siDead);
+		}
+	}
+	
+	return c;
+}
+
+
 
 int QuadTreeNode_split(QuadTree* qt, QuadTreeNode* n) {
 	
@@ -115,6 +158,125 @@ int QuadTreeNode_split(QuadTree* qt, QuadTreeNode* n) {
 	
 	qt->totalNodes += 4;
 }
+
+
+SceneItemInfo* QuadTree_findFirst(QuadTree* qt, Vector2 pt) {
+	return QuadTreeNode_findFirst(qt, qt->root, pt);
+}
+
+static SceneItemInfo* QuadTreeNode_findFirst(QuadTree* qt, QuadTreeNode* n, Vector2 pt) {
+	if(VEC_LEN(&n->items) == 0) return 0; 
+	
+	if(!boxContainsPoint2(&n->aabb, &pt)) {
+		return NULL;
+	}
+// 	printf("level %d\n", n->level);
+	if(n->kids[0][0]) {
+		
+		// search kids instead
+		for(int x = 0; x <= 1; x++) {
+			for(int y = 0; y <= 1; y++) {
+				SceneItemInfo* si = QuadTreeNode_findFirst(qt, n->kids[x][y], pt);
+				if(si) return si;
+			}
+		}
+		
+		// there is no item over the point
+		return NULL;
+	}
+	else {
+		// leaf node; search here 
+		VEC_EACH(&n->items, sii, si) {
+			if(boxContainsPoint2(&si->aabb, &pt)) {
+				return si;
+			}
+		}
+	}
+	
+	
+//	printf("\nERROR: unreachable path 2 %s:%d\n\n", __FILE__, __LINE__);
+	
+	return NULL;
+}
+
+
+
+void QuadTree_findAll(QuadTree* qt, Vector2 pt, QuadTreeFindFn fn, void* data) {
+	QuadTreeNode_findAll(qt, qt->root, pt, fn, data);
+}
+
+// return 0 to continue, 1 to stop 
+static int QuadTreeNode_findAll(QuadTree* qt, QuadTreeNode* n, Vector2 pt, QuadTreeFindFn fn, void* data) {
+	if(VEC_LEN(&n->items) == 0) return 0; 
+	
+	if(!boxContainsPoint2(&n->aabb, &pt)) {
+		return 0;
+	}
+
+	if(n->kids[0][0]) {
+		
+		// search kids instead
+		for(int x = 0; x <= 1; x++) {
+			for(int y = 0; y <= 1; y++) {
+				if(QuadTreeNode_findAll(qt, n->kids[x][y], pt, fn, data)) return 1;
+			}
+		}
+		
+		// keep going
+		return 0;
+	}
+	else {
+		// leaf node; search here 
+		VEC_EACH(&n->items, sii, si) {
+			if(boxContainsPoint2(&si->aabb, &pt)) {
+				if(fn(si, data)) return 1;
+			}
+		}
+	}
+	
+	return 0;
+}
+
+void QuadTree_findAllArea(QuadTree* qt, AABB2 aabb, QuadTreeFindFn fn, void* data) {
+	QuadTreeNode_findAllArea(qt, qt->root, aabb, fn, data);
+}
+
+// return 0 to continue, 1 to stop 
+static int QuadTreeNode_findAllArea(QuadTree* qt, QuadTreeNode* n, AABB2 aabb, QuadTreeFindFn fn, void* data) {
+	if(VEC_LEN(&n->items) == 0) return 0; 
+	
+	if(boxDisjoint2(&n->aabb, &aabb)) {
+		return 0;
+	}
+
+	if(n->kids[0][0]) {
+		
+		// search kids instead
+		for(int x = 0; x <= 1; x++) {
+			for(int y = 0; y <= 1; y++) {
+				if(QuadTreeNode_findAllArea(qt, n->kids[x][y], aabb, fn, data)) return 1;
+			}
+		}
+		
+		// keep going
+		return 0;
+	}
+	else {
+		// leaf node; search here 
+		VEC_EACH(&n->items, sii, si) {
+			if(!boxDisjoint2(&si->aabb, &aabb)) {
+				if(fn(si, data)) return 1;
+			}
+		}
+	}
+	
+	return 0;
+}
+
+
+
+
+
 
 
 
@@ -136,6 +298,28 @@ static void QuadTreeNode_renderDebugVolumes(QuadTreeNode* n, float hmin, float h
 	QuadTreeNode_renderDebugVolumes(n->kids[0][1], hmin+1, hmax-2, pfp);
 	QuadTreeNode_renderDebugVolumes(n->kids[1][0], hmin+1, hmax-2, pfp);
 	QuadTreeNode_renderDebugVolumes(n->kids[1][1], hmin+1, hmax-2, pfp);
+	
+	
+	// render items on the leaf node
+	static Vector colors[] = {
+		{1,.2, .5},
+		{.1,.5, .5},
+		{.2,.6, .8},
+		{.5,.1, .8},
+		{.1,.9, .1},
+		{.1,.6, .3},
+	};
+	int r = (int)(n->aabb.min.x + n->aabb.min.y) % 6;
+	
+	if(!n->kids[0][0]) {
+		VEC_EACH(&n->items, sii, si) {
+			renderDebugBox(1,
+				colors[r],
+				(Vector){si->aabb.min.x, si->aabb.min.y, hmin+5},
+				(Vector){si->aabb.max.x, si->aabb.max.y, hmin+10},
+				pfp);
+		}
+	}
 }
 
 

@@ -127,8 +127,14 @@ typedef struct QuadTree {
 } QuadTree;
 
 
+typedef int (*QuadTreeFindFn)(SceneItemInfo*, void*);
+
 void QuadTree_init(QuadTree* qt, AABB2 bounds);
 void QuadTree_insert(QuadTree* qt, SceneItemInfo* siNew);
+void QuadTree_purge(QuadTree* qt, SceneItemInfo* siDead);
+SceneItemInfo* QuadTree_findFirst(QuadTree* qt, Vector2 pt);
+void QuadTree_findAll(QuadTree* qt, Vector2 pt, QuadTreeFindFn fn, void* data);
+void QuadTree_findAllArea(QuadTree* qt, AABB2 aabb, QuadTreeFindFn fn, void* data);
 SceneItemInfo* QuadTree_allocSceneItem(QuadTree* qt);
 
 // temp

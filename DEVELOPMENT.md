@@ -208,6 +208,7 @@ config. See `texgen.[ch]`
 * More features in building generator.
 * Track GPU memory usage as much as possible.
 * Destructors and resource cleanup on just about everything.
+* Fix quad tree to bin items by size
 
 ## UI
 * Config system
@@ -226,6 +227,7 @@ config. See `texgen.[ch]`
 * 3D gui (positioned in the world rather than overlayed in 2D.)
 * Consistent z offsets for child windows to prevent flickering from inconsistent sorting
 * Animations
+* Debug float* adjusters
 
 
 ## Petty Basic Optimization

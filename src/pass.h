@@ -43,6 +43,7 @@ typedef struct PassFrameParams {
 	PassDrawParams* dp;
 	
 	double timeElapsed; // time since last frame
+	double gameTimeElapsed; // like above but gets paused, persisted on save, etc
 	double gameTime; // gets paused, persisted on save, etc
 	double wallTime; // from the first frame rendered this session
 } PassFrameParams;

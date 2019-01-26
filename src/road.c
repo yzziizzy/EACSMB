@@ -227,3 +227,23 @@ void RoadNetwork_FlushDirty(RoadNetwork* rn, struct World* w) {
 
 
 
+
+
+RoadEdge* RoadNetwork_FindClosestEdge(RoadNetwork* rn, Vector2 pos) {
+	
+}
+
+RoadNode* RoadNetwork_FindClosestNode(RoadNetwork* rn, Vector2 pos) {
+	
+}
+
+void RoadNetwork_FindPath(RoadNetwork* rn, RoadNode* start, RoadNode* finish) {
+	
+	
+	
+	
+}
+
+
+
+
