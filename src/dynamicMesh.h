@@ -16,6 +16,8 @@
 #include "pass.h"
 #include "mdi.h"
 
+#include "gltf.h"
+
 #include "component.h"
 
 

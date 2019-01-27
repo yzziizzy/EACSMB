@@ -25,6 +25,7 @@ eacsmb_SOURCES = main.c \
 	fcfg.c \
 	font.c \
 	game.c \
+	gltf.c \
 	gui.c \
 	hash.c \
 	input.c \

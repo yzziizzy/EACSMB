@@ -90,6 +90,45 @@ void initDynamicMeshes() {
 
 
 
+DynamicMesh* DynamicMesh_FromGLTF(gltf_file* gf, int meshIndex) {
+	
+	DynamicMesh* m = pcalloc(m);
+	gltf_mesh* mesh = VEC_ITEM(&gf->meshes, meshIndex);
+	
+	// TODO: fuse all primitives, convert to GL_TRIANGLES
+	
+	VEC_EACH(&mesh->primitives, prim_i, prim) {
+		if(prim->mode != GL_TRIANGLES) {
+			continue;
+		}
+		
+		m->polyMode = GL_TRIANGLES;
+		m->vertexCnt = prim->position->count;
+		m->vertices = calloc(1, m->vertexCnt * sizeof(*m->vertices));
+		
+		Vector* positions = malloc(prim->position->bufferView->length);
+		gltf_readAccessor(prim->position, positions);
+		
+		Vector* normals = malloc(prim->normal->bufferView->length);
+		gltf_readAccessor(prim->normal, normals);
+
+		uint16_t* texcoords = malloc(prim->texCoord0->bufferView->length);
+		gltf_readAccessor(prim->texCoord0, texcoords);
+		
+		for(int i = 0; i < m->vertexCnt; i++) {
+			m->vertices[i].v = positions[i];
+			m->vertices[i].n = normals[i];
+			m->vertices[i].t.u = texcoords[i * 2]; 
+			m->vertices[i].t.v = texcoords[i * 2 + 1];
+		}
+		
+		free(positions);
+		free(normals);
+		free(texcoords);
+	}
+	
+}
+
 DynamicMesh* DynamicMeshFromOBJ(OBJContents* obj) {
 	
 	int i;
