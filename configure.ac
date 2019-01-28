@@ -57,6 +57,7 @@ AC_CHECK_HEADERS([ \
 # 	alsa/asoundlib.h \
 # 	vorbis/codec.h \
 # 	vorbis/vorbisfile.h \
+# 	jpeglib.h \
 
 
 #AC_CHECK_FUNCS( memset  \
@@ -91,6 +92,8 @@ AC_ARG_ENABLE(
 
 
 
+
+
 AC_MSG_CHECKING([for OGG/Vorbis support])
 AC_ARG_ENABLE(
 	vorbis,
@@ -107,6 +110,27 @@ AC_ARG_ENABLE(
 	AC_CHECK_LIB([vorbisfile], [ov_fopen],  
 		AC_DEFINE(HAVE_VORBIS, 1, "libVorbis support")
 		LIBS="$LIBS -lvorbisfile")
+)
+
+
+
+
+AC_MSG_CHECKING([for libJPEG support])
+AC_ARG_ENABLE(
+	jpeg,
+[  --enable-jpeg        libJPEG ([default=yes])],
+	if test x$enableval = "xyes"; then
+		AC_MSG_RESULT([yes])
+		AC_CHECK_LIB([jpeg], [jpeg_set_defaults], 
+			AC_DEFINE(HAVE_JPEG, 1, "libJPEG support")
+			LIBS="$LIBS -ljpeg")
+	else
+		AC_MSG_RESULT([no])
+	fi,  
+	AC_MSG_RESULT([yes])
+	AC_CHECK_LIB([jpeg], [jpeg_set_defaults],  
+		AC_DEFINE(HAVE_JPEG, 1, "libJPEG support")
+		LIBS="$LIBS -ljpeg")
 )
 
 

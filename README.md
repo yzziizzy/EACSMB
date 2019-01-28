@@ -3,9 +3,9 @@ A 3D city building game. Currently under construction.
 
 
 It's written in pure C using no frameworks. Hard dependencies are Xlib, FreeType, fontconfig, libPNG, GLEW, and OpenGL 4.5. You should probably have a lot of ram as well as a real CPU.
-Optional dependencies are ALSA and libVorbis (OGG).
+Optional dependencies are libJPEG, ALSA and libVorbis (OGG).
 
-Current state:
+(Not so) Current state:
 ![Current state](http://i.imgur.com/KCIkUAs.png)
 
 
@@ -14,7 +14,9 @@ Current state:
 * `https://github.com/yzziizzy/c3dlas` symlinked as `src/c3dlas`
 * `https://github.com/yzziizzy/c_json` symlinked as `src/c_json`
 
-* `sudo apt-get install libx11-dev libglew-dev libfreetype6-dev libfontconfig1-dev libpng-dev libvorbis-dev alsa-source`
+* `sudo apt-get install libx11-dev libglew-dev libfreetype6-dev libfontconfig1-dev libpng-dev`
+
+* Optional Dependencies: `sudo apt-get install libjpeg-turbo8-dev libvorbis-dev alsa-source`
 
 * `./autogen.sh`
 * `make && ./src/eacsmb`
@@ -22,8 +24,7 @@ Current state:
 
 # Settings
 
-`defaults.ini` contains base settings, to override them add `settings.ini` with
-the desired values.
+Poke around in `assets/config/`
 
 ## Input sensitivity:
 

@@ -30,6 +30,7 @@ eacsmb_SOURCES = main.c \
 	hash.c \
 	input.c \
 	itemLoader.c \
+	jpeg.c \
 	json_gl.c \
 	lighting.c \
 	loadingScreen.c \
