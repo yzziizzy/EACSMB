@@ -230,7 +230,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	
 	gs->activeTool = 0;
 	
-	gs->debugMode = 0;
+	gs->debugMode = 7;
 	gs->sunSpeed = 0;
 	gs->sunTheta = 2.2;
 	
@@ -723,6 +723,10 @@ static void main_key_handler(InputEvent* ev, GameState* gs) {
 		exit(0);
 	}
 	
+	if(ev->character == 'p') {
+		gs->show_qt_debug ^= 1;
+	}
+	
 	if(ev->keysym == XK_Delete) {
 		static int lastChange = 0;
 		static char* modeStrings[] = {
@@ -732,10 +736,11 @@ static void main_key_handler(InputEvent* ev, GameState* gs) {
 			"depth",
 			"selection",
 			"lighting",
-			"shadow depth"
+			"shadow depth",
+			"PBR"
 		};
 		
-		gs->debugMode = (gs->debugMode + 1) % 7;
+		gs->debugMode = (gs->debugMode + 1) % 8;
 		lastChange = gs->frameTime;
 		
 		GUIText_setString(gtRenderMode, modeStrings[gs->debugMode]);

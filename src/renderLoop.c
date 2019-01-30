@@ -277,6 +277,7 @@ void shadingPass(GameState* gs, PassFrameParams* pfp) {
 	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "mProjView"), 1, GL_FALSE, pfp->dp->mProjView);
 	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "mViewWorld"), 1, GL_FALSE, pfp->dp->mViewWorld);
 	
+	mPrint(&gs->world->sunShadow->mWorldLight,  stdout);
 	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "mWorldLight"), 1, GL_FALSE, &gs->world->sunShadow->mWorldLight);
 
 	glexit("shading world");
@@ -489,11 +490,11 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 // 	printf("sm------\n");
 	query_queue_start(&gs->queries.sunShadow);
-//	ShadowMap_Render(gs->world->sunShadow, &pfp, &gs->sunNormal);
+	ShadowMap_Render(gs->world->sunShadow, &pfp, &gs->sunNormal);
 	query_queue_stop(&gs->queries.sunShadow);
 // 	printf("sm^^^^^^\n");
 	
-// 	giShadowMap->customTexID = gs->world->sunShadow->depthTex; 
+	//giShadowMap->customTexID = gs->world->sunShadow->depthTex; 
 	
 	glViewport(0, 0, gs->screen.wh.x, gs->screen.wh.y);
 	
@@ -644,15 +645,16 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	shadingPass(gs, &pfp);
 	
-	
-	glDisable(GL_DEPTH_TEST);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	
-	QuadTree_renderDebugVolumes(&gs->world->qt, &pfp);
-	glDisable(GL_BLEND);
-	glEnable(GL_DEPTH_TEST);
-	
+	if(gs->show_qt_debug) {
+		glDisable(GL_DEPTH_TEST);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		
+		QuadTree_renderDebugVolumes(&gs->world->qt, &pfp);
+		glDisable(GL_BLEND);
+		glEnable(GL_DEPTH_TEST);
+	}
+
 	glXSwapBuffers(xs->display, xs->clientWin);
 }
 

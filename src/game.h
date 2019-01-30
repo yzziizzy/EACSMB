@@ -117,6 +117,7 @@ typedef struct GameState {
 	Vector2 mouseDownPos;
 	
 	int debugMode;
+	int show_qt_debug;
 	
 	float zoom;
 	float direction;

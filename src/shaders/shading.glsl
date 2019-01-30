@@ -372,23 +372,29 @@ void main() {
 	
 		
 		
+		// input setup 
+		vec4 light_dir = inverse(mWorldLight) * vec4(0,0,1,1);
+		light_dir = vec4(normalize(light_dir.xyz / light_dir.w), 1);
+
+		
 		
 		
 		// TODO: gather inputs
 		vec3 dielectricSpecular = vec3(0.45, 0.45, 0.45);
 		float metallic = 0.45;
-		vec3 baseColor = vec3(0.45, 0.45, 0.45);
+		vec3 baseColor = texture(sDiffuse, tex).rgb;//vec3(0.45, 0.45, 0.45);
 		float roughness = 0.4; // sampled from tex
 		
 		// TODO: gather vectors
-		vec3 h = vec3(0,1,0); // half-vector
-		vec3 l = vec3(0,1,0); // light direction
+		vec3 l = -light_dir.xyz;//vec3(0,1,0); // light direction
+		vec3 h = normalize(viewdir_w + l);//vec3(0,1,0); // half-vector
 		
 		FragColor = vec4(f_Schlick_Smith_GGX(
 			normal, h, l, viewdir_w, 
 			dielectricSpecular, baseColor, 
 			metallic, roughness), 1);
 		
+		FragColor = vec4(light_dir.xyz, 1.0);
 	}
 		
 //	FragColor = vec4(texture(sNormals, tex).rgb,  1.0);
