@@ -36,7 +36,7 @@ uniform int debugMode;
 uniform vec2 clipPlanes;
 uniform vec2 shadowClipPlanes;
 
-uniform vec3 sunNormal;
+uniform vec3 sunNormal; // in world coordinatess
 
 // forward matrices
 uniform mat4 mWorldView;
@@ -108,7 +108,7 @@ D(h) = a^2 / ( pi * (dot(n,h)^2 * (a - 1) + 1)^2 )
 #define PI 3.1415926535897932384626433832795
 
 float D_GGX(float d_nh, float a) {
-	float q = d_nh * d_nh * (a - 1) + 1;
+	float q = d_nh * d_nh * ((a * a) - 1) + 1;
 	return (a * a) / (PI * q * q);
 }
 
@@ -120,15 +120,24 @@ float G_Smith(float d_nl, float d_nv, float a2) {
 	return G_1_Smith(d_nl, a2) * G_1_Smith(d_nv, a2);
 }
 
-vec3 F_Schlick(vec3 dielectricSpecular, vec3 baseColor, float metallic, float d_vh) {
-	vec3 F_0 = mix(dielectricSpecular, baseColor, metallic);
-	return F_0 + (1 - F_0) * pow(1 - d_vh, 5);
+vec3 F_Schlick(vec3 dielectricSpecular, vec3 baseColor, float metallic, float d_nv) {
+	vec3 F_0 =dielectricSpecular;// mix(dielectricSpecular, baseColor, metallic);
+	return F_0 + (1 - F_0) * pow(1 - d_nv, 5);
 }
 
-vec3 Diff(vec3 dielectricSpecular, vec3 baseColor, float metallic, float d_vh) {
+
+vec3 F_Blinn(vec3 baseColor, float d_nh) {
+	return baseColor + (1 - baseColor) * pow(1 - (d_nh), 5);
+}
+
+vec3 Diff(vec3 dielectricSpecular, vec3 baseColor, float metallic, float d_nv) {
 	vec3 black = vec3(0,0,0);
-	return (1 - F_Schlick(dielectricSpecular, baseColor, metallic, d_vh)) *
+	return (1 - F_Schlick(dielectricSpecular, baseColor, metallic, d_nv)) *
 		(mix(baseColor * (1 - dielectricSpecular), black, metallic) / PI);
+}
+
+vec3 Diff_Lambert(vec3 baseColor, float d_nl) {
+	return vec3(max(0.0, d_nl));
 }
 
 vec3 f_Schlick_Smith_GGX(
@@ -136,17 +145,78 @@ vec3 f_Schlick_Smith_GGX(
 	vec3 dielectricSpecular, vec3 baseColor,
 	float metallic, float roughness
 ) {
+	roughness = .51;
 	
 	float a = roughness * roughness;
 	float a2 = a * a;
 	
-	float d_nh = dot(n, h);
-	float d_nl = dot(n, l);
-	float d_lh = dot(l, h);
-	float d_nv = dot(n, v);
-	float d_vh = dot(v, h);
+	float d_nh = clamp(dot(n, h), 0.0, 1.0);
+	float d_nl = clamp(dot(n, l), 0.0, 1.0);
+	float d_lh = clamp(dot(l, h), 0.0, 1.0);
+	float d_nv = clamp(dot(n, v), 0.0001, 1.0);
+	float d_vh = clamp(dot(h, v), 0.0, 1.0);
+ 	//return vec3(d_nv,-d_nv, 0);
+
 	
-	return Diff(dielectricSpecular, baseColor, metallic, d_lh) + (
+	// temp debug
+	vec3 black = vec3(0,0,0);
+	
+// 	return Diff(dielectricSpecular, baseColor, metallic, d_vh);
+// 	return F_Schlick(dielectricSpecular, baseColor, metallic, d_vh);
+// 	return Diff_Lambert(baseColor, d_nl);
+//  	return (mix(baseColor * (1 - dielectricSpecular), black, 0.1) / PI);
+//  	return (mix(baseColor * (1 - dielectricSpecular), black, metallic) / PI);
+	
+/*
+	D = microfacet distribution factor (roughness)
+	F = fresnel reflection coefficient (shininess)
+	G = geometric attenuation factor (self-shadowing)
+*/
+
+	metallic = 0.71;
+	vec3 zzz;
+	zzz = vec3(0.0091,0.0091,0.0091);
+	
+// 	zzz = D_GGX(d_nh, a);
+	
+	dielectricSpecular = vec3(.91,.91,.91);
+	
+	zzz = F_Schlick(dielectricSpecular, baseColor, metallic, d_vh);
+	//return zzz;
+	float dg = D_GGX(d_nh, a); 
+	float gs = G_Smith(d_nl, d_nv, a2); 
+//	zzz = F_Blinn(baseColor, d_nh);
+	//return vec3(dg,dg,dg);
+	//return vec3(gs,gs,gs);
+	
+	vec3 top = zzz * dg * gs;
+	
+	vec3 CookTorrence = top / (PI * d_nl * d_nv); 
+// 	return vec3((4 * d_nl * d_nv),(4 * d_nl * d_nv),(4 * d_nl * d_nv));
+// 	return vec3(d_nv,-d_nv, 0);
+// 	return n *.5 + .5;
+	
+	float k = .2;
+	
+	vec3 diffuseTerm = baseColor * Diff_Lambert(baseColor, d_nl);
+// 	vec3 specularTerm = baseColor * pow(d_nh, 16.0); // blinn-phong
+	vec3 specularTerm = baseColor * (k + CookTorrence * (1.0 - k));
+	
+	
+	
+	float Ks = metallic;
+	float Kd = 1.0 - Ks;
+	
+	return Kd * diffuseTerm + Ks * specularTerm;
+	
+	
+	vec3 c = baseColor; 
+	
+	return clamp(
+		Kd * (Diff_Lambert(baseColor, d_nl) * baseColor /** (c / PI)*/) + (Ks * zzz / (4 * d_nl * d_nv)), 0.0, 1.0);
+
+	
+	return Diff(dielectricSpecular, baseColor, metallic, d_vh) + (
 		(
 			F_Schlick(dielectricSpecular, baseColor, metallic, d_lh) * // BUG: last arg may be wrong
 			G_Smith(d_nl, d_nv, a2) *
@@ -241,7 +311,7 @@ void main() {
 		
 		//vec3 viewdir = normalize(viewpos - pos);
 		// world space
-		vec3 viewdir = normalize((inverse(mViewProj * mWorldView) * vec4(0,0,1,1)).xyz);
+		vec3 viewdir = -normalize((inverse(mViewProj * mWorldView) * vec4(0,0,-1,1)).xyz);
 		
 		//normal = (mWorldView * vec4(normal, 1)).xyz;
 		
@@ -355,7 +425,7 @@ void main() {
 		
 		float depth = texture(sDepth, screenCoord).r;
 		if (depth > 0.99999) {
-		//	discard; // probably shouldn't be here
+			discard; // probably shouldn't be here
 		}
 		
 		float ndc_depth = depth * 2.0 - 1.0;
@@ -369,24 +439,31 @@ void main() {
 		// pos is in world coordinates now
 		
 		vec3 viewdir_w = normalize((inverse(mViewProj * mWorldView) * vec4(0,0,1,1)).xyz);
+		vec3 viewpos_w = (inverse(mWorldView) * vec4(0,0,0,1)).xyz;
 	
-		
+ 		viewdir_w = normalize(viewpos_w - pos);
+//  		viewdir_w = normalize(pos - viewpos_w);
+//  		FragColor = vec4(viewdir_w * .5 + .5, 1.0);
+//  		return;
 		
 		// input setup 
 		vec4 light_dir = inverse(mWorldLight) * vec4(0,0,1,1);
 		light_dir = vec4(normalize(light_dir.xyz / light_dir.w), 1);
-
+		
+		light_dir = vec4(sunNormal.xyz, 1.0);
 		
 		
 		
 		// TODO: gather inputs
-		vec3 dielectricSpecular = vec3(0.45, 0.45, 0.45);
-		float metallic = 0.45;
+// 		vec3 dielectricSpecular = vec3(0.45, 0.45, 0.45);
+// 		vec3 dielectricSpecular = vec3(1.0, 1.0, 1.0);
+		vec3 dielectricSpecular = vec3(0.1, 0.1, 0.1);
+		float metallic = 0.408;
 		vec3 baseColor = texture(sDiffuse, tex).rgb;//vec3(0.45, 0.45, 0.45);
-		float roughness = 0.4; // sampled from tex
+		float roughness = 0.1; // sampled from tex
 		
 		// TODO: gather vectors
-		vec3 l = -light_dir.xyz;//vec3(0,1,0); // light direction
+		vec3 l = light_dir.xyz;//vec3(0,1,0); // light direction
 		vec3 h = normalize(viewdir_w + l);//vec3(0,1,0); // half-vector
 		
 		FragColor = vec4(f_Schlick_Smith_GGX(
@@ -394,7 +471,7 @@ void main() {
 			dielectricSpecular, baseColor, 
 			metallic, roughness), 1);
 		
-		FragColor = vec4(light_dir.xyz, 1.0);
+		//FragColor = vec4(light_dir.xyz, 1.0);
 	}
 		
 //	FragColor = vec4(texture(sNormals, tex).rgb,  1.0);
