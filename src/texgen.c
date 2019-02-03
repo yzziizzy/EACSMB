@@ -9,6 +9,8 @@
 #include "perlin.h"
 #include "opensimplex.h"
 
+#include "gui_internal.h"
+
 
 
 /*

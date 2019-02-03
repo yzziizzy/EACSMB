@@ -10,35 +10,35 @@
 
 static int partTypeLookup(char* name) {
 	if(0 == strcmp("staticMesh", name)) {
-		return ITEM_TYPE_STATICMESH;
+		return PART_TYPE_STATICMESH;
 	}
 	else if(0 == strcmp("dynamicMesh", name)) {
-		return ITEM_TYPE_DYNAMICMESH;
+		return PART_TYPE_DYNAMICMESH;
 	}
 	else if(0 == strcmp("emitter", name)) {
-		return ITEM_TYPE_EMITTER;
+		return PART_TYPE_EMITTER;
 	}
 	else if(0 == strcmp("light", name)) {
-		return ITEM_TYPE_LIGHT;
+		return PART_TYPE_LIGHT;
 	}
 	else if(0 == strcmp("decal", name)) {
-		return ITEM_TYPE_DECAL;
+		return PART_TYPE_DECAL;
 	}
 	else if(0 == strcmp("customDecal", name)) {
-		return ITEM_TYPE_CUSTOMDECAL;
+		return PART_TYPE_CUSTOMDECAL;
 	}
 	else if(0 == strcmp("marker", name)) {
-		return ITEM_TYPE_MARKER;
+		return PART_TYPE_MARKER;
 	}
 	else if(0 == strcmp("item", name)) {
-		return ITEM_TYPE_ITEM;
+		return PART_TYPE_ITEM;
 	}
 	else if(0 == strcmp("soundClip", name)) {
-		return ITEM_TYPE_SOUNDCLIP;
+		return PART_TYPE_SOUNDCLIP;
 	}
 	else {
 		printf("Unknown part type: %s\n", name);
-		return ITEM_TYPE_UNKNOWN;
+		return PART_TYPE_UNKNOWN;
 	}
 }
 
@@ -104,16 +104,16 @@ static int loadConfig_SoundClip(World* w, json_value_t* jo);
 typedef int (*loaderFn)(World*, json_value_t*);
 
 static const loaderFn loaderFns[] = {
-	[ITEM_TYPE_UNKNOWN] =     NULL,
-	[ITEM_TYPE_ITEM] =        loadConfig_Item,
-	[ITEM_TYPE_STATICMESH] =  NULL, // obsolete, for now
-	[ITEM_TYPE_DYNAMICMESH] = loadConfig_DynamicMesh,
-	[ITEM_TYPE_EMITTER] =     loadConfig_Emitter,
-	[ITEM_TYPE_LIGHT] =       loadConfig_Light,
-	[ITEM_TYPE_DECAL] =       loadConfig_Decal,
-	[ITEM_TYPE_CUSTOMDECAL] = loadConfig_CustomDecal,
-	[ITEM_TYPE_MARKER] =      loadConfig_Marker,
-	[ITEM_TYPE_SOUNDCLIP] =   loadConfig_SoundClip,
+	[PART_TYPE_UNKNOWN] =     NULL,
+	[PART_TYPE_ITEM] =        loadConfig_Item,
+	[PART_TYPE_STATICMESH] =  NULL, // obsolete, for now
+	[PART_TYPE_DYNAMICMESH] = loadConfig_DynamicMesh,
+	[PART_TYPE_EMITTER] =     loadConfig_Emitter,
+	[PART_TYPE_LIGHT] =       loadConfig_Light,
+	[PART_TYPE_DECAL] =       loadConfig_Decal,
+	[PART_TYPE_CUSTOMDECAL] = loadConfig_CustomDecal,
+	[PART_TYPE_MARKER] =      loadConfig_Marker,
+	[PART_TYPE_SOUNDCLIP] =   loadConfig_SoundClip,
 };
 
 
@@ -136,7 +136,7 @@ void World_loadItemConfigNew(World* w, json_value_t* jo) {
 		link = jo->v.arr->head;
 		while(link) { printf("link\n");
 			loaderFn fn;
-			enum ItemTypes type;
+			enum PartType type;
 			char* tname;
 			json_value_t* val;
 			
@@ -241,7 +241,7 @@ static int loadConfig_Item(World* w, json_value_t* jo) {
 		
 		
 // 			if(0 == strcmp("light", type)) {
-// 				item->parts[i].type = ITEM_TYPE_LIGHT;
+// 				item->parts[i].type = PART_TYPE_LIGHT;
 // 				
 // 				json_obj_get_key(j_part, "position", &v);
 // 				json_as_vector(v, 3, &item->parts[i].offset);
@@ -327,7 +327,7 @@ static int loadConfig_DynamicMesh(World* w, json_value_t* jo) {
 	printf("DM added mesh %d: %s \n", ind, dm->name);
 	
 	
-	return add_part(w, (Part){ITEM_TYPE_DYNAMICMESH, ind, name});
+	return add_part(w, (Part){PART_TYPE_DYNAMICMESH, ind, name});
 }
 
 
@@ -446,7 +446,7 @@ static int loadConfig_Emitter(World* w, json_value_t* jo) {
 
 	
 	
-	return add_part(w, (Part){ITEM_TYPE_EMITTER, ind, name});
+	return add_part(w, (Part){PART_TYPE_EMITTER, ind, name});
 }
 
 
@@ -461,7 +461,7 @@ static int loadConfig_Light(World* w, json_value_t* jo) {
 	
 	char* name = json_obj_key_as_string(jo, "_name");
 	
-	return add_part(w, (Part){ITEM_TYPE_LIGHT, ind++, name});
+	return add_part(w, (Part){PART_TYPE_LIGHT, ind++, name});
 }
 
 
@@ -515,7 +515,7 @@ static int loadConfig_Decal(World* w, json_value_t* jo) {
 	printf("DM added decal %d: %s \n", ind, d->name);
 	
 	
-	return add_part(w, (Part){ITEM_TYPE_DECAL, ind, d->name});
+	return add_part(w, (Part){PART_TYPE_DECAL, ind, d->name});
 }
 
 
@@ -565,7 +565,7 @@ static int loadConfig_CustomDecal(World* w, json_value_t* jo) {
 	
 
 	
-	return add_part(w, (Part){ITEM_TYPE_CUSTOMDECAL, ind, d->name});
+	return add_part(w, (Part){PART_TYPE_CUSTOMDECAL, ind, d->name});
 }
 
 
@@ -595,7 +595,7 @@ static int loadConfig_Marker(World* w, json_value_t* jo) {
 	// save name
 	name = strdup(json_obj_get_string(jo, "_name"));
 	
-	return add_part(w, (Part){ITEM_TYPE_MARKER, ind, name});
+	return add_part(w, (Part){PART_TYPE_MARKER, ind, name});
 	
 }
 
@@ -617,7 +617,7 @@ static int loadConfig_SoundClip(World* w, json_value_t* jo) {
 	// save name
 	name = strdup(json_obj_get_string(jo, "_name"));
 	
-	return add_part(w, (Part){ITEM_TYPE_SOUNDCLIP, ind, name});
+	return add_part(w, (Part){PART_TYPE_SOUNDCLIP, ind, name});
 	
 }
 

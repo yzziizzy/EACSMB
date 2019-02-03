@@ -192,6 +192,8 @@ void initGame(XStuff* xs, GameState* gs);
 void initGameGL(XStuff* xs, GameState* gs);
 void getTileFromScreenCoords(GameState* gs, Vector2 scoord, Vector2i* tile);
 
+void setupFBOs(GameState* gs, int resized);
+
 
 // use a normal map to not have the overlap problem
 

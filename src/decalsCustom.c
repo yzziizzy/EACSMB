@@ -16,6 +16,7 @@
 #include "shader.h"
 #include "pass.h"
 #include "component.h"
+#include "items.h"
 
 #include "c_json/json.h"
 
@@ -543,3 +544,85 @@ static int ro_comp(const void* aa, const void * bb, void* ctx) {
 static void sortDecalRenderOrder(CustomDecalManager* dm) {
 	VEC_SORT_R(&dm->renderOrder, ro_comp, dm);
 }
+
+
+
+
+
+
+
+
+// item spawning
+
+
+void item_spawn_CUSTOMDECAL(World* w, PartInstance* pi, void* info) {
+	
+	// this whole function needs to be fixed
+	// these variables were undefined
+	float width;
+	int cdecalIndex;
+	Vector* p1, *p2;
+	
+	
+	float h;
+	int texIndex;
+	
+	Vector2i loci;
+	Vector groundloc;
+	CustomDecalInstance* info_di = (CustomDecalInstance*)info;
+	CustomDecalInstance di;
+	
+	// look up the terrain heights
+	//loci.x = p1->x;
+	//loci.y = p1->y;	
+	//getTerrainHeight(&w->map, &loci, 1, &h);
+	//groundloc = (Vector){p1->x, p1->y, h};
+	
+	//loci.x = p2->x;
+	//loci.y = p2->y;
+	//getTerrainHeight(&w->map, &loci, 1, &h);
+	//groundloc = (Vector){p2->x, p2->y, h};
+
+	//printf("spawning custom decal %f,%f,%f\n", groundloc.x, groundloc.y, groundloc.z);
+
+	Vector2 n;
+	float hw = width / 2;
+	
+	Vector2 p12;
+	vSub2(p2, p1, &p12);
+	
+	n = (Vector2){p12.y, -p12.x};
+	vNorm2(&n, &n);
+	vScale2(&n, hw, &n);
+	
+	vAdd(&n, p1, &di.pos1);
+	vAdd(&n, p2, &di.pos3);
+	
+	vScale(&n, -1, &n);
+	vAdd(&n, p1, &di.pos2);
+	vAdd(&n, p2, &di.pos4);
+	
+// 	di.pos1.z = Map_getTerrainHeight3f(&w->map, di.pos1);
+// 	di.pos2.z = Map_getTerrainHeight3f(&w->map, di.pos2);
+// 	di.pos3.z = Map_getTerrainHeight3f(&w->map, di.pos3);
+// 	di.pos4.z = Map_getTerrainHeight3f(&w->map, di.pos4);
+	
+	di.thickness = 50;
+	
+	di.tex12 = .5;
+	di.tex34 = 3.0;
+	//di.pos = groundloc;
+	
+// 	texIndex = VEC_ITEM(&w->cdm->decals, cdecalIndex)->texIndex; 
+	
+// 	CustomDecalManager_AddInstance(w->cdm, cdecalIndex, &di);
+	
+	return newEID();
+}
+void item_remove_CUSTOMDECAL(World* w, PartInstance* pi) {
+	
+}
+void item_move_CUSTOMDECAL(World* w, PartInstance* pi, Vector* newPos) {
+	
+}
+

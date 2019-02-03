@@ -18,6 +18,35 @@
 
 
 
+
+// forward declarations
+#define PART_TYPE(name) \
+	void item_spawn_##name(World*, PartInstance*, void*); \
+	void item_remove_##name(World*, PartInstance*); \
+	void item_move_##name(World*, PartInstance*, Vector*);
+
+	PART_TYPE_LIST
+#undef PART_TYPE
+
+
+// vtable table
+static ItemVTable itemvts[] = {
+#define PART_TYPE(name) [PART_TYPE_##name] = { \
+		.spawn = item_spawn_##name, \
+		.remove = item_remove_##name, \
+		.move = item_move_##name, \
+	},
+	PART_TYPE_LIST
+#undef PART_TYPE
+};
+
+
+
+#include "itemFns.c"
+
+
+
+
 void World_init(World* w) {
 	VEC_INIT(&w->itemInstances);
 	VEC_INIT(&w->partInstances);
@@ -339,31 +368,31 @@ static uint32_t spawnPart(World* w, ItemPart* part, uint32_t parentEID, Vector* 
 	vAdd(center, &part->offset, &loc);
 	
 	switch(part->type) {
-		case ITEM_TYPE_DYNAMICMESH:
+		case PART_TYPE_DYNAMICMESH:
 			eid = World_spawnAt_DynamicMesh(w, part->index, &loc);
 			break;
 		
-		case ITEM_TYPE_STATICMESH:
+		case PART_TYPE_STATICMESH:
 			printf("!!! StaticMeshManager is obsolete. use DynamicMeshManager.\n");
 			return 1 << 31;
 		
-		case ITEM_TYPE_EMITTER:
+		case PART_TYPE_EMITTER:
 			eid = World_spawnAt_Emitter(w, part->index, &loc);
 			break;
 
-		case ITEM_TYPE_LIGHT:
+		case PART_TYPE_LIGHT:
 			eid = World_spawnAt_Light(w, part->index, &loc);
 			break;
 
-		case ITEM_TYPE_DECAL:
+		case PART_TYPE_DECAL:
 			eid = World_spawnAt_Decal(w, part->index, &loc);
 			break;
 			
-//		case ITEM_TYPE_CUSTOMDECAL: // TODO figure out spawning info
+//		case PART_TYPE_CUSTOMDECAL: // TODO figure out spawning info
 //			eid = World_spawnAt_CustomDecal(w, part->index, &loc);
 // 			break;
 
-		case ITEM_TYPE_MARKER:
+		case PART_TYPE_MARKER:
 			eid = World_spawnAt_Marker(w, part->index, &loc);
 			break;
 	
@@ -756,7 +785,7 @@ int World_lookUp_Item(World* w, char* name) {
 	return index;
 }
 
-int World_lookUp_Part(World* w, enum ItemTypes type, char* name) {
+int World_lookUp_Part(World* w, enum PartType type, char* name) {
 	
 }
 

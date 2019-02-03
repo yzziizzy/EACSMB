@@ -18,76 +18,9 @@
 #include "pass.h"
 #include "shadowMap.h"
 
+#include "items.h"
 
 struct GameState;
-
-enum ItemTypes {
-	ITEM_TYPE_UNKNOWN = 0,
-	ITEM_TYPE_ITEM, // for parsing
-	ITEM_TYPE_STATICMESH,
-	ITEM_TYPE_DYNAMICMESH,
-	ITEM_TYPE_EMITTER,
-	ITEM_TYPE_LIGHT,
-	ITEM_TYPE_DECAL,
-	ITEM_TYPE_CUSTOMDECAL,
-	ITEM_TYPE_MARKER,
-	ITEM_TYPE_SOUNDCLIP,
-};
-
-enum PartFlag {
-	PART_FLAG_SPAWN_IMMEDIATE, // spawn the part when spawning the item
-	PART_FLAG_ATTACHED, // the part hsould be moved with the item
-	
-};
-
-
-typedef struct { // information about the part itself
-	enum ItemTypes type;
-	int index;
-	char* name;
-} Part;
-
-
-typedef struct { // info about how the part relates to the item
-	enum ItemTypes type;
-	int index;
-	int partIndex;
-	Vector offset; // rotation, scale, etc
-	Vector rotAxis;
-	float rotTheta;
-	
-	
-	enum PartFlag flags;
-	
-	//void* data;
-} ItemPart;
-
-typedef struct Item {
-	char* name;
-	int numParts;
-	ItemPart* parts;
-	
-} Item;
-
-
-
-typedef struct {
-	ItemPart* part;
-	uint32_t parentItemEID;
-	uint32_t eid;
-} PartInstance;
-
-typedef struct {
-	Item* item;
-	Vector pos;
-	
-	uint32_t eid;
-	int numParts;
-	
-	PartInstance parts[];
-} ItemInstance;
-
-
 
 
 
@@ -145,17 +78,17 @@ void QuadTree_renderDebugVolumes(QuadTree* qt, PassFrameParams* pfp);
 
 
 static const uint32_t ITEM_BASE_IDS[] = {
-	[ITEM_TYPE_UNKNOWN] =     4000000000,
-	[ITEM_TYPE_STATICMESH] =  0000000000,
-	[ITEM_TYPE_DYNAMICMESH] = 1000000000,
-	[ITEM_TYPE_EMITTER] =     1100000000,
-	[ITEM_TYPE_LIGHT] =       1200000000,
-	[ITEM_TYPE_DECAL] =       1300000000,
-	[ITEM_TYPE_CUSTOMDECAL] = 1400000000,
-	[ITEM_TYPE_MARKER] =      1500000000,
+	[PART_TYPE_UNKNOWN] =     4000000000,
+	[PART_TYPE_STATICMESH] =  0000000000,
+	[PART_TYPE_DYNAMICMESH] = 1000000000,
+	[PART_TYPE_EMITTER] =     1100000000,
+	[PART_TYPE_LIGHT] =       1200000000,
+	[PART_TYPE_DECAL] =       1300000000,
+	[PART_TYPE_CUSTOMDECAL] = 1400000000,
+	[PART_TYPE_MARKER] =      1500000000,
 };
 
-static inline uint32_t itemBaseID(enum ItemTypes e) {
+static inline uint32_t itemBaseID(enum PartType e) {
 	return ITEM_BASE_IDS[e];
 }
 

@@ -181,6 +181,7 @@ vec3 f_Schlick_Smith_GGX(
 	
 	dielectricSpecular = vec3(.91,.91,.91);
 	
+	// v.h is used when in a CT equation. v.l is used without it.
 	zzz = F_Schlick(dielectricSpecular, baseColor, metallic, d_vh);
 	//return zzz;
 	float dg = D_GGX(d_nh, a); 
