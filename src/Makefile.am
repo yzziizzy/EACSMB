@@ -88,7 +88,7 @@ eacsmb_LDADD =  \
 	-lGL -lGLU -lGLEW 
 	 
 AM_CFLAGS = "-I/usr/include/freetype2" -std=gnu11 -g -DLINUX \
-	-msse4.1 \
+	-msse4.1 -mavx \
 	-include "../config.h" \
 	-pthread \
 	-Wno-unused-result \

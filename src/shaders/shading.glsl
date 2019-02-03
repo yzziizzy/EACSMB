@@ -467,10 +467,47 @@ void main() {
 		vec3 l = light_dir.xyz;//vec3(0,1,0); // light direction
 		vec3 h = normalize(viewdir_w + l);//vec3(0,1,0); // half-vector
 		
+		
+		
+		// ---- shadow stuff ---------
+		vec4 l_pos4 = mWorldLight * vec4(pos, 1.0);
+		vec3 l_pos = vec3(l_pos4.xyz / l_pos4.w);
+		//l_pos /= 1024;
+		l_pos = l_pos * 0.5 + 0.5;
+	//	float l_closest = texture(sShadow, l_pos.xy).r;
+		float l_current = l_pos.z;
+// 		vec4 light_dir = inverse(mWorldLight) * vec4(0,0,1,1);
+		light_dir = vec4(normalize(light_dir.xyz / light_dir.w), 1);
+	
+		
+	//	float bias = 0.005;
+		// very broken
+		float bias = max(0.005 * (1.0 - dot(normal, light_dir.xyz)), 0.0005);  
+		float shadow_factor = 0.0;
+		
+		// PCF
+		vec2 texelSz = 1.0 / textureSize(sShadow, 0);
+		int sz = 1;
+		for(int x = -sz; x <= sz; x++) {
+			for(int y = -sz; y <= sz; y++) {
+				float sf = texture(sShadow, l_pos.xy + (vec2(x, y) * texelSz)).r;
+				shadow_factor += l_current - bias > sf ? 1 : 0;
+			}
+		}
+		
+		shadow_factor = smoothstep(0, 1, shadow_factor / ((sz + sz + 1)*(sz + sz + 1)));
+		
+		if(l_pos.x > 1 || l_pos.y > 1 || l_pos.x < 0 || l_pos.y < 0) {
+			shadow_factor = 0;
+		}
+		
+		// ^^^ shadow stuff ^^^^^^^^^^^
+		
+		
 		FragColor = vec4(f_Schlick_Smith_GGX(
 			normal, h, l, viewdir_w, 
 			dielectricSpecular, baseColor, 
-			metallic, roughness), 1);
+			metallic, roughness) * (1 - shadow_factor), 1);
 		
 		//FragColor = vec4(light_dir.xyz, 1.0);
 	}

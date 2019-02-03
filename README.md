@@ -21,6 +21,8 @@ Optional dependencies are libJPEG, ALSA and libVorbis (OGG).
 * `./autogen.sh`
 * `make && ./src/eacsmb`
 
+If you get build errors related to AVX or SSE4.1, try removing the appropriate compile flags in
+`src/Makefile.am` and commenting out `C3DLAS_USE_SIMD` in `src/c3dlas/c3dlas.h`.
 
 # Settings
 
