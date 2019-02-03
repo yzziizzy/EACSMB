@@ -5,6 +5,25 @@
 
 
 #define SETTING_LIST \
+	SETTING(string, coreConfigPath, "assets/config/core.json") \
+	SETTING(string, assetsPath, "assets") \
+	\
+	SETTING(string, configDir, "config") \
+	SETTING(string, shadersDir, "shaders") \
+	SETTING(string, texturesDir, "textures") \
+	SETTING(string, modelsDir, "models") \
+	SETTING(string, soundsDir, "sounds") \
+	SETTING(string, uiDir, "ui") \
+	\
+	SETTING(string, configDirPath, NULL) \
+	SETTING(string, shadersDirPath, "src/shaders") \
+	SETTING(string, texturesDirPath, NULL) \
+	SETTING(string, modelsDirPath, NULL) \
+	SETTING(string, soundsDirPath, NULL) \
+	SETTING(string, uiDirPath, NULL) \
+	\
+	SETTING(string, worldConfigPath, NULL) \
+	\
 	SETTING(int, DynamicMeshManager_maxInstances, 8192) \
 	SETTING(int, RiggedMeshManager_maxInstances, 4096) \
 	SETTING(int, DecalManager_maxInstances, 8192) \
@@ -14,8 +33,6 @@
 	SETTING(int, GUIManager_maxInstances, 8192) \
 	\
 	SETTING(int, SunShadow_size, 1024) \
-	\
-	SETTING(string, worldConfigPath, "assets/config/combined_config.json") \
 	\
 	SETTING(float, keyRotateSensitivity, 0.0f) \
 	SETTING(float, keyScrollSensitivity, 0.0f) \
@@ -40,7 +57,7 @@ typedef struct GlobalSettings {
 
 void GlobalSettings_loadDefaults(GlobalSettings* s);
 void GlobalSettings_loadFromFile(GlobalSettings* s, char* path);
-
+void GlobalSettings_finalize(GlobalSettings* s);
 
 
 #endif // __EACSMB_settings_h__

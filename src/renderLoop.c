@@ -70,12 +70,16 @@ void setupFBOs(GameState* gs, int resized) {
 	int ww = gs->screen.wh.x;
 	int wh = gs->screen.wh.y;
 	
+	// TODO: cache the fbo config
+	
 	if(gs->fboTextures) {
 		destroyFBOTextures(gs->fboTextures);
 		free(gs->fboTextures);
 	}
 	
-	json_file_t* jsf = json_load_path("assets/config/fbo.json");
+	char* path = pathJoin(gs->globalSettings.configDirPath, "fbo.json");
+	json_file_t* jsf = json_load_path(path);
+	free(path);
 	
 	json_value_t* tex;
 	json_obj_get_key(jsf->root, "textures", &tex);

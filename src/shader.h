@@ -22,6 +22,8 @@ typedef struct {
 
 ShaderProgram* loadCombinedProgram(char* path);
 
+void Shader_setGlobalShaderDir(char* path);
+
 
 
 #endif // __EACSMB_SHADER_H__

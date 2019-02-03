@@ -239,15 +239,13 @@ void World_initGL(World* w) {
 	w->sunShadow = ShadowMap_alloc();
 	w->sunShadow->size = (Vector2i){shadSz, shadSz};
 	ShadowMap_SetupFBOs(w->sunShadow);
-
 	
-
 	
-/*
-	World_loadItemConfigFileNew(w, "assets/config/combined_config.json");
-	*/
-	Map_readConfigFile(&w->map, "assets/config/terrain.json");
-	
+	{
+	char* path = pathJoin(w->gs->globalSettings.configDirPath, "terrain.json");
+	Map_readConfigFile(&w->map, path);
+	free(path);
+	}
 	
 	Marker* marker = pcalloc(marker);
 	int markerIndex = MarkerManager_addMesh(w->mm, marker, "marker", 20); 

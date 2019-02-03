@@ -49,6 +49,10 @@ static InputState input;
 static LoadingScreen loadingScreen;
 
 
+static char* helpText;
+int parseOpts(int argc, char* argv[], GlobalSettings* gs);
+
+
 
 void meh(void* m) {
 	initGame(&xs, &game);
@@ -63,7 +67,13 @@ int main(int argc, char* argv[]) {
 	char* wd;
 	
 	GlobalSettings_loadDefaults(&game.globalSettings);
-	GlobalSettings_loadFromFile(&game.globalSettings, "assets/config/core.json");
+	
+	parseOpts(argc, argv, &game.globalSettings);
+	
+	GlobalSettings_loadFromFile(&game.globalSettings, game.globalSettings.coreConfigPath);
+	GlobalSettings_finalize(&game.globalSettings);
+	
+	Shader_setGlobalShaderDir(game.globalSettings.shadersDirPath);
 	
 	initLog(0);
 	
@@ -148,7 +158,32 @@ int main(int argc, char* argv[]) {
  
 
 
-
+int parseOpts(int argc, char* argv[], GlobalSettings* gs) {
+	int an;
+	
+	
+	for(an = 1; an < argc; an++) {
+		char* arg = argv[an];
+		
+		if(0 == strcmp(arg, "--help")) {
+			puts(helpText);
+			exit(0);
+		}
+		
+		if(0 == strcmp(arg, "-f")) {
+			an++;
+			gs->coreConfigPath = strdup(argv[an]);
+			continue;
+		}
+	}
+	
+	return 0;
+}
 
  
  
+ 
+ 
+ 
+static char* helpText = "" \
+	"Usage: [rtfs]\n" ;

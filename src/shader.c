@@ -20,7 +20,11 @@ clean up debug file/line info
 capture compile errors and translat to actual file and line
 */
 
-const char* SHADER_BASE_PATH = "./src/shaders/";
+static char* SHADER_BASE_PATH = NULL;
+
+void Shader_setGlobalShaderDir(char* path) {
+	SHADER_BASE_PATH = path;
+}
 
 
 typedef VEC(char*) stringlist;
@@ -395,8 +399,8 @@ ShaderProgram* loadCombinedProgram(char* path) {
 	
 
 	// grab the source
-	spath = (char*)malloc(bplen + strlen(path) + 6);
-	sprintf(spath, "%s%s.glsl", SHADER_BASE_PATH, path);
+	spath = (char*)malloc(bplen + strlen(path) + 7);
+	sprintf(spath, "%s/%s.glsl", SHADER_BASE_PATH, path);
 	
 	sp = makeShaderProgram();
 	

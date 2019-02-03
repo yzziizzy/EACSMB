@@ -101,7 +101,9 @@ void GUIManager_init(GUIManager* gm, GlobalSettings* gs) {
 	
 	gm->ta = TextureAtlas_alloc(gs);
 	gm->ta->width = 256;
-	TextureAtlas_addFolder(gm->ta, "pre", "assets/ui/icons", 0);
+	char* path = pathJoin(gs->uiDirPath, "icons");
+	TextureAtlas_addFolder(gm->ta, "pre", path, 0);
+	free(path);
 	TextureAtlas_finalize(gm->ta);
 	
 	

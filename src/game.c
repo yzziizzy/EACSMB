@@ -135,7 +135,9 @@ void initGame(XStuff* xs, GameState* gs) {
 	// sound
 #ifndef DISABLE_SOUND
 	gs->sound = SoundManager_alloc();
-	SoundManager_readConfigFile(gs->sound, "assets/config/sound.json");
+	char* path = pathJoin(gs->globalSettings.configDirPath, "sound.json");
+	SoundManager_readConfigFile(gs->sound, path);
+	free(path);
 	SoundManager_start(gs->sound);
 	
 // 	SoundClip* sc = SoundClip_fromWAV("./assets/sounds/ohno.wav");
@@ -174,7 +176,9 @@ void initGame(XStuff* xs, GameState* gs) {
 		);
 	}
 	
-	json_file_t* j_ces_conf = json_load_path("assets/config/CES.json");
+	path = pathJoin(gs->globalSettings.configDirPath, "CES.json");
+	json_file_t* j_ces_conf = json_load_path(path);
+	free(path);
 	ComponentManager_loadConfig(&gs->ces, j_ces_conf->root);
 	
 	json_free(j_ces_conf->root);
@@ -425,7 +429,9 @@ void initGameGL(XStuff* xs, GameState* gs) {
 	
 	json_file_t* guijsf;
 	
+	char* path = pathJoin(gs->globalSettings.configDirPath, "main_ui.json");
 	guijsf = json_load_path("assets/config/main_ui.json");
+	free(path);
 	json_value_t* kids;
 	json_obj_get_key(guijsf->root, "children", &kids);
 	

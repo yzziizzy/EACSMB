@@ -2,6 +2,7 @@
 #include <string.h>
 
 #include "settings.h"
+#include "utilities.h"
 
 #include "c_json/json.h"
 
@@ -12,7 +13,7 @@
 #define set_int(x) x;
 #define set_float(x) x;
 #define set_double(x) x;
-#define set_string(x) strdup(x);
+#define set_string(x) (x ? strdup(x) : NULL);
 void GlobalSettings_loadDefaults(GlobalSettings* s) {
 	#define SETTING(type, name, val) s->name = set_##type(val);
 		SETTING_LIST
@@ -78,3 +79,20 @@ void GlobalSettings_loadFromFile(GlobalSettings* s, char* path) {
 	
 	// TODO: free json file
 }
+
+
+void GlobalSettings_finalize(GlobalSettings* s) {
+	
+	if(!s->configDirPath) s->configDirPath = pathJoin(s->assetsPath, s->configDir);
+	if(!s->shadersDirPath) s->shadersDirPath = pathJoin(s->assetsPath, s->shadersDir);
+	if(!s->texturesDirPath) s->texturesDirPath = pathJoin(s->assetsPath, s->texturesDir);
+	if(!s->modelsDirPath) s->modelsDirPath = pathJoin(s->assetsPath, s->modelsDir);
+	if(!s->soundsDirPath) s->soundsDirPath = pathJoin(s->assetsPath, s->soundsDir);
+	if(!s->uiDirPath) s->uiDirPath = pathJoin(s->assetsPath, s->uiDir);
+	
+	if(!s->worldConfigPath) s->worldConfigPath = pathJoin(s->configDirPath, "combined_config.json");
+	
+}
+
+
+
