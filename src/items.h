@@ -95,9 +95,9 @@ typedef struct {
 
 
 // callback signatures
-typedef void (*item_move_fn)(World*, PartInstance*, Vector* /* newPos */); 
-typedef void (*item_remove_fn)(World*, PartInstance*); 
-typedef void (*item_spawn_fn)(World*, PartInstance*, void* /* info */);
+typedef void (*item_move_fn)(void* /* partMgr */, PartInstance*, Vector* /* newPos */); 
+typedef void (*item_remove_fn)(void*, PartInstance*); 
+typedef void (*item_spawn_fn)(void*, PartInstance*, void* /* info */);
 
 typedef struct ItemVTable {
 	item_move_fn move;

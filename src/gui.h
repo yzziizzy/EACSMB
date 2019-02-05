@@ -158,6 +158,7 @@ typedef struct GUIHeader {
 #include "ui/columnLayout.h"
 #include "ui/gridLayout.h"
 #include "ui/monitors.h"
+#include "ui/debugAdjuster.h"
 
 
 
@@ -171,6 +172,7 @@ union GUIObject {
 	GUIColumnLayout columnLayout;
 	GUIGridLayout gridLayout;
 	GUIValueMonitor valueMonitor;
+	GUIDebugAdjuster debugAdjuster;
 };
 
 

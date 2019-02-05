@@ -257,16 +257,16 @@ some work later on when the engine is more mature.
 5. shadow map depth buffer (temp?)
 6.
 7. mesh texture
-8. dynamic mesh texture
+8. 
 9. decal textures
 10. diffuse alt buffer
 11. normal alt buffer
 12. lighting alt buffer
 13. depth alt buffer
 14.
-15.
-16.
-17.
+15. mesh RGBA textures (diffuse)
+16. mesh RGB textures (normal)
+17. mesh R textures (materials)
 18.
 19. terrain integer data (tex indices)
 20. terrain block position lookup

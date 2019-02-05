@@ -69,6 +69,19 @@ typedef struct RoadNetwork {
 } RoadNetwork;
 
 
+// for rendering. bad name.
+typedef struct RoadSegmentSpawnInfo {
+	Vector2 from, to;
+	RoadNetwork* rn;
+} RoadSegmentSpawnInfo;
+
+// for rendering. bad name.
+typedef struct RoadItemSegment {
+	
+	// as installed
+	VEC(PartInstance*) parts; 
+} RoadItemSegment;
+
 
 
 

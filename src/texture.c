@@ -653,22 +653,23 @@ TexBitmap* TexBitmap_create(int w, int h, enum TextureDepth d, int channels) {
 
 
 
-TextureManager* TextureManager_alloc() {
+TextureManager* TextureManager_alloc(int channels) {
 	TextureManager* tm;
 	
 	tm = calloc(1, sizeof(*tm));
 	CHECK_OOM(tm);
 	
-	TextureManager_init(tm);
+	TextureManager_init(tm, channels);
 	
 	return tm;
 }
 
 
-void TextureManager_init(TextureManager* tm) {
+void TextureManager_init(TextureManager* tm, int channels) {
 	HT_init(&tm->texLookup, 4);
 	VEC_INIT(&tm->texEntries);
 	tm->mipLevels = 1; // no mipmap by default
+	tm->channels = channels;
 }
 
 
@@ -745,9 +746,18 @@ int TextureManager_loadAll(TextureManager* tm, Vector2i targetRes) {
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	
+	GLenum type, format;
+	switch(tm->channels) {
+		case 1: type = GL_R8; format = GL_RED; break;  
+		case 2: type = GL_RG8; format = GL_RG; break;  
+		case 3: type = GL_RGB8; format = GL_RGB; break;
+		default:
+		case 4: type = GL_RGBA8; format = GL_RGBA; break;
+	}
+	
 	glTexStorage3D(GL_TEXTURE_2D_ARRAY,
 		tm->mipLevels,  // mips, flat
-		GL_RGBA8,
+		type,
 		targetRes.x, targetRes.y,
 		depth); // layers
 	

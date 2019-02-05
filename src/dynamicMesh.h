@@ -41,7 +41,8 @@ typedef struct DynamicMeshInstance {
 	float rot;
 	
 	// TODO: fix types
-	float alpha, texIndex, x2, x3;
+	float alpha;
+	int diffuseIndex, normalIndex, metallicIndex, roughnessIndex;
 	
 } DynamicMeshInstance;
 
@@ -51,7 +52,7 @@ typedef struct DynamicMeshInstShader {
 	Matrix m;
 	
 	// texture indices
-	unsigned short diffuseIndex, normalIndex;
+	unsigned short diffuseIndex, normalIndex, metallicIndex, roughnessIndex;
 } DynamicMeshInstShader;
 
 
@@ -105,6 +106,8 @@ typedef struct DynamicMeshManager {
 	CES* ces; // hack for now to get the component managers
 	
 	TextureManager* tm;
+	TextureManager* tmNorm;
+	TextureManager* tmMat;
 	MultiDrawIndirect* mdi;
 	
 	//VEC(Texture*) textures;

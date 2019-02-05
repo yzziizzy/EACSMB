@@ -21,20 +21,20 @@
 
 // forward declarations
 #define PART_TYPE(name) \
-	void item_spawn_##name(World*, PartInstance*, void*); \
-	void item_remove_##name(World*, PartInstance*); \
-	void item_move_##name(World*, PartInstance*, Vector*);
+	void part_spawn_##name(World*, PartInstance*, void*); \
+	void part_remove_##name(World*, PartInstance*); \
+	void part_move_##name(World*, PartInstance*, Vector*);
 
 	PART_TYPE_LIST
 #undef PART_TYPE
 
 
 // vtable table
-static ItemVTable itemvts[] = {
+static ItemVTable partvts[] = {
 #define PART_TYPE(name) [PART_TYPE_##name] = { \
-		.spawn = item_spawn_##name, \
-		.remove = item_remove_##name, \
-		.move = item_move_##name, \
+		.spawn = part_spawn_##name, \
+		.remove = part_remove_##name, \
+		.move = part_move_##name, \
 	},
 	PART_TYPE_LIST
 #undef PART_TYPE
@@ -71,13 +71,17 @@ void World_init(World* w) {
 	// hack becore CES is made
 	w->dmm->ces = &w->gs->ces;
 	
-	w->mapTexMan = TextureManager_alloc();
-	w->meshTexMan = TextureManager_alloc();
-	w->decalTexMan = TextureManager_alloc();
-	w->emitterTexMan = TextureManager_alloc();
+	w->mapTexMan = TextureManager_alloc(4);
+	w->meshTexMan = TextureManager_alloc(4);
+	w->meshNormTexMan = TextureManager_alloc(3);
+	w->meshMatTexMan = TextureManager_alloc(1);
+	w->decalTexMan = TextureManager_alloc(4);
+	w->emitterTexMan = TextureManager_alloc(4);
 	
 	w->map.tm = w->mapTexMan;
 	w->dmm->tm = w->meshTexMan;
+	w->dmm->tmNorm = w->meshNormTexMan;
+	w->dmm->tmMat = w->meshMatTexMan;
 	w->mm->tm = w->decalTexMan;
 	w->dm->tm = w->decalTexMan;
 	w->cdm->tm = w->decalTexMan;
@@ -128,7 +132,7 @@ void World_init(World* w) {
 		dir: {0, 0, 1},
 		rot: 0,
 		alpha: 0.5,
-		texIndex: 2,
+		diffuseIndex: 2,
 	};
 	//dynamicMeshManager_addInstance(w->dmm, building_ind, &inst);
 	//printf("^^^^ %d\n", building_ind);
@@ -298,6 +302,8 @@ void World_initGL(World* w) {
 	// very last thing: load textures
 	TextureManager_loadAll(w->mapTexMan, (Vector2i){256, 256}); 
 	TextureManager_loadAll(w->meshTexMan, (Vector2i){256, 256}); 
+	TextureManager_loadAll(w->meshNormTexMan, (Vector2i){256, 256}); 
+	TextureManager_loadAll(w->meshMatTexMan, (Vector2i){256, 256}); 
 	TextureManager_loadAll(w->decalTexMan, (Vector2i){256, 256}); 
 	TextureManager_loadAll(w->emitterTexMan, (Vector2i){256, 256}); 
 

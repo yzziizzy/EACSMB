@@ -303,7 +303,7 @@ void initGameGL(XStuff* xs, GameState* gs) {
 	erodeProg = loadCombinedProgram("mg_erode");
 	soilProg = loadCombinedProgram("mg_soil");
 	
-
+	
 	
 	initUniformBuffers();
 	
@@ -426,11 +426,16 @@ void initGameGL(XStuff* xs, GameState* gs) {
 	gfm->header.topleft = (Vector2){0,0};
 	GUIRegisterObject(gfm, gsw);
 	
+	/*
+	GUIDebugAdjuster* biasadj = GUIDebugAdjuster(gs->gui, "shadowBias: %f", &gs->shadowBias, 'f');
+	biasadj->header.topleft = (Vector2){0,0};
+	GUIRegisterObject(biasadj, gsw);
+	*/
 	
 	json_file_t* guijsf;
 	
 	char* path = pathJoin(gs->globalSettings.configDirPath, "main_ui.json");
-	guijsf = json_load_path("assets/config/main_ui.json");
+	guijsf = json_load_path(path);
 	free(path);
 	json_value_t* kids;
 	json_obj_get_key(guijsf->root, "children", &kids);

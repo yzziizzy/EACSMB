@@ -95,6 +95,7 @@ typedef struct TextureManager {
 	HashTable(int) texLookup;
 	VEC(TexEntry) texEntries;
 	
+	int channels;
 	
 	Vector2i targetRes; // x,y dimensions of tex array
 	
@@ -130,8 +131,8 @@ TexBitmap* TexBitmap_create(int w, int h, enum TextureDepth d, int channels);
 
 
 
-TextureManager* TextureManager_alloc();
-void TextureManager_init(TextureManager* tm);
+TextureManager* TextureManager_alloc(int channels);
+void TextureManager_init(TextureManager* tm, int channels);
 int TextureManager_reservePath(TextureManager* tm, char* path);
 int TextureManager_loadAll(TextureManager* tm, Vector2i targetRes); 
  

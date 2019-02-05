@@ -48,7 +48,7 @@ VAOConfig vao_opts[] = {
 	
 	// per instance 
 	{1, 1, GL_MATRIX_EXT, 1, GL_FALSE}, // model-world matrix
-	{1, 2, GL_UNSIGNED_SHORT, 1, GL_FALSE}, // texture indices
+	{1, 4, GL_UNSIGNED_SHORT, 1, GL_FALSE}, // texture indices: diffuse, normal, metallic, roughness
 	
 	{0, 0, 0}
 };
@@ -491,11 +491,22 @@ static void uniformSetup(DynamicMeshManager* dmm, GLuint progID) {
 	// matrices and uniforms
 	GLuint tex_ul;
 
-	glActiveTexture(GL_TEXTURE0 + 8);
+	glActiveTexture(GL_TEXTURE0 + 15);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, dmm->tm->tex_id);
+	glActiveTexture(GL_TEXTURE0 + 16);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, dmm->tmNorm->tex_id);
+	glActiveTexture(GL_TEXTURE0 + 17);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, dmm->tmMat->tex_id);
 	
 	tex_ul = glGetUniformLocation(progID, "sTexture");
-	glProgramUniform1i(progID, tex_ul, 8);
+	glProgramUniform1i(progID, tex_ul, 15);
+
+	tex_ul = glGetUniformLocation(progID, "sNormalTextures");
+	glProgramUniform1i(progID, tex_ul, 16);
+
+	tex_ul = glGetUniformLocation(progID, "sMaterialTextures");
+	glProgramUniform1i(progID, tex_ul, 17);
+
 	glexit("");
 }
 

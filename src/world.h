@@ -116,6 +116,8 @@ typedef struct World {
 	
 	TextureManager* mapTexMan;
 	TextureManager* meshTexMan;
+	TextureManager* meshNormTexMan;
+	TextureManager* meshMatTexMan;
 	TextureManager* decalTexMan;
 	TextureManager* emitterTexMan;
 	

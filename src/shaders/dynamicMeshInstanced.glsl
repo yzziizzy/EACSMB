@@ -18,7 +18,7 @@ layout (location = 2) in vec2 v_tex_in;
 // layout (location = 5) in vec4 i_alpha_in;
 
 layout (location = 3) in mat4 i_mat_in;
-layout (location = 7) in ivec2 i_tex_in;
+layout (location = 7) in ivec4 i_tex_in;
 
 uniform mat4 mWorldView;
 uniform mat4 mViewProj;
@@ -27,7 +27,7 @@ uniform mat4 mViewProj;
 out vec3 vs_norm;
 out vec2 vs_tex;
 out float vs_alpha;
-flat out ivec2 vs_tex_indices;
+flat out ivec4 vs_tex_indices;
 
 
 void main() {
@@ -47,7 +47,7 @@ void main() {
 // 	vs_norm = normalize((i_mat_in * vec4(v_norm_in, 1.0)).xyz);
 	vs_norm = normalize((norm_mat * vec4(v_norm_in, 1.0)).xyz);
 
-	vs_tex = v_tex_in;
+	vs_tex = vec2(v_tex_in.x, 1.0 - v_tex_in.y);
 	vs_alpha = 1.0;//i_alpha_in.x;
 	vs_tex_indices = i_tex_in;
 }
@@ -63,10 +63,12 @@ void main() {
 in vec3 vs_norm;
 in vec2 vs_tex;
 in float vs_alpha;
-flat in ivec2 vs_tex_indices;
+flat in ivec4 vs_tex_indices;
 
 // fragment shader
-uniform sampler2DArray sTexture;
+uniform sampler2DArray sTexture; // RGBA
+uniform sampler2DArray sNormalTextures; // RGB
+uniform sampler2DArray sMaterialTextures; // R
 
 
 uniform mat4 mWorldView;
@@ -78,11 +80,17 @@ layout(location = 1) out vec4 out_Normal;
 
 void main(void) {
 
-	vec4 tex = texture(sTexture, vec3(vs_tex.x, 1-vs_tex.y, vs_tex_indices.x));
+	vec4 tex = texture(sTexture, vec3(vs_tex.xy, vs_tex_indices.x));
 	
 	if(tex.a < 0.1) discard;
+
+	vec4 norm = texture(sNormalTextures, vec3(vs_tex.xy, vs_tex_indices.y));
+	float metallic = texture(sMaterialTextures, vec3(vs_tex.xy, vs_tex_indices.z)).r;
+	float roughness = texture(sMaterialTextures, vec3(vs_tex.xy, vs_tex_indices.w)).r;
+
+	// TODO: blend the normals properly
 	
-	out_Color = vec4(tex.rgb, 0); // alpha is metallic
- 	out_Normal = vec4((vs_norm.xyz * .5) + .5, 0); // alpha is roughness
+	out_Color = vec4(tex.rgb, metallic); // alpha is metallic
+ 	out_Normal = vec4((vs_norm.xyz * .5) + .5, roughness); // alpha is roughness
 }
 
