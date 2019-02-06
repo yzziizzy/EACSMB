@@ -4,6 +4,8 @@
 #include <string.h>
 
 
+#include <x86intrin.h>
+
 #include <unistd.h>
 
 #include <X11/X.h>
@@ -502,10 +504,22 @@ static uint32_t bmplinsamplescale(BitmapRGBA8* b, Vector2i p, int scale) {
 }
 
 
+static BitmapRGBA8* linearDownscale_2(BitmapRGBA8* in); 
+static BitmapRGBA8* linearDownscale_4(BitmapRGBA8* in); 
+static BitmapRGBA8* linearDownscale_8(BitmapRGBA8* in); 
+
 static BitmapRGBA8* linearDownscale(BitmapRGBA8* in, Vector2i outSz) {
 	int ox, oy;
 	int scaleFactor = (float)in->width / (float)outSz.x;
 	BitmapRGBA8* out;
+	
+	// check for certain optimized power-of-two versions
+	switch(scaleFactor) {
+		case 2: return linearDownscale_2(in);
+		case 4: return linearDownscale_4(in);
+		case 8: return linearDownscale_8(in);
+	}
+	
 	
 	out = calloc(1, sizeof(out));
 	out->width = outSz.x;
@@ -521,6 +535,346 @@ static BitmapRGBA8* linearDownscale(BitmapRGBA8* in, Vector2i outSz) {
 	return out;
 }
 
+// scale by 1/2
+static BitmapRGBA8* linearDownscale_2(BitmapRGBA8* in) {
+
+	int ix, iy;
+	int ox, oy;
+	BitmapRGBA8* out;
+	
+	out = calloc(1, sizeof(out));
+	out->width = in->width / 2;
+	out->height = in->height / 2;
+	out->data = malloc(out->width * out->height * sizeof(*out->data));
+	
+#if defined(EACSMB_USE_SIMD) && defined(EACSMB_HAVE_AVX2)
+	// two columns of two pixels at a time, side by side
+	// requires in->width to be a multiple of 2
+	for(oy = iy = 0; iy < in->height; iy += 2, oy++) {
+		for(ox = ix = 0; ix < in->width; ix += 2, ox++) {
+			// load and add two rows of two pixels
+			__m256i top_i = _mm256_cvtepu8_epi32(*(__m128i*)(in->data + ix + (iy * in->width)));
+			__m256i bot_i = _mm256_cvtepu8_epi32(*(__m128i*)(in->data + ix + ((iy + 1) * in->width)));
+			__m256i row_i = _mm256_add_epi32(top_i, bot_i);
+			
+			// horizontal add of the adjacent summed pixels
+			__m256i row2_i = _mm256_permute2x128_si256(row_i, row_i, _MM_SHUFFLE(0,1,0,1));
+			        row_i = _mm256_add_epi32(row2_i, row_i);
+			__m128i pix_i = _mm256_extracti128_si256(row_i, 0);
+			// pix_i's low 64 bit have the summed pixel
+			
+			// divide by 4
+			pix_i = _mm_srai_epi32(pix_i, 2);
+			
+			// chop down to char and store
+			pix_i = _mm_packus_epi32(pix_i, pix_i);
+			__m64 p2 = _mm_movepi64_pi64(pix_i);
+			      p2 = _m_packuswb(p2, p2);
+			
+			out->data[ox + oy * out->width] = _mm_cvtsi64_si32(p2);
+		}
+	}
+#else
+	for(oy = iy = 0; iy < in->height; iy += 2, oy++) {
+		for(ox = ix = 0; ix < in->width; ix += 2, ox++) {
+			out->data[ox + (oy * out->width)] = bmplinsamplescale(in, (Vector2i){ox, oy}, 2);
+		}
+	}
+#endif
+	
+	return out;
+}
+
+
+// scale by 1/4 
+static BitmapRGBA8* linearDownscale_4(BitmapRGBA8* in) {
+
+	int ix, iy;
+	int ox, oy;
+	BitmapRGBA8* out;
+	
+	out = calloc(1, sizeof(out));
+	out->width = in->width / 4;
+	out->height = in->height / 4;
+	out->data = malloc(out->width * out->height * sizeof(*out->data));
+	
+#if defined(EACSMB_USE_SIMD) && defined(EACSMB_HAVE_AVX2)
+	// four columns of 8 rows of pixels
+	// requires in->width to be a multiple of 2
+	for(oy = iy = 0; iy < in->height; iy += 4, oy++) {
+		for(ox = ix = 0; ix < in->width; ix += 4, ox++) {
+			// load and add 4 rows of 4 pixels
+			__m256i r1_i = _mm256_cvtepu8_epi16(*(__m128i*)(in->data + ix + (iy * in->width)));
+			__m256i r2_i = _mm256_cvtepu8_epi16(*(__m128i*)(in->data + ix + ((iy + 1) * in->width)));
+			__m256i r3_i = _mm256_cvtepu8_epi16(*(__m128i*)(in->data + ix + ((iy + 2) * in->width)));
+			__m256i r4_i = _mm256_cvtepu8_epi16(*(__m128i*)(in->data + ix + ((iy + 3) * in->width)));
+			__m256i row_i = _mm256_add_epi16(r1_i, r2_i);
+			        row_i = _mm256_add_epi16(row_i, r3_i);
+			        row_i = _mm256_add_epi16(row_i, r4_i);
+			// row_i is now a vertical sum of 4 columns of pixels
+			
+			// horizontal add of the adjacent four summed pixels
+			__m128i pix2_hi_i = _mm256_extracti128_si256(row_i, 1);
+			__m128i pix2_lo_i = _mm256_extracti128_si256(row_i, 0);
+			__m128i pix_2_i = _mm_add_epi16(pix2_hi_i, pix2_lo_i);
+			// pix_2_i is one hadd, being two pixels remaining
+			__m128i pix_2_i_2 = _mm_shuffle_epi32(pix_2_i, _MM_SHUFFLE(3,4,0,0));
+			__m128i pix_i = _mm_add_epi16(pix_2_i, pix_2_i_2);
+			// pix_i's low 64 bit have the summed pixel
+			
+			// divide by 16
+			pix_i = _mm_srai_epi16(pix_i, 4);
+			
+			// chop down to char and store
+			__m64 p2 = _mm_movepi64_pi64(pix_i);
+			      p2 = _m_packuswb(p2, p2);
+			out->data[ox + oy * out->width] = _mm_cvtsi64_si32(p2);
+		}
+	}
+#else
+	for(oy = iy = 0; iy < in->height; iy += 4, oy++) {
+		for(ox = ix = 0; ix < in->width; ix += 4, ox++) {
+			out->data[ox + (oy * out->width)] = bmplinsamplescale(in, (Vector2i){ox, oy}, 4);
+		}
+	}
+#endif
+	
+	return out;
+}
+
+
+
+// scale by 1/8
+static BitmapRGBA8* linearDownscale_8(BitmapRGBA8* in) {
+
+	int ix, iy;
+	int ox, oy;
+	BitmapRGBA8* out;
+	
+	out = calloc(1, sizeof(out));
+	out->width = in->width / 8;
+	out->height = in->height / 8;
+	out->data = malloc(out->width * out->height * sizeof(*out->data));
+	
+#if defined(EACSMB_USE_SIMD) && defined(EACSMB_HAVE_AVX2)
+	// two columns of four columns of 8 rows of pixels
+	// requires in->width to be a multiple of 8
+	for(oy = iy = 0; iy < in->height; iy += 8, oy++) {
+		for(ox = ix = 0; ix < in->width; ix += 8, ox++) {
+			// load and add 8 rows of 4 pixels
+			__m256i r1_i = _mm256_cvtepu8_epi16(*(__m128i*)(in->data + ix + ((iy + 0) * in->width)));
+			__m256i r2_i = _mm256_cvtepu8_epi16(*(__m128i*)(in->data + ix + ((iy + 1) * in->width)));
+			__m256i r3_i = _mm256_cvtepu8_epi16(*(__m128i*)(in->data + ix + ((iy + 2) * in->width)));
+			__m256i r4_i = _mm256_cvtepu8_epi16(*(__m128i*)(in->data + ix + ((iy + 3) * in->width)));
+			__m256i r5_i = _mm256_cvtepu8_epi16(*(__m128i*)(in->data + ix + ((iy + 4) * in->width)));
+			__m256i r6_i = _mm256_cvtepu8_epi16(*(__m128i*)(in->data + ix + ((iy + 5) * in->width)));
+			__m256i r7_i = _mm256_cvtepu8_epi16(*(__m128i*)(in->data + ix + ((iy + 6) * in->width)));
+			__m256i r8_i = _mm256_cvtepu8_epi16(*(__m128i*)(in->data + ix + ((iy + 7) * in->width)));
+			__m256i rowa_i = _mm256_add_epi16(r1_i, r2_i);
+			__m256i rowb_i = _mm256_add_epi16(r3_i, r4_i);
+			__m256i rowc_i = _mm256_add_epi16(r5_i, r6_i);
+			__m256i rowd_i = _mm256_add_epi16(r7_i, r8_i);
+			        rowa_i = _mm256_add_epi16(rowa_i, rowb_i);
+			        rowc_i = _mm256_add_epi16(rowc_i, rowd_i);
+			__m256i row_i = _mm256_add_epi16(rowa_i, rowc_i);
+			// rowa_i is now a vertical sum of 4 columns of pixels
+			
+			// load and add 8 rows of the next 4 horizontal pixels 
+			r1_i = _mm256_cvtepu8_epi16(*(__m128i*)(in->data + ix + 4 + ((iy + 0) * in->width)));
+			r2_i = _mm256_cvtepu8_epi16(*(__m128i*)(in->data + ix + 4 + ((iy + 1) * in->width)));
+			r3_i = _mm256_cvtepu8_epi16(*(__m128i*)(in->data + ix + 4 + ((iy + 2) * in->width)));
+			r4_i = _mm256_cvtepu8_epi16(*(__m128i*)(in->data + ix + 4 + ((iy + 3) * in->width)));
+			r5_i = _mm256_cvtepu8_epi16(*(__m128i*)(in->data + ix + 4 + ((iy + 4) * in->width)));
+			r6_i = _mm256_cvtepu8_epi16(*(__m128i*)(in->data + ix + 4 + ((iy + 5) * in->width)));
+			r7_i = _mm256_cvtepu8_epi16(*(__m128i*)(in->data + ix + 4 + ((iy + 6) * in->width)));
+			r8_i = _mm256_cvtepu8_epi16(*(__m128i*)(in->data + ix + 4 + ((iy + 7) * in->width)));
+			rowa_i = _mm256_add_epi16(r1_i, r2_i);
+			rowb_i = _mm256_add_epi16(r3_i, r4_i);
+			rowc_i = _mm256_add_epi16(r5_i, r6_i);
+			rowd_i = _mm256_add_epi16(r7_i, r8_i);
+			rowa_i = _mm256_add_epi16(rowa_i, rowb_i);
+			rowc_i = _mm256_add_epi16(rowc_i, rowd_i);
+			row_i = _mm256_add_epi16(row_i, rowa_i);
+			row_i = _mm256_add_epi16(row_i, rowc_i);
+			// row_i is now now the sum of two sums of 4 columns
+			
+			// horizontal add of the adjacent four summed pixels
+			__m128i pix2_hi_i = _mm256_extracti128_si256(row_i, 1);
+			__m128i pix2_lo_i = _mm256_extracti128_si256(row_i, 0);
+			__m128i pix_2_i = _mm_add_epi16(pix2_hi_i, pix2_lo_i);
+			// pix_2_i is one hadd, being two pixels remaining
+			__m128i pix_2_i_2 = _mm_shuffle_epi32(pix_2_i, _MM_SHUFFLE(3,4,0,0));
+			__m128i pix_i = _mm_add_epi16(pix_2_i, pix_2_i_2);
+			// pix_i's low 64 bit have the summed pixel
+			
+			// divide by 64
+			pix_i = _mm_srai_epi16(pix_i, 6);
+			
+			// chop down to char and store
+			__m64 p2 = _mm_movepi64_pi64(pix_i);
+			p2 = _m_packuswb(p2, p2);
+			out->data[ox + oy * out->width] = _mm_cvtsi64_si32(p2);
+		}
+	}
+#else
+	for(oy = iy = 0; iy < in->height; iy += 8, oy++) {
+		for(ox = ix = 0; ix < in->width; ix += 8, ox++) {
+			out->data[ox + (oy * out->width)] = bmplinsamplescale(in, (Vector2i){ox, oy}, 8);
+		}
+	}
+#endif
+	
+	return out;
+}
+
+// scale up by 2
+static BitmapRGBA8* linearUpscale_2(BitmapRGBA8* in) {
+
+	int ix, iy;
+	int ox, oy;
+	BitmapRGBA8* out;
+	
+	out = calloc(1, sizeof(out));
+	out->width = in->width / 2;
+	out->height = in->height / 2;
+	out->data = malloc(out->width * out->height * sizeof(*out->data));
+	
+#if defined(EACSMB_USE_SIMD) && defined(EACSMB_HAVE_AVX2)
+	
+	// contributions from each pixel in the middle blocks
+	__m256i co_tl = _mm256_set_epi16(
+		9, 9, 9, 9, // tl
+		3, 3, 3, 3, // tr
+		3, 3, 3, 3, // bl
+		1, 1, 1, 1 // br
+	);
+	__m256i co_tr = _mm256_set_epi16(
+		3, 3, 3, 3,
+		9, 9, 9, 9,
+		1, 1, 1, 1,
+		3, 3, 3, 3
+	);
+	__m256i co_bl = _mm256_set_epi16(
+		3, 3, 3, 3,
+		1, 1, 1, 1,
+		9, 9, 9, 9,
+		3, 3, 3, 3
+	);
+	__m256i co_br = _mm256_set_epi16(
+		1, 1, 1, 1,
+		3, 3, 3, 3,
+		3, 3, 3, 3,
+		9, 9, 9, 9
+	);
+	
+	// contributions for each pixel in the end columns
+	__m128i co_top = _mm_set_epi16(3,3,3,3, 1,1,1,1);
+	__m128i co_bot = _mm_set_epi16(1,1,1,1, 3,3,3,3);
+	
+	
+	// first to the top and bottom rows, as they are special
+	
+	// the corner pixels are just copied
+	out->data[0] = in->data[0];
+	out->data[out->width] = in->data[in->width];
+	out->data[out->width * (out->height - 1)] = in->data[in->width * (in->height - 1)];
+	out->data[out->width * (out->height)] = in->data[in->width * (in->height)];
+	
+	for(ox = 1, ix = 0; ix < in->width; ix++, ox += 2) {
+		// TODO
+	}
+	
+	
+	// now the middle rows
+	for(oy = 1, iy = 0; iy <= in->height; iy++, oy += 2) {
+		
+		// the first two pixels are special
+		__m128i out_mm = _mm_setzero_si128();
+		
+		__m128i t = _mm_set1_epi32(in->data[(iy + 0) * in->width]);
+		__m128i b = _mm_set1_epi32(in->data[(iy + 1) * in->width]);
+		        t = _mm_cvtepu8_epi16(t);
+		        b = _mm_cvtepu8_epi16(b);
+		
+		out_mm = _mm_add_epi16(out_mm, _mm_mullo_epi16(t, co_top));
+		out_mm = _mm_add_epi16(out_mm, _mm_mullo_epi16(b, co_bot));
+		
+		out_mm = _mm_packus_epi16(out_mm, out_mm);
+		
+		union {
+			uint32_t dw[2];
+			uint64_t qw;
+		} u;
+		u.qw = _mm_cvtsi128_si64(out_mm);
+		out->data[(oy + 0) * out->width] = u.dw[0];
+		out->data[(oy + 1) * out->width] = u.dw[1];
+		
+		// now the middle pixels
+		for(ox = 1, ix = 0; ix < in->width; ix++, ox += 2) {
+			
+			// out->data[tl] = (9tl + 3tr + 3bl + br ) / 16; 
+			
+			__m256i out_pix = _mm256_setzero_si256();
+			
+			// grab and convert the top and bottom rows  
+			__m128i top = _mm_cvtepu8_epi16(*(__m128i*)(in->data + ix + 0 + ((iy + 0) * in->width)));
+			__m128i bot = _mm_cvtepu8_epi16(*(__m128i*)(in->data + ix + 0 + ((iy + 1) * in->width)));
+			
+			__m256i tr_v = _mm256_broadcastq_epi64(top);
+					top = _mm_unpackhi_epi64(top, top);
+			__m256i tl_v = _mm256_broadcastq_epi64(top);
+			__m256i br_v = _mm256_broadcastq_epi64(bot);
+					bot = _mm_unpackhi_epi64(bot, bot);
+			__m256i bl_v = _mm256_broadcastq_epi64(bot);
+			
+			// add up contributions
+			out_pix = _mm256_add_epi16(out_pix, _mm256_mullo_epi16(tl_v, co_tl));
+			out_pix = _mm256_add_epi16(out_pix, _mm256_mullo_epi16(tr_v, co_tr));
+			out_pix = _mm256_add_epi16(out_pix, _mm256_mullo_epi16(bl_v, co_bl));
+			out_pix = _mm256_add_epi16(out_pix, _mm256_mullo_epi16(br_v, co_br));
+			
+			// divide by 16
+			out_pix = _mm256_srai_epi16(out_pix, 6); 
+			
+			
+			// convert and save
+			__m128i packed = _mm_packus_epi16(
+				_mm256_extracti128_si256(out_pix, 1), // top 
+				_mm256_extracti128_si256(out_pix, 0) // bottom
+			);
+			
+			// two packed pixels are stored at once
+			_mm_storel_epi64(&out->data[ox + 0 + (oy + 1) * out->width], packed);
+			packed = _mm_unpackhi_epi64(packed, packed);
+			_mm_storel_epi64(&out->data[ox + 0 + (oy + 0) * out->width], packed);
+		}
+		
+		// do the last two vertical pixels
+		// they are also speciall
+		out_mm = _mm_setzero_si128();
+		
+		t = _mm_set1_epi32(in->data[ix + (iy + 0) * in->width]);
+		b = _mm_set1_epi32(in->data[ix + (iy + 1) * in->width]);
+		t = _mm_cvtepu8_epi16(t);
+		b = _mm_cvtepu8_epi16(b);
+		
+		out_mm = _mm_add_epi16(out_mm, _mm_mullo_epi16(t, co_top));
+		out_mm = _mm_add_epi16(out_mm, _mm_mullo_epi16(b, co_bot));
+		
+		out_mm = _mm_packus_epi16(out_mm, out_mm);
+		
+		u.qw = _mm_cvtsi128_si64(out_mm);
+		out->data[ox + (oy + 0) * out->width] = u.dw[0];
+		out->data[ox + (oy + 1) * out->width] = u.dw[1];
+		
+	}
+	
+#else
+
+#endif
+	
+	return out;
+}
 
 
 

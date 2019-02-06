@@ -4,6 +4,8 @@
 
 #include "common_math.h"
 
+#include "items.h"
+
 #include "ds.h"
 
 

@@ -21,9 +21,9 @@
 
 // forward declarations
 #define PART_TYPE(name) \
-	void part_spawn_##name(World*, PartInstance*, void*); \
-	void part_remove_##name(World*, PartInstance*); \
-	void part_move_##name(World*, PartInstance*, Vector*);
+	void part_spawn_##name(void*, PartInstance*, void*); \
+	void part_remove_##name(void*, PartInstance*); \
+	void part_move_##name(void*, PartInstance*, Vector*);
 
 	PART_TYPE_LIST
 #undef PART_TYPE
