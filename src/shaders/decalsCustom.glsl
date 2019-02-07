@@ -203,15 +203,15 @@ void main(void) {
 		discard; 
 	}
 	
-	// handle texture offset, wrap, and repeat	
-	vec2 otc = vec2(
-		tc.x,
-		mix(texOffset.x, texOffset.y, tc.y)
-	);
+	// handle texture offset, wrap, and repeat
+	vec2 otc = vec2(tc.x, mix(texOffset.x, texOffset.y, tc.y));
+	
+	float metallic = .1;//texture(sMaterialTextures, vec3(tc, texIndex)).r;
+	float roughness = .71;//texture(sMaterialTextures, vec3(tc, texIndex)).r;
 	
 	//out_Color = vec4(mod(otc.x , 1), mod(otc.y, 1) ,0 , 1); //vs_norm;
 	out_Color = vec4(texture(sTexture, vec3(otc, texIndex)).rgba); //vs_norm;
-	out_Normal = vec4(1,0,0,0);
+	out_Normal = vec4(1,0,0,roughness);
 	
 	//out_Color = vec4(1,0,1,1);
 }

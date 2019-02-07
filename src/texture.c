@@ -735,8 +735,8 @@ static BitmapRGBA8* linearUpscale_2(BitmapRGBA8* in) {
 	BitmapRGBA8* out;
 	
 	out = calloc(1, sizeof(out));
-	out->width = in->width / 2;
-	out->height = in->height / 2;
+	out->width = in->width * 2;
+	out->height = in->height * 2;
 	out->data = malloc(out->width * out->height * sizeof(*out->data));
 	
 #if defined(EACSMB_USE_SIMD) && defined(EACSMB_HAVE_AVX2)

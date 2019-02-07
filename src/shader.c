@@ -46,9 +46,9 @@ typedef struct ShaderSource {
 	
 } ShaderSource;
 
+static void strsplit(char* source, stringlist* out);
 
-
-void printLogOnFail(id) {
+static void printLogOnFail(GLuint id, ShaderSource* ss) {
 	
 	GLint success, logSize;
 	GLsizei len;
@@ -66,12 +66,32 @@ void printLogOnFail(id) {
 	log = (GLchar*)malloc(logSize);
 	
 	glGetShaderInfoLog(id, logSize, &len, log);
-	fprintf(stderr, "Shader Log:\n%s", (char*)log);
+//	fprintf(stderr, "Shader Log:\n%s", (char*)log);
 	
+	// parser for nvidia drivers on linux:
+	stringlist l;
+	VEC_INIT(&l);
+	
+	strsplit(log, &l);
+	
+	VEC_EACH(&l, si, s) {
+		int msgOff;
+		int lineNum, strNum;
+		
+		// this is broken somewhere. the line numbers from the driver are randomly wrong
+		sscanf(s, "%d(%d) : %n", &strNum, &lineNum, &msgOff);
+		printf("line: %d, err: '%s'", lineNum, s + msgOff);
+		LineInfo* li = &VEC_ITEM(&ss->lines, lineNum - 1);
+		printf("source: %s:%d : %s\n", li->file_path, li->file_line, li->src);
+		printf("string source: %s\n", VEC_ITEM(&ss->strings, lineNum - 1));
+	}
+	
+	printf("aborting due to shader error\n");
+	exit(1);
 	free(log);
 }
 
-void printProgLogOnFail(id) {
+static void printProgLogOnFail(id) {
 	
 	GLint success, logSize;
 	GLsizei len;
@@ -95,7 +115,7 @@ void printProgLogOnFail(id) {
 }
 
 
-GLenum indexToEnum(int index) {
+static GLenum indexToEnum(int index) {
 	GLenum a[] = {
 		GL_VERTEX_SHADER,
 		GL_TESS_CONTROL_SHADER,
@@ -111,7 +131,7 @@ GLenum indexToEnum(int index) {
 }
 
 
-int nameToIndex(char* name) {
+static int nameToIndex(char* name) {
 	
 	if(0 == strcasecmp(name, "VERTEX")) return 0;
 	if(0 == strcasecmp(name, "TESS_CONTROL")) return 1;
@@ -123,7 +143,7 @@ int nameToIndex(char* name) {
 	return -1;
 }
 
-GLenum nameToEnum(char* name) {
+static GLenum nameToEnum(char* name) {
 	
 	if(0 == strcasecmp(name, "VERTEX")) return GL_VERTEX_SHADER;
 	if(0 == strcasecmp(name, "TESS_CONTROL")) return GL_TESS_CONTROL_SHADER;
@@ -140,7 +160,7 @@ GLenum nameToEnum(char* name) {
 
 
 // does not remove \n chars. gl wants them.
-void strsplit(char* source, stringlist* out) { 
+static void strsplit(char* source, stringlist* out) { 
 	char* s = source;
 	char* lstart = source;
 	
@@ -158,7 +178,7 @@ void strsplit(char* source, stringlist* out) {
 	}
 }
 
-ShaderSource* makeShaderSource() {
+static ShaderSource* makeShaderSource() {
 	ShaderSource* n;
 	
 	n = calloc(1, sizeof(*n));
@@ -168,43 +188,7 @@ ShaderSource* makeShaderSource() {
 	VEC_INIT(&n->strings);
 }
 
-ShaderSource* loadShaderSource(char* path) {
-	ShaderSource* ss;
-	stringlist l;
-	int i;
-	char* source;
-
-	
-	source = readFile(path, NULL);
-	if(!source) {
-		// TODO copypasta, fix this
-		fprintf(stderr, "failed to load shader file '%s'\n", path);
-		return NULL;
-	}
-	
-	VEC_INIT(&l);
-	ss = makeShaderSource();
-	
-	ss->path = path;
-	strsplit(source, &l);
-	
-	for(i = 0; i < VEC_LEN(&l); i++) {
-		LineInfo* li;
-		VEC_INC(&ss->lines);
-		
-		li = &VEC_ITEM(&ss->lines, i);
-		li->src = VEC_ITEM(&l, i);
-		li->file_path = path;
-		li->file_line = i + 1;
-	}
-	
-	VEC_FREE(&l);
-	
-	return ss;
-}
-
-
-char* extractFileName(char* src) {
+static char* extractFileName(char* src) {
 	char* path, *s, *e;
 	int delim;
 	
@@ -220,7 +204,7 @@ char* extractFileName(char* src) {
 	return path;
 }
 
-char* realFromSiblingPath(char* sibling, char* file) {
+static char* realFromSiblingPath(char* sibling, char* file) {
 	char* falsePath, *realPath;
 	
 	char* fuckdirname = strdup(sibling);
@@ -241,6 +225,70 @@ char* realFromSiblingPath(char* sibling, char* file) {
 	return realPath;
 }
 
+static void ss_loadFile(ShaderSource* ss, char* path) {
+	stringlist l;
+	int i;
+	char* source, *s;
+	char* includeFileName, *includeFilePath;
+	
+	
+	source = readFile(path, NULL);
+	if(!source) {
+		// TODO copypasta, fix this
+		fprintf(stderr, "failed to load shader file '%s'\n", path);
+		return NULL;
+	}
+	
+	VEC_INIT(&l);
+	strsplit(source, &l);
+	
+	
+	VEC_EACH(&l, lii, li) {
+		
+		if(0 == strncmp(li, "#include", strlen("#include"))) {
+			// parse include
+			s = li + strlen("#include");
+			
+			includeFileName = extractFileName(s);
+			includeFilePath = realFromSiblingPath(path, includeFileName);
+			
+			ss_loadFile(ss, includeFilePath);
+		}
+		else {
+			LineInfo* qli;
+			VEC_INC(&ss->lines);
+// 			printf("line %d: %s", lii, li);
+			qli = &VEC_TAIL(&ss->lines);
+			qli->src = li;
+			qli->file_path = path;
+			qli->file_line = lii;
+		}
+	}
+	
+	VEC_FREE(&l);
+}
+
+ShaderSource* loadShaderSource(char* path) {
+	ShaderSource* ss;
+	stringlist l;
+	int i;
+	char* source, *s;
+	char* includeFileName, *includeFilePath;
+	
+	VEC_INIT(&l);
+	ss = makeShaderSource();
+	
+	ss->path = path;
+	
+	ss_loadFile(ss, path);
+	
+	return ss;
+}
+
+
+
+
+/*
 void processIncludes(ShaderProgram* sp, ShaderSource* ss) {
 	int i;
 	char* s, *includeFileName, *includeFilePath;
@@ -274,7 +322,7 @@ void processIncludes(ShaderProgram* sp, ShaderSource* ss) {
 		
 	}
 }
-
+*/
 
 void extractShaders(ShaderProgram* sp, ShaderSource* raw) {
 	int i;
@@ -284,10 +332,12 @@ void extractShaders(ShaderProgram* sp, ShaderSource* raw) {
 	
 	ShaderSource* curShader = NULL;
 	
-	/*
+	
 	ShaderSource* common;
 	common = makeShaderSource();
-	*/
+	
+	curShader = common;
+	
 	
 	for(i = 0; i < VEC_LEN(&raw->lines); i++) {
 		int cnt, index;
@@ -301,16 +351,10 @@ void extractShaders(ShaderProgram* sp, ShaderSource* raw) {
 			
 			sscanf(s, " %d", &version);
 			
-			if(!curShader) {
-				commonVersion = version;
-			}
-			else {
-				curShader->version = version;
-			}
+			curShader->version = version;
 			
-			// comment out this line
-			li->src[0] = '/';
-			li->src[1] = '/';
+			// version lines are not copied over, free them now
+			free(li->src);
 		}
 		else if(0 == strncmp("#shader", li->src, strlen("#shader"))) {
 			s = li->src + strlen("#shader");
@@ -326,46 +370,57 @@ void extractShaders(ShaderProgram* sp, ShaderSource* raw) {
 			sp->shaders[index] = curShader = makeShaderSource();
 			curShader->type = indexToEnum(index);
 			
-			if(commonVersion) curShader->version = commonVersion;
-			
-			// make room for the version directive, added later
-			VEC_INC(&curShader->lines);
-			VEC_INC(&curShader->strings);
-			
-			// comment out this line
-			li->src[0] = '/';
-			li->src[1] = '/';
+			// shader lines are not copied over, free them now
+			free(li->src);
 		}
 		else {
-			if(curShader) {
-				// copy line 
-				VEC_PUSH(&curShader->lines, *li);
-				VEC_PUSH(&curShader->strings, li->src);
-			}
+			// copy line 
+			VEC_PUSH(&curShader->lines, *li);
 		}
 		
 	}
 	
 	
-	// fill in version info
+	// fill in common info
 	for(i = 0; i < 6; i++) {
 		ShaderSource* ss = sp->shaders[i];
 		char* s;
 		
 		if(!ss) continue;
 		
+		if(!ss->version || ss->version < common->version) ss->version = common->version;
+		
+		// TODO: default version?
+		
+		// make space at the front
+		VEC_RESERVE(&ss->lines, VEC_LEN(&common->lines) + 1, 0);
+		
+		// add the version line
 		s = malloc(20);
-		sprintf(s, "#version %0.3u", ss->version);
-		VEC_ITEM(&ss->strings, 0) = s;
+		sprintf(s, "#version %0.3u\n", ss->version);
 		VEC_ITEM(&ss->lines, 0).src = s;
 		VEC_ITEM(&ss->lines, 0).file_path = NULL;
 		VEC_ITEM(&ss->lines, 0).file_line = -1;
+		
+		// add the common lines
+		VEC_OVERWRITE(&ss->lines, &common->lines, 1);
+		
+		// fill in strings
+		VEC_INIT(&ss->strings);
+		VEC_EACH(&ss->lines, lii, li) {
+			VEC_PUSH(&ss->strings, li.src);
+			
+// 			printf("%d [%d] %s:%d: %s", lii, i, li.file_path, li.file_line, li.src );
+		}
 	}
+	
+
+	
 }
 
 
 
-ShaderProgram* makeShaderProgram() {
+static ShaderProgram* makeShaderProgram() {
 	ShaderProgram* sp;
 	
 	sp = calloc(1, sizeof(*sp));
@@ -376,7 +431,7 @@ ShaderProgram* makeShaderProgram() {
 	return sp;
 }
 
-void compileShader(ShaderSource* ss) {
+static void compileShader(ShaderSource* ss) {
 	GLuint id;
 	glerr("pre shader create error");
 	ss->id = glCreateShader(ss->type);
@@ -387,7 +442,7 @@ void compileShader(ShaderSource* ss) {
 	
 	//printf("compiling\n");
 	glCompileShader(ss->id);
-	printLogOnFail(ss->id);
+	printLogOnFail(ss->id, ss);
 	glerr("shader compile error");
 }
 
@@ -406,7 +461,7 @@ ShaderProgram* loadCombinedProgram(char* path) {
 	
 	ss = loadShaderSource(spath);
 	
-	processIncludes(sp, ss);
+// 	processIncludes(sp, ss);
 	extractShaders(sp, ss);
 	
 	sp->id = glCreateProgram();

@@ -66,7 +66,9 @@ flat in int tileInfo;
 uniform ivec2 targetSize;
 
 uniform sampler2D sDepth;
-uniform sampler2DArray sTexture;
+uniform sampler2DArray sTexture; // RGBA
+uniform sampler2DArray sNormalTextures; // RGB
+uniform sampler2DArray sMaterialTextures; // R
 
 uniform mat4 mWorldView;
 uniform mat4 mViewProj;
@@ -108,6 +110,7 @@ void main(void) {
 	
 	//out_Color = vec4(pos.xy, 1, 1.0);
 	
+
 	
 	if(dist > hsize) {
 		//out_Color = vec4(1,0,dist / 5,1);
@@ -116,8 +119,11 @@ void main(void) {
     else {
 		//out_Color = vec4(0,1,1 , 1); //vs_norm;
 		//float blend = clamp((hsize - dist) + lerps.x, 0, 1);
-		out_Color = vec4(texture(sTexture, vec3(tc, texIndex)).rgb, 1); //vs_norm;
-		out_Normal = vec4(1,0,0,0);
+		float metallic = texture(sMaterialTextures, vec3(tc, texIndex)).r;
+		float roughness = texture(sMaterialTextures, vec3(tc, texIndex)).r;
+		
+		out_Color = vec4(texture(sTexture, vec3(tc, texIndex)).rgb, metallic); //vs_norm;
+		out_Normal = vec4(1,0,0, roughness);
 	}
 	
 }

@@ -176,8 +176,41 @@ do { \
 		VEC_DATA(y),  \
 		VEC_LEN(y) * sizeof(*VEC_DATA(y)) \
 	); \
+	VEC_LEN(x) += VEC_LEN(y); \
 } while(0)
-	
+
+
+// make some space somewhere
+#define VEC_RESERVE(x, len, where) \
+do { \
+	if(VEC_ALLOC(x) < VEC_LEN(x) + (len)) { \
+		vec_resize_to((void**)&VEC_DATA(x), &VEC_ALLOC(x), sizeof(*VEC_DATA(x)), VEC_LEN(x) + (len)); \
+	} \
+	\
+	memmove( /* move the rest of x forward */ \
+		VEC_DATA(x) + (where) + (len), \
+		VEC_DATA(x) + (where),  \
+		(VEC_LEN(x) - (where)) * sizeof(*VEC_DATA(x)) \
+	); \
+	VEC_LEN(x) += (len); \
+} while(0)
+
+
+// copy data from y into x at where, overwriting existing data in x
+// extends x if it would overlap the end
+#define VEC_OVERWRITE(x, y, where) \
+do { \
+	if(VEC_ALLOC(x) < VEC_LEN(y) + (where)) { \
+		vec_resize_to((void**)&VEC_DATA(x), &VEC_ALLOC(x), sizeof(*VEC_DATA(x)), where + VEC_LEN(y)); \
+	} \
+	memcpy( /* copy y into the space created */ \
+		VEC_DATA(x) + where, \
+		VEC_DATA(y),  \
+		VEC_LEN(y) * sizeof(*VEC_DATA(y)) \
+	); \
+	VEC_LEN(x) = MAX(VEC_LEN(x), VEC_LEN(y) + (where)); \
+} while(0)
+
 
 
 #define VEC_SORT(x, fn) \
