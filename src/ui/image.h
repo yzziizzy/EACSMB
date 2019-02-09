@@ -15,6 +15,7 @@ typedef struct GUIImage {
 	Vector2 sizeNorm;
 	int texIndex;
 	
+	GLuint64 texHandle;
 	GLuint customTexID;
 	
 } GUIImage;
@@ -33,7 +34,7 @@ typedef struct GUIRenderTarget {
 	
 	Vector2i screenRes;
 	
-	GLuint texID;
+	GLuint64 texID;
 	RenderPipeline* rpl;
 	
 	

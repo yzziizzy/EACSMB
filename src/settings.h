@@ -41,6 +41,8 @@
 	SETTING(float, mouseRotateSensitivity, 0.0f) \
 	SETTING(float, mouseScrollSensitivity, 0.0f) \
 	SETTING(float, mouseZoomSensitivity  , 0.0f) \
+	\
+	SETTING(int, regenTerrain, 0) \
 	
 
 

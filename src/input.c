@@ -26,6 +26,10 @@ void clearInputState(InputState* st) {
 // effective usage with macro:
 // InputFocusStack_PushTarget(InputFocusStack* stack, YourType* data, vtable_field_name_in_data);
 void _InputFocusStack_PushTarget(InputFocusStack* stack, void* data, ptrdiff_t vtoffset) {
+	//InputFocusStack_PushTarget2(stack, data, (data + vtoffset));
+}
+
+void InputFocusStack_PushTarget2(InputFocusStack* stack, void* data, InputEventHandler** ptr) {
 	
 	InputFocusTarget t;
 	InputFocusTarget* t2;
@@ -39,9 +43,9 @@ void _InputFocusStack_PushTarget(InputFocusStack* stack, void* data, ptrdiff_t v
 	}
 	
 	t.data = data;
-	t.vt = (InputEventHandler**)(data + vtoffset);
+	t.vt = ptr;
 	VEC_PUSH(&stack->stack, t);
-
+	
 	if(*t.vt) {
 		(*t.vt)->stack = stack;
 		if((*t.vt)->gainFocus) {

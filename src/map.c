@@ -49,10 +49,15 @@ char* tmpSavePath;
 char* tmpSaveName = "EACSMB-map-cache";
 
 
-void initMap(MapInfo* mi) {
+void initMap(MapInfo* mi, GlobalSettings* gs) {
 	int x, y, i;
 	int bx, by;
 	char* tmpDir;
+
+	// deprecated
+	exit(1);
+
+
 	
 	// HACK DEBUG. leaks like wiki
 	
@@ -76,11 +81,10 @@ void initMap(MapInfo* mi) {
 	
 
 
-
 	FILE* f;
 	f = fopen(tmpSavePath, "rb");
 	MapBlock* mb;
-	if(f) {
+	if(f && !gs->regenTerrain) {
 		// load data
 		printf("Loading saved terrain from %s\n", tmpSavePath);
 		for(y = 0; y < 8; y++) {

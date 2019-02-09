@@ -153,6 +153,7 @@ typedef struct InputFocusStack {
 	_InputFocusStack_PushTarget((stack), (void*)(data), (void*)(&(data)->field) - (void*)(data))
 
 void _InputFocusStack_PushTarget(InputFocusStack* stack, void* data, ptrdiff_t vtoffset);
+void InputFocusStack_PushTarget2(InputFocusStack* stack, void* data, InputEventHandler** ptr);
 
 void InputFocusStack_RevertTarget(InputFocusStack* stack);
 void InputFocusStack_Dispatch(InputFocusStack* stack, InputEvent* ev);

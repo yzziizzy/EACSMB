@@ -217,7 +217,7 @@ typedef struct AreaStats {
 	
 } AreaStats;
 
-void initMap(MapInfo* mi);
+void initMap(MapInfo* mi, GlobalSettings* gs);
 void initTerrain(MapInfo* mi);
 void initTerrainBlock(MapBlock* mb, int cx, int cy);
 MapBlock* allocMapBlock(int llx, int lly);

@@ -8,7 +8,7 @@
 
 
 float PerlinNoise_2D(float x, float y, float persistence, int octaves);
-
+float PerlinNoise_2D_SIMD(float x, float y, float persistence, int octaves);
 
 
 typedef struct PerlinParams {

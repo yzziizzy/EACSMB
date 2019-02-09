@@ -281,13 +281,13 @@ void shadingPass(GameState* gs, PassFrameParams* pfp) {
 	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "mProjView"), 1, GL_FALSE, pfp->dp->mProjView);
 	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "mViewWorld"), 1, GL_FALSE, pfp->dp->mViewWorld);
 	
-	mPrint(&gs->world->sunShadow->mWorldLight,  stdout);
+	//mPrint(&gs->world->sunShadow->mWorldLight,  stdout);
 	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "mWorldLight"), 1, GL_FALSE, &gs->world->sunShadow->mWorldLight);
 
 	glexit("shading world");
 
 	glUniform3fv(glGetUniformLocation(shadingProg->id, "sunNormal"), 1, (float*)&gs->sunNormal);
-	printf("%f, %f, %f\n", gs->sunNormal.x,gs->sunNormal.y,gs->sunNormal.z);
+	//printf("%f, %f, %f\n", gs->sunNormal.x,gs->sunNormal.y,gs->sunNormal.z);
 	
 	if(gs->screen.resized) {
 		glUniform2fv(glGetUniformLocation(shadingProg->id, "resolution"), 1, (float*)&gs->screen.wh);

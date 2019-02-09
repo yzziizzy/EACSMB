@@ -40,7 +40,7 @@ static inline AABB2 gui_clipTo(AABB2 parent, AABB2 child) {
 }
 
 
-
+extern GLuint64 g_texgenhandle;
 
 
 #endif // __EACSMB_gui_internal_h__

@@ -57,6 +57,8 @@ typedef struct GUIUnifiedVertex {
 	
 	float z, alpha, opt1, opt2;
 	
+	uint64_t n641;
+	
 } __attribute__ ((packed)) GUIUnifiedVertex;
 
 
@@ -106,6 +108,7 @@ typedef struct GUIHeader {
 	struct GUIManager* gm;
 	GUIObject* parent;
 	struct gui_vtbl* vt;
+	struct InputEventHandler* input_vt;
 	char* name;
 
 	// fallback for easy hit testing
@@ -200,12 +203,15 @@ typedef struct GUIManager {
 	GUIObject* root;
 	VEC(GUIObject*) reapQueue; 
 	
+	InputFocusStack* ifs;
 	FontManager* fm;
 	TextureAtlas* ta;
 	
 	// temp 
 	GLuint fontAtlasID;
 	GLuint atlasID;
+	
+	VEC(GLuint64) texHandles;
 	
 } GUIManager;
 
@@ -245,6 +251,14 @@ typedef struct GUITextArea {
 
 
 
+static void GUIObject_giveFocus(GUIObject* go) {
+	InputFocusStack_PushTarget2(go->h.gm->ifs, go, &go->h.input_vt);
+}
+
+// this can be any gui object, really
+static void GUIObject_revertFocus(GUIObject* go) {
+	InputFocusStack_RevertTarget(go->h.gm->ifs);
+}
 
 
 void GUIManager_updatePos(GUIManager* gm, PassFrameParams* pfp);

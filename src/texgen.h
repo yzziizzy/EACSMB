@@ -45,6 +45,7 @@ typedef enum {
 #define TEXGEN_TYPE_MEMBER(x) TEXGEN_TYPE_##x,
 	TEXGEN_TYPE_LIST
 #undef TEXGEN_TYPE_MEMBER
+	MAX_TEXGEN_TYPE
 } TexGenType;
 
 
@@ -261,12 +262,26 @@ typedef struct TexGenContext {
 typedef struct GUITexBuilderControl {
 	GUIHeader header;
 	
-	GUISimpleWindow* bg;
+	GUIWindow* bg;
 	GUIImage* im;
 	
+	GUIGridLayout* controls;
+	
+	GUIText* ctl_selectedOp;
+	
+	
 	TexGenContext* tg;
+	TexGenOp* op;
 	
 	InputEventHandler* inputHandlers;
+	
+	GLuint texID;
+	
+	// -------
+	
+	int selectedOpIndex;
+	
+	GUIDebugAdjuster* da;
 	
 	
 } GUITexBuilderControl;
@@ -276,7 +291,7 @@ typedef struct GUITexBuilderControl {
 
 
 
-GUITexBuilderControl* guiTexBuilderControlNew(Vector2 pos, Vector2 size, int zIndex);
+GUITexBuilderControl* guiTexBuilderControlNew(GUIManager* gm, Vector2 pos, Vector2 size, int zIndex);
 
 
 

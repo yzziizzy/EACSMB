@@ -68,6 +68,7 @@ eacsmb_SOURCES = main.c \
 	ui/animations/pulse.c \
 	ui/columnLayout.c \
 	ui/configLoader.c \
+	ui/debugAdjuster.c \
 	ui/edit.c \
 	ui/gridLayout.c \
 	ui/image.c \

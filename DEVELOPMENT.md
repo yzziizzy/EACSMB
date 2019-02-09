@@ -209,6 +209,7 @@ config. See `texgen.[ch]`
 * Track GPU memory usage as much as possible.
 * Destructors and resource cleanup on just about everything.
 * Fix quad tree to bin items by size
+* Function to programmatically resize of window.
 
 ## UI
 * Config system

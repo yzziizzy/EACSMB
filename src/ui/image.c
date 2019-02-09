@@ -160,36 +160,75 @@ static void render(GUIImage* im, PassFrameParams* pfp) {
 	
 	
 	GUIUnifiedVertex* v = GUIManager_reserveElements(im->header.gm, 1);
-	*v = (GUIUnifiedVertex){
+	if(!im->texHandle) {
+		*v = (GUIUnifiedVertex){
+			
+			.pos.t = tl.y,
+			.pos.l = tl.x,
+			.pos.b = tl.y + im->header.size.y,
+			.pos.r = tl.x + im->header.size.x,
+			
+			.clip.l = im->header.absClip.min.x,
+			.clip.t = im->header.absClip.min.y,
+			.clip.r = im->header.absClip.max.x,
+			.clip.b = im->header.absClip.max.y,
+			
+			.texIndex1 = im->texIndex,
+			.texIndex2 = 0,
+			.texFade = .5,
+			
+			.guiType = 2, // simple image
+			
+			.texOffset1 = { im->offsetNorm.x * 65535, im->offsetNorm.y * 65535 },
+	// 		.texOffset1 = { .1 * 65535, .1 * 65535 },
+			.texOffset2 = 0,
+			.texSize1 = { im->sizeNorm.x * 65535, im->sizeNorm.y * 65535 },
+	// 		.texSize1 = { .5 * 65535, .5 * 65535 },
+			.texSize2 = 0,
+			
+			.fg = {255, 128, 64, 255},
+			.bg = {64, 128, 255, 255},
+			
+			.n641 = 0,
+		};
+	}
+	else {
+		*v = (GUIUnifiedVertex){
+			
+			.pos.t = tl.y,
+			.pos.l = tl.x,
+			.pos.b = tl.y + im->header.size.y,
+			.pos.r = tl.x + im->header.size.x,
+			
+			.clip.l = im->header.absClip.min.x,
+			.clip.t = im->header.absClip.min.y,
+			.clip.r = im->header.absClip.max.x,
+			.clip.b = im->header.absClip.max.y,
+			
+			.texIndex1 = VEC_LEN(&im->header.gm->texHandles),
+			.texIndex2 = 0,
+			.texFade = .5,
+			
+			.guiType = im->texHandle ? 3 : 2, // bindless texture
+			
+			.texOffset1 = { 0, 0 },
+	// 		.texOffset1 = { .1 * 65535, .1 * 65535 },
+			.texOffset2 = 0,
+			.texSize1 = { 65535, 65535 },
+	// 		.texSize1 = { .5 * 65535, .5 * 65535 },
+			.texSize2 = 0,
+			
+			.fg = {255, 128, 64, 255},
+			.bg = {64, 128, 255, 255},
+			
+			.n641 = im->texHandle,
+		};
 		
-		.pos.t = tl.y,
-		.pos.l = tl.x,
-		.pos.b = tl.y + im->header.size.y,
-		.pos.r = tl.x + im->header.size.x,
-		
-		.clip.l = im->header.absClip.min.x,
-		.clip.t = im->header.absClip.min.y,
-		.clip.r = im->header.absClip.max.x,
-		.clip.b = im->header.absClip.max.y,
-		
-		.texIndex1 = im->texIndex,
-		.texIndex2 = 0,
-		.texFade = .5,
-		
-		.guiType = 2, // simple image
-		
-		.texOffset1 = { im->offsetNorm.x * 65535, im->offsetNorm.y * 65535 },
-// 		.texOffset1 = { .1 * 65535, .1 * 65535 },
-		.texOffset2 = 0,
-		.texSize1 = { im->sizeNorm.x * 65535, im->sizeNorm.y * 65535 },
-// 		.texSize1 = { .5 * 65535, .5 * 65535 },
-		.texSize2 = 0,
-		
-		.fg = {255, 128, 64, 255},
-		.bg = {64, 128, 255, 255},
-	};
-	
+		VEC_PUSH(&im->header.gm->texHandles, im->texHandle);
+	}
+//	printf("%p\n", im->texHandle);
 // 	
+	
 }
 
 
@@ -214,19 +253,21 @@ GUIImage* GUIImage_new(GUIManager* gm, char* name) {
 // 	im->header.hitbox.max.x = pos.x + size.x;
 // 	im->header.hitbox.max.y = pos.y + size.y;
 	
-	TextureAtlasItem* it;
-	if(HT_get(&gm->ta->items, name, &it)) {
-		printf("could not find gui image '%s' %p \n", name);
+	if(name) {
+		TextureAtlasItem* it;
+		if(HT_get(&gm->ta->items, name, &it)) {
+			printf("could not find gui image '%s' %p \n", name);
+		}
+		else {
+			im->offsetNorm = it->offsetNorm;
+			im->sizeNorm = it->sizeNorm;
+			im->texIndex = it->index;
+			
+			im->header.size.x = it->sizePx.x;
+			im->header.size.y = it->sizePx.y;
+		}
+		printf("text index: %d\n", it->index);
 	}
-	else {
-		im->offsetNorm = it->offsetNorm;
-		im->sizeNorm = it->sizeNorm;
-		im->texIndex = it->index;
-		
-		im->header.size.x = it->sizePx.x;
-		im->header.size.y = it->sizePx.y;
-	}
-	printf("text index: %d\n", it->index);
 	
 	im->customTexID = 0;
 	

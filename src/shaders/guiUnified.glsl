@@ -1,7 +1,13 @@
+// for bindless textures
+#extension GL_NV_gpu_shader5 : require
+#extension GL_ARB_bindless_texture : require
+// #extension GL_NV_vertex_attrib_integer_64bit : enable
+#extension GL_ARB_gpu_shader_int64 : require
+
 #shader VERTEX
 
 
-#version 430 core
+#version 450 core
 
 layout (location = 0) in vec4 lt_rb_in;
 layout (location = 1) in vec4 clip_in;
@@ -11,6 +17,8 @@ layout (location = 4) in vec4 tex_size_in;
 
 layout (location = 5) in vec4 fg_color_in;
 layout (location = 6) in vec4 bg_color_in;
+// layout (location = 7) in ivec2 texHandle_in;
+layout (location = 7) in uvec2 texHandle_in;
 
 uniform ivec2 targetSize;
 
@@ -26,7 +34,7 @@ out Vertex {
 	vec2 texOffset1;
 	vec2 texSize1;
 	int texIndex1;
-	
+	flat uvec2 texHandle;
 } vertex;
 
 vec4 toNDC(vec4 positiveNorm) {
@@ -59,6 +67,8 @@ void main() {
 	vertex.texOffset1 = tex_off_in.xy;
 	vertex.texSize1 = tex_size_in.xy;
 	vertex.texIndex1 = int(tex_type_in.x);
+	
+	vertex.texHandle = texHandle_in;
 }
 
 
@@ -68,7 +78,7 @@ void main() {
 
 #shader GEOMETRY
 
-#version 430 core
+#version 450 core
 
 layout (points) in;
 layout (triangle_strip, max_vertices = 4) out;
@@ -84,6 +94,7 @@ in Vertex {
 	vec2 texOffset1;
 	vec2 texSize1;
 	int texIndex1;
+	flat uvec2 texHandle;
 	
 } vertex[];
 
@@ -94,6 +105,7 @@ flat out vec4 gs_clip;
 flat out vec4 gs_fg_color; 
 flat out vec4 gs_bg_color; 
 flat out int gs_guiType;
+flat out uvec2 gs_texHandle;
 
 
 
@@ -107,6 +119,7 @@ void main() {
 	gs_guiType = vertex[0].guiType;
 	gs_fg_color = vertex[0].fg_color;
 	gs_bg_color = vertex[0].bg_color;
+	gs_texHandle = vertex[0].texHandle;
 	gl_Position = vec4(vertex[0].lt_rb.x, -vertex[0].lt_rb.y, 0, 1);
 	EmitVertex();
 
@@ -117,6 +130,7 @@ void main() {
 	gs_guiType = vertex[0].guiType;
 	gs_fg_color = vertex[0].fg_color;
 	gs_bg_color = vertex[0].bg_color;
+	gs_texHandle = vertex[0].texHandle;
 	gl_Position = vec4(vertex[0].lt_rb.z, -vertex[0].lt_rb.y, 0, 1);
 	EmitVertex();
 	
@@ -126,6 +140,7 @@ void main() {
 	gs_guiType = vertex[0].guiType;
 	gs_fg_color = vertex[0].fg_color;
 	gs_bg_color = vertex[0].bg_color;
+	gs_texHandle = vertex[0].texHandle;
 	gl_Position = vec4(vertex[0].lt_rb.x, -vertex[0].lt_rb.w, 0, 1);
 	EmitVertex();
 
@@ -135,6 +150,7 @@ void main() {
 	gs_guiType = vertex[0].guiType;
 	gs_fg_color = vertex[0].fg_color;
 	gs_bg_color = vertex[0].bg_color;
+	gs_texHandle = vertex[0].texHandle;
 	gl_Position = vec4(vertex[0].lt_rb.z, -vertex[0].lt_rb.w, 0, 1);
 	EmitVertex();
 
@@ -146,7 +162,7 @@ void main() {
 
 #shader FRAGMENT
 
-#version 430
+#version 450
 
 
 layout(location = 0) out vec4 out_Color;
@@ -157,10 +173,15 @@ flat in vec4 gs_clip;
 flat in vec4 gs_fg_color; 
 flat in vec4 gs_bg_color; 
 flat in int gs_guiType; 
+flat in uvec2 gs_texHandle;
 
 
 uniform sampler2DArray fontTex;
 uniform sampler2DArray atlasTex;
+uniform sampler2D customTex;
+uniform uint64_t texHandle2;
+
+layout(bindless_sampler) uniform sampler2D texHandles[16];
 
 
 void main(void) {
@@ -246,6 +267,16 @@ void main(void) {
 	}
 	else if(gs_guiType == 2) { // simple image
 		out_Color = texture(atlasTex, gs_tex);
+		return;
+	}
+	else if(gs_guiType == 3) { // custom image
+// 		out_Color = texture(sampler2D(texHandle2), gs_tex.xy);
+		out_Color = texture(texHandles[int(gs_tex.z)], gs_tex.xy);
+//  		out_Color = texture(sampler2D(gs_texHandle), gs_tex.xy);
+// 		ivec2 xxx = ivec2(0x100000a00ul);
+// 		out_Color = vec4(gs_texHandle.xy, gs_tex.xy);
+// 		out_Color = texture(sampler2D(packUint2x32(gs_texHandle)), gs_tex.xy);
+// 		out_Color = vec4(0,0, clamp(float(gs_texHandle), 0, 1), 1);
 		return;
 	}
 	

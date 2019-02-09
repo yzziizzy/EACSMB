@@ -22,6 +22,7 @@
 // for sdf debugging
 #include "dumpImage.h"
 
+GLuint64 g_texgenhandle;
 
 // VEC(GUIObject*) gui_list; 
 // VEC(GUIObject*) gui_reap_queue; 
@@ -90,6 +91,7 @@ void GUIManager_init(GUIManager* gm, GlobalSettings* gs) {
 	};
 	
 	VEC_INIT(&gm->reapQueue);
+	VEC_INIT(&gm->texHandles);
 	
 	gm->maxInstances = gs->GUIManager_maxInstances;
 	
@@ -124,6 +126,8 @@ void GUIManager_initGL(GUIManager* gm, GlobalSettings* gs) {
 		{0, 4, GL_UNSIGNED_BYTE, 0, GL_TRUE}, // bg color
 		
 		{0, 4, GL_FLOAT, 0, GL_FALSE}, // z-index, alpha, opts 1-2
+		{0, 2, GL_UNSIGNED_INT, 0, GL_FALSE}, // n641
+// 		{0, 1, GL_UNSIGNED_INT64_ARB, 0, GL_FALSE}, // n641
 		
 		{0, 0, 0}
 	};
@@ -470,6 +474,9 @@ GUITextArea_draw(GUIManager* gm, GUIFont* f) {
 
 
 static void preFrame(PassFrameParams* pfp, GUIManager* gm) {
+	
+	
+	
 	GUIUnifiedVertex* vmem = PCBuffer_beginWrite(&gm->instVB);
 	if(!vmem) {
 		printf("attempted to update invalid PCBuffer in GUIManager\n");
@@ -591,6 +598,17 @@ static void draw(GUIManager* gm, GLuint progID, PassDrawParams* pdp) {
 //  	glBindTexture(GL_TEXTURE_2D, gt->font->textureID); // TODO check null ptr
  	glexit("bind texture");
 	
+// 	glUniformHandleui64ARB(glGetUniformLocation(progID, "texHandle2"), g_texgenhandle);
+// 	printf("%d %p\n", VEC_LEN(&gm->texHandles));
+	glUniformHandleui64vARB(
+		glGetUniformLocation(progID, "texHandles"), 
+		VEC_LEN(&gm->texHandles),
+		VEC_DATA(&gm->texHandles)
+	);
+// 	glUniform2iv(glGetUniformLocation(progID, "texHandle2"), 1, &g_texgenhandle);
+	
+	glexit("");
+	
 	// ------- draw --------
 	
 	glBindVertexArray(gm->vao);
@@ -607,6 +625,7 @@ static void draw(GUIManager* gm, GLuint progID, PassDrawParams* pdp) {
 
 static void postFrame(GUIManager* gm) {
 	PCBuffer_afterDraw(&gm->instVB);
+	VEC_TRUNC(&gm->texHandles);
 }
 
 

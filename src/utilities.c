@@ -191,8 +191,11 @@ int glGenBindTexture(GLuint* tex, GLenum type) {
 static int attrib_type_size(GLenum t) {
 	switch(t) {
 		case GL_DOUBLE: 
+		case GL_UNSIGNED_INT64_ARB:
 			return 8; 
 		case GL_FLOAT: 
+		case GL_INT: 
+		case GL_UNSIGNED_INT: 
 			return 4; 
 		case GL_SHORT: 
 		case GL_UNSIGNED_SHORT: 
@@ -242,6 +245,9 @@ GLuint makeVAO(VAOConfig* details) {
 			glVertexAttribFormat(attrSlot++, 4, GL_FLOAT, GL_FALSE, (void*)offset+4*8);
 			glVertexAttribFormat(attrSlot  , 4, GL_FLOAT, GL_FALSE, (void*)offset+4*12);
 		}
+		else if(t == GL_UNSIGNED_INT64_ARB) {
+			glVertexAttribLFormat(i, details[i].sz, t, (void*)offset);
+		}
 		else {
 			glVertexAttribIFormat(i, details[i].sz, t, (void*)offset);
 		}
@@ -249,6 +255,7 @@ GLuint makeVAO(VAOConfig* details) {
 		
 		if(t == GL_UNSIGNED_BYTE || t == GL_BYTE) ds = 1;
 		else if(t == GL_UNSIGNED_SHORT || t == GL_SHORT) ds = 2;
+		else if(t == GL_UNSIGNED_INT64_ARB) ds = 8;
 		else ds = 4;
 		
 		offset += ds * details[i].sz;
@@ -333,6 +340,13 @@ size_t updateVAO(int bufferIndex, VAOConfig* details) {
 			
 			attrSlot += 3;
 		}
+		else if(t == GL_UNSIGNED_INT64_ARB) {
+// 			glEnableVertexAttribArray(attrSlot+1);
+			glVertexAttribLPointer(attrSlot, details[i].sz, GL_UNSIGNED_INT64_ARB, stride, (void*)offset);
+			glVertexAttribDivisor(attrSlot, details[i].divisor);
+// 			glVertexAttribDivisor(attrSlot+1, details[i].divisor);
+// 			attrSlot += 1;
+		}
 		else {
 			glVertexAttribIPointer(attrSlot, details[i].sz, t, stride, (void*)offset);
 			glVertexAttribDivisor(attrSlot, details[i].divisor);
@@ -344,6 +358,7 @@ size_t updateVAO(int bufferIndex, VAOConfig* details) {
 		if(t == GL_UNSIGNED_BYTE || t == GL_BYTE) ds = 1;
 		else if(t == GL_UNSIGNED_SHORT || t == GL_SHORT) ds = 2;
 		else if(t == GL_MATRIX_EXT) ds = 4*16;
+		else if(t == GL_UNSIGNED_INT64_ARB) ds = 8;
 		else ds = 4;
 		
 		offset += ds * details[i].sz;

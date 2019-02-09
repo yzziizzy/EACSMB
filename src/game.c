@@ -128,9 +128,10 @@ void initGame(XStuff* xs, GameState* gs) {
 // 	TextureAtlas_addFolder(ta, "pre", "assets/ui/icons", 0);
 // 	TextureAtlas_finalize(ta);
 // 	
+	VEC_INIT(&gs->ifs.stack);
 	
 	gs->gui = GUIManager_alloc(&gs->globalSettings);
-	
+	gs->gui->ifs = &gs->ifs;
 	
 	// sound
 #ifndef DISABLE_SOUND
@@ -206,13 +207,16 @@ void initGame(XStuff* xs, GameState* gs) {
 	
 	
 	// input handlers
+	
 	gs->defaultInputHandlers = calloc(1, sizeof(*gs->defaultInputHandlers));
 	gs->defaultInputHandlers->dragStop = (void*)main_drag_handler;
 	gs->defaultInputHandlers->keyUp = (void*)main_key_handler;
 	gs->defaultInputHandlers->perFrame = (void*)main_perframe_handler;
 	gs->defaultInputHandlers->click = (void*)main_click_handler;
 	gs->defaultInputHandlers->mouseMove = (void*)main_move_handler;
-	InputFocusStack_PushTarget(&gs->ifs, gs, defaultInputHandlers);
+// 	InputFocusStack_PushTarget(&gs->ifs, gs, defaultInputHandlers);
+	InputFocusStack_PushTarget2(&gs->ifs, gs, &gs->defaultInputHandlers);
+	
 	
 	
 	// general properties
@@ -775,11 +779,11 @@ static void main_key_handler(InputEvent* ev, GameState* gs) {
 	// texture builder
 	if(ev->character == 't') {
 		printf("t\n");
-		texbuilder = guiTexBuilderControlNew((Vector2){.15,.1}, (Vector2){.82,.82}, 0);
+		texbuilder = guiTexBuilderControlNew(gs->gui, (Vector2){0,0}, (Vector2){800,800}, 0);
 		GUIRegisterObject(texbuilder, NULL);
 		guiResize(&texbuilder->header, (Vector2){.79, .79});
 		
-		InputFocusStack_PushTarget(&gs->ifs, texbuilder, inputHandlers);
+		GUIObject_giveFocus(texbuilder);
 	}
 	
 	if(ev->character == 'k') {
