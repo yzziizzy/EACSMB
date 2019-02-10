@@ -153,4 +153,86 @@ char* pathExt(const char* path);
 // also provides the length of the path without the period and extension
 char* pathExt2(const char* path, int* end);
 
+
+
+
+static char* strcatdup2(char* a, char* b) {
+	size_t la = strlen(a);
+	size_t lb = strlen(b);
+	char* o = malloc((la + lb + 1) * sizeof(char));
+	strcpy(o, a);
+	strcpy(o + la, b);
+	return o;
+}
+
+static char* strcatdup3(char* a, char* b, char* c) {
+	size_t la = strlen(a);
+	size_t lb = strlen(b);
+	size_t lc = strlen(c);
+	char* o = malloc((la + lb + lc + 1) * sizeof(char));
+	strcpy(o, a);
+	strcpy(o + la, b);
+	strcpy(o + la + lb, c);
+	return o;
+}
+
+static char* strcatdup4(char* a, char* b, char* c, char* d) {
+	size_t la = strlen(a);
+	size_t lb = strlen(b);
+	size_t lc = strlen(c);
+	size_t ld = strlen(d);
+	char* o = malloc((la + lb + lc + ld + 1) * sizeof(char));
+	strcpy(o, a);
+	strcpy(o + la, b);
+	strcpy(o + la + lb, c);
+	strcpy(o + la + lb + lc, d);
+	return o;
+}
+
+
+
+// these versions return the length
+static char* strcatdup2_len(const char* a, const char* b, size_t* len) {
+	size_t la = strlen(a);
+	size_t lb = strlen(b);
+	char* o = malloc((la + lb + 1) * sizeof(char));
+	strcpy(o, a);
+	strcpy(o + la, b);
+	if(len) *len = la + lb;
+	return o;
+}
+
+static char* strcatdup3_len(const char* a, const char* b, const char* c, size_t* len) {
+	size_t la = strlen(a);
+	size_t lb = strlen(b);
+	size_t lc = strlen(c);
+	char* o = malloc((la + lb + lc + 1) * sizeof(char));
+	strcpy(o, a);
+	strcpy(o + la, b);
+	strcpy(o + la + lb, c);
+	if(len) *len = la + lb + lc;
+	return o;
+}
+
+static char* strcatdup4_len(const char* a, const char* b, const char* c, const char* d, size_t* len) {
+	size_t la = strlen(a);
+	size_t lb = strlen(b);
+	size_t lc = strlen(c);
+	size_t ld = strlen(d);
+	char* o = malloc((la + lb + lc + ld + 1) * sizeof(char));
+	strcpy(o, a);
+	strcpy(o + la, b);
+	strcpy(o + la + lb, c);
+	strcpy(o + la + lb + lc, d);
+	if(len) *len = la + lb + lc + ld;
+	return o;
+}
+
+
+
+
+
+
+
+
 #endif // __EACSMB_UTILITIES_H__

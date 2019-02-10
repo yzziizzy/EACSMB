@@ -162,6 +162,7 @@ typedef struct GUIHeader {
 #include "ui/gridLayout.h"
 #include "ui/monitors.h"
 #include "ui/debugAdjuster.h"
+#include "ui/structAdjuster.h"
 
 
 
@@ -176,6 +177,7 @@ union GUIObject {
 	GUIGridLayout gridLayout;
 	GUIValueMonitor valueMonitor;
 	GUIDebugAdjuster debugAdjuster;
+	GUIStructAdjuster structAdjuster;
 };
 
 

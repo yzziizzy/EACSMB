@@ -75,6 +75,7 @@ eacsmb_SOURCES = main.c \
 	ui/monitors.c \
 	ui/scrollWindow.c \
 	ui/simpleWindow.c \
+	ui/structAdjuster.c \
 	ui/text.c \
 	ui/window.c \
 	uniformBuffer.c \

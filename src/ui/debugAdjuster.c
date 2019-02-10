@@ -37,7 +37,7 @@ GUIDebugAdjuster* GUIDebugAdjuster_new(GUIManager* gm, char* format, void* targe
 	
 	da->target = target;
 	da->type = type;
-	da->format = format;
+	da->format = strdup(format);
 	da->bufferLen = 0;
 	
 	
@@ -130,7 +130,7 @@ static void updateText(GUIDebugAdjuster* da) {
 	}
 	
 	if(da->bufferLen < len) {
-		da->bufferLen = len + 32;
+		da->bufferLen = len + 64;
 		da->buffer = realloc(da->buffer, da->bufferLen);
 	}
 	
