@@ -17,6 +17,11 @@ static void render(GUIDebugAdjuster* da, PassFrameParams* pfp);
 
 static void updateText(GUIDebugAdjuster* da);
 
+static void delete(GUIObject* go) {
+	if(go->debugAdjuster.format)
+		free(go->debugAdjuster.format);
+}
+
 
 
 GUIDebugAdjuster* GUIDebugAdjuster_new(GUIManager* gm, char* format, void* target, char type) {
@@ -24,6 +29,7 @@ GUIDebugAdjuster* GUIDebugAdjuster_new(GUIManager* gm, char* format, void* targe
 	
 	static struct gui_vtbl static_vt = {
 		.Render = render,
+		.Delete = delete,
 	};
 	
 	static InputEventHandler input_vt = {

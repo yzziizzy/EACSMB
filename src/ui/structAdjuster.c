@@ -33,12 +33,25 @@ static const char* getTypeFormat(char t) {
 }
 
 
+static void delete(GUIObject* go) {
+	GUIStructAdjuster* sa = &go->structAdjuster;
+	
+	free(sa->formatPrefix);
+	VEC_FREE(&sa->fields);
+	
+// 	VEC_EACH(&sa->adjusters, ai, a) {
+// 		GUIObject_delete(a);
+// 	}
+}
 
-GUIStructAdjuster* GUIStructAdjuster_new(GUIManager* gm, GUISA_Field* fields) {
+
+
+GUIStructAdjuster* GUIStructAdjuster_new(GUIManager* gm, void* target, GUISA_Field* fields) {
 	GUIStructAdjuster* sa;
 	
 	static struct gui_vtbl static_vt = {
 // 		.Render = render,
+		.Delete = delete,
 	};
 	
 	static InputEventHandler input_vt = {
@@ -50,7 +63,8 @@ GUIStructAdjuster* GUIStructAdjuster_new(GUIManager* gm, GUISA_Field* fields) {
 	gui_headerInit(&sa->header, gm, &static_vt);
 	sa->header.input_vt = &input_vt;
 	
-	sa->formatPrefix = "%s: ";
+	sa->target = target;
+	sa->formatPrefix = strdup("%s: ");
 	VEC_INIT(&sa->fields);
 	
 	// container for the field adjusters
@@ -70,7 +84,7 @@ GUIStructAdjuster* GUIStructAdjuster_new(GUIManager* gm, GUISA_Field* fields) {
 		snprintf(base, len+1, sa->formatPrefix, f->name);
 		
 		char* fmt = strcatdup2(base, f->formatSuffix ? f->formatSuffix : getTypeFormat(f->type));
-		GUIDebugAdjuster* da = GUIDebugAdjuster_new(gm, fmt, f->base + f->offset, f->type);
+		GUIDebugAdjuster* da = GUIDebugAdjuster_new(gm, fmt, target + (ptrdiff_t)f->base + f->offset, f->type);
 		free(fmt);
 		free(base);
 		

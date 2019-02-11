@@ -1198,13 +1198,8 @@ static void builderKeyUp(InputEvent* ev, GUITexBuilderControl* bc) {
 		bc->op->perlin.offset_x = 100;
 		bc->op->perlin.offset_y = 100;
 		
-		GUIStructAdjuster* sa = GUIStructAdjuster_new(bc->header.gm, (GUISA_Field[]){
-			{"persistence", 'f', &bc->op->perlin.persistence, 0, NULL},
-			{"octaves", 'i', &bc->op->perlin.octaves, 0, NULL},
-			{"spread_x", 'f', &bc->op->perlin.spread_x, 0, NULL},
-			{"spread_y", 'f', &bc->op->perlin.spread_y, 0, NULL},
-			{NULL},
-		});
+		GUIStructAdjuster* sa = GUIStructAdjuster_new(bc->header.gm, &bc->op->perlin, TG_perlin_structAdjusterFields); 
+		
 		
 		GUIRegisterObject(sa, bc->bg);
 		

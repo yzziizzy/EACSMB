@@ -277,6 +277,7 @@ GUIObject* GUIObject_findChild(GUIObject* obj, char* childName);
 
 // GUIObject* guiHitTest(GUIObject* go, Vector2 testPos);
 void guiDelete(GUIObject* go);
+static void GUIObject_delete(GUIObject* go) { guiDelete(go); }
 // void guiRender(GUIObject* go, GameState* gs, PassFrameParams* pfp);
 void guiReap(GUIObject* go);
 void guiResize(GUIHeader* gh, Vector2 newSz);

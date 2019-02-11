@@ -20,6 +20,30 @@
 
 #define decl_typ(_type) CAT_(decl_, _type) 
 
+
+
+#define declc_Vector4 'f'
+#define declc_float 'f'
+#define declc_int 'i'
+#define declc_unsigned_int '4'
+#define declc_char_ptr 'a'
+#define declc_tgop_ptr 'p'
+#define declc_tgop_vec 'p'
+
+#define declc_typ(_type) CAT_(declc_, _type) 
+
+
+
+#define declclen_Vector4 4
+#define declclen_float 1
+#define declclen_int 1
+#define declclen_unsigned_int 1
+#define declclen_char_ptr 1
+#define declclen_tgop_ptr 1
+#define declclen_tgop_vec 1
+
+#define declclen_typ(_type) CAT_(declclen_, _type) 
+
 typedef struct CAT_(TG_, TG_REFL_STRUCT_NAME) {
 #define X(_type, _name, _min, _max, _def) decl_typ(_type) _name; 
 	XLIST
@@ -56,10 +80,39 @@ typedef struct CAT_(TG_, TG_REFL_STRUCT_NAME) {
 		XLIST
 	#undef X
 	};
+	
+	// for the gui struct adjuster
+	
+	struct GUISA_Field CAT_(CAT_(TG_, TG_REFL_STRUCT_NAME), _structAdjusterFields)[] = {
+	#define X(_type, _name, _min, _max, _def) { \
+		.name = #_name, \
+		.base = 0, \
+		.offset = offsetof(struct CAT_(TG_, TG_REFL_STRUCT_NAME), _name), \
+		.type = declc_typ(_type), \
+		.count = declclen_typ(_type), \
+		.formatSuffix = NULL, \
+	},
+		
+		XLIST
+		{NULL},
+	#undef X
+	};
+	
+	
+	struct CAT_(TG_, TG_REFL_STRUCT_NAME) 
+	CAT_(CAT_(TG_, TG_REFL_STRUCT_NAME), _defaultValue) = {
+	#define X(_type, _name, _min, _max, _def) ._name = _def,
+		XLIST
+	#undef X
+	};
+	
+	
 #else
 	// everywhere else is declared extern
 	extern struct tg_reflect CAT_(CAT_(TG_, TG_REFL_STRUCT_NAME), _ref)[];
-
+	extern struct GUISA_Field CAT_(CAT_(TG_, TG_REFL_STRUCT_NAME), _structAdjusterFields)[];
+	extern struct CAT_(CAT_(TG_, TG_REFL_STRUCT_NAME), _defaultValue);
+	
 #endif
 
 
