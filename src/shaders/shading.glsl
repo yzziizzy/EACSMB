@@ -323,7 +323,7 @@ void main() {
 		
 	//	float bias = 0.005;
 		// very broken
-		float bias = max(0.005 * (1.0 - dot(normal, light_dir.xyz)), 0.0005);  
+		float bias = max(0.03 * (1.0 - dot(normal, light_dir.xyz)), 0.0005);  
 		float shadow_factor = 0.0;
 		
 		// PCF

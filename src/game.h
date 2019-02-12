@@ -174,6 +174,8 @@ typedef struct GameState {
 	float sunTheta;
 	
 	
+	char takeScreenShot;
+	
 	
 	CES ces;
 	

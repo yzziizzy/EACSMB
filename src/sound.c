@@ -150,6 +150,44 @@ void SoundManager_addClipInstance(SoundManager* sm, char* clipName, SoundInstanc
 }
 
 
+// start index for the current timestamp
+static double getCurrentBufferIndex(SoundManager* sm) {
+	
+}
+
+
+
+// this function assumes the clip overlaps the buffer
+static void mixClip(SoundManager* sm, SoundInstance* si) {
+	SoundClip* sc = si->clip;
+	
+	
+	
+#if defined(EACSMB_USE_SIMD)
+	
+	
+#else
+	int start = ;
+	
+	for(int i; i <  ) {
+		sm->buffer[i]
+		
+	}
+	
+	
+#endif
+/*	
+	// update write pointer
+	if(si->flags & SOUNDFLAG_LOOP) {
+		si->lastSampleWritten = (si->lastSampleWritten + n) % sc->numSamples;
+	}
+	else {
+		si->lastSampleWritten = (si->lastSampleWritten + n);
+	}
+	*/
+} 
+
+
 
 void SoundManager_tick(SoundManager* sm, double newGlobalTime) {
 	if(sm->lastMixTime == -1) { // sigil for initialization

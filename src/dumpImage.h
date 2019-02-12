@@ -5,6 +5,7 @@
 
 
 int writePNG(char* path, unsigned int channels, char* data, unsigned int w, unsigned int h); 
+int writePNGInverted(char* path, unsigned int channels, char* data, unsigned int w, unsigned int h); 
 
 
 

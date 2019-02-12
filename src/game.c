@@ -37,6 +37,7 @@
 #include "emitter.h"
 #include "scene.h"
 #include "world.h"
+#include "dumpImage.h"
 #include "gui.h"
 #include "ui/simpleWindow.h"
 #include "ui/image.h"
@@ -423,7 +424,7 @@ void initGameGL(XStuff* xs, GameState* gs) {
 	GUIScrollWindow* gsw = GUIScrollWindow_new(gs->gui);
 	gsw->header.topleft = (Vector2){200, 200};
 	gsw->header.size = (Vector2){100, 100};
-	GUIRegisterObject(gsw, NULL);
+//	GUIRegisterObject(gsw, NULL);
 
 	
 	GUIValueMonitor* gfm = GUIValueMonitor_new(gs->gui, "dynamic meshes: %d", &gs->world->dmm->totalInstances, 'i');
@@ -766,6 +767,10 @@ static void main_key_handler(InputEvent* ev, GameState* gs) {
 		GUIText_setString(gtSelectionDisabled, gs->selectionPassDisabled ? "Selection Disabled" : "");
 	}
 	
+	if(ev->keysym == XK_Print) {
+		gs->takeScreenShot = 1;
+	}
+	
 	if(ev->character == 'b') {
 		// builder control
 		gbcTest = guiBuilderControlNew((Vector2){.1,.2}, (Vector2){.8,.8}, 0);
@@ -983,6 +988,22 @@ void updateView(XStuff* xs, GameState* gs, InputState* is) {
 	memcpy(&pvu->proj , msGetTop(&gs->proj), sizeof(Matrix));
 	
 	uniformBuffer_bindRange(&gs->perViewUB);
+}
+
+
+// screenshot
+static void takeSS(GameState* gs) {
+	int w = gs->screen.wh.x;
+	int h = gs->screen.wh.y;
+	
+	uint8_t* pic = malloc(w * h * 3);
+	
+	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+	glReadPixels(0,0, w, h, GL_RGB, GL_UNSIGNED_BYTE, pic);
+	
+	writePNGInverted("./ss.png", 3, pic, w, h);
+	free(pic);
+	
 }
 
 
@@ -1445,6 +1466,12 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	
 	
 	drawFrame(xs, gs, is);
+	
+	if(gs->takeScreenShot) {
+		gs->takeScreenShot = 0;
+		
+		takeSS(gs);
+	}
 	
 	
 	gs->screen.resized = 0;
