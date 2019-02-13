@@ -102,6 +102,101 @@ int tryQueryTimer(GLuint id, uint64_t* time) {
 
 
 
+
+static uint32_t charToVal(char c) {
+	switch(c) {
+		case '0': return 0;
+		case '1': return 1;
+		case '2': return 2;
+		case '3': return 3;
+		case '4': return 4;
+		case '5': return 5;
+		case '6': return 6;
+		case '7': return 7;
+		case '8': return 8;
+		case '9': return 9;
+		case 'a': case 'A': return 10;
+		case 'b': case 'B': return 11;
+		case 'c': case 'C': return 12;
+		case 'd': case 'D': return 13;
+		case 'e': case 'E': return 14;
+		case 'f': case 'F': return 15;
+	};
+	return 0;
+}
+
+static uint32_t doubleChar(char c) {
+	uint32_t v = charToVal(c);
+	return v & v << 4;
+}
+
+
+
+/*
+Parse color strings:
+#rrggbb
+#rrggbbaa
+#rgb
+#rgba
+green
+*/
+uint32_t parseColor(char* s) {
+	uint32_t c = 0x000000ff;
+	
+	if(s[0] == '#') {
+		int len = strlen(s+1);
+		
+		if(len == 3 || len == 4) {
+			c &= (doubleChar(s[1]) << 24) & (doubleChar(s[2]) << 16) & (doubleChar(s[3]) << 8);
+			
+			if(len == 4) {
+				c &= doubleChar(s[4]);
+			}
+		}
+		else if(len == 6 || len == 8) {
+			c &= (charToVal(s[1]) << 28) &
+				(charToVal(s[2]) << 24) &
+				(charToVal(s[3]) << 20) &
+				(charToVal(s[4]) << 16) &
+				(charToVal(s[5]) << 12) &
+				(charToVal(s[6]) << 8);
+				
+			if(len == 8) {
+				c &= (charToVal(s[7]) << 4) & charToVal(s[8]);
+			}
+		}
+		
+		return c;
+	}
+	
+	// check color strings. 
+	// TODO: some clever lookup
+	if(0 == strcasecmp(s, "red")) return 0xff0000ff;
+	if(0 == strcasecmp(s, "green")) return 0xff00ff00;
+	if(0 == strcasecmp(s, "blue")) return 0xffff0000;
+	if(0 == strcasecmp(s, "magenta")) return 0xffff00ff;
+	if(0 == strcasecmp(s, "yellow")) return 0xff00ffff;
+	if(0 == strcasecmp(s, "cyan")) return 0xffffff00;
+	if(0 == strcasecmp(s, "black")) return 0xff000000;
+	if(0 == strcasecmp(s, "white")) return 0xffffffff;
+	if(0 == strcasecmp(s, "gray")) return 0xff888888;
+	if(0 == strcasecmp(s, "silver")) return 0xffbbbbbb;
+	if(0 == strcasecmp(s, "darkgray")) return 0xff444444;
+	if(0 == strcasecmp(s, "darkred")) return 0xff000088;
+	if(0 == strcasecmp(s, "darkgreen")) return 0xff008800;
+	if(0 == strcasecmp(s, "darkblue")) return 0xff880000;
+	if(0 == strcasecmp(s, "navy")) return 0xff440000;
+	if(0 == strcasecmp(s, "forest")) return 0xff004400;
+	if(0 == strcasecmp(s, "maroon")) return 0xff000044;
+	if(0 == strcasecmp(s, "darkyellow")) return 0xff008888;
+	if(0 == strcasecmp(s, "olive")) return 0xff004444;
+	
+	return 0xffffffff;
+}
+
+
+
+
 // TODO BUG: fix prepending a \n everywhere
 char* readFile(char* path, int* srcLen) {
 	

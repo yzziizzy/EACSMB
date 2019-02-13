@@ -112,6 +112,10 @@ void query_queue_stop(QueryQueue* q);
 int query_queue_try_result(QueryQueue* q, uint64_t* time);
 
 
+uint32_t parseColor(char* s);
+
+
+
 // TODO BUG: fix prepending a \n everywhere
 char* readFile(char* path, int* srcLen);
 char* readFileRaw(char* path, int* srcLen);

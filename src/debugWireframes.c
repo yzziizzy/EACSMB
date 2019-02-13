@@ -163,12 +163,15 @@ void renderDebugWireframeLines(PassFrameParams* pfp) {
 // TODO: parse color
 
 
-void debugWFAddLine(Vector* p1, Vector* p2, char* color1, char* color2, float width1, float width2) {
+void debugWF_Line(Vector* p1, Vector* p2, char* color1, char* color2, float width1, float width2) {
+	uint32_t c1 = parseColor(color1);
+	uint32_t c2 = parseColor(color2);
+	
 	VEC_PUSH(&debugLines, ((debugWireframeLine){
 		.p1 = *p1,
 		.p2 = *p2,
-		.color1 = 0xffffffff,
-		.color2 = 0xffffffff,
+		.color1 = c1,
+		.color2 = c2,
 		.width1 = width1,
 		.width2 = width2,
 	}));
@@ -176,7 +179,7 @@ void debugWFAddLine(Vector* p1, Vector* p2, char* color1, char* color2, float wi
 
 
 
-void debugWFProjMatrix(Matrix* m) {
+void debugWF_ProjMatrix(Matrix* m) {
 	
 	Frustum f;
 	
@@ -186,21 +189,54 @@ void debugWFProjMatrix(Matrix* m) {
 	frustumFromMatrix(m, &f);
 	
 	// near plane
-	debugWFAddLine(&f.points[0], &f.points[1], green, green, 1, 1);
-	debugWFAddLine(&f.points[0], &f.points[2], green, green, 1, 1);
-	debugWFAddLine(&f.points[3], &f.points[1], green, green, 1, 1);
-	debugWFAddLine(&f.points[3], &f.points[2], green, green, 1, 1);
+	debugWF_Line(&f.points[0], &f.points[1], green, green, 1, 1);
+	debugWF_Line(&f.points[0], &f.points[2], green, green, 1, 1);
+	debugWF_Line(&f.points[3], &f.points[1], green, green, 1, 1);
+	debugWF_Line(&f.points[3], &f.points[2], green, green, 1, 1);
 	
 	// far plane
-	debugWFAddLine(&f.points[4], &f.points[5], red, red, 1, 1);
-	debugWFAddLine(&f.points[4], &f.points[6], red, red, 1, 1);
-	debugWFAddLine(&f.points[7], &f.points[5], red, red, 1, 1);
-	debugWFAddLine(&f.points[7], &f.points[6], red, red, 1, 1);
+	debugWF_Line(&f.points[4], &f.points[5], red, red, 1, 1);
+	debugWF_Line(&f.points[4], &f.points[6], red, red, 1, 1);
+	debugWF_Line(&f.points[7], &f.points[5], red, red, 1, 1);
+	debugWF_Line(&f.points[7], &f.points[6], red, red, 1, 1);
 	
 	// connecting lines
-	debugWFAddLine(&f.points[0], &f.points[4], green, red, 1, 1);
-	debugWFAddLine(&f.points[1], &f.points[5], green, red, 1, 1);
-	debugWFAddLine(&f.points[2], &f.points[6], green, red, 1, 1);
-	debugWFAddLine(&f.points[3], &f.points[7], green, red, 1, 1);
+	debugWF_Line(&f.points[0], &f.points[4], green, red, 1, 1);
+	debugWF_Line(&f.points[1], &f.points[5], green, red, 1, 1);
+	debugWF_Line(&f.points[2], &f.points[6], green, red, 1, 1);
+	debugWF_Line(&f.points[3], &f.points[7], green, red, 1, 1);
+}
+
+
+
+
+void debugWF_AABB(AABB* aabb, char* color, float width) {
+	Vector min[4] = { // the min plane on x
+		{aabb->min.x, aabb->min.y, aabb->min.z},
+		{aabb->min.x, aabb->min.y, aabb->max.z},
+		{aabb->min.x, aabb->max.y, aabb->min.z},
+		{aabb->min.x, aabb->max.y, aabb->max.z},
+	};
+	Vector max[4] = { // the max plane on x
+		{aabb->max.x, aabb->min.y, aabb->min.z},
+		{aabb->max.x, aabb->min.y, aabb->max.z},
+		{aabb->max.x, aabb->max.y, aabb->min.z},
+		{aabb->max.x, aabb->max.y, aabb->max.z},
+	};
+	
+	debugWF_Line(&min[0], &min[1], color, color, width, width);
+	debugWF_Line(&min[0], &min[2], color, color, width, width);
+	debugWF_Line(&min[3], &min[1], color, color, width, width);
+	debugWF_Line(&min[3], &min[2], color, color, width, width);
+
+	debugWF_Line(&max[0], &max[1], color, color, width, width);
+	debugWF_Line(&max[0], &max[2], color, color, width, width);
+	debugWF_Line(&max[3], &max[1], color, color, width, width);
+	debugWF_Line(&max[3], &max[2], color, color, width, width);
+	
+	debugWF_Line(&min[0], &max[0], color, color, width, width);
+	debugWF_Line(&min[1], &max[1], color, color, width, width);
+	debugWF_Line(&min[2], &max[2], color, color, width, width);
+	debugWF_Line(&min[3], &max[3], color, color, width, width);
 }
 
