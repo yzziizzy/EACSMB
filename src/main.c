@@ -26,6 +26,7 @@
 #include "log.h"
 
 #include "utilities.h"
+#include "debugWireframes.h"
 #include "config.h"
 #include "shader.h"
 #include "window.h"
@@ -97,7 +98,6 @@ int main(int argc, char* argv[]) {
 	initXWindow(&xs);
 	
 	
-	
 	pthread_t initThread;
 	pthread_create(&initThread, NULL, meh, NULL);
 	//meh(NULL);
@@ -107,6 +107,8 @@ int main(int argc, char* argv[]) {
 		processEvents(&xs, &input, &game.ifs, -1);
 		
 		if(first && xs.ready) {
+			initDebugWireframe();
+			
 			LoadingScreen_init(&loadingScreen);
 			
 			first = 0;

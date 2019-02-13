@@ -2,6 +2,7 @@
 
 
 #include "shadowMap.h"
+#include "debugWireframes.h"
 #include "game.h"
 #include "fbo.h"
 #include "c_json/json.h"
@@ -161,6 +162,7 @@ void ShadowMap_Render(ShadowMap* sm, PassFrameParams* cameraPFP, Vector* lightPo
 	smPDP.timeFractional = cameraPDP->timeFractional;
 	
 	
+	debugWFProjMatrix(&m_wp);
 	
 	glViewport(0, 0, sm->size.x, sm->size.y);
 // 	glViewport(0, 0, 1024, 1024);

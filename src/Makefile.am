@@ -15,6 +15,7 @@ eacsmb_SOURCES = main.c \
 	c_json/json.c \
 	component.c \
 	cursor.c \
+	debugWireframes.c \
 	decals.c \
 	decalsCustom.c \
 	ds.c \

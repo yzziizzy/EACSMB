@@ -23,6 +23,7 @@
 #include "mempool.h"
 
 #include "utilities.h"
+#include "debugWireframes.h"
 #include "config.h"
 #include "objloader.h"
 #include "shader.h"
@@ -219,7 +220,6 @@ void initGame(XStuff* xs, GameState* gs) {
 	InputFocusStack_PushTarget2(&gs->ifs, gs, &gs->defaultInputHandlers);
 	
 	
-	
 	// general properties
 	const float rotateFactor = 0.7260f;
 	const float scrollFactor = 300.0f;
@@ -232,6 +232,8 @@ void initGame(XStuff* xs, GameState* gs) {
 	gs->settings.mouseRotate = rotateFactor * fclampNorm(gs->globalSettings.mouseRotateSensitivity);
 	gs->settings.mouseScroll = scrollFactor * fclampNorm(gs->globalSettings.mouseScrollSensitivity);
 	gs->settings.mouseZoom = 4 * zoomFactor * fclampNorm(gs->globalSettings.mouseZoomSensitivity);
+	
+	gs->show_debugWireframe = 1;
 	
 	gs->hasMoved = 1;
 	gs->lastSelectionFrame = 0;

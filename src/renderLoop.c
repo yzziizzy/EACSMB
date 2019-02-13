@@ -4,6 +4,7 @@
 #include <string.h>
 
 
+#include "debugWireframes.h"
 #include "game.h"
 #include "gui.h"
 #include "scene.h"
@@ -84,15 +85,16 @@ void setupFBOs(GameState* gs, int resized) {
 	json_value_t* tex;
 	json_obj_get_key(jsf->root, "textures", &tex);
 	
-	FBOTexConfig texcfg2[6];
+	FBOTexConfig texcfg2[7];
 	unpack_fbo(tex, "diffuse", &texcfg2[0]);
 	unpack_fbo(tex, "normal", &texcfg2[1]);
-	unpack_fbo(tex, "selection", &texcfg2[2]);
-	unpack_fbo(tex, "lighting", &texcfg2[3]);
-	unpack_fbo(tex, "depth", &texcfg2[4]);
-	texcfg2[5].internalType = 0;
-	texcfg2[5].format = 0;
-	texcfg2[5].size = 0;
+	unpack_fbo(tex, "material", &texcfg2[2]);
+	unpack_fbo(tex, "selection", &texcfg2[3]);
+	unpack_fbo(tex, "lighting", &texcfg2[4]);
+	unpack_fbo(tex, "depth", &texcfg2[5]);
+	texcfg2[6].internalType = 0;
+	texcfg2[6].format = 0;
+	texcfg2[6].size = 0;
 	
 	json_free(jsf->root);
 	free(jsf->root);
@@ -103,9 +105,10 @@ void setupFBOs(GameState* gs, int resized) {
 	
 	gs->diffuseTexBuffer = texids[0];
 	gs->normalTexBuffer = texids[1];
-	gs->selectionTexBuffer = texids[2];
-	gs->lightingTexBuffer = texids[3];
-	gs->depthTexBuffer = texids[4];
+	gs->materialTexBuffer = texids[2];
+	gs->selectionTexBuffer = texids[3];
+	gs->lightingTexBuffer = texids[4];
+	gs->depthTexBuffer = texids[5];
 	
 	//printf("New Main Depth: %d \n", texids[3]);
 	
@@ -117,7 +120,8 @@ void setupFBOs(GameState* gs, int resized) {
 	FBOConfig gbufConf[] = {
 		{GL_COLOR_ATTACHMENT0, gs->diffuseTexBuffer },
 		{GL_COLOR_ATTACHMENT1, gs->normalTexBuffer },
-		{GL_COLOR_ATTACHMENT2, gs->lightingTexBuffer },
+		{GL_COLOR_ATTACHMENT2, gs->materialTexBuffer },
+		{GL_COLOR_ATTACHMENT3, gs->lightingTexBuffer },
 		{GL_DEPTH_ATTACHMENT, gs->depthTexBuffer },
 		{0,0}
 	};
@@ -128,7 +132,8 @@ void setupFBOs(GameState* gs, int resized) {
 	FBOConfig decalConf[] = {
 		{GL_COLOR_ATTACHMENT0, gs->diffuseTexBuffer },
 		{GL_COLOR_ATTACHMENT1, gs->normalTexBuffer },
-		{GL_COLOR_ATTACHMENT2, gs->lightingTexBuffer },
+		{GL_COLOR_ATTACHMENT2, gs->materialTexBuffer },
+		{GL_COLOR_ATTACHMENT3, gs->lightingTexBuffer },
 		{GL_DEPTH_ATTACHMENT,  gs->depthTexBuffer },
 		{0,0}
 	};
@@ -650,12 +655,25 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	shadingPass(gs, &pfp);
 	
+	
+
 	if(gs->show_qt_debug) {
 		glDisable(GL_DEPTH_TEST);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		
 		QuadTree_renderDebugVolumes(&gs->world->qt, &pfp);
+		glDisable(GL_BLEND);
+		glEnable(GL_DEPTH_TEST);
+	}
+	if(gs->show_debugWireframe) {
+		glDisable(GL_DEPTH_TEST);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		
+		renderDebugWireframeLines(&pfp);
+		resetDebugWireframes();
+		
 		glDisable(GL_BLEND);
 		glEnable(GL_DEPTH_TEST);
 	}

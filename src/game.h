@@ -69,7 +69,7 @@ typedef struct GameState {
 	GameSettings settings;
 	GlobalSettings globalSettings;
 	
-	GLuint diffuseTexBuffer, normalTexBuffer, depthTexBuffer, selectionTexBuffer, lightingTexBuffer;
+	GLuint diffuseTexBuffer, normalTexBuffer, materialTexBuffer, depthTexBuffer, selectionTexBuffer, lightingTexBuffer;
 	GLuint framebuffer;
 	GLuint depthRenderbuffer;
 	
@@ -117,7 +117,8 @@ typedef struct GameState {
 	Vector2 mouseDownPos;
 	
 	int debugMode;
-	int show_qt_debug;
+	char show_qt_debug;
+	char show_debugWireframe;
 	
 	float zoom;
 	float direction;

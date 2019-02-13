@@ -281,9 +281,9 @@ static int QuadTreeNode_findAllArea(QuadTree* qt, QuadTreeNode* n, AABB2 aabb, Q
 
 
 
-
-
 static void renderDebugBox(float thickness, Vector color, Vector min, Vector max, PassFrameParams* pfp);
+
+
 
 static void QuadTreeNode_renderDebugVolumes(QuadTreeNode* n, float hmin, float hmax, PassFrameParams* pfp) {
 	if(!n) return;
@@ -327,6 +327,10 @@ void QuadTree_renderDebugVolumes(QuadTree* qt, PassFrameParams* pfp) {
 	QuadTreeNode_renderDebugVolumes(qt->root, 20, 70, pfp);
 	
 }
+
+
+
+
 
 static void renderDebugBox(float thickness, Vector color, Vector min, Vector max, PassFrameParams* pfp) {
 	
@@ -407,13 +411,6 @@ static void renderDebugBox(float thickness, Vector color, Vector min, Vector max
 	glexit("debug box draw");
 	
 }
-
-
-
-
-
-
-
 
 
 
