@@ -473,6 +473,56 @@ void RemovePrePass(char* name) {
 
 
 
+// ---- pdp utilities ----
+
+
+void PassDrawParams_DeepCopy(PassDrawParams* orig, PassDrawParams* copy) {
+	
+	*copy = *orig;
+	
+#define COPY_MATRIX(f) copy->f = malloc(sizeof(*copy->f)); *copy->f = *orig->f;
+	
+	COPY_MATRIX(mWorldView);
+	COPY_MATRIX(mViewProj);
+	COPY_MATRIX(mWorldProj);
+	
+	COPY_MATRIX(mViewWorld);
+	COPY_MATRIX(mProjView);
+	COPY_MATRIX(mProjWorld);
+	
+#undef COPY_MATRIX
+}
+
+
+void PassFrameParams_DeepCopy(PassFrameParams* orig, PassFrameParams* copy) {
+	
+	*copy = *orig;
+	
+	copy->dp = malloc(sizeof(*copy->dp));
+	PassDrawParams_DeepCopy(orig->dp, copy->dp);
+}
+
+
+
+void PassDrawParams_DeepFree(PassDrawParams* pdp) {
+#define FREE_MATRIX(f) if(pdp->f) free(pdp->f);
+	FREE_MATRIX(mWorldView);
+	FREE_MATRIX(mViewProj);
+	FREE_MATRIX(mWorldProj);
+	FREE_MATRIX(mViewWorld);
+	FREE_MATRIX(mProjView);
+	FREE_MATRIX(mProjWorld);
+#undef FREE_MARIX
+}
+
+void PassFrameParams_DeepFree(PassFrameParams* pfp) {
+	if(pfp->dp) {
+		PassDrawParams_DeepFree(pfp->dp);
+		free(pfp->dp);
+	}
+}
+
+
 
 // ---- timer queries ----
 

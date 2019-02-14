@@ -17,7 +17,7 @@ void debugWF_Line(Vector* p1, Vector* p2, char* color1, char* color2, float widt
 
 void debugWF_ProjMatrix(Matrix* m);
 void debugWF_AABB(AABB* aabb, char* color, float width);
-//void debugWF_Sphere(Sphere* s, char* color, float width);
+void debugWF_Sphere(Sphere* s, int segments, char* color, float width);
 //void debugWF_Vector(Vector* origin, Vector* dir, float length, char* color, float width);
 
 

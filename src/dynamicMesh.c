@@ -352,7 +352,7 @@ static void instanceSetup(DynamicMeshManager* dmm, DynamicMeshInstShader* vmem, 
 		
 		float d = vDist(pos, &pfp->dp->eyePos);
 		
-		if(d > 500) continue;
+// 		if(d > 500) continue;
 		
 		mTransv(pos, &m);
 		

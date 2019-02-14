@@ -425,12 +425,17 @@ void SetUpPDP(GameState* gs, PassDrawParams* pdp) {
 	
 	pdp->mWorldView = msGetTop(&gs->view);
 	pdp->mViewProj = msGetTop(&gs->proj);
+	pdp->mWorldProj = &gs->mWorldProj; 
 	
 	pdp->mProjView = &gs->invProj;
 	pdp->mViewWorld = &gs->invView;
+	pdp->mProjWorld = &gs->mProjWorld;
 	
-	mInverse(&pdp->mViewProj, &gs->invProj);
-	mInverse(&pdp->mWorldView, &gs->invView);
+	mFastMul(pdp->mWorldView, pdp->mViewProj, &gs->mWorldProj);
+	
+	mInverse(pdp->mViewProj, &gs->invProj);
+	mInverse(pdp->mWorldView, &gs->invView);
+	mInverse(pdp->mWorldProj, &gs->mProjWorld);
 	
 	pdp->eyeVec = gs->eyeDir;
 	pdp->eyePos = gs->eyePos;
@@ -484,7 +489,6 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	SetUpPDP(gs, &pdp);
 	
-	
 	PassFrameParams pfp;
 	pfp.dp = &pdp;
 	pfp.timeElapsed = gs->frameSpan;
@@ -492,15 +496,31 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	pfp.wallTime = gs->frameTime;
 	
 	
-
+	PassFrameParams* activePFP = &pfp;
+	PassFrameParams* activePDP;
 	
+	if(gs->use_debugCam) {
+		if(gs->refresh_debugCam) {
+			PassFrameParams_DeepFree(&gs->debugCamPFP);
+			PassFrameParams_DeepCopy(&pfp, &gs->debugCamPFP);
+			
+			gs->refresh_debugCam = 0;
+		}
+		
+		activePFP = &gs->debugCamPFP;
+	}
+	
+	activePDP = activePFP->dp; 
 	
 	RenderAllPrePasses(&pfp);
 	
 	
+	Vector sunPos;
+	vScale(&gs->sunNormal, 1000, &sunPos);
+	
 // 	printf("sm------\n");
 	query_queue_start(&gs->queries.sunShadow);
-	ShadowMap_Render(gs->world->sunShadow, &pfp, &gs->sunNormal);
+	ShadowMap_Render(gs->world->sunShadow, activePFP, &sunPos);
 	query_queue_stop(&gs->queries.sunShadow);
 // 	printf("sm^^^^^^\n");
 	
@@ -654,6 +674,23 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	
 	shadingPass(gs, &pfp);
+	
+	
+	
+	
+	
+// 	Frustum fr;
+// 	Sphere sp;
+	
+// 	Matrix wp;
+// 	mFastMul(pfp.dp->mWorldView, pfp.dp->mViewProj, &wp);
+	
+// 	frustumFromMatrix(&wp, &fr);
+// 	frustumBoundingSphere(&fr, &sp);
+// 	printf("%f,%f,%f,  %f\n", sp.center.x,sp.center.y,sp.center.z, sp.r);
+// 	sp.center = (Vector){100,100,100};
+	
+// 	debugWF_Sphere(&sp, 100, NULL, 2);
 	
 	
 

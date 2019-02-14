@@ -240,3 +240,30 @@ void debugWF_AABB(AABB* aabb, char* color, float width) {
 	debugWF_Line(&min[3], &max[3], color, color, width, width);
 }
 
+
+
+void debugWF_Sphere(Sphere* s, int segments, char* color, float width) {
+	float th = (2 * F_PI) / (float)segments;
+	Vector c = s->center;
+	float r = s->r;
+
+	char* red = color ? color : "red"; 
+	char* blue = color ? color : "blue"; 
+	char* green = color ? color : "green"; 
+	
+	for(int i = 0; i <= segments; i++) {
+		float st = sin((float)i * th) * r;
+		float ct = cos((float)i * th) * r;
+		float st1 = sin((float)(i+1) * th) * r;
+		float ct1 = cos((float)(i+1) * th) * r;
+		
+		// x plane
+		debugWF_Line(&(Vector){c.x, c.y + st, c.z + ct}, &(Vector){c.x, c.y + st1, c.z + ct1}, red, red, width, width);
+		// y plane
+		debugWF_Line(&(Vector){c.x + st, c.y, c.z + ct}, &(Vector){c.x + st1, c.y, c.z + ct1}, blue, blue, width, width);
+		// z plane
+		debugWF_Line(&(Vector){c.x + st, c.y + ct, c.z}, &(Vector){c.x + st1, c.y + ct1, c.z}, green, green, width, width);
+	}
+	
+	
+}

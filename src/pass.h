@@ -49,6 +49,11 @@ typedef struct PassFrameParams {
 } PassFrameParams;
 
 
+void PassDrawParams_DeepCopy(PassDrawParams* orig, PassDrawParams* copy);
+void PassFrameParams_DeepCopy(PassFrameParams* orig, PassFrameParams* copy);
+void PassDrawParams_DeepFree(PassDrawParams* pdp); 
+void PassFrameParams_DeepFree(PassFrameParams* pfp);
+
 
 typedef struct DrawTimer {
 	char timerLen; // size of history buffer, max 16

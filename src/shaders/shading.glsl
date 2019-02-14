@@ -300,9 +300,9 @@ void main() {
 // 		vec3 dielectricSpecular = vec3(0.45, 0.45, 0.45);
 // 		vec3 dielectricSpecular = vec3(1.0, 1.0, 1.0);
 		vec3 dielectricSpecular = vec3(0.1, 0.1, 0.1);
-// 		float metallic = 0.408;
+ 		metallic = 0.408;
 		vec3 baseColor = diffuseColor;
-// 		float roughness = 0.1; // sampled from tex
+ 		roughness = 0.51; // sampled from tex
 		
 		// TODO: gather vectors
 		vec3 l = light_dir.xyz;//vec3(0,1,0); // light direction

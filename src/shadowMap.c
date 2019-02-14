@@ -84,14 +84,52 @@ void ShadowMap_SetupFBOs(ShadowMap* sm) {
 
 void ShadowMap_Render(ShadowMap* sm, PassFrameParams* cameraPFP, Vector* lightPos) {
 	
-	
-	//return;
-	
-	// figure out a good view
 	PassDrawParams* cameraPDP = cameraPFP->dp;
 	PassFrameParams smPFP;
 	PassDrawParams smPDP;
 	smPFP.dp = &smPDP;
+	
+	Matrix m_wv = IDENT_MATRIX;
+	Matrix m_vp = IDENT_MATRIX;
+	Matrix m_wp = IDENT_MATRIX;
+	Matrix m_wv_inv;
+	Matrix m_vp_inv;
+	Matrix m_wp_inv;
+	
+
+	/*
+	printf("\n\n--------------\n");
+	mPrint(cameraPFP->dp->mViewProj, stdout);
+	mPrint(cameraPFP->dp->mWorldView, stdout);
+	mPrint(cameraPFP->dp->mWorldProj, stdout);
+	mPrint(cameraPFP->dp->mProjView, stdout);
+	mPrint(cameraPFP->dp->mViewWorld, stdout);
+	mPrint(cameraPFP->dp->mProjWorld, stdout);
+	*/
+	debugWF_ProjMatrix(cameraPFP->dp->mWorldProj);
+	
+	Frustum fr;
+	Sphere sp;
+	
+	frustumFromMatrix(cameraPFP->dp->mWorldProj, &fr);
+	frustumBoundingSphere(&fr, &sp);
+// 	printf("%f,%f,%f,  %f\n", sp.center.x,sp.center.y,sp.center.z, sp.r);
+	
+	debugWF_Sphere(&sp, 100, NULL, 2);
+	
+	
+	Vector p2 = {5000, 5000, 5000};
+	
+	Matrix m2;
+	
+	mOrthoFromSphere(&sp, lightPos, &m_wp);
+	
+//  	debugWF_ProjMatrix(&m2);
+	
+	debugWF_ProjMatrix(&m_wp);
+	
+	// figure out a good view
+
 	
 	Vector lpos;
 	Vector ldir;
@@ -104,7 +142,7 @@ void ShadowMap_Render(ShadowMap* sm, PassFrameParams* cameraPFP, Vector* lightPo
 	
 	
 	//lpos = (Vector){0,50, 0};
-	
+	/*
 	// BUG: this whole calculation is very broken
 	Matrix m_wv = IDENT_MATRIX;
 	Matrix m_vp = IDENT_MATRIX;
@@ -118,7 +156,7 @@ void ShadowMap_Render(ShadowMap* sm, PassFrameParams* cameraPFP, Vector* lightPo
 	//mLookAt(&lpos, &(Vector){10,0,10}, &(Vector){0,1,0}, &m_wv);
 	
 	//mPerspective(60, 1, sm->clipPlanes.x, sm->clipPlanes.y, &m_vp);
-	
+	*/
 	
 	double time = cameraPDP->timeSeconds + cameraPDP->timeFractional;
 	
@@ -126,16 +164,16 @@ void ShadowMap_Render(ShadowMap* sm, PassFrameParams* cameraPFP, Vector* lightPo
 	float lrot = -3.14 / 2; //fmod(time / 3, 6.28);
 	zoom = -150;
 	
-	mTrans3f(0, -1, zoom, &m_wv);
-	mRot3f(1, 0, 0, F_PI / 6, &m_wv);
-	mRot3f(0,1,0, lrot, &m_wv);
-	mTrans3f(-lcenter.x, 0, -lcenter.y, &m_wv);
-	
-		// y-up to z-up rotation
-	mRot3f(1, 0, 0, F_PI_2, &m_wv);
-	mScale3f(1, 1, -1, &m_wv);
-	
-	mFastMul(&m_wv, &m_vp, &m_wp);
+// 	mTrans3f(0, -1, zoom, &m_wv);
+// 	mRot3f(1, 0, 0, F_PI / 6, &m_wv);
+// 	mRot3f(0,1,0, lrot, &m_wv);
+// 	mTrans3f(-lcenter.x, 0, -lcenter.y, &m_wv);
+// 	
+// 		// y-up to z-up rotation
+// 	mRot3f(1, 0, 0, F_PI_2, &m_wv);
+// 	mScale3f(1, 1, -1, &m_wv);
+// 	
+// 	mFastMul(&m_wv, &m_vp, &m_wp);
 	
 	sm->mWorldLight = m_wp;
 	
@@ -146,11 +184,13 @@ void ShadowMap_Render(ShadowMap* sm, PassFrameParams* cameraPFP, Vector* lightPo
 	
 	
 	smPDP.mWorldView = &m_wv;
-	smPDP.mViewProj = &m_vp;
+// 	smPDP.mWorldView = &m_wv;
+// 	smPDP.mViewProj = &m_vp;
+	smPDP.mViewProj = &m_wp; // only one matrix
 	smPDP.mWorldProj = &m_wp;
 	
 	smPDP.mViewWorld = &m_wv_inv;
-	smPDP.mProjView = &m_vp_inv;
+	smPDP.mProjView = &m_wp_inv; // only one matrix
 	smPDP.mProjWorld = &m_wp_inv;
 	
 	smPDP.eyeVec = ldir;
@@ -162,7 +202,11 @@ void ShadowMap_Render(ShadowMap* sm, PassFrameParams* cameraPFP, Vector* lightPo
 	smPDP.timeFractional = cameraPDP->timeFractional;
 	
 	
-	debugWF_ProjMatrix(&m_wp);
+	
+
+	
+	
+	
 	
 	glViewport(0, 0, sm->size.x, sm->size.y);
 // 	glViewport(0, 0, 1024, 1024);

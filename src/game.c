@@ -693,11 +693,11 @@ static void main_perframe_handler(InputState* is, float frameSpan, GameState* gs
 		printf("near: %f, far: %f\n", gs->nearClipPlane, gs->farClipPlane);
 	}
 	if(is->keyState[112] & IS_KEYDOWN) {
-		gs->farClipPlane += 250 * te;
+		gs->farClipPlane += 850 * te;
 		printf("near: %f, far: %f\n", gs->nearClipPlane, gs->farClipPlane);
 	}
 	if(is->keyState[117] & IS_KEYDOWN) {
-		gs->farClipPlane -= 250 * te;
+		gs->farClipPlane = fmax(50, gs->farClipPlane - 850 * te);
 		printf("near: %f, far: %f\n", gs->nearClipPlane, gs->farClipPlane);
 	}
 
@@ -743,6 +743,15 @@ static void main_key_handler(InputEvent* ev, GameState* gs) {
 	
 	if(ev->character == 'p') {
 		gs->show_qt_debug ^= 1;
+	}
+	
+	// debud camera controls
+	if(ev->keysym == XK_F12) {
+		gs->use_debugCam = 1;
+		gs->refresh_debugCam = 1;
+	}
+	if(ev->keysym == XK_F11) {
+		gs->use_debugCam = 0;
 	}
 	
 	if(ev->keysym == XK_Delete) {
@@ -934,8 +943,10 @@ void updateView(XStuff* xs, GameState* gs, InputState* is) {
 	
 	gs->sunTheta = fmod(gs->sunTheta + gs->sunSpeed * gs->frameSpan, F_2PI);
 	gs->sunNormal.x = cos(gs->sunTheta);
-	gs->sunNormal.y = 0.0;
+	gs->sunNormal.y = .78;
 	gs->sunNormal.z = sin(gs->sunTheta);
+	
+	vNorm(&gs->sunNormal, &gs->sunNormal);
 	
 	//printf("sun theta %f\n", gs->sunTheta);
 	
@@ -1465,7 +1476,6 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	runLogic(gs, is);
 	
 	runSystems(gs, is);
-	
 	
 	drawFrame(xs, gs, is);
 	

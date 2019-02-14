@@ -143,6 +143,8 @@ green
 uint32_t parseColor(char* s) {
 	uint32_t c = 0x000000ff;
 	
+	if(!s) return 0xffffffff;
+	
 	if(s[0] == '#') {
 		int len = strlen(s+1);
 		

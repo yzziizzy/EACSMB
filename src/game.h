@@ -12,6 +12,7 @@
 #include "world.h"
 #include "shadowMap.h"
 #include "window.h"
+#include "pass.h"
 #include "gui.h"
 
 
@@ -99,6 +100,7 @@ typedef struct GameState {
 	
 	Matrix invView; // TODO: rename these
 	Matrix invProj;
+	Matrix mWorldProj;
 	Matrix mProjWorld;
 	
 	double nearClipPlane;
@@ -108,6 +110,10 @@ typedef struct GameState {
 	Vector eyeDir;
 	Vector eyeUp;
 	Vector eyeRight;
+	
+	PassFrameParams debugCamPFP;
+	char use_debugCam;
+	char refresh_debugCam;
 	
 	Vector cursorTilePos;
 	Vector2 cursorPos;
