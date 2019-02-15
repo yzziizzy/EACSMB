@@ -79,7 +79,13 @@ void InputFocusStack_Dispatch(InputFocusStack* stack, InputEvent* ev) {
 	
 	InputFocusTarget* h = &VEC_TAIL(&stack->stack);
 	
-#define CALLIF(x) if(*h->vt && (*h->vt)->x) ((*h->vt)->x)(ev, h->data) 
+	InputFocusTarget_Dispatch(h, ev);
+}
+
+
+void InputFocusTarget_Dispatch(InputFocusTarget* t , InputEvent* ev) {
+	
+#define CALLIF(x) if(*t->vt && (*t->vt)->x) ((*t->vt)->x)(ev, t->data) 
 	
 	CALLIF(all);
 	
@@ -100,13 +106,14 @@ void InputFocusStack_Dispatch(InputFocusStack* stack, InputEvent* ev) {
 		case EVENT_GAINFOCUS: CALLIF(gainFocus); break;
 		case EVENT_LOSEFOCUS: CALLIF(loseFocus); break;
 		default:
-			fprintf(stderr, "!!! Unknown event in InputFocusStack_Dispatch: %d\n", ev->type);
+			fprintf(stderr, "!!! Unknown event in InputFocusTarget_Dispatch: %d\n", ev->type);
 			break;
 	}
 
 #undef CALLIF
-	
 }
+
+
 
 void InputFocusStack_DispatchPerFrame(InputFocusStack* stack, InputState* is, float frameSpan) {
 	

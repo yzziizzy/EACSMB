@@ -155,6 +155,7 @@ typedef struct InputFocusStack {
 void _InputFocusStack_PushTarget(InputFocusStack* stack, void* data, ptrdiff_t vtoffset);
 void InputFocusStack_PushTarget2(InputFocusStack* stack, void* data, InputEventHandler** ptr);
 
+void InputFocusTarget_Dispatch(InputFocusTarget* t , InputEvent* ev);
 void InputFocusStack_RevertTarget(InputFocusStack* stack);
 void InputFocusStack_Dispatch(InputFocusStack* stack, InputEvent* ev);
 void InputFocusStack_DispatchPerFrame(InputFocusStack* stack, InputState* is, float frameSpan);

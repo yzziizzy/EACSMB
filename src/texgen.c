@@ -1199,7 +1199,7 @@ static void builderKeyUp(InputEvent* ev, GUITexBuilderControl* bc) {
 		bc->op->perlin.offset_y = 100;
 		
 		GUIStructAdjuster* sa = GUIStructAdjuster_new(bc->header.gm, &bc->op->perlin, TG_perlin_structAdjusterFields); 
-		
+		sa->header.topleft.x = 500;
 		
 		GUIRegisterObject(sa, bc->bg);
 		
@@ -1283,9 +1283,9 @@ GUITexBuilderControl* guiTexBuilderControlNew(GUIManager* gm, Vector2 pos, Vecto
 	
 	GUIRegisterObject(bc->ctl_selectedOp, &bc->bg->header);
 	
-	
+/*	
 	bc->da = GUIDebugAdjuster_new(gm, "test: %d", &bc->selectedOpIndex, 'i');
-	GUIRegisterObject(bc->da, &bc->bg->header);
+	GUIRegisterObject(bc->da, &bc->bg->header);*/
 
 	
 	return bc;
