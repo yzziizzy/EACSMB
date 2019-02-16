@@ -39,7 +39,11 @@ static char* texgen_op_names[] = {
 };
 
 
-
+static GUISA_Field* tgsa_fields[] = {
+#define TEXGEN_TYPE_MEMBER(x) [TEXGEN_TYPE_##x] = TG_ ## x ## _structAdjusterFields,
+	TEXGEN_TYPE_LIST
+#undef TEXGEN_TYPE_MEMBER
+};
 
 
 
@@ -68,6 +72,24 @@ genfn generators[] = {
 	TEXGEN_TYPE_LIST
 #undef TEXGEN_TYPE_MEMBER
 };
+
+
+
+#define TEXGEN_TYPE_MEMBER(x) \
+	static void CAT_(setDefault_, CAT_(TG_, x))(struct TexGenOp* o) { \
+		o->x = CAT_(CAT_(TG_, x), _defaultValue); \
+	}
+	
+	TEXGEN_TYPE_LIST
+#undef TEXGEN_TYPE_MEMBER
+
+typedef void (*setDefaultFn)(void*);
+setDefaultFn setDefaultsFns[] = {
+#define TEXGEN_TYPE_MEMBER(x) [TEXGEN_TYPE_##x] = setDefault_TG_##x,
+	TEXGEN_TYPE_LIST
+#undef TEXGEN_TYPE_MEMBER
+};
+
 
 static void run_op(struct tg_context* context, TexGenOp* op);
 
@@ -304,6 +326,7 @@ static void gen_solid(struct tg_context* context, struct TG_solid* opts) {
 	tg_context_push(context, ft);
 }
 
+// broken?
 static void gen_gradient(struct tg_context* context, struct TG_gradient* opts) {
 	FloatTex* ft = FloatTex_fromContext(context);
 	FloatTex* b = VEC_ITEM(&context->stack, VEC_LEN(&context->stack) - opts->index);
@@ -740,6 +763,7 @@ BitmapRGBA8* TexGen_Generate(char* source, Vector2i size) {
 
 	run_op(&context, op);
 	
+	printf("stack depth: %d\n", &context.stack);
 	FloatTex* ft = VEC_TAIL(&context.stack);
 	BitmapRGBA8* bmp = FloatTex_ToRGBA8(ft);
 	
@@ -1053,6 +1077,7 @@ static void tbc_Regen(GUITexBuilderControl* bc) {
 	TexGenOp* op = op_from_sexp(sex);
 	sexp_free(sex);
 // 	
+	op = bc->op;
 	
 	tgc = calloc(1, sizeof(*tgc));
 	bc->tg = tgc;
@@ -1188,20 +1213,16 @@ static void builderKeyUp(InputEvent* ev, GUITexBuilderControl* bc) {
 	} 
 	
 	if(ev->character == 'i') {
-		printf("inserted perlin");
-		bc->op = make_op(TEXGEN_TYPE_perlin);
-// 		bc->op = make_op(bc->selectedOpIndex);
-		bc->op->perlin.persistence = .5;
-		bc->op->perlin.octaves = 6;
-		bc->op->perlin.spread_x = 16;
-		bc->op->perlin.spread_y = 16;
-		bc->op->perlin.offset_x = 100;
-		bc->op->perlin.offset_y = 100;
+		//printf("inserted perlin");
+		bc->op = make_op(bc->selectedOpIndex);
+		setDefaultsFns[bc->selectedOpIndex](bc->op);
 		
-		GUIStructAdjuster* sa = GUIStructAdjuster_new(bc->header.gm, &bc->op->perlin, TG_perlin_structAdjusterFields); 
-		sa->header.topleft.x = 500;
+		if(bc->sa) GUIObject_delete(bc->sa);
 		
-		GUIRegisterObject(sa, bc->bg);
+		bc->sa = GUIStructAdjuster_new(bc->header.gm, &bc->op->perlin, tgsa_fields[bc->selectedOpIndex]); 
+		bc->sa->header.topleft.x = 500;
+		
+		GUIRegisterObject(bc->sa, bc->bg);
 		
 	} 
 
@@ -1261,7 +1282,7 @@ GUITexBuilderControl* guiTexBuilderControlNew(GUIManager* gm, Vector2 pos, Vecto
 	bc->im->header.size =(Vector2){400, 400}; 
 	
 	GUIRegisterObject(bc->im, &bc->bg->header);
-		
+	
 	/*
 	bc->controls = GUIGridLayout_new(gs->gui, (Vector2){0,0}, (Vector2){35, 35});
 	
@@ -1283,7 +1304,7 @@ GUITexBuilderControl* guiTexBuilderControlNew(GUIManager* gm, Vector2 pos, Vecto
 	
 	GUIRegisterObject(bc->ctl_selectedOp, &bc->bg->header);
 	
-/*	
+/*
 	bc->da = GUIDebugAdjuster_new(gm, "test: %d", &bc->selectedOpIndex, 'i');
 	GUIRegisterObject(bc->da, &bc->bg->header);*/
 

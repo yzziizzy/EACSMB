@@ -59,6 +59,7 @@ struct tg_reflect {
 		int64_t i;
 		uint64_t u;
 		char* s;
+		Vector4 v4;
 	} range_min, range_max, def_value;
 };
 
@@ -91,7 +92,7 @@ typedef struct tg_context {
 
 #define TG_REFL_STRUCT_NAME solid
 #define XLIST \
-	X(Vector4, color, -1, -1, -1) 
+	X(Vector4, color, 0, 0, 0xff000000) 
 #include "tg_reflect.h"
 #undef XLIST
 
@@ -142,8 +143,8 @@ typedef struct tg_context {
 #define XLIST \
 	X(int, index, 0, 99999, 0) \
 	X(int, channel, 0, 99999, 0) \
-	X(Vector4, color1, 0, 4, 0) \
-	X(Vector4, color2, 0, 4, 0) 
+	X(Vector4, color1, 0, 0xff000000, 0) \
+	X(Vector4, color2, 0, 0xffffffff, 0) 
 #include "tg_reflect.h"
 #undef XLIST
 
@@ -162,8 +163,8 @@ typedef struct tg_context {
 #define XLIST \
 	X(float, grid, 0.0, 9999, 10) \
 	X(float, size, 0.0, 9999, 5) \
-	X(Vector4, background, 0, 4, 0) \
-	X(Vector4, color, 0, 4, 0) 
+	X(Vector4, background, 0, 0, 0xff000000) \
+	X(Vector4, color, 0, 0, 0xffffffff) 
 #include "tg_reflect.h"
 #undef XLIST
 
@@ -171,8 +172,8 @@ typedef struct tg_context {
 #define TG_REFL_STRUCT_NAME checkers
 #define XLIST \
 	X(float, grid, 0.0, 9999, 10) \
-	X(Vector4, background, 0, 4, 0) \
-	X(Vector4, color, 0, 4, 0) 
+	X(Vector4, background, 0, 0, 0xff000000) \
+	X(Vector4, color, 0, 0, 0xffffffff) 
 #include "tg_reflect.h"
 #undef XLIST
 
@@ -236,7 +237,7 @@ typedef struct tg_context {
 typedef struct TexGenOp {
 	TexGenType type;
 	int channel_out;
-	union {		
+	union {
 		#define TEXGEN_TYPE_MEMBER(x) struct TG_##x x;
 			TEXGEN_TYPE_LIST
 		#undef TEXGEN_TYPE_MEMBER
@@ -269,6 +270,8 @@ typedef struct GUITexBuilderControl {
 	
 	GUIText* ctl_selectedOp;
 	
+	
+	GUIStructAdjuster* sa;
 	
 	TexGenContext* tg;
 	TexGenOp* op;

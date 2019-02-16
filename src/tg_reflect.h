@@ -21,7 +21,7 @@
 #define decl_typ(_type) CAT_(decl_, _type) 
 
 
-
+// fed into StructAdjuster/DebugAdjuster as the type 
 #define declc_Vector4 'f'
 #define declc_float 'f'
 #define declc_int 'i'
@@ -52,8 +52,7 @@ typedef struct CAT_(TG_, TG_REFL_STRUCT_NAME) {
 
 
 
-// vector4 doesn't have a real initializer. this just prevents compile errors
-#define init_Vector4(z) { .f = (z) }
+#define init_Vector4(z) { .v4 = COLOR_TO_VEC4(z) }
 #define init_float(z) { .f = (z) }
 #define init_int(z) { .i = (z) }
 #define init_unsigned_int(z) { .u = (z) }
@@ -62,6 +61,17 @@ typedef struct CAT_(TG_, TG_REFL_STRUCT_NAME) {
 #define init_tgop_vec(z) { .f = z }
 
 #define init_val(type, z) init_##type(z) 
+
+
+#define init2_Vector4(z) COLOR_TO_VEC4(z)
+#define init2_float(z) (z)
+#define init2_int(z) (z)
+#define init2_unsigned_int(z) (z)
+#define init2_char_ptr(z) z
+#define init2_tgop_ptr(z) z
+#define init2_tgop_vec(z) z
+
+#define init2_val(type, z) init2_##type(z) 
 
 
 // only one of these needs to exist somewhere
@@ -101,7 +111,7 @@ typedef struct CAT_(TG_, TG_REFL_STRUCT_NAME) {
 	
 	struct CAT_(TG_, TG_REFL_STRUCT_NAME) 
 	CAT_(CAT_(TG_, TG_REFL_STRUCT_NAME), _defaultValue) = {
-	#define X(_type, _name, _min, _max, _def) ._name = _def,
+	#define X(_type, _name, _min, _max, _def) ._name = init2_val(_type, _def),
 		XLIST
 	#undef X
 	};

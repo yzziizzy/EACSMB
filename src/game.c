@@ -233,7 +233,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	gs->settings.mouseScroll = scrollFactor * fclampNorm(gs->globalSettings.mouseScrollSensitivity);
 	gs->settings.mouseZoom = 4 * zoomFactor * fclampNorm(gs->globalSettings.mouseZoomSensitivity);
 	
-	gs->show_debugWireframe = 1;
+	gs->show_debugWireframe = 0;
 	
 	gs->hasMoved = 1;
 	gs->lastSelectionFrame = 0;
@@ -752,6 +752,10 @@ static void main_key_handler(InputEvent* ev, GameState* gs) {
 	}
 	if(ev->keysym == XK_F11) {
 		gs->use_debugCam = 0;
+	}
+	
+	if(ev->keysym == XK_F9) {
+		gs->show_debugWireframe = !gs->show_debugWireframe;
 	}
 	
 	if(ev->keysym == XK_Delete) {

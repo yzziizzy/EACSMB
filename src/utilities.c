@@ -199,6 +199,7 @@ uint32_t parseColor(char* s) {
 
 
 
+
 // TODO BUG: fix prepending a \n everywhere
 char* readFile(char* path, int* srcLen) {
 	

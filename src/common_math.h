@@ -26,4 +26,23 @@ typedef struct Vertex_PNT {
 
 
 
+
+static inline Vector4 color32ToVec4(uint32_t c) {
+	Vector4 v;
+	v.x = (c & 0x000000ff) / 255.0f;
+	v.y = ((c & 0x0000ff00) >> 8) / 255.0f;
+	v.z = ((c & 0x00ff0000) >> 16) / 255.0f;
+	v.w = ((c & 0xff000000) >> 24) / 255.0f;
+	return v;
+}
+
+
+#define COLOR_TO_VEC4(c) {\
+	.x = ( (uint32_t)c & 0x000000ff) / 255.0f, \
+	.y = (((uint32_t)c & 0x0000ff00) >> 8) / 255.0f, \
+	.z = (((uint32_t)c & 0x00ff0000) >> 16) / 255.0f, \
+	.w = (((uint32_t)c & 0xff000000) >> 24) / 255.0f, \
+}
+
+
 #endif // __EACSMB_common_math_h__
