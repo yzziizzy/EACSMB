@@ -1283,6 +1283,14 @@ GUITexBuilderControl* guiTexBuilderControlNew(GUIManager* gm, Vector2 pos, Vecto
 	
 	GUIRegisterObject(bc->im, &bc->bg->header);
 	
+	
+	
+	bc->tree = GUITreeControl_New(gm);
+	bc->tree->header.topleft = (Vector2){20, 350};
+	GUIRegisterObject(bc->tree, &bc->bg->header);
+	
+	GUITreeControl_AppendLabel(bc->tree, NULL, "tree root label", 1);
+	
 	/*
 	bc->controls = GUIGridLayout_new(gs->gui, (Vector2){0,0}, (Vector2){35, 35});
 	

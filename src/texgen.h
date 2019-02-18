@@ -270,6 +270,7 @@ typedef struct GUITexBuilderControl {
 	
 	GUIText* ctl_selectedOp;
 	
+	GUITreeControl* tree;
 	
 	GUIStructAdjuster* sa;
 	
