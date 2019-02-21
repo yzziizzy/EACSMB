@@ -14,6 +14,7 @@ struct sexp;
 
 typedef struct sexp {
 	char type;
+	char brace;
 	char* str;
 	VEC(struct sexp*) args;
 	

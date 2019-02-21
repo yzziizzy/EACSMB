@@ -69,17 +69,25 @@ static sexp* parse(char** s) {
 	x->type = 0;
 	
 	while(**s) {
-		switch(**s) {
+		char c = **s;
+		switch(c) {
 			case '(': // sub expression
+			case '{': // sub expression
+			case '[': // sub expression
+			case '<': // sub expression
 				(*s)++;
 				
 				// TODO: check for (*   *) and skip as comment
 				
 				y = parse(s);
+				y->brace = c;
 				VEC_PUSH(&x->args, y);
 				break;
 				
 			case ')': // end of expression
+			case '}': // end of expression
+			case ']': // end of expression
+			case '>': // end of expression
 				(*s)++;
 				return x;
 			
@@ -106,7 +114,7 @@ static sexp* parse(char** s) {
 
 
 sexp* sexp_parse(char* source) {
-	char* s = strchr(source, '(') + 1;
+	char* s = strpbrk(source, "({[<") + 1;
 	
 	return parse(&s);
 }

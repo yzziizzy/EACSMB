@@ -335,19 +335,19 @@ GLuint makeVAO(VAOConfig* details) {
 		glEnableVertexAttribArray(i);
 		t = details[i].type;
 		if(t == GL_FLOAT) { // works only for my usage
-			glVertexAttribFormat(attrSlot, details[i].sz, t, GL_FALSE, (void*)offset);
+			glVertexAttribFormat(attrSlot, details[i].sz, t, GL_FALSE, (GLuint)offset);
 		}
 		else if(t == GL_MATRIX_EXT) {
-			glVertexAttribFormat(attrSlot++, 4, GL_FLOAT, GL_FALSE, (void*)offset);
-			glVertexAttribFormat(attrSlot++, 4, GL_FLOAT, GL_FALSE, (void*)offset+4*4);
-			glVertexAttribFormat(attrSlot++, 4, GL_FLOAT, GL_FALSE, (void*)offset+4*8);
-			glVertexAttribFormat(attrSlot  , 4, GL_FLOAT, GL_FALSE, (void*)offset+4*12);
+			glVertexAttribFormat(attrSlot++, 4, GL_FLOAT, GL_FALSE, (GLuint)offset);
+			glVertexAttribFormat(attrSlot++, 4, GL_FLOAT, GL_FALSE, (GLuint)offset+4*4);
+			glVertexAttribFormat(attrSlot++, 4, GL_FLOAT, GL_FALSE, (GLuint)offset+4*8);
+			glVertexAttribFormat(attrSlot  , 4, GL_FLOAT, GL_FALSE, (GLuint)offset+4*12);
 		}
 		else if(t == GL_UNSIGNED_INT64_ARB) {
-			glVertexAttribLFormat(i, details[i].sz, t, (void*)offset);
+			glVertexAttribLFormat(i, details[i].sz, t, (GLuint)offset);
 		}
 		else {
-			glVertexAttribIFormat(i, details[i].sz, t, (void*)offset);
+			glVertexAttribIFormat(i, details[i].sz, t, (GLuint)offset);
 		}
 		glerr("vao init");
 		
@@ -407,7 +407,7 @@ size_t updateVAO(int bufferIndex, VAOConfig* details) {
 	if(endIndex == -1) endIndex = i - 1;
 	
 	
-	int offset = 0;
+	size_t offset = 0;
 	int attrSlot = startIndex;
 	for(i = startIndex; i <= endIndex; i++) {
 		glEnableVertexAttribArray(attrSlot);
@@ -415,7 +415,7 @@ size_t updateVAO(int bufferIndex, VAOConfig* details) {
 		GLenum t = details[i].type;
 		
 		if(t == GL_FLOAT || details[i].normalized == GL_TRUE) { // works only for my usage
-			glVertexAttribPointer(attrSlot, details[i].sz, t, details[i].normalized, stride, (void*)offset);
+			glVertexAttribPointer(attrSlot, details[i].sz, t, details[i].normalized, stride, (GLvoid*)offset);
 			glVertexAttribDivisor(attrSlot, details[i].divisor);
 			glexit("");
 		}
@@ -425,10 +425,10 @@ size_t updateVAO(int bufferIndex, VAOConfig* details) {
 			glEnableVertexAttribArray(attrSlot+2);
 			glEnableVertexAttribArray(attrSlot+3);
 			
-			glVertexAttribPointer(attrSlot,   4, GL_FLOAT, details[i].normalized, stride, (void*)offset);
-			glVertexAttribPointer(attrSlot+1, 4, GL_FLOAT, details[i].normalized, stride, (void*)offset+4*4);
-			glVertexAttribPointer(attrSlot+2, 4, GL_FLOAT, details[i].normalized, stride, (void*)offset+4*8);
-			glVertexAttribPointer(attrSlot+3, 4, GL_FLOAT, details[i].normalized, stride, (void*)offset+4*12);
+			glVertexAttribPointer(attrSlot,   4, GL_FLOAT, details[i].normalized, stride, (GLvoid*)offset);
+			glVertexAttribPointer(attrSlot+1, 4, GL_FLOAT, details[i].normalized, stride, (GLvoid*)offset+4*4);
+			glVertexAttribPointer(attrSlot+2, 4, GL_FLOAT, details[i].normalized, stride, (GLvoid*)offset+4*8);
+			glVertexAttribPointer(attrSlot+3, 4, GL_FLOAT, details[i].normalized, stride, (GLvoid*)offset+4*12);
 
 			glVertexAttribDivisor(attrSlot,   details[i].divisor);
 			glVertexAttribDivisor(attrSlot+1, details[i].divisor);
@@ -440,13 +440,13 @@ size_t updateVAO(int bufferIndex, VAOConfig* details) {
 		}
 		else if(t == GL_UNSIGNED_INT64_ARB) {
 // 			glEnableVertexAttribArray(attrSlot+1);
-			glVertexAttribLPointer(attrSlot, details[i].sz, GL_UNSIGNED_INT64_ARB, stride, (void*)offset);
+			glVertexAttribLPointer(attrSlot, details[i].sz, GL_UNSIGNED_INT64_ARB, stride, (GLvoid*)offset);
 			glVertexAttribDivisor(attrSlot, details[i].divisor);
 // 			glVertexAttribDivisor(attrSlot+1, details[i].divisor);
 // 			attrSlot += 1;
 		}
 		else {
-			glVertexAttribIPointer(attrSlot, details[i].sz, t, stride, (void*)offset);
+			glVertexAttribIPointer(attrSlot, details[i].sz, t, stride, (GLvoid*)offset);
 			glVertexAttribDivisor(attrSlot, details[i].divisor);
 			glexit("");
 		}
@@ -519,7 +519,7 @@ char* pathJoin(const char* a, const char* b) {
 
 
 // gets a pointer to the first character of the file extension, or to the null terminator if none
-char* pathExt(const char* path) {
+char* pathExt(char* path) {
 	int i;
 	int len = strlen(path);
 	
@@ -534,7 +534,7 @@ char* pathExt(const char* path) {
 
 // gets a pointer to the first character of the file extension, or to the null terminator if none
 // also provides the length of the path without the period and extension
-char* pathExt2(const char* path, int* end) {
+char* pathExt2(char* path, int* end) {
 	int i;
 	int len = strlen(path);
 	
