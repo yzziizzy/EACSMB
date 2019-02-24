@@ -13,7 +13,7 @@
 struct sexp;
 
 typedef struct sexp {
-	char type;
+	char type; // 0 = list, 1 = literal
 	char brace;
 	char* str;
 	VEC(struct sexp*) args;

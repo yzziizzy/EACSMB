@@ -488,3 +488,36 @@ void SoundClip_resample(SoundClip* sc, int newRate) {
 }
 
 
+
+SoundClip* SoundClip_new(int channels, int sampleRate, uint64_t numSamples) {
+	SoundClip* sc = pcalloc(sc);
+	
+	// aligned and rounded up to 16 bytes for AVX
+	int64_t align = 16;
+	
+	// only works when align is a power of two
+	int64_t sz = (numSamples + align - 1) & -align;
+	
+	sc->data = aligned_alloc(align, sz * channels * sizeof(*sc->data));
+	sc->numSamples = sz;
+	sc->sampleRate = sampleRate;
+	sc->channels = channels;
+	
+	sc->length = (float)numSamples / (float)sampleRate;
+	sc->defaultVolume = 1.0f;
+	
+	return sc;
+}
+
+
+SoundClip* SoundClip_like(SoundClip* proto) {
+	return SoundClip_new(proto->channels, proto->sampleRate, proto->numSamples);
+}
+
+
+
+
+
+
+
+

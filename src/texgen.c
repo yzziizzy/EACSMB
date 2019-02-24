@@ -85,7 +85,7 @@ genfn generators[] = {
 
 typedef void (*setDefaultFn)(void*);
 setDefaultFn setDefaultsFns[] = {
-#define TEXGEN_TYPE_MEMBER(x) [TEXGEN_TYPE_##x] = setDefault_TG_##x,
+#define TEXGEN_TYPE_MEMBER(x) [TEXGEN_TYPE_##x] = (void*)setDefault_TG_##x,
 	TEXGEN_TYPE_LIST
 #undef TEXGEN_TYPE_MEMBER
 };

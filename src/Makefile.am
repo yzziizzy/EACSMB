@@ -61,6 +61,8 @@ eacsmb_SOURCES = main.c \
 	shadowMap.c \
 	sim.c \
 	sound.c \
+	sound/soundgen.c \
+	sound/utils.c \
 	sound/vorbis.c \
 	staticMesh.c \
 	texgen.c \
@@ -99,6 +101,7 @@ AM_CFLAGS = "-I/usr/include/freetype2" -std=gnu11 -g -DLINUX \
 	-DEACSMB_HAVE_AVX2 \
 	-msse4.1 -mavx -mavx2\
 	-include "../config.h" \
+	-include "./global_include.h" \
 	-pthread \
 	-Wno-unused-result \
 	-Werror-implicit-function-declaration

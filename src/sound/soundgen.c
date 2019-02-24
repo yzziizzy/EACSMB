@@ -239,6 +239,100 @@ void SoundGenContext_init(SoundGenContext* sgc) {
 
 
 
+enum sg_op_type {
+	SGO_ARG = 0, // not a true operation
+	SGO_SET,
+	SGO_WAVE,
+	SGO_FADE,
+	SGO_DISTORT,
+	SGO_REVERB,
+	SGO_DELAY,
+	SGO_NOISE,
+	SGO_MUX,
+	SGO_MIX,
+	
+	SGO_UNKNOWN
+};
+
+
+
+typedef struct sg_op_node {
+	enum sg_op_type type; //
+	char* argStr;
+	
+	VEC(struct sg_op_node*) args;
+} sg_op_node;
+
+
+static sg_op_node* op_new(enum sg_op_type type) {
+	sg_op_node* n = pcalloc(n);
+	n->type = type;
+	return n;
+}
+
+
+static sg_op_node* opFromStr(const char* s) {
+	sg_op_node* n = op_new(0);
+	
+	if(strcaseeq(s, "set")) n->type = SGO_SET;
+	else if(strcaseeq(s, "wave")) n->type = SGO_WAVE;
+	else if(strcaseeq(s, "sine")) {
+		n->type = SGO_WAVE;
+// 		VEC_PUSH(&n->args, "SINE");
+	}
+	else if(strcaseeq(s, "fade")) n->type = SGO_FADE;
+	else if(strcaseeq(s, "distort")) n->type = SGO_DISTORT;
+	else if(strcaseeq(s, "reverb")) n->type = SGO_REVERB;
+	else if(strcaseeq(s, "delay")) n->type = SGO_DELAY;
+	else if(strcaseeq(s, "noise")) n->type = SGO_NOISE;
+	else if(strcaseeq(s, "mux")) n->type = SGO_MUX;
+	else if(strcaseeq(s, "mix")) n->type = SGO_MIX;
+	else n->type = SGO_UNKNOWN;
+	
+	return n;
+}
+
+
+
+
+static sg_op_node* arg_from_sexp(sexp* sex) {
+	sg_op_node* op = op_new(SGO_ARG);
+	
+	if(sex->type == 1) {
+		op->argStr = sex->str;
+		return op;
+	}
+	
+	VEC_EACH(&sex->args, ai, a) {
+		VEC_PUSH(&op->args, arg_from_sexp(a));
+	}
+	
+	return op;
+}
+
+
+static sg_op_node* op_from_sexp(sexp* sex) {
+	sg_op_node* op;
+	char* name;
+	
+	if(sex->brace == '[') { //straight args
+		return arg_from_sexp(sex);
+	}
+	else if(sex->brace == '(') { // function 
+		
+		name = sexp_argAsStr(sex, 0);
+		
+		op = opFromStr(name);
+	}
+	
+	
+	return op;
+} 
+
+
+
+
+
 
 
 void SoundGen_FromString(char* source) {

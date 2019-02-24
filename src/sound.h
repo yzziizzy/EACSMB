@@ -104,8 +104,11 @@ void SoundManager_readConfigJSON(SoundManager* sm, json_value_t* jo);
 void SoundManager_tick(SoundManager* sm, double newGlobalTime);
 
 
+SoundClip* SoundClip_new(int channels, int sampleRate, uint64_t numSamples);
+SoundClip* SoundClip_like(SoundClip* proto);
 SoundClip* SoundClip_fromWAV(char* path);
 void SoundClip_resample(SoundClip* sc, int newRate);
+
 
 
 #endif // __EACSMB_sound_sound_h__
