@@ -26,6 +26,9 @@ int json_as_vector(struct json_value* v, int max_len, float* out);
 int json_vector3_minmax(struct json_value* v, Vector* min, Vector* max);
 int json_double_minmax(struct json_value* v, double* min, double* max);
 
+int json_obj_key_as_vector(struct json_value* obj, char* key, int len, float* out, float* defaults);
+int json_vector_array(struct json_value* j, int components, float* defaults, float** out, int* outLen);
+
 
 int json_as_type_gl(struct json_value* v, enum json_type_gl t, void* out);
 

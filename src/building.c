@@ -14,7 +14,7 @@
 #include "game.h"
 #include "building.h"
 
-
+#include "json_gl.h"
 
 
 
@@ -60,18 +60,18 @@ void Building_extrudeOutline(Building* b, BuildingOutline* o) {
 		
 		
 		// TODO: fix normals
-		VEC_PUSH(&b->vertices, ((Vertex_PNT){ 
+		VEC_PUSH(&b->vertices, ((Vertex_PBR){ 
 			p: {p->point.x, p->point.y, o->h_offset},
 			n: norm,
-			t: {u: tdist, v: 0},
+			dt: {u: tdist, v: 0},
 		}));
 		
 		tdist += vDist2(&p->point, next) / perimeter; // HACK: voodoo
 		// two vertices for hard creases
-		VEC_PUSH(&b->vertices, ((Vertex_PNT){ 
+		VEC_PUSH(&b->vertices, ((Vertex_PBR){ 
 			p: {next->x, next->y, o->h_offset},
 			n: norm,
-			t: {u: tdist, v: 0},
+			dt: {u: tdist, v: 0},
 		}));
 		
 		//tdist += vDist2(&p->point, next); // HACK: voodoo
@@ -87,15 +87,15 @@ void Building_extrudeOutline(Building* b, BuildingOutline* o) {
 	
 	// duplicate the vertices vertically
 	for(i = 0; i < plen2; i++) {
-		Vertex_PNT* p1 = &VEC_ITEM(&b->vertices, base_vertex + i);
+		Vertex_PBR* p1 = &VEC_ITEM(&b->vertices, base_vertex + i);
 	//	Vertex_PNT* p2 = &VEC_ITEM(&b->vertices, i + 1);
 		
 //  		printf("adding vertex [%.2f,%.2f,%.2f]\n", p1->p.x,p1->p.y,p1->p.z);
 // 		printf("p.x: %f\n", p1->p.x);
-		Vertex_PNT pnt = { 
+		Vertex_PBR pnt = { 
 			p: {p1->p.x, p1->p.y, o->h_offset + height},
 			n: p1->n,
-			t: {u: p1->t.u, v: 1.0},
+			dt: {u: p1->dt.u, v: 1.0},
 		};
 		
 		
@@ -250,20 +250,20 @@ void Building_capOutline(Building* building, BuildingOutline* o) {
 		
 		// new vertices for normals
 		// TODO: uv's?
-		VEC_PUSH(&building->vertices, ((Vertex_PNT){
+		VEC_PUSH(&building->vertices, ((Vertex_PBR){
 			p: {a->x, a->y, o->h_offset + height}, 
 			n: {0,0,1}, 
-			t: {(a->x - minx) / spanx, (a->y - miny) / spany}
+			dt: {(a->x - minx) / spanx, (a->y - miny) / spany}
 		}));
-		VEC_PUSH(&building->vertices, ((Vertex_PNT){
+		VEC_PUSH(&building->vertices, ((Vertex_PBR){
 			p: {b->x, b->y, o->h_offset + height}, 
 			n: {0,0,1}, 
-			t: {(b->x - minx) / spanx, (b->y - miny) / spany}
+			dt: {(b->x - minx) / spanx, (b->y - miny) / spany}
 		}));
-		VEC_PUSH(&building->vertices, ((Vertex_PNT){
+		VEC_PUSH(&building->vertices, ((Vertex_PBR){
 			p: {c->x, c->y, o->h_offset + height}, 
 			n: {0,0,1}, 
-			t: {(c->x - minx) / spanx, (c->y - miny) / spany}
+			dt: {(c->x - minx) / spanx, (c->y - miny) / spany}
 		}));
 		
 		VEC_PUSH(&building->indices, base_vertex + 0);
@@ -508,6 +508,61 @@ void BuildingOutline_bevelCorner(BuildingOutline* o, Vector2_Link* l, int divisi
 
 
 
-
-
+Building* Building_fromJSON(json_value_t* root) {
+	Building* b;
+	json_value_t* j_outlines;
+	struct json_array_node* link;
+	static float ol_defaults[3] = {0,0,0};
+	static float ex_defaults[3] = {0,0,1};
+	
+	
+	json_obj_key_as_string(root, "name");
+	json_obj_key_as_string(root, "displayName");
+	
+	json_obj_get_key(root, "bparts", &j_outlines);
+	
+	link = j_outlines->v.arr->head;
+	while(link) {
+		BuildingOutline* bo;
+		float* points;
+		int pointsLen; 
+		json_value_t* j_part;
+		j_part = link->value;
+		
+		Vector exDir;
+		
+		bo = BuildingOutline_alloc(0, 0);
+		
+		json_obj_key_as_vector(j_part, "offset", 3, &bo->offset, &(Vector){0,0,0});
+		
+		//int loop = json_obj_key_as_bool(j_part, "loop", 0);
+// 		float exHeight = json_obj_key_as_float(j_part, "extrudeHeight", 1);
+		float capHeight = json_obj_get_double(j_part, "capHeight", 1);
+		
+		json_obj_key_as_vector(j_part, "extrudeTo", 3, &bo->extrudeTo, ex_defaults);
+		
+		
+		{
+			json_value_t* j_off;
+			if(!json_obj_get_key(j_part, "outline", &j_off)) {
+				printf("missing outline\n");
+			}
+			json_vector_array(j_off, 3, ol_defaults, &points, &pointsLen);
+		}
+		
+		for(int i = 0; i < pointsLen; i++) {
+			LIST_APPEND(&bo->points, point, ((Vector2){points[i*3 + 0], points[i*3 + 1]}));
+		}
+		
+		VEC_PUSH(&b->outlines, bo);
+		
+		free(points);
+		link = link->next;
+	}
+	
+	
+	
+	
+	return b;
+}
 

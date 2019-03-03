@@ -5,6 +5,8 @@
 #include "common_math.h"
 #include "ds.h"
 
+#include "c_json/json.h"
+
 #include "dynamicMesh.h"
 
 
@@ -19,10 +21,15 @@ typedef struct BuildingOutline {
 	Vector2_List points;
 	char closed;
 	
+	Vector offset;
+	Vector extrudeTo;
+	
 	float h_offset;
 	float extruded_height;
 	
 	float cap_height;
+	
+	
 	
 	// mesh info
 	int first_index;
@@ -39,7 +46,7 @@ typedef struct BuildingOutline {
 typedef struct Building {
 	VEC(BuildingOutline*) outlines;
 	
-	VEC(Vertex_PNT) vertices;
+	VEC(Vertex_PBR) vertices;
 	VEC(unsigned short) indices;
 	
 	

@@ -100,6 +100,26 @@ static float key_as_float(json_value_t* obj, char* key, float def) {
 	return f;
 }
 
+
+
+int json_obj_key_as_vector(struct json_value* obj, char* key, int len, float* out, float* defaults) {
+	json_value_t* v;
+	
+	for(int c = 0; c < len; c++) {
+		out[c] = defaults[c];
+	}
+	
+	if(!json_obj_get_key(obj, key, &v)) {
+		return 1;
+	}
+	
+	json_as_vector(v, len, out);
+	
+	return 0;
+}
+
+
+
 // probably broken
 int json_as_vector(struct json_value* v, int max_len, float* out) {
 	int i;
@@ -132,6 +152,38 @@ int json_as_vector(struct json_value* v, int max_len, float* out) {
 		json_as_float(v, &f);
 		for(i = 0; i < max_len; i++) out[i] = f;
 	}
+	
+	return 0;
+}
+
+
+
+int json_vector_array(struct json_value* j, int components, float* defaults, float** out, int* outLen) {
+	float* o;
+	int i = 0;
+	int olen = 0;
+	struct json_array_node* link;
+	
+	olen = j->v.arr->length;
+	o = malloc(olen * sizeof(*o) * components);
+	
+	
+	link = j->v.arr->head;
+	while(link) {
+		json_value_t* jv;
+		
+		for(int c = 0; c < components; c++) {
+			o[i * components + c] = defaults[c];
+		}
+		
+		json_as_vector(jv, components, o + (i * components));
+		
+		jv = link->value;
+		i++;
+	}
+	
+	*out = o;
+	*outLen = olen;
 	
 	return 0;
 }

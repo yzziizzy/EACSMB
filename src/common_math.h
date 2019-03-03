@@ -24,6 +24,12 @@ typedef struct Vertex_PNT {
 	struct { float u, v; } t;
 } Vertex_PNT;
 
+// for physically based rendering
+typedef struct Vertex_PBR {
+	Vector p, n;
+	struct { int i; float u, v; } dt, nt, mt, rt; // diffuse, normal, metalness, roughness
+} Vertex_PBR;
+
 
 
 
