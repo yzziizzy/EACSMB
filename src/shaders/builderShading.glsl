@@ -24,10 +24,10 @@ void main() {
 #version 400
 
 
-uniform sampler2D sDiffuse;
-uniform sampler2D sNormals;
-uniform sampler2D sDepth;
-uniform sampler2D sLighting;
+layout(bindless_sampler) uniform sampler2D sDiffuse;
+layout(bindless_sampler) uniform sampler2D sNormals;
+layout(bindless_sampler) uniform sampler2D sDepth;
+layout(bindless_sampler) uniform sampler2D sLighting;
 
 uniform int debugMode;
 uniform vec2 clipPlanes;
@@ -96,5 +96,5 @@ void main() {
 
 
 	FragColor = vec4(texture(sDiffuse, tex).rgba);
-//	FragColor = vec4(.10, 0.8, .20,  1.0);
+// 	FragColor = vec4(.10, 0.3, .20,  1.0);
 }

@@ -788,9 +788,9 @@ static void main_key_handler(InputEvent* ev, GameState* gs) {
 	
 	if(ev->character == 'b') {
 		// builder control
-		gbcTest = guiBuilderControlNew((Vector2){.1,.2}, (Vector2){.8,.8}, 0);
+		gbcTest = GUIBuilderControl_new(gs->gui, (Vector2){10,10}, (Vector2){600,600}, 0);
 		GUIRegisterObject(gbcTest, NULL);
-		guiResize(&gbcTest->header, (Vector2){.79, .79});
+		guiResize(&gbcTest->header, (Vector2){600, 600});
 		guiRenderTarget_SetScreenRes(gbcTest->rt,  (Vector2i){gs->screen.wh.x, gs->screen.wh.y});
 		
 		InputFocusStack_PushTarget(&gs->ifs, gbcTest, inputHandlers);

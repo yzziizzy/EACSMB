@@ -279,6 +279,10 @@ void main(void) {
 // 		out_Color = vec4(0,0, clamp(float(gs_texHandle), 0, 1), 1);
 		return;
 	}
+	else if(gs_guiType == 4) { // custom image, upside-down
+		out_Color = texture(texHandles[int(gs_tex.z)], vec2(gs_tex.x, 1-gs_tex.y));
+		return;
+	}
 	
 	
 	

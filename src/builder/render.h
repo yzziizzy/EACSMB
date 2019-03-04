@@ -38,7 +38,7 @@ typedef struct GUIBuilderControl {
 
 
 
-GUIBuilderControl* guiBuilderControlNew(Vector2 pos, Vector2 size, int zIndex);
+GUIBuilderControl* GUIBuilderControl_new(GUIManager* gm, Vector2 pos, Vector2 size, int zIndex);
 
 
 

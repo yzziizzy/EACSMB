@@ -4,6 +4,8 @@
 #include "builder.h" 
 #include "game.h" 
 
+#include "../gui_internal.h" 
+
 
 
 /*
@@ -63,23 +65,39 @@ void guiBuilderControlRender(GUIBuilderControl* bc, GameState* gs, PassFramePara
 // 		guiRender(bc->ed, gs, pfp);
 	
 	//printf("sdf\n");
+	
+	GLuint id = RenderPipeline_getOutputTexture(bc->rpipe);
+	
+	GLuint64 texHandle = glGetTextureHandleARB(id); //19
+	glexit("");
+	if(!glIsTextureHandleResidentARB(texHandle)) {
+		glMakeTextureHandleResidentARB(texHandle);
+	}
+	glexit("");
+	bc->rt->texHandle = texHandle;
 }
 
-void guiBuilderControlDelete(GUIBuilderControl* rt) {
+void guiBuilderControlDelete(GUIBuilderControl* bc) {
 	//RenderPipeline_destroy(rt->rpl);
 	//free(rt->rpl);
+	
+	if(bc->rt->texHandle) {
+		glMakeTextureHandleNonResidentARB(bc->rt->texHandle);
+		// release old texture
+// 		if(bc->texID) glDeleteTextures(1, &bc->texID);
+	}
 }
 
 
 void guiBuilderControlResize(GUIBuilderControl* bc, Vector2 newSz) {
 	
-	guiResize(bc->bg, newSz);
-//	guiResize(bc->rt, newSz);
+//	guiResize(bc->bg, newSz);
+	guiResize(bc->rt, newSz);
 }
 
 void geom_pass_render(MeshManager* mm, PassDrawable* pd, PassDrawParams* dp) {
 	
-	meshManager_draw(mm, dp->mWorldView, dp->mViewProj);
+// 	meshManager_draw(mm, dp->mWorldView, dp->mViewProj);
 	
 }
 
@@ -149,8 +167,8 @@ static void pipeline_render(GUIBuilderControl* bc, PassFrameParams* pfp) {
 }
 
 
-GUIBuilderControl* guiBuilderControlNew(Vector2 pos, Vector2 size, int zIndex) {
-	/*
+GUIBuilderControl* GUIBuilderControl_new(GUIManager* gm, Vector2 pos, Vector2 size, int zIndex) {
+	
 	GUIBuilderControl* bc;
 	
 	static struct gui_vtbl static_vt = {
@@ -167,27 +185,26 @@ GUIBuilderControl* guiBuilderControlNew(Vector2 pos, Vector2 size, int zIndex) {
 	bc = calloc(1, sizeof(*bc));
 	CHECK_OOM(bc);
 	
-	gui_headerInit(&bc->header);
-	bc->header.vt = &static_vt;
+	gui_headerInit(&bc->header, gm, &static_vt);
 	bc->inputHandlers = &input_vt;
 	
-	bc->header.hitbox.min.x = pos.x;
-	bc->header.hitbox.min.y = pos.y;
-	bc->header.hitbox.max.x = pos.x + size.x;
-	bc->header.hitbox.max.y = pos.y + size.y;
+// 	bc->header.hitbox.min.x = pos.x;
+// 	bc->header.hitbox.min.y = pos.y;
+// 	bc->header.hitbox.max.x = pos.x + size.x;
+// 	bc->header.hitbox.max.y = pos.y + size.y;
 	
 	bc->header.topleft = pos;
 	bc->header.size = size;
 	bc->header.z = 0;
 	
 	
-	bc->bg = guiSimpleWindowNew(
-		(Vector2){pos.x, pos.y}, 
-		(Vector2){size.x, size.y}, 
-		zIndex + .0001
-	);
+	//bc->bg = guiSimpleWindowNew(
+	///	(Vector2){pos.x, pos.y}, 
+	//	(Vector2){size.x, size.y}, 
+	//	zIndex + .0001
+	//);
 	//bc->bg = (Vector){0.9, 0.1, .9};
-	guiRegisterObject(bc->bg, &bc->header);
+	//guiRegisterObject(bc->bg, &bc->header);
 	
 	
 	// set up the pipeline
@@ -270,7 +287,8 @@ GUIBuilderControl* guiBuilderControlNew(Vector2 pos, Vector2 size, int zIndex) {
 	
 	VEC_PUSH(&pass->drawables, br1);
 	
-	VEC_PUSH(&rpipe->passes, pass);
+	// TODO: undo
+	//VEC_PUSH(&rpipe->passes, pass);
 	
 	
 	RenderPipeline_addShadingPass(rpipe, "builderShading"); 
@@ -283,8 +301,16 @@ GUIBuilderControl* guiBuilderControlNew(Vector2 pos, Vector2 size, int zIndex) {
 	RegisterPrePass((pass_callback)pipeline_render, bc, "mesh_builder_control");
 	
 	
-	bc->rt = guiRenderTargetNew(pos, size, rpipe);
-	guiRegisterObject(bc->rt, &bc->bg->header);
+	bc->rt = GUIRenderTarget_new(gm, pos, size, rpipe);
+	GUIRegisterObject(bc->rt, &bc->bg->header);
+	guiResize(&bc->header, (Vector2){600, 600});
+// 	RenderPipeline_getOutputTexture(rpipe);
+	GLuint64 texHandle = glGetTextureHandleARB(29);
+	glexit("");
+	glMakeTextureHandleResidentARB(texHandle);
+	glexit("");
+	
+	bc->rt->texHandle = texHandle;
 	
 	bc->yaw = 0.0;
 	bc->pitch = 0.0;
@@ -295,7 +321,6 @@ GUIBuilderControl* guiBuilderControlNew(Vector2 pos, Vector2 size, int zIndex) {
 	bc->mb->mm = bc->mm;
 	
 	return bc;
-	*/
 }
 
 

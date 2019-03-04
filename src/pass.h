@@ -138,6 +138,7 @@ typedef struct RenderPass {
 typedef struct RenderPipelineFBOConfig {
 	GLenum attachment;
 	int texIndex;
+	char* bindULName;
 } RenderPipelineFBOConfig;
 
 

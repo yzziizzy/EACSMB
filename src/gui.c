@@ -749,6 +749,7 @@ void guiReap(GUIObject* go) {
 }
 
 void guiResize(GUIHeader* gh, Vector2 newSz) {
+	assert(gh);
 	if(gh->deleted) return;
 	
 	if(gh->vt->Resize) {

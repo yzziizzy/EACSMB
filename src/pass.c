@@ -106,7 +106,7 @@ void RenderPipeline_addShadingPass(RenderPipeline* rpipe, char* shaderName) {
 	RenderPass_init(pass);
 	
 	PassDrawable* d = Pass_allocDrawable("shading");
-	d->draw = shading_pass_render;
+	d->draw = (void*)shading_pass_render;
 	d->prog = loadCombinedProgram(shaderName);
 	d->data = rpipe;
 	
@@ -126,6 +126,8 @@ void RenderPipeline_setFBOConfig(RenderPipeline* rp, RenderPipelineFBOConfig* cf
 	int i;
 	for(i = 0; cfg[i].texIndex > -1; i++);
 	
+	printf("rp config len: %d\n", i);
+	
 	RenderPipelineFBOConfig* c = calloc(1, (i + 1) * sizeof(*c));
 	memcpy(c, cfg, (i + 1) * sizeof(*c));
 	
@@ -142,7 +144,6 @@ void RenderPipeline_setFBOTexConfig(RenderPipeline* rp, FBOTexConfig* texcfg) {
 	rp->fboTexConfig = calloc(1, sizeof(*rp->fboTexConfig) * (i + 1));
 	memcpy(rp->fboTexConfig, texcfg, sizeof(*rp->fboTexConfig) * (i + 1));
 }
-
 
 
 
@@ -166,7 +167,8 @@ void RenderPipeline_rebuildFBOs(RenderPipeline* rp, Vector2i sz) {
 		destroyFBOTextures(rp->backingTextures);
 		free(rp->backingTextures);
 		
-		VEC_LOOP(&rp->fboConfig, ind) destroyFBO(&VEC_ITEM(&rp->fboConfig, ind));
+		// TODO: BUG
+// 		VEC_LOOP(&rp->fboConfig, ind) destroyFBO(VEC_ITEM(&rp->fboConfig, ind));
 	}
 	
 	
@@ -223,6 +225,28 @@ void RenderPipeline_destroy(RenderPipeline* rp) {
 	// TODO: clean up all the children of the pass
 }
 
+/*
+void RenderPipeline_bindFBOReadTextures(RenderPipeline* bp, GLuint progID) {
+	VEC_EACH(&bp->fboConfig, ind, cfg) {
+		
+		glBindTexture(GL_TEXTURE_2D, bp->backingTextures[DIFFUSE]);
+		//glProgramUniform1i(prog->id, pass->diffuseUL, 10); // broken
+		
+		GLuint64 texHandle = glGetTextureHandleARB();
+		glexit("");
+		
+		if(!glIsTextureHandleResidentARB(texHandle)) {
+			glMakeTextureHandleResidentARB(texHandle);
+		}
+		glexit("");
+		
+		GLuint loc = glGetUniformLocation(progID, );
+		glUniformHandleui64ARB(loc, texHandle);
+		glexit("");
+	}
+	
+}
+*/
 
 void RenderPipeline_renderAll(RenderPipeline* bp, PassFrameParams* pfp) {
 	
@@ -231,7 +255,7 @@ void RenderPipeline_renderAll(RenderPipeline* bp, PassFrameParams* pfp) {
 	
 	// TODO: figure out where this should be
 	VEC_EACH(&bp->passes, ind, pass) {
-		RenderPass_preFrameAll(pass, &pfp);
+		RenderPass_preFrameAll(pass, pfp);
 	}
 	
 	
@@ -257,32 +281,7 @@ void RenderPipeline_renderAll(RenderPipeline* bp, PassFrameParams* pfp) {
 			glClear(clear);
 		}
 		
-		// TODO: ensure the backin textures are not bound to an active fbo
-		/*
-		if(pass->diffuseUL != -1) {
-			glActiveTexture(GL_TEXTURE0 + 10);
-			glBindTexture(GL_TEXTURE_2D, bp->backingTextures[DIFFUSE]);
-			//glProgramUniform1i(prog->id, pass->diffuseUL, 10); // broken
-		}
-		
-		if(pass->normalsUL != -1) {
-			glActiveTexture(GL_TEXTURE0 + 11);
-			glBindTexture(GL_TEXTURE_2D, bp->backingTextures[NORMAL]);
-			//glProgramUniform1i(prog->id, pass->normalsUL, 11);
-		}
-		
-		if(pass->lightingUL != -1) {
-			glActiveTexture(GL_TEXTURE0 + 12);
-			glBindTexture(GL_TEXTURE_2D, bp->backingTextures[LIGHTING]);
-			//glProgramUniform1i(prog->id, pass->lightingUL, 12);
-		}
-		
-		if(pass->depthUL != -1) {
-			glActiveTexture(GL_TEXTURE0 + 13);
-			glBindTexture(GL_TEXTURE_2D, bp->backingTextures[DEPTH]);
-			//glProgramUniform1i(prog->id, pass->depthUL, 13);
-		}
-		*/
+		// TODO: ensure the backing textures are not bound to an active fbo
 		
 //		 glEnable (GL_BLEND);
 		// glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -395,6 +394,7 @@ void RenderPass_preFrameAll(RenderPass* pass, PassFrameParams* pfp) {
 void RenderPipeline_init(RenderPipeline* rp) {
 	
 	VEC_INIT(&rp->passes);
+	VEC_INIT(&rp->fboConfig);
 	
 	rp->clearColor = (Vector4){0, 0, 0, 0};
 }
