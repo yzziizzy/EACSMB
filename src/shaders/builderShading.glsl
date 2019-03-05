@@ -1,4 +1,5 @@
 
+#extension GL_ARB_bindless_texture : enable
 
 #shader VERTEX
 
@@ -64,6 +65,10 @@ void main() {
 		
 		float ndc_depth = depth * 2.0 - 1.0;
 		
+		FragColor = vec4(vec3(ndc_depth), 1.0);
+		//FragColor = vec4(normal, 1.0);
+		return;
+		
 // 		mat4 invVP = inverse(mViewProj * mWorldView);
 		mat4 invVP = mViewWorld * mProjView;
 // 		
@@ -95,6 +100,6 @@ void main() {
 	}
 
 
-	FragColor = vec4(texture(sDiffuse, tex).rgba);
+//	FragColor = vec4(texture(sDiffuse, tex).rgba);
 // 	FragColor = vec4(.10, 0.3, .20,  1.0);
 }

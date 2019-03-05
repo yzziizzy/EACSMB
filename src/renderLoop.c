@@ -314,7 +314,7 @@ void shadingPass(GameState* gs, PassFrameParams* pfp) {
 	
 	glDisable(GL_DEPTH_TEST);
 	RenderPass_preFrameAll(gs->guiPass, pfp);
-	RenderPass_renderAll(gs->guiPass, pfp->dp);
+	RenderPass_renderAll(NULL, gs->guiPass, pfp->dp);
 	RenderPass_postFrameAll(gs->guiPass);
 	glEnable(GL_DEPTH_TEST);
 	
@@ -343,7 +343,7 @@ void selectionPass(XStuff* xs, GameState* gs, InputState* is, PassFrameParams* p
 	
 	
 	RenderPass_preFrameAll(gs->world->terrainSelectionPass, pfp);
-	RenderPass_renderAll(gs->world->terrainSelectionPass, pfp->dp);
+	RenderPass_renderAll(NULL, gs->world->terrainSelectionPass, pfp->dp);
 	RenderPass_postFrameAll(gs->world->terrainSelectionPass);
 	
 	
@@ -613,7 +613,7 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	// emitters
 // 	query_queue_start(&gs->queries.emitters);
 	RenderPass_preFrameAll(gs->world->emitterPass, &pfp);
-	RenderPass_renderAll(gs->world->emitterPass, pfp.dp);
+	RenderPass_renderAll(NULL, gs->world->emitterPass, pfp.dp);
 	RenderPass_postFrameAll(gs->world->emitterPass);
 // 	query_queue_stop(&gs->queries.emitters);
 	
@@ -652,7 +652,7 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	gs->world->lm->dtex = gs->depthTexBuffer;
 	RenderPass_preFrameAll(gs->world->lightingPass, &pfp);
-	RenderPass_renderAll(gs->world->lightingPass, &pdp);
+	RenderPass_renderAll(NULL, gs->world->lightingPass, &pdp);
 	RenderPass_postFrameAll(gs->world->lightingPass);
 	
 	glDisable(GL_BLEND);

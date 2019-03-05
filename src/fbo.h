@@ -17,6 +17,7 @@ typedef struct FBOTexConfig {
 	GLenum internalType;
 	GLenum format;
 	GLenum size;
+	char* uniformName;
 } FBOTexConfig;
 
 

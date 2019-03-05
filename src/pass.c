@@ -225,28 +225,9 @@ void RenderPipeline_destroy(RenderPipeline* rp) {
 	// TODO: clean up all the children of the pass
 }
 
-/*
-void RenderPipeline_bindFBOReadTextures(RenderPipeline* bp, GLuint progID) {
-	VEC_EACH(&bp->fboConfig, ind, cfg) {
-		
-		glBindTexture(GL_TEXTURE_2D, bp->backingTextures[DIFFUSE]);
-		//glProgramUniform1i(prog->id, pass->diffuseUL, 10); // broken
-		
-		GLuint64 texHandle = glGetTextureHandleARB();
-		glexit("");
-		
-		if(!glIsTextureHandleResidentARB(texHandle)) {
-			glMakeTextureHandleResidentARB(texHandle);
-		}
-		glexit("");
-		
-		GLuint loc = glGetUniformLocation(progID, );
-		glUniformHandleui64ARB(loc, texHandle);
-		glexit("");
-	}
-	
-}
-*/
+
+
+
 
 void RenderPipeline_renderAll(RenderPipeline* bp, PassFrameParams* pfp) {
 	
@@ -288,7 +269,7 @@ void RenderPipeline_renderAll(RenderPipeline* bp, PassFrameParams* pfp) {
 		//glDepthFunc(GL_LEQUAL);
 // 		glDepthMask(GL_TRUE);
 		
-		RenderPass_renderAll(pass, pfp->dp);
+		RenderPass_renderAll(bp, pass, pfp->dp);
 		
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
@@ -325,10 +306,10 @@ int RenderPass_addDrawable(RenderPass* rp, PassDrawable* d) {
 	GET_UNIFORM(targetSize);
 	
 	
-	d->diffuseUL = glGetUniformLocation(d->prog->id, "sDiffuse");
-	d->normalsUL = glGetUniformLocation(d->prog->id, "sNormals");
-	d->lightingUL = glGetUniformLocation(d->prog->id, "sLighting");
-	d->depthUL = glGetUniformLocation(d->prog->id, "sDepth");
+// 	d->diffuseUL = glGetUniformLocation(d->prog->id, "sDiffuse");
+// 	d->normalsUL = glGetUniformLocation(d->prog->id, "sNormals");
+// 	d->lightingUL = glGetUniformLocation(d->prog->id, "sLighting");
+// 	d->depthUL = glGetUniformLocation(d->prog->id, "sDepth");
 	glerr("harmless");
 	
 	VEC_PUSH(&rp->drawables, d);
@@ -354,7 +335,33 @@ static void bindUniforms(PassDrawable* d, PassDrawParams* pdp) {
 #undef BIND_MATRIX
 }
 
-void RenderPass_renderAll(RenderPass* pass, PassDrawParams* pdp) {
+static void bindFBOUniforms(RenderPipeline* rpipe, PassDrawable* d) {
+	
+	
+	for(int i = 0; rpipe->fboTexConfig[i].internalType != 0; i++) {
+		FBOTexConfig* cfg = &rpipe->fboTexConfig[i];
+		if(!cfg->uniformName) continue;
+		
+// 		glBindTexture(GL_TEXTURE_2D, bp->backingTextures[DIFFUSE]);
+
+		GLuint loc = glGetUniformLocation(d->prog->id, cfg->uniformName);
+		if(!loc) continue;
+		
+		GLuint64 texHandle = glGetTextureHandleARB(rpipe->backingTextures[i]);
+		glexit("");
+		
+		if(!glIsTextureHandleResidentARB(texHandle)) {
+			glMakeTextureHandleResidentARB(texHandle);
+		}
+		glexit("");
+		
+		glUniformHandleui64ARB(loc, texHandle);
+		glexit("");
+	}
+}
+
+
+void RenderPass_renderAll(RenderPipeline* rpipe, RenderPass* pass, PassDrawParams* pdp) {
 	
 	int i;
 	
@@ -364,6 +371,7 @@ void RenderPass_renderAll(RenderPass* pass, PassDrawParams* pdp) {
 		DrawTimer_Start(&d->timer);
 		
 		glUseProgram(d->prog->id);
+		if(rpipe) bindFBOUniforms(rpipe, d);
 		bindUniforms(d, pdp);
 		d->draw(d->data, d->prog->id, pdp);
 		

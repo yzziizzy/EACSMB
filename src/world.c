@@ -727,7 +727,7 @@ void World_spawnAt_Road(World* w, Vector2* start,  Vector2* stop) {
 void World_drawTerrain(World* w, PassFrameParams* pfp) {
 	
 	RenderPass_preFrameAll(w->terrainPass, pfp);
-	RenderPass_renderAll(w->terrainPass, pfp->dp);
+	RenderPass_renderAll(NULL, w->terrainPass, pfp->dp);
 	RenderPass_postFrameAll(w->terrainPass);
 }
 
@@ -737,7 +737,7 @@ void World_drawSolids(World* w, PassFrameParams* pfp) {
 	//meshManager_draw(w->smm, view, proj);
 	
 	RenderPass_preFrameAll(w->solidsPass, pfp);
-	RenderPass_renderAll(w->solidsPass, pfp->dp);
+	RenderPass_renderAll(NULL, w->solidsPass, pfp->dp);
 	RenderPass_postFrameAll(w->solidsPass);
 	
 	
@@ -756,7 +756,7 @@ void World_preTransparents(World* w, PassFrameParams* pfp) {
 
 void World_drawTransparents(World* w, PassFrameParams* pfp) {
 	
-	RenderPass_renderAll(w->transparentsPass, pfp->dp);
+	RenderPass_renderAll(NULL, w->transparentsPass, pfp->dp);
 	
 }
 
@@ -771,7 +771,7 @@ void World_drawDecals(World* w, PassFrameParams* pfp) {
 	//drawRoad(w->roads, w->gs->depthTexBuffer, pfp->dp->mWorldView, pfp->dp->mViewProj);
 	
 	RenderPass_preFrameAll(w->decalPass, pfp);
-	RenderPass_renderAll(w->decalPass, pfp->dp);
+	RenderPass_renderAll(NULL, w->decalPass, pfp->dp);
 	RenderPass_postFrameAll(w->decalPass);
 	
 }

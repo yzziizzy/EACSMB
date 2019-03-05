@@ -225,12 +225,12 @@ GUIBuilderControl* GUIBuilderControl_new(GUIManager* gm, Vector2 pos, Vector2 si
 	};
 
 	FBOTexConfig texcfg[] = {
-		{ GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE }, // diffuse
-		{ GL_RGB, GL_RGB, GL_UNSIGNED_BYTE }, // normals
-		{ GL_RGB16F, GL_RGB, GL_HALF_FLOAT }, // lighting
-		{ GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_FLOAT }, // depth
-		{ GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE }, // output
-		{ GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_FLOAT }, // depth2
+		{ GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, "sDiffuse" }, // diffuse
+		{ GL_RGB, GL_RGB, GL_UNSIGNED_BYTE, "sNormals" }, // normals
+		{ GL_RGB16F, GL_RGB, GL_HALF_FLOAT, "sLighting" }, // lighting
+		{ GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_FLOAT, "sDepth" }, // depth
+		{ GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, NULL }, // output
+		{ GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_FLOAT, NULL }, // depth2
 		{ 0, 0, 0}
 	};
 		

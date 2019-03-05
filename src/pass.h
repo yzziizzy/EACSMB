@@ -82,11 +82,11 @@ typedef struct PassDrawable {
 	
 	char* name;
 	
-	GLuint diffuseUL;
-	GLuint normalsUL;
-	GLuint lightingUL;
-	GLuint depthUL;
-	
+// 	GLuint diffuseUL;
+// 	GLuint normalsUL;
+// 	GLuint lightingUL;
+// 	GLuint depthUL;
+// 	
 	// forward matrices
 	GLint ul_mWorldView;
 	GLint ul_mViewProj;
@@ -138,7 +138,6 @@ typedef struct RenderPass {
 typedef struct RenderPipelineFBOConfig {
 	GLenum attachment;
 	int texIndex;
-	char* bindULName;
 } RenderPipelineFBOConfig;
 
 
@@ -170,7 +169,7 @@ void RenderPass_init(RenderPass* pass);
 void RenderPipeline_addShadingPass(RenderPipeline* rpipe, char* shaderName); 
 
 void RenderPipeline_renderAll(RenderPipeline* rp, PassFrameParams* pfp);
-void RenderPass_renderAll(RenderPass* pass, PassDrawParams* pdp);
+void RenderPass_renderAll(RenderPipeline* rpipe, RenderPass* pass, PassDrawParams* pdp);
 void RenderPass_preFrameAll(RenderPass* pass, PassFrameParams* pfp);
 void RenderPass_postFrameAll(RenderPass* pass);
 
