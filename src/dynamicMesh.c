@@ -510,3 +510,190 @@ static void uniformSetup(DynamicMeshManager* dmm, GLuint progID) {
 	glexit("");
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+RenderPass* SlowMeshManager_CreateShadowPass(SlowMeshManager* mm) {
+	RenderPass* rp;
+	PassDrawable* pd;
+	
+	static ShaderProgram* prog = NULL;
+	if(!prog) {
+		prog = loadCombinedProgram("dynamicMeshInstanced_shadow");
+	}
+
+// 	pd = SlowMeshManager_CreateDrawable(m, prog);
+
+	rp = calloc(1, sizeof(*rp));
+	RenderPass_init(rp);
+	RenderPass_addDrawable(rp, pd);
+	//rp->fboIndex = LIGHTING;
+	
+	return rp;
+}
+
+
+RenderPass* SlowMeshManager_CreateRenderPass(SlowMeshManager* mm) {
+	RenderPass* rp;
+	PassDrawable* pd;
+
+// 	pd = SlowMeshManager_CreateDrawable(m);
+
+	rp = calloc(1, sizeof(*rp));
+	RenderPass_init(rp);
+	RenderPass_addDrawable(rp, pd);
+	
+	return rp;
+}
+
+
+PassDrawable* SlowMeshManager_CreateDrawable(SlowMeshManager* mm) {
+	
+	
+}
+
+
+
+
+
+
+
+
+
+SlowMeshManager* SlowMeshManager_alloc(int maxInstances, int maxMeshes, VAOConfig* vaocfg) {
+	SlowMeshManager* mm = pcalloc(mm);
+	SlowMeshManager_init(mm, maxInstances, maxMeshes, vaocfg);
+	return mm;
+}
+
+void SlowMeshManager_init(SlowMeshManager* mm, int maxInstances, int maxMeshes, VAOConfig* vaocfg) {
+	VEC_INIT(&mm->meshes);
+	mm->maxMeshes = maxMeshes;
+	mm->maxInstances = maxInstances;
+	mm->vaoConfig = vaocfg;
+	mm->isIndexed = 1; // only indexed meshes
+	mm->indexSize = 2; // only 16-bit indices
+}
+
+void SlowMeshManager_initGL(SlowMeshManager* mm) {
+	
+	mm->vao = makeVAO(mm->vaoConfig);
+	glBindVertexArray(mm->vao);
+	
+	mm->vaoGeomStride = calcVAOStride(0, mm->vaoConfig);
+	mm->vaoInstStride = calcVAOStride(1, mm->vaoConfig);
+	
+	PCBuffer_startInit(&mm->instVB, mm->maxInstances * mm->vaoInstStride, GL_ARRAY_BUFFER);
+	updateVAO(1, mm->vaoConfig); 
+	PCBuffer_finishInit(&mm->instVB);
+	
+	PCBuffer_startInit(
+		&mm->indirectCmds, 
+		mm->maxMeshes * sizeof(DrawElementsIndirectCommand), // carefull here
+		GL_DRAW_INDIRECT_BUFFER
+	);
+	PCBuffer_finishInit(&mm->indirectCmds);
+}
+
+
+
+void SlowMeshManager_RefreshGeometry(SlowMeshManager* mm) {
+	int offset;
+	
+	glBindVertexArray(mm->vao);
+	
+	// recreate geometry buffer
+	if(glIsBuffer(mm->geomVBO)) glDeleteBuffers(1, &mm->geomVBO);
+	glGenBuffers(1, &mm->geomVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, mm->geomVBO);
+
+	glBufferStorage(GL_ARRAY_BUFFER, mm->totalVertices * mm->vaoGeomStride, NULL, GL_MAP_WRITE_BIT | GL_DYNAMIC_STORAGE_BIT);
+	glexit("");
+	
+	
+	// update geometry data
+	void* buf = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+	glexit("");
+	
+	offset = 0;
+	VEC_EACH(&mm->meshes, i, mesh) {
+		
+		memcpy(buf + offset, mesh->vertices, mesh->vertexCnt * mm->vaoGeomStride);
+		offset += mesh->vertexCnt * mm->vaoGeomStride;
+	}
+	
+	
+	glUnmapBuffer(GL_ARRAY_BUFFER);
+	
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+	
+	
+	
+	
+	// index buffers
+	if(mm->isIndexed) {
+		
+		if(glIsBuffer(mm->ibo)) glDeleteBuffers(1, &mm->ibo);
+		glGenBuffers(1, &mm->ibo);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mm->ibo);
+		
+		glBufferStorage(GL_ELEMENT_ARRAY_BUFFER, mm->totalIndices * mm->indexSize, NULL, GL_MAP_WRITE_BIT);
+
+		uint16_t* ib = glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
+		
+		offset = 0;
+		VEC_EACH(&mm->meshes, i, mesh) {
+			memcpy(ib + offset, mesh->indices.w8, mesh->indexCnt * mm->indexSize);
+			offset += mesh->indexCnt;
+		}
+		
+		glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
+		
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	}
+	else {
+		printf("!!! slowmeshmanager only supports indexed meshes\n");
+	}
+	
+	glexit("");
+} 
+
+
+
+
+void SlowMeshManager_AddMesh(SlowMeshManager* mm, DynamicMesh* dm) {
+	VEC_PUSH(&mm->meshes, dm);
+	mm->totalVertices += dm->vertexCnt;
+	mm->totalIndices += dm->indexCnt;
+}
+
+// and all instances
+void SlowMeshManager_RemoveMesh(SlowMeshManager* mm, DynamicMesh* dm) {
+	
+}
+
+
+void SlowMeshManager_AddInstance(SlowMeshManager* mm, DynamicMesh* dm, DynamicMeshInstance* inst) {
+	VEC_PUSH(&dm->instances[0], *inst);
+	mm->totalInstances++;
+}
+
+void SlowMeshManager_RemoveInstance(SlowMeshManager* mm, DynamicMesh* dm, DynamicMeshInstance* inst) {
+	
+	mm->totalInstances--;
+}
+

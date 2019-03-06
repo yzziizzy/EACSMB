@@ -146,5 +146,47 @@ PassDrawable* DynamicMeshManager_CreateDrawable(DynamicMeshManager* m);
 
 
 
+// this is slow. don't use it for the main game.
+typedef struct SlowMeshManager {
+	VEC(DynamicMesh*) meshes;
+	int maxMeshes;
+	int maxInstances;
+	int totalInstances;
+	
+	int totalVertices;
+	int totalIndices;
+	int indexSize;
+	
+	TextureManager* tm;
+	TextureManager* tmNorm;
+	TextureManager* tmMat;
+	
+	VAOConfig* vaoConfig;
+	int vaoGeomStride;
+	int vaoInstStride;
+	GLuint vao;
+	GLuint geomVBO;
+	GLuint ibo;
+	
+	PCBuffer indirectCmds;
+	PCBuffer instVB;
+	
+	char isIndexed;
+	
+} SlowMeshManager;
+
+
+SlowMeshManager* SlowMeshManager_alloc(int maxInstances, int maxMeshes, VAOConfig* vaocfg);
+void SlowMeshManager_init(SlowMeshManager* mm, int maxInstances, int maxMeshes, VAOConfig* vaocfg);
+void SlowMeshManager_initGL(SlowMeshManager* mm);
+void SlowMeshManager_RefreshGeometry(SlowMeshManager* mm);
+
+RenderPass* SlowMeshManager_CreateShadowPass(SlowMeshManager* mm);
+RenderPass* SlowMeshManager_CreateRenderPass(SlowMeshManager* mm);
+PassDrawable* SlowMeshManager_CreateDrawable(SlowMeshManager* mm);
+
+
+
+
 
 #endif // __EACSMB_dynamicMesh_h__
