@@ -144,11 +144,15 @@ PassDrawable* DynamicMeshManager_CreateDrawable(DynamicMeshManager* m);
 
 
 
+typedef struct SlowMeshDrawInfo {
+	DynamicMesh* mesh;
+	int numToDraw;
+} SlowMeshDrawInfo;
 
 
 // this is slow. don't use it for the main game.
 typedef struct SlowMeshManager {
-	VEC(DynamicMesh*) meshes;
+	VEC(SlowMeshDrawInfo*) meshes;
 	int maxMeshes;
 	int maxInstances;
 	int totalInstances;
@@ -172,6 +176,7 @@ typedef struct SlowMeshManager {
 	PCBuffer instVB;
 	
 	char isIndexed;
+	GLuint primMode; // only GL_TRIANGLES atm
 	
 } SlowMeshManager;
 
@@ -181,9 +186,8 @@ void SlowMeshManager_init(SlowMeshManager* mm, int maxInstances, int maxMeshes, 
 void SlowMeshManager_initGL(SlowMeshManager* mm);
 void SlowMeshManager_RefreshGeometry(SlowMeshManager* mm);
 
-RenderPass* SlowMeshManager_CreateShadowPass(SlowMeshManager* mm);
-RenderPass* SlowMeshManager_CreateRenderPass(SlowMeshManager* mm);
-PassDrawable* SlowMeshManager_CreateDrawable(SlowMeshManager* mm);
+RenderPass* SlowMeshManager_CreateRenderPass(SlowMeshManager* mm, ShaderProgram* prog);
+PassDrawable* SlowMeshManager_CreateDrawable(SlowMeshManager* mm, ShaderProgram* prog);
 
 
 

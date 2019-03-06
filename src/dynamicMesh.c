@@ -524,45 +524,118 @@ static void uniformSetup(DynamicMeshManager* dmm, GLuint progID) {
 
 
 
+static void smm_preFrame(PassFrameParams* pfp, SlowMeshManager* mm);
+static void smm_draw(SlowMeshManager* mm, GLuint progID, PassDrawParams* pdp);
+static void smm_postFrame(SlowMeshManager* mm);
 
 
-RenderPass* SlowMeshManager_CreateShadowPass(SlowMeshManager* mm) {
+
+
+RenderPass* SlowMeshManager_CreateRenderPass(SlowMeshManager* mm, ShaderProgram* prog) {
 	RenderPass* rp;
 	PassDrawable* pd;
+
+	pd = SlowMeshManager_CreateDrawable(mm, prog);
+
+	rp = calloc(1, sizeof(*rp));
+	RenderPass_init(rp);
+	RenderPass_addDrawable(rp, pd);
 	
-	static ShaderProgram* prog = NULL;
-	if(!prog) {
-		prog = loadCombinedProgram("dynamicMeshInstanced_shadow");
+	return rp;
+}
+
+
+PassDrawable* SlowMeshManager_CreateDrawable(SlowMeshManager* mm, ShaderProgram* prog) {
+	PassDrawable* pd;
+
+	pd = Pass_allocDrawable("SlowMeshManager");
+	pd->data = mm;
+	pd->preFrame = smm_preFrame;
+	pd->draw = (PassDrawFn)smm_draw;
+	pd->postFrame = smm_postFrame;
+	pd->prog = prog;
+	
+	return pd;
+}
+
+
+
+static void smm_preFrame(PassFrameParams* pfp, SlowMeshManager* mm) {
+	int index_offset = 0;
+	int vertex_offset = 0;
+	int instance_offset = 0;
+	int mesh_index;
+	void* vmem = PCBuffer_beginWrite(&mm->instVB);
+	
+	if(!vmem) {
+		printf("attempted to update invalid MDI\n");
+		return;
 	}
-
-// 	pd = SlowMeshManager_CreateDrawable(m, prog);
-
-	rp = calloc(1, sizeof(*rp));
-	RenderPass_init(rp);
-	RenderPass_addDrawable(rp, pd);
-	//rp->fboIndex = LIGHTING;
+/*
+	// BUG: bounds checking on pcbuffer inside instanceSetup()
+	if(mdi->instanceSetup) {
+		(*mdi->instanceSetup)(mdi->data, vmem, VEC_DATA(&mdi->meshes), VEC_LEN(&mdi->meshes), pfp);
+	}
+	*/
+	// BUG: bounds checking on pcbuffer
 	
-	return rp;
+	// set up the indirect draw commands
+	if(mm->isIndexed) {
+		
+		DrawElementsIndirectCommand* cmdsi = PCBuffer_beginWrite(&mm->indirectCmds);
+		
+		for(mesh_index = 0; mesh_index < VEC_LEN(&mm->meshes); mesh_index++) {
+			SlowMeshDrawInfo* di = VEC_ITEM(&mm->meshes, mesh_index);
+				
+			cmdsi[mesh_index].firstIndex = index_offset; // offset of this mesh into the instances
+			cmdsi[mesh_index].count = di->mesh->indexCnt; // number of polys
+			
+			// offset into instanced vertex attributes
+			cmdsi[mesh_index].baseInstance = (mm->maxInstances * ((mm->instVB.nextRegion) % PC_BUFFER_DEPTH)) + instance_offset; 
+			// number of instances
+			cmdsi[mesh_index].instanceCount = di->numToDraw; 
+			cmdsi[mesh_index].baseVertex = vertex_offset;
+			
+			index_offset += di->mesh->indexCnt;
+			vertex_offset += di->mesh->vertexCnt;
+			instance_offset += di->numToDraw;
+		}
+		
+	}
+	else {
+		printf("non-indexed meshes not supported by slow mesh manager.\n");
+	}
+	
+}
+
+static void smm_draw(SlowMeshManager* mm, GLuint progID, PassDrawParams* pdp) {
+	size_t cmdOffset;
+	
+	glBindVertexArray(mm->vao);
+	glBindBuffer(GL_ARRAY_BUFFER, mm->geomVBO);
+	
+	if(mm->isIndexed)
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mm->ibo);
+	
+	PCBuffer_bind(&mm->instVB);
+	PCBuffer_bind(&mm->indirectCmds);
+	
+	cmdOffset = PCBuffer_getOffset(&mm->indirectCmds);
+	
+	if(mm->isIndexed) {
+		glMultiDrawElementsIndirect(mm->primMode, GL_UNSIGNED_SHORT, cmdOffset, VEC_LEN(&mm->meshes), 0);
+	}
+	else {
+		printf("slow mesh manager does not support non-indexed meshes");
+	}
+	glexit("multidrawarraysindirect");
 }
 
 
-RenderPass* SlowMeshManager_CreateRenderPass(SlowMeshManager* mm) {
-	RenderPass* rp;
-	PassDrawable* pd;
 
-// 	pd = SlowMeshManager_CreateDrawable(m);
-
-	rp = calloc(1, sizeof(*rp));
-	RenderPass_init(rp);
-	RenderPass_addDrawable(rp, pd);
-	
-	return rp;
-}
-
-
-PassDrawable* SlowMeshManager_CreateDrawable(SlowMeshManager* mm) {
-	
-	
+static void smm_postFrame(SlowMeshManager* mm) {
+	PCBuffer_afterDraw(&mm->instVB);
+	PCBuffer_afterDraw(&mm->indirectCmds);
 }
 
 
@@ -586,6 +659,7 @@ void SlowMeshManager_init(SlowMeshManager* mm, int maxInstances, int maxMeshes, 
 	mm->vaoConfig = vaocfg;
 	mm->isIndexed = 1; // only indexed meshes
 	mm->indexSize = 2; // only 16-bit indices
+	mm->primMode = GL_TRIANGLES; // only triangles
 }
 
 void SlowMeshManager_initGL(SlowMeshManager* mm) {
@@ -629,10 +703,10 @@ void SlowMeshManager_RefreshGeometry(SlowMeshManager* mm) {
 	glexit("");
 	
 	offset = 0;
-	VEC_EACH(&mm->meshes, i, mesh) {
+	VEC_EACH(&mm->meshes, i, di) {
 		
-		memcpy(buf + offset, mesh->vertices, mesh->vertexCnt * mm->vaoGeomStride);
-		offset += mesh->vertexCnt * mm->vaoGeomStride;
+		memcpy(buf + offset, di->mesh->vertices, di->mesh->vertexCnt * mm->vaoGeomStride);
+		offset += di->mesh->vertexCnt * mm->vaoGeomStride;
 	}
 	
 	
@@ -656,9 +730,9 @@ void SlowMeshManager_RefreshGeometry(SlowMeshManager* mm) {
 		uint16_t* ib = glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
 		
 		offset = 0;
-		VEC_EACH(&mm->meshes, i, mesh) {
-			memcpy(ib + offset, mesh->indices.w8, mesh->indexCnt * mm->indexSize);
-			offset += mesh->indexCnt;
+		VEC_EACH(&mm->meshes, i, di) {
+			memcpy(ib + offset, di->mesh->indices.w8, di->mesh->indexCnt * mm->indexSize);
+			offset += di->mesh->indexCnt;
 		}
 		
 		glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
@@ -676,14 +750,27 @@ void SlowMeshManager_RefreshGeometry(SlowMeshManager* mm) {
 
 
 void SlowMeshManager_AddMesh(SlowMeshManager* mm, DynamicMesh* dm) {
-	VEC_PUSH(&mm->meshes, dm);
+	SlowMeshDrawInfo* di = pcalloc(di);
+	
+	di->mesh = dm;
+	
+	VEC_PUSH(&mm->meshes, di);
 	mm->totalVertices += dm->vertexCnt;
 	mm->totalIndices += dm->indexCnt;
 }
 
 // and all instances
 void SlowMeshManager_RemoveMesh(SlowMeshManager* mm, DynamicMesh* dm) {
-	
+	VEC_EACH(&mm->meshes, i, di) {
+		if(di->mesh == dm) {
+			free(di);
+			mm->totalVertices -= dm->vertexCnt;
+			mm->totalIndices -= dm->indexCnt;
+			VEC_RM(&mm->meshes, i);
+			
+			// TODO: remove instances
+		}
+	}
 }
 
 
