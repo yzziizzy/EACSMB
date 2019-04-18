@@ -7,7 +7,7 @@ Optional dependencies are libJPEG, ALSA and libVorbis (OGG).
 
 Current state:
 
-![Current state](https://imgur.com/a/vrYUTiC)
+![Current state](https://i.imgur.com/RFbBeFD.png)
 
 
 # Installing (ubuntu)
