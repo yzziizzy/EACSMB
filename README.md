@@ -5,8 +5,9 @@ A 3D city building game. Currently under construction.
 It's written in pure C using no frameworks. Hard dependencies are Xlib, FreeType, fontconfig, libPNG, GLEW, and OpenGL 4.5. You should probably have a lot of ram as well as a real CPU.
 Optional dependencies are libJPEG, ALSA and libVorbis (OGG).
 
-(Not so) Current state:
-![Current state](http://i.imgur.com/KCIkUAs.png)
+Current state:
+
+![Current state](https://imgur.com/a/vrYUTiC)
 
 
 # Installing (ubuntu)
