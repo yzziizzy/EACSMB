@@ -20,3 +20,5 @@
 	#define DebugBreak() __asm__("int %3")
 #endif
 
+#define clz(x) __builtin_clz(x)
+#define ctz(x) __builtin_ctz(x)

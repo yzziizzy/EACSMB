@@ -1348,6 +1348,10 @@ void MapInfo_Init(MapInfo* mi, GlobalSettings* gs) {
 	MapLayer_Fill(MapBlock_GetLayer(mi->block, "soil"), 0.0);
 	
 	MapLayer_GenTerrain(mi->block->terrain, surface);
+	
+	MapLayerMipMap* mm = MapLayerMipMap_alloc(mi->block->terrain);
+	MapLayerMipMap_genMin_float(mi->block->terrain, mm);
+	
 }
 
 
@@ -1507,5 +1511,141 @@ void MapInfo_GenMesh(MapInfo* mi) {
 	MultiDrawIndirect_addMesh(mi->blockPatch, di);
 	MultiDrawIndirect_updateGeometry(mi->blockPatch);
 }
+
+
+
+
+// always generated from a MapLayer
+// sizes must be a square power of two
+MapLayerMipMap* MapLayerMipMap_alloc(MapLayer* ml) {
+	MapLayerMipMap* mm;
+	
+	if(ml->w != ml->h) {
+		printf("mipmaps not supported on non-square map layers\n");
+		return NULL;
+	}
+	
+	pcalloc(mm);
+	
+	mm->origW = ml->w;
+	mm->origH = ml->h;
+	
+	mm->dataType = ml->dataType;
+	mm->dataW = ml->w / 2;
+	mm->dataH = (ml->w / 2) + (ml->h / 4);
+	
+	mm->layers = ctz(MIN(ml->w, ml->h));
+	
+	int elemSz = 1;
+	
+	switch(mm->dataType) {
+		case 0: // float 
+			elemSz = sizeof(float);
+			break;
+		default: 
+			printf("unimplemented data size in %s:%d  (%d)\n", __func__, __LINE__, mm->dataType);
+	}
+	
+	
+	mm->data.f = calloc(1, elemSz * mm->dataW * mm->dataH);
+	
+	return mm;
+}
+
+
+
+
+
+
+void MapLayerMipMap_genMin_float(MapLayer* ml, MapLayerMipMap* mm) {
+	
+	float* src, *dst;
+	int srcStride, dstStride;
+	
+	src = ml->data.f;
+	dst = mm->data.f;
+	srcStride = ml->w;
+	dstStride = mm->dataW;
+	
+	// first layer
+	for(int y = 0; y < ml->h / 2; y++) {
+		for(int x = 0; x < mm->dataW; x++) {
+			float sum = 0;
+			
+			sum += src[(x * 2) + (y * 2 * srcStride)];
+			sum += src[(x * 2 + 1) + (y * 2 * srcStride)];
+			sum += src[(x * 2) + (y * 2 * srcStride + 1)];
+			sum += src[(x * 2 + 1) + (y * 2 * srcStride + 1)];
+			
+			dst[x + y * dstStride] = sum * .25;
+		}
+	}
+	
+	
+	src = mm->data.f;
+	srcStride = mm->dataW;
+	
+	
+	int srcWidth = mm->dataW;
+	
+	int srcOffX = 0;
+	int dstOffX = 0;
+	int srcOffY = 0;
+	int dstOffY = srcWidth;
+	
+	// rest of the layers
+	for(int layer = 0; srcWidth >= 2; layer++) {
+		
+		int dstWidth = srcWidth / 2;
+		
+		for(int y = 0; y < dstWidth; y++) {
+			for(int x = 0; x < dstWidth; x++) {
+				float sum = 0;
+				
+				sum += src[srcOffX + (srcOffY * srcStride) + ((x * 2) + (y * 2 * srcStride))];
+				sum += src[srcOffX + (srcOffY * srcStride) + ((x * 2 + 1) + (y * 2 * srcStride))];
+				sum += src[srcOffX + (srcOffY * srcStride) + ((x * 2) + (y * 2 * srcStride + 1))];
+				sum += src[srcOffX + (srcOffY * srcStride) + ((x * 2 + 1) + (y * 2 * srcStride + 1))];
+				
+				dst[dstOffX + (dstOffY * dstStride) + x + y * dstStride] = sum * .25;
+			}
+		}
+		
+		// dst is now src
+		srcOffY = dstOffY;
+		srcOffX = dstOffX;
+		srcWidth = dstWidth;
+		
+		dstOffY += dstWidth * (layer % 2);
+		dstOffX += dstWidth * ((layer + 1) % 2);
+		
+		srcWidth = dstWidth;
+	}
+	
+}
+
+
+// width = origW >> L
+
+
+
+
+
+
+
+void MapLayerMipMap_genMin(MapLayer* src, MapLayerMipMap* mm) {
+	
+	switch(mm->dataType) {
+		case 0: MapLayerMipMap_genMin_float(src, mm); return; 
+	}
+	
+	printf("unimplemented data type in %s:%d (%d)\n", __func__, __LINE__, mm->dataType);
+}
+
+
+
+
+
+
 
 

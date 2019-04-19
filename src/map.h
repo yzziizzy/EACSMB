@@ -80,6 +80,26 @@ typedef struct TerrainBlock {
 
 
 
+typedef struct MapLayerMipMap {
+	int origW, origH; // dims of the original image, layer 0 (not stored here)
+	
+	int layers; // 1 is first layer is stored here
+	
+	int dataW, dataH; // size of the data array containing all layers
+	
+	char dataType;
+	union {
+		char* c; 
+		unsigned char* uc; // 1
+		int* i;
+		unsigned int* ui;
+		float* f; // 0
+	} data;
+	
+} MapLayerMipMap;
+
+
+
 typedef struct MapLayer {
 	char* name;
 	
@@ -96,6 +116,8 @@ typedef struct MapLayer {
 	} data;
 	
 } MapLayer;
+
+
 
 
 
@@ -286,6 +308,10 @@ void MapGen_erode(MapInfo* mb, ShaderProgram* prog);
 
 void MapGen_initWaterVelTex(MapInfo* mi); 
 
+
+
+MapLayerMipMap* MapLayerMipMap_alloc(MapLayer* ml);
+void MapLayerMipMap_genMin_float(MapLayer* ml, MapLayerMipMap* mm);
 
 
 #endif // __EACSMB_MAP_H__
