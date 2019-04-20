@@ -1349,8 +1349,9 @@ void MapInfo_Init(MapInfo* mi, GlobalSettings* gs) {
 	
 	MapLayer_GenTerrain(mi->block->terrain, surface);
 	
-	MapLayerMipMap* mm = MapLayerMipMap_alloc(mi->block->terrain);
-	MapLayerMipMap_genMin_float(mi->block->terrain, mm);
+	mi->block->terrain->min = MapLayerMipMap_alloc(mi->block->terrain);
+	mi->block->terrain->max = MapLayerMipMap_alloc(mi->block->terrain);
+	MapLayer_genTerrainMinMax(mi->block->terrain);
 	
 }
 
@@ -1554,10 +1555,81 @@ MapLayerMipMap* MapLayerMipMap_alloc(MapLayer* ml) {
 
 
 
+struct mipgen {
+	char dataType;
+	union {
+		char* c;
+		unsigned char* uc;
+		int* i;
+		unsigned int* ui;
+		float* f;
+	} src, dst;
+	
+	int srcStride, dstStride;
+	int srcOffX, srcOffY;
+	int dstOffX, dstOffY;
+	int srcW;
+	int dstW; // always half of srcW
+};
+
+
+static void gen_min_float(struct mipgen* g) {
+	int soff = g->srcOffX + (g->srcOffY * g->srcStride);
+	int doff = g->dstOffX + (g->dstOffY * g->dstStride);
+	
+	for(int y = 0; y < g->dstW; y++) {
+		for(int x = 0; x < g->dstW; x++) {
+			float min = 0;
+			
+			min = fminf(min, g->src.f[soff + ((x * 2) + (y * 2 * g->srcStride))]);
+			min = fminf(min, g->src.f[soff + ((x * 2 + 1) + (y * 2 * g->srcStride))]);
+			min = fminf(min, g->src.f[soff + ((x * 2) + (y * 2 * g->srcStride + 1))]);
+			min = fminf(min, g->src.f[soff + ((x * 2 + 1) + (y * 2 * g->srcStride + 1))]);
+			
+			g->dst.f[doff + x + y * g->dstStride] = min;
+		}
+	}
+}
+
+static void gen_max_float(struct mipgen* g) {
+	int soff = g->srcOffX + (g->srcOffY * g->srcStride);
+	int doff = g->dstOffX + (g->dstOffY * g->dstStride);
+	
+	for(int y = 0; y < g->dstW; y++) {
+		for(int x = 0; x < g->dstW; x++) {
+			float max = 0;
+			
+			max = fmaxf(max, g->src.f[soff + ((x * 2) + (y * 2 * g->srcStride))]);
+			max = fmaxf(max, g->src.f[soff + ((x * 2 + 1) + (y * 2 * g->srcStride))]);
+			max = fmaxf(max, g->src.f[soff + ((x * 2) + (y * 2 * g->srcStride + 1))]);
+			max = fmaxf(max, g->src.f[soff + ((x * 2 + 1) + (y * 2 * g->srcStride + 1))]);
+			
+			g->dst.f[doff + x + y * g->dstStride] = max;
+		}
+	}
+}
 
 
 
-void MapLayerMipMap_genMin_float(MapLayer* ml, MapLayerMipMap* mm) {
+/*
+
+layout:
+
++-----------+
+|1          |
+|           |
+|           |
+|           |
++-----+-----+
+|2    |__| <-- 3
+|     |_| <-- 4
++-----+
+
+*/
+typedef void (*mipgenFn)(struct mipgen*);
+
+
+void MapLayerMipMap_gen(MapLayer* ml, MapLayerMipMap* mm, mipgenFn cb) {
 	
 	float* src, *dst;
 	int srcStride, dstStride;
@@ -1567,80 +1639,59 @@ void MapLayerMipMap_genMin_float(MapLayer* ml, MapLayerMipMap* mm) {
 	srcStride = ml->w;
 	dstStride = mm->dataW;
 	
-	// first layer
-	for(int y = 0; y < ml->h / 2; y++) {
-		for(int x = 0; x < mm->dataW; x++) {
-			float sum = 0;
-			
-			sum += src[(x * 2) + (y * 2 * srcStride)];
-			sum += src[(x * 2 + 1) + (y * 2 * srcStride)];
-			sum += src[(x * 2) + (y * 2 * srcStride + 1)];
-			sum += src[(x * 2 + 1) + (y * 2 * srcStride + 1)];
-			
-			dst[x + y * dstStride] = sum * .25;
-		}
-	}
+	struct mipgen g;
+	g.srcOffX = 0;
+	g.dstOffX = 0;
+	g.srcOffY = 0;
+	g.dstOffY = 0;
+	g.src.f = ml->data.f;
+	g.dst.f = mm->data.f;
+	g.srcStride = ml->w;
+	g.dstStride = mm->dataW;
+	g.srcW = ml->w; 
+	g.dstW = ml->w / 2; 
 	
+	cb(&g);
 	
-	src = mm->data.f;
-	srcStride = mm->dataW;
-	
-	
-	int srcWidth = mm->dataW;
-	
-	int srcOffX = 0;
-	int dstOffX = 0;
-	int srcOffY = 0;
-	int dstOffY = srcWidth;
+	g.src.f = mm->data.f;
+	g.srcStride = mm->dataW;
+	g.srcW = mm->dataW;
+	g.dstOffY = g.srcW;
 	
 	// rest of the layers
-	for(int layer = 0; srcWidth >= 2; layer++) {
+	for(int layer = 0; g.srcW >= 2; layer++) {
 		
-		int dstWidth = srcWidth / 2;
+		g.dstW = g.srcW / 2;
 		
-		for(int y = 0; y < dstWidth; y++) {
-			for(int x = 0; x < dstWidth; x++) {
-				float sum = 0;
-				
-				sum += src[srcOffX + (srcOffY * srcStride) + ((x * 2) + (y * 2 * srcStride))];
-				sum += src[srcOffX + (srcOffY * srcStride) + ((x * 2 + 1) + (y * 2 * srcStride))];
-				sum += src[srcOffX + (srcOffY * srcStride) + ((x * 2) + (y * 2 * srcStride + 1))];
-				sum += src[srcOffX + (srcOffY * srcStride) + ((x * 2 + 1) + (y * 2 * srcStride + 1))];
-				
-				dst[dstOffX + (dstOffY * dstStride) + x + y * dstStride] = sum * .25;
-			}
-		}
+		cb(&g);
 		
 		// dst is now src
-		srcOffY = dstOffY;
-		srcOffX = dstOffX;
-		srcWidth = dstWidth;
+		g.srcOffY = g.dstOffY;
+		g.srcOffX = g.dstOffX;
+		g.srcW = g.dstW;
 		
-		dstOffY += dstWidth * (layer % 2);
-		dstOffX += dstWidth * ((layer + 1) % 2);
+		g.dstOffY += g.dstW * (layer % 2);
+		g.dstOffX += g.dstW * ((layer + 1) % 2);
 		
-		srcWidth = dstWidth;
+		g.srcW = g.dstW;
 	}
 	
 }
 
 
-// width = origW >> L
 
-
-
-
-
-
-
-void MapLayerMipMap_genMin(MapLayer* src, MapLayerMipMap* mm) {
-	
-	switch(mm->dataType) {
-		case 0: MapLayerMipMap_genMin_float(src, mm); return; 
-	}
-	
-	printf("unimplemented data type in %s:%d (%d)\n", __func__, __LINE__, mm->dataType);
+// completely regenerate the min/max mipmaps for a layer
+void MapLayer_genTerrainMinMax(MapLayer* ml) {
+	MapLayerMipMap_gen(ml, ml->min, gen_min_float);
+	MapLayerMipMap_gen(ml, ml->max, gen_max_float);
 }
+
+
+
+
+
+
+
 
 
 

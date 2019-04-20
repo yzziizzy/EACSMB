@@ -92,7 +92,8 @@ eacsmb_LDADD =  \
 	-lm \
 	-lX11 -lfreetype -lfontconfig -lpng \
 	-lGL -lGLU -lGLEW 
-	 
+	
+# -ffast-math but without reciprocal approximations
 AM_CFLAGS = "-I/usr/include/freetype2" -std=gnu11 -g -DLINUX \
 	-DEACSMB_USE_SIMD \
 	-DEACSMB_HAVE_SSE4 \
@@ -100,6 +101,11 @@ AM_CFLAGS = "-I/usr/include/freetype2" -std=gnu11 -g -DLINUX \
 	-DEACSMB_HAVE_AVX \
 	-DEACSMB_HAVE_AVX2 \
 	-msse4.1 -mavx -mavx2\
+	-fno-math-errno \
+	-fexcess-precision=fast \
+	-fno-signed-zeros -fno-trapping-math -fassociative-math \
+	-ffinite-math-only -fno-rounding-math \
+	-fno-signaling-nans \
 	-include "../config.h" \
 	-include "./global_include.h" \
 	-pthread \

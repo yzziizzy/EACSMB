@@ -115,6 +115,8 @@ typedef struct MapLayer {
 		float* f;
 	} data;
 	
+	MapLayerMipMap* min, *max, *avg;
+	
 } MapLayer;
 
 
@@ -311,7 +313,7 @@ void MapGen_initWaterVelTex(MapInfo* mi);
 
 
 MapLayerMipMap* MapLayerMipMap_alloc(MapLayer* ml);
-void MapLayerMipMap_genMin_float(MapLayer* ml, MapLayerMipMap* mm);
+void MapLayer_genTerrainMinMax(MapLayer* ml);
 
 
 #endif // __EACSMB_MAP_H__
