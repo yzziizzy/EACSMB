@@ -1010,6 +1010,10 @@ void updateView(XStuff* xs, GameState* gs, InputState* is) {
 
 // screenshot
 static void takeSS(GameState* gs) {
+	char buf[120];
+	time_t t;
+	struct tm now;
+	
 	int w = gs->screen.wh.x;
 	int h = gs->screen.wh.y;
 	
@@ -1018,7 +1022,11 @@ static void takeSS(GameState* gs) {
 	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 	glReadPixels(0,0, w, h, GL_RGB, GL_UNSIGNED_BYTE, pic);
 	
-	writePNGInverted("./ss.png", 3, pic, w, h);
+	t = time(NULL);
+	localtime_r(&t, &now); 
+	strftime(buf, 119, "./ss-%Y-%m-%d_%H:%M:%S.png", &now);
+	
+	writePNGInverted(buf, 3, pic, w, h);
 	free(pic);
 	
 }
