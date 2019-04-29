@@ -129,6 +129,8 @@ typedef struct SoundGenContext {
 SoundGenContext* SoundGenContext_alloc();
 void SoundGenContext_init(SoundGenContext* sgc);
 
+SoundClip* SoundGen_genTest();
+
 
 
 

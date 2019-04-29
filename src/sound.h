@@ -109,6 +109,7 @@ SoundClip* SoundClip_like(SoundClip* proto);
 SoundClip* SoundClip_fromWAV(char* path);
 void SoundClip_resample(SoundClip* sc, int newRate);
 
-
+// temp
+#include "sound/soundgen.h"
 
 #endif // __EACSMB_sound_sound_h__

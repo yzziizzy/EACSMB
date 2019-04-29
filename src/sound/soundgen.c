@@ -7,7 +7,7 @@
 #include "../sexp.h"
 
 
-static void* SoundClip_alloc(int a, int b, int c) { return NULL; }
+static void* SoundClip_alloc(int a, int b, int c) { printf("\n!!!!NIH\n"); return NULL; }
 
 
 
@@ -36,18 +36,20 @@ static SoundClip* get_source(SoundGenSource* src, SoundGenContext* ctx) {
 static SoundClip* gen_sine_wave(SoundGenContext* ctx, struct wave_opts* opts) {
 	long ns = opts->baseOpts.numSamples;
 	
-	SoundClip* clip = SoundClip_alloc(
-		ns, 
+	SoundClip* clip = SoundClip_new(
+		opts->baseOpts.channels, 
 		opts->baseOpts.sampleRate, 
-		1 // channels 
+		ns
 	); 
 	
 	float off = opts->phase;
 	float sfreq = opts->frequency / opts->baseOpts.sampleRate;
+	int channels = opts->baseOpts.channels;
 	
 	for(long i = 0; i < ns; i++) {
 		float f = sin(fmodf(off + (i * sfreq * F_2PI), F_2PI));
-		clip->data[i] = f * opts->magnitude; 
+		for(int c = 0; c < channels; c++)
+			clip->data[i * channels + c] = f * opts->magnitude; 
 	}
 	
 	return clip;
@@ -60,10 +62,10 @@ static SoundClip* gen_linear_fade(SoundGenContext* ctx, struct fade_opts* opts) 
 	long ns = opts->baseOpts.numSamples;
 	
 	SoundClip* in = get_source(&opts->source, ctx);
-	SoundClip* out = SoundClip_alloc(
-		in->numSamples, 
+	SoundClip* out = SoundClip_new(
+		in->channels,
 		in->sampleRate, 
-		in->channels
+		in->numSamples 
 	); 
 	
 	int chans = in->channels;
@@ -81,18 +83,32 @@ static SoundClip* gen_linear_fade(SoundGenContext* ctx, struct fade_opts* opts) 
 		memcpy(out->data, in->data, chans * opts->startSample * sizeof(*out->data));
 	}
 	
-	if(opts->type = SG_FADE_LINEAR) {
-		float delta = (opts->startMag - opts->endMag) / (opts->endSample - opts->startSample);
-		for(long i = 0; i < ns; i++) {
+	if(opts->type == SG_FADE_LINEAR) {
+		double delta = (opts->endMag - opts->startMag) / (opts->endSample - opts->startSample);
+		
+		long from, to;
+		long n, dn;
+		
+		if(opts->startMag < opts->endMag) {
+			n = 0;
+			dn = 1;
+		}
+		else {
+			n = ns;
+			dn = -1;
+		}
+		
+		for(long i = opts->startSample; i <= opts->endSample; i++, n += dn) {
 			for(int c = 0; c < chans; c++) {
-				out->data[i * chans + c] = in->data[i * chans + c] * delta * i; 
+				out->data[i * chans + c] += in->data[i * chans + c] * delta * n; 
 			}
 		}
+
 	}
-	else if(opts->type = SG_FADE_SINE) {
+	else if(opts->type == SG_FADE_SINE) {
 		// TODO: implement
 	}
-	else if(opts->type = SG_FADE_LOG) {
+	else if(opts->type == SG_FADE_LOG) {
 		// TODO: implement
 	}
 	else {
@@ -230,6 +246,7 @@ SoundClip* gen_mix(SoundGenContext* ctx, struct mix_opts* opts) {
 SoundGenContext* SoundGenContext_alloc() {
 	SoundGenContext* sgc = pcalloc(sgc);
 	SoundGenContext_init(sgc);
+	return sgc;
 }
 
 
@@ -341,4 +358,50 @@ void SoundGen_FromString(char* source) {
 	
 	
 }
+
+
+
+
+SoundClip* SoundGen_genTest() {
+	SoundGenContext* ctx = SoundGenContext_alloc();
+	
+	struct wave_opts opts = {
+		.baseOpts = {
+			.numSamples = 44100 * 5,
+			.sampleRate = 44100,
+			.channels = 2,
+		},
+		.type = SG_WAVE_SINE,
+		.phase = 0,
+		.magnitude = .4,
+		.frequency = 260,
+	};
+	
+	
+	SoundClip* sine = gen_sine_wave(ctx, &opts);
+	
+	struct fade_opts fopts = {
+		.baseOpts = opts.baseOpts,
+		.source = {
+			.type = 'c',
+			.clip = sine,
+		},
+		.type = SG_FADE_LINEAR,
+		.startSample = 0,
+		.startMag = 1.0,
+		.endSample = 44100 * 5,
+		.endMag = 0,
+		0,0
+	};
+	
+	SoundClip* faded = gen_linear_fade(ctx, &fopts);
+	
+	
+	return faded;
+}
+
+
+
+
+
 

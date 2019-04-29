@@ -194,7 +194,6 @@ void SoundManager_tick(SoundManager* sm, double newGlobalTime) {
 		sm->lastMixTime = newGlobalTime;
 	}
 	
-	
 	int buflen = MIN(4096, snd_pcm_avail_update(sm->playback_handle));
 	
 	// clear the buffer
