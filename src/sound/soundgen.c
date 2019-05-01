@@ -173,14 +173,14 @@ static SoundClip* gen_mux(SoundGenContext* ctx, struct mux_opts* opts) {
 
 
 
-void gen_noise(SoundGenContext* ctx, struct noise_opts* opts) {
+SoundClip* gen_noise(SoundGenContext* ctx, struct noise_opts* opts) {
 	uint64_t str; // whatever junk is on the stack is the seed
 	int chans = opts->baseOpts.channels;
 	
-	SoundClip* out = SoundClip_alloc(
-		opts->baseOpts.numSamples, 
+	SoundClip* out = SoundClip_new(
+		opts->baseOpts.channels, 
 		opts->baseOpts.sampleRate, 
-		chans
+		opts->baseOpts.numSamples
 	); 
 	
 	
@@ -218,29 +218,51 @@ SoundClip* gen_mix(SoundGenContext* ctx, struct mix_opts* opts) {
 		maxSamples = MAX(maxSamples, ins[i]->numSamples);
 	}
 	
-	SoundClip* out = SoundClip_alloc(
-		maxSamples, 
+	SoundClip* out = SoundClip_new(
+		chans,
 		opts->baseOpts.sampleRate, 
-		chans
+		maxSamples 
 	); 
 	
 	
-	uint64_t str; // random number gen is initialized with whatever junk was on the stack
-	for(int i = 0; i < out->numSamples; i++) {
-		for(int c = 0; c < chans; c++) {
-			
-			// add up a bunch of random numbers to approach gaussian distribution
-			float f = pcg_f(&str, 1) + pcg_f(&str, 2) + pcg_f(&str, 3) + 
-				pcg_f(&str, 4) + pcg_f(&str, 5) + pcg_f(&str, 6);
-			
-			f /= 3.0f;
-			
-			out->data[i * chans + c] = f;
+	for(int s = 0; s < sourceCnt; s++) {
+		
+		SoundClip* src = ins[s];
+		float w = opts->weights[s];
+		
+		for(int i = 0; i < src->numSamples; i++) {
+			for(int c = 0; c < src->channels; c++) {
+				out->data[i * chans + c] += src->data[i * src->channels + c] * w;
+			}
 		}
 	}
 	
+	return out;
 }
 
+SoundClip* gen_envelope(SoundGenContext* ctx, struct envelope_opts* opts) {
+	
+	SoundClip* out = SoundClip_new(
+		opts->baseOpts.channels, 
+		opts->baseOpts.sampleRate, 
+		opts->baseOpts.numSamples
+	); 
+	
+	end = 
+	
+	for(int s = 0; s < 8; s++) {
+		
+		for(int i = 0; i < src->numSamples; i++) {
+			for(int c = 0; c < src->channels; c++) {
+				out->data[i * chans + c] += src->data[i * src->channels + c] * w;
+			}
+		}
+		
+	}
+	
+	
+	return out;
+}
 
 
 SoundGenContext* SoundGenContext_alloc() {
@@ -397,7 +419,29 @@ SoundClip* SoundGen_genTest() {
 	SoundClip* faded = gen_linear_fade(ctx, &fopts);
 	
 	
-	return faded;
+	struct noise_opts nopts = {
+		.baseOpts = opts.baseOpts,
+		.type = SG_NOISE_WHITE,
+	};
+	
+	SoundClip* noise = gen_noise(ctx, &nopts);
+	
+	
+	struct mix_opts mopts = {
+		.baseOpts = opts.baseOpts,
+		.sources = {
+			{ .type = 'c', .clip = sine },
+			{ .type = 'c', .clip = noise },
+			{NULL},
+		},
+		.weights = { .7, .08},
+	};
+	
+	SoundClip* mixed = gen_mix(ctx, &mopts);
+	
+	
+	
+	return mixed;
 }
 
 
