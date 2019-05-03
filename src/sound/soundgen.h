@@ -7,6 +7,7 @@
 #include "hash.h"
 
 
+#define _12root2 1.059463094359295264561825294946341700779204317494185628559
 
 
 typedef struct SoundGenSource {
@@ -110,6 +111,20 @@ struct mix_opts {
 	float weights[8];
 };
 
+
+struct envelope_opts {
+	struct base_sound_opts baseOpts;
+	SoundGenSource source;
+	
+	float startMag;
+	
+	struct {
+		long numSamples;
+		float endMag;
+		
+	} segments[8];
+	
+};
 
 
 typedef struct SoundGenContext { 

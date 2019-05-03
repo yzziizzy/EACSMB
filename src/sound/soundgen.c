@@ -242,27 +242,50 @@ SoundClip* gen_mix(SoundGenContext* ctx, struct mix_opts* opts) {
 
 SoundClip* gen_envelope(SoundGenContext* ctx, struct envelope_opts* opts) {
 	
+	SoundClip* src = get_source(&opts->source, ctx);
 	SoundClip* out = SoundClip_new(
-		opts->baseOpts.channels, 
-		opts->baseOpts.sampleRate, 
-		opts->baseOpts.numSamples
+		src->channels, 
+		src->sampleRate, 
+		src->numSamples
 	); 
 	
-	end = 
+	int s = 0;
 	
-	for(int s = 0; s < 8; s++) {
+	float smag = opts->startMag;
+	float emag;
+	
+	for(s = 0; s < 8; ) {
 		
-		for(int i = 0; i < src->numSamples; i++) {
+		emag = opts->segments[s].endMag;
+		float dmag = (emag - smag) / opts->segments[s].numSamples;  
+		
+		for(int i = 0; i < opts->segments[s].numSamples; i++) {
+			float w = smag + (dmag * i);
+			
 			for(int c = 0; c < src->channels; c++) {
-				out->data[i * chans + c] += src->data[i * src->channels + c] * w;
+				out->data[i * src->channels + c] = src->data[i * src->channels + c] * w;
 			}
 		}
 		
+		s++;
+		
+		smag = emag;
+		emag = opts->segments[s].endMag;
+		
+		if(opts->segments[s].numSamples < 0) break;
 	}
 	
 	
 	return out;
 }
+
+
+// SoundClip* gen_note(SoundGenContext* ctx, struct note_opts* opts) {
+// 	
+// 	
+// 	
+// }
+
 
 
 SoundGenContext* SoundGenContext_alloc() {
@@ -446,6 +469,32 @@ SoundClip* SoundGen_genTest() {
 
 
 
+static float noteHDist(char n, int octave, char sharpFlat) {
+	int n1;
+	switch(n) {
+		case 'A': n1 =   0; break; 
+		case 'B': n1 =   2; break;
+		case 'C': n1 = -10; break;
+		case 'D': n1 =  -8; break;
+		case 'E': n1 =  -6; break;
+		case 'F': n1 =  -4; break;
+		case 'G': n1 =  -2; break;
+	}
+	
+	if(sharpFlat == 'b') n--;
+	else if(sharpFlat == '#') n++;
+	
+	return ((octave - 4) * 12) + n1;  
+}
 
 
+// A4 at 440hz.
+static float hdFreq(float halfDist) {
+	return 440.0 * powf(_12root2, halfDist);
+}
 
+
+static float noteFreq(char n, int octave, char sharpFlat) {
+	float n2 = noteHDist(n, octave, sharpFlat);  
+	return hdFreq(n2);
+}
