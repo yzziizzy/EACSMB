@@ -42,6 +42,11 @@ SoundClip* SoundClip_convolve(SoundClip* in, SoundKernel* k);
 // convolve one kernel with another and return a new result
 SoundKernel* SoundKernel_convolve(SoundKernel* a, SoundKernel* b);
 
+// fill part of a clip with white noise
+void SoundClip_genNoise(SoundClip* clip, unsigned long startSample, unsigned long endSample, float volume);
+
+
+
 // TODO: channel mixing
 
 

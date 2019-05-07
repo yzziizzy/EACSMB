@@ -2,6 +2,7 @@
 
 
 #include "soundgen.h"
+#include "utils.h"
 
 #include "../utilities.h"
 #include "../sexp.h"
@@ -174,7 +175,6 @@ static SoundClip* gen_mux(SoundGenContext* ctx, struct mux_opts* opts) {
 
 
 SoundClip* gen_noise(SoundGenContext* ctx, struct noise_opts* opts) {
-	uint64_t str; // whatever junk is on the stack is the seed
 	int chans = opts->baseOpts.channels;
 	
 	SoundClip* out = SoundClip_new(
@@ -183,19 +183,7 @@ SoundClip* gen_noise(SoundGenContext* ctx, struct noise_opts* opts) {
 		opts->baseOpts.numSamples
 	); 
 	
-	
-	for(int i = 0; i < out->numSamples; i++) {
-		for(int c = 0; c < chans; c++) {
-			
-			// add up a bunch of random numbers to approach gaussian distribution
-			float f = pcg_f(&str, 1) + pcg_f(&str, 2) + pcg_f(&str, 3) + 
-				pcg_f(&str, 4) + pcg_f(&str, 5) + pcg_f(&str, 6);
-			
-			f /= 3.0f;
-			
-			out->data[i * chans + c] = f;
-		}
-	}
+	SoundClip_genNoise(out, 0, opts->baseOpts.numSamples, opts->volume);
 	
 	return out;
 }

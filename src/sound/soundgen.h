@@ -95,6 +95,7 @@ enum SoundGenNoiseType {
 struct noise_opts {
 	struct base_sound_opts baseOpts;
 	enum SoundGenNoiseType type;
+	float volume;
 };
 
 

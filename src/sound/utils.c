@@ -1,6 +1,6 @@
 
 
-
+// #include "../common_gl.h" // shouldn't need this, but utilities.h wants it
 #include "../utilities.h"
 #include "utils.h"
 
@@ -175,6 +175,28 @@ SoundKernel* SoundKernel_convolve(SoundKernel* a, SoundKernel* b) {
 }
 
 
+// fill part of a clip with white noise
+void SoundClip_genNoise(SoundClip* clip, unsigned long startSample, unsigned long endSample, float volume) {
+	if(!clip) return;
+	
+	uint64_t str; // whatever junk is on the stack is the seed
+	
+	long start = MIN(startSample, clip->numSamples);
+	long end = MIN(endSample, clip->numSamples);
+	
+	for(int i = start; i < end; i++) {
+		for(int c = 0; c < clip->channels; c++) {
+			
+			// add up a bunch of random numbers to approach gaussian distribution
+			float f = pcg_f(&str, 1) + pcg_f(&str, 2) + pcg_f(&str, 3) + 
+				pcg_f(&str, 4) + pcg_f(&str, 5) + pcg_f(&str, 6);
+			
+			f /= 3.0f;
+			
+			clip->data[i * clip->channels + c] = f * volume;
+		}
+	}
+}
 
 
 static float fft_Wr(float n, float b) {
@@ -183,6 +205,7 @@ static float fft_Wr(float n, float b) {
 static float fft_Wi(float n, float b) {
 	return sin(F_2PI * n / b);
 }
+
 
 
 static void fft_bfly(SoundClipFFT* fft, int offset, int stage) {
