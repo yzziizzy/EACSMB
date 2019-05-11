@@ -274,6 +274,44 @@ SoundClip* gen_envelope(SoundGenContext* ctx, struct envelope_opts* opts) {
 // 	
 // }
 
+SoundClip* gen_string(SoundGenContext* ctx, struct string_opts* opts) {
+	long ns = opts->baseOpts.numSamples; 
+	int chans = opts->baseOpts.channels; 
+	
+	SoundClip* clip = SoundClip_new(
+		chans,
+		opts->baseOpts.sampleRate, 
+		ns 
+	); 
+	
+	SoundClip* wavet = SoundClip_new(
+		chans,
+		opts->baseOpts.sampleRate, 
+		opts->noiseSamples
+	); 
+	
+	opts->noiseSamples = 44100.0 / 400.0; //150 * 2 * 6.28;
+	
+	SoundClip_genNoise(wavet, 0, opts->noiseSamples, 1);
+	
+	long delay = opts->noiseSamples;
+	
+	float last = 0;
+	for(int n = 0; n < ns; n++) {
+		for(int c = 0; c < chans; c++) {
+			
+			float a = wavet->data[(n % delay) * chans + c];
+			
+			float last = (a + last) *0.5 * .999;
+			
+			wavet->data[(n % delay) * chans + c] = last;
+			clip->data[(n) * chans + c] = last; 
+		}
+	} 
+	
+	return clip;
+}
+
 
 
 SoundGenContext* SoundGenContext_alloc() {
@@ -400,7 +438,7 @@ SoundClip* SoundGen_genTest() {
 	
 	struct wave_opts opts = {
 		.baseOpts = {
-			.numSamples = 44100 * 5,
+			.numSamples = 44100 * 20,
 			.sampleRate = 44100,
 			.channels = 2,
 		},
@@ -452,7 +490,15 @@ SoundClip* SoundGen_genTest() {
 	
 	
 	
-	return mixed;
+	struct string_opts stropts = {
+		.baseOpts = opts.baseOpts,
+		.noiseSamples = 50000,
+	};
+	
+	SoundClip* str = gen_string(ctx, &stropts);
+	
+	
+	return str;
 }
 
 

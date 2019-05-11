@@ -127,6 +127,11 @@ struct envelope_opts {
 	
 };
 
+struct string_opts {
+	struct base_sound_opts baseOpts;
+	long noiseSamples;
+	float sustain;
+};
 
 typedef struct SoundGenContext { 
 	
