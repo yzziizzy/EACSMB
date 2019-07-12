@@ -100,8 +100,13 @@ typedef struct MapLayerMipMap {
 
 
 
+struct MapBlock;
+
+
 typedef struct MapLayer {
 	char* name;
+	
+	struct MapBlock* block;
 	
 	int w, h; // tex size
 	float scale; // baked ratio 
@@ -117,6 +122,12 @@ typedef struct MapLayer {
 	
 	MapLayerMipMap* min, *max, *avg;
 	
+// 	struct {
+// 		float
+// 		
+// 	} stats;
+	
+	
 } MapLayer;
 
 
@@ -129,6 +140,8 @@ typedef struct MapBlock {
 	//int32_t bix, biy; // location in blocks. max world size is 2^32 blocks square ~5.6e8 km2 ~1.1x earth surface area  
 	
 	int w, h;
+	
+	Vector2 wsMinCorner; // the corner with the lowest coordinate values.
 	
 	VEC(MapLayer*) layers;
 	HashTable(int) layerLookup;
@@ -310,10 +323,15 @@ void MapGen_erode(MapInfo* mb, ShaderProgram* prog);
 
 void MapGen_initWaterVelTex(MapInfo* mi); 
 
+void MapBlock_getTerrainBounds(MapBlock* mb, Vector* min, Vector* max);
 
 
 MapLayerMipMap* MapLayerMipMap_alloc(MapLayer* ml);
 void MapLayer_genTerrainMinMax(MapLayer* ml);
+
+
+void Map_rayIntersectTerrain(MapInfo* mi, Vector* origin, Vector* ray, Vector* hitPos);
+
 
 
 #endif // __EACSMB_MAP_H__

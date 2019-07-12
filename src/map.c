@@ -1218,13 +1218,14 @@ float MapLayer_sample(MapLayer* ml, float x, float y) {
 
 
 
-MapBlock* MapBlock_Alloc(int w, int h) {
+MapBlock* MapBlock_Alloc(int w, int h, Vector2 minPos) {
 	MapBlock* mb;
 	
 	pcalloc(mb);
 	
 	mb->w = w;
 	mb->h = h;
+	mb->wsMinCorner = minPos;
 	
 	VEC_INIT(&mb->layers);
 	HT_init(&mb->layerLookup, 4);
@@ -1329,7 +1330,7 @@ void MapInfo_Init(MapInfo* mi, GlobalSettings* gs) {
 	
 	
 	//mi->block = MapBlock_Alloc(1024, 1024);
-	mi->block = MapBlock_Alloc(512, 512);
+	mi->block = MapBlock_Alloc(512, 512, (Vector2){0, 0});
 	//mi->block = MapBlock_Alloc(4096, 4096);
 	
 	MapBlock_AddLayer(mi->block, "terrain", 1, 0);
@@ -1535,7 +1536,7 @@ MapLayerMipMap* MapLayerMipMap_alloc(MapLayer* ml) {
 	mm->dataW = ml->w / 2;
 	mm->dataH = (ml->w / 2) + (ml->h / 4);
 	
-	mm->layers = ctz(MIN(ml->w, ml->h));
+	mm->layers = ctz(MIN(ml->w, ml->h)) - 1;
 	
 	int elemSz = 1;
 	
@@ -1577,36 +1578,45 @@ static void gen_min_float(struct mipgen* g) {
 	int soff = g->srcOffX + (g->srcOffY * g->srcStride);
 	int doff = g->dstOffX + (g->dstOffY * g->dstStride);
 	
+	float dbg = FLT_MAX;
+	
 	for(int y = 0; y < g->dstW; y++) {
 		for(int x = 0; x < g->dstW; x++) {
-			float min = 0;
 			
-			min = fminf(min, g->src.f[soff + ((x * 2) + (y * 2 * g->srcStride))]);
+			float min =      g->src.f[soff + ((x * 2) + (y * 2 * g->srcStride))];
 			min = fminf(min, g->src.f[soff + ((x * 2 + 1) + (y * 2 * g->srcStride))]);
-			min = fminf(min, g->src.f[soff + ((x * 2) + (y * 2 * g->srcStride + 1))]);
-			min = fminf(min, g->src.f[soff + ((x * 2 + 1) + (y * 2 * g->srcStride + 1))]);
+			min = fminf(min, g->src.f[soff + ((x * 2) + ((y * 2 + 1) * g->srcStride))]);
+			min = fminf(min, g->src.f[soff + ((x * 2 + 1) + ((y * 2 + 1) * g->srcStride))]);
 			
 			g->dst.f[doff + x + y * g->dstStride] = min;
+			dbg = fminf(dbg, min);
 		}
 	}
+	
+	printf("min: %f\n", dbg);
 }
 
 static void gen_max_float(struct mipgen* g) {
 	int soff = g->srcOffX + (g->srcOffY * g->srcStride);
 	int doff = g->dstOffX + (g->dstOffY * g->dstStride);
 	
+	float dbg = -FLT_MAX;
+	
 	for(int y = 0; y < g->dstW; y++) {
 		for(int x = 0; x < g->dstW; x++) {
-			float max = 0;
 			
-			max = fmaxf(max, g->src.f[soff + ((x * 2) + (y * 2 * g->srcStride))]);
+			float max =      g->src.f[soff + ((x * 2) + (y * 2 * g->srcStride))];
 			max = fmaxf(max, g->src.f[soff + ((x * 2 + 1) + (y * 2 * g->srcStride))]);
-			max = fmaxf(max, g->src.f[soff + ((x * 2) + (y * 2 * g->srcStride + 1))]);
-			max = fmaxf(max, g->src.f[soff + ((x * 2 + 1) + (y * 2 * g->srcStride + 1))]);
+			max = fmaxf(max, g->src.f[soff + ((x * 2) + ((y * 2 + 1) * g->srcStride))]);
+			max = fmaxf(max, g->src.f[soff + ((x * 2 + 1) + ((y * 2 + 1) * g->srcStride))]);
 			
 			g->dst.f[doff + x + y * g->dstStride] = max;
+			
+			dbg = fmaxf(dbg, max);
 		}
 	}
+	
+	printf("max: %f\n", dbg);
 }
 
 
@@ -1660,10 +1670,16 @@ void MapLayerMipMap_gen(MapLayer* ml, MapLayerMipMap* mm, mipgenFn cb) {
 	
 	// rest of the layers
 	for(int layer = 0; g.srcW >= 2; layer++) {
+		printf("\nlayer: %d \n", layer);
 		
 		g.dstW = g.srcW / 2;
 		
+		
+		printf(" src[ W: %d, off: %d, %d ]- %d \n", g.srcW, g.srcOffX, g.srcOffY, g.srcStride); 
+		printf(" dst[ W: %d, off: %d, %d ]- %d \n", g.dstW, g.dstOffX, g.dstOffY, g.dstStride); 
+		
 		cb(&g);
+		
 		
 		// dst is now src
 		g.srcOffY = g.dstOffY;
@@ -1682,19 +1698,265 @@ void MapLayerMipMap_gen(MapLayer* ml, MapLayerMipMap* mm, mipgenFn cb) {
 
 // completely regenerate the min/max mipmaps for a layer
 void MapLayer_genTerrainMinMax(MapLayer* ml) {
+	printf("generating terrain mipmaps\n");
 	MapLayerMipMap_gen(ml, ml->min, gen_min_float);
 	MapLayerMipMap_gen(ml, ml->max, gen_max_float);
+// exit(0);
 }
 
 
 
 
+static int point_in_map_minmax(Vector* p, MapLayer* ml) {
+	
+	Vector2 cmin = ml->block->wsMinCorner;
+	Vector2 cmax = {cmin.x + ml->w, cmin.y + ml->h};
+	
+	
+	
+	
+	
+} 
+
+// max layer = 9
+// 0 - 0,0 ; the original image (NxN)
+// 1 - 0,0 ; first mip
+// 2 - 0,N/2
+// 3 - N/2, N/2
+// 4 - N/2 + N/4, N/2
+// 5 - N/2 + N/4, N/2 + N/4
+// 6 - N/2 + N/4 + N/8, N/2 + N/4
+// 7 - N/2 + N/4 + N/8, N/2 + N/4 + N/8
+// 8 - N/2 + N/4 + N/8 + N/16, N/2 + N/4 + N/8
+// 9 - N/2 + N/4 + N/8 + N/16, N/2 + N/4 + N/8 + N/16
+/*
+
+
+ 8N/16  1/2
+12N/16  3/4
+14N/16  7/8
+15N/16 15/16 
+
+*/
+// higher is smaller in resolution
+unsigned int getMipXOffset(unsigned int maxLayer, unsigned int layer) {
+	unsigned int w = 1 << (maxLayer);
+	unsigned int off = 0;//1 << maxLayer;
+	
+	for(int i = 2; i < layer; i += 2) {
+		off += w;
+		w /= 4;
+	}
+	
+	
+	
+	
+	
+	
+	
+	return off;// 1 << ((maxLayer - layer) / 2);
+}
+
+// higher is smaller in resolution
+unsigned int getMipYOffset(unsigned int maxLayer, unsigned int layer) {
+	unsigned int w = 1 << (maxLayer);
+	unsigned int off =  layer > 0 ? w << 1 : 0;//1 << maxLayer;
+	
+	for(int i = 0; i < layer; i += 2) {
+		off += w;
+		w /= 4;
+	}
+	
+	return off;// 1 << ((maxLayer - layer) / 2);
+}
+
+/*
+printf("layers %d \n", terr->min->layers);
+printf("n %d \n", 1 << terr->min->layers);
+
+for(int i = 1; i <= terr->min->layers; i++) {
+	printf("layer %d: [%d,%d] \n", i, 
+			getMipXOffset(terr->min->layers, i),
+			getMipYOffset(terr->min->layers, i));
+}*/
+
+
+void MapBlock_getTerrainBounds(MapBlock* mb, Vector* min, Vector* max) {
+	MapLayer* terr = mb->terrain;
+	
+	int L = terr->min->layers;
+	
+	for(int i = 1; i <= L; i++) {
+	printf("layer %d: [%d,%d] \n", i, 
+			getMipXOffset(L , i),
+			getMipYOffset(L - 1, i));
+	}
+	
+	
+	printf("mipmap layers: %d (max layers)\n", L);
+	printf("mip 0 size: %d\n", 1<<L);
+	// the mipmaps should be identical in size
+	assert(terr->min->dataW == terr->max->dataW);
+	
+	unsigned int x = getMipXOffset(L - 1, terr->min->layers - 2);
+	unsigned int y = getMipYOffset(L - 1, terr->min->layers - 2);
+	
+	// should be 170, 340
+
+	
+	float zmin = terr->min->data.f[x + y * terr->min->dataW];
+	float zmax = terr->max->data.f[x + y * terr->max->dataW];
+	
+	min->x = mb->wsMinCorner.x;
+	min->y = mb->wsMinCorner.y;
+	min->z = zmin;
+	
+	max->x = mb->wsMinCorner.x + mb->w;
+	max->y = mb->wsMinCorner.y + mb->h;
+	max->z = zmax;
+	
+	printf("---> [%d, %d]: %f, %f\n", x, y,zmin, zmax);
+}
 
 
 
 
-
-
+// all arguments are in world space
+void Map_rayIntersectTerrain(MapInfo* mi, Vector* origin, Vector* ray, Vector* hitPos) {
+	
+	
+	MapLayer* terr = mi->block->terrain;
+	
+	
+	
+	// walk along the ray projected onto the x/y plane sampling terrain height
+	// start at the camera pos and continue until we hit something or fall off the map
+	
+	Vector groundDir; // ray along the ground
+	Plane plane = {.n = {0,1,0}, .d = 0};
+	vProjectOntoPlaneNormalized(ray, &plane, &groundDir);
+	
+	float sx = groundDir.y == 0.0f ? 1.0 : groundDir.x / groundDir.y;
+	float sy = groundDir.x == 0.0f ? 1.0 : groundDir.y / groundDir.x;
+	float adx = fabs(sx);
+	float ady = fabs(sy);
+	int sdx = sx > 0.0 ? 1.0 : -1.0;
+	int sdy = sy > 0.0 ? 1.0 : -1.0;
+	
+	Vector2 pos = {origin->x, origin->y};
+	printf("%f,%f,%f\n", ray->x, ray->y, ray->z);
+	float sz_x = ray->x == 0.0f ? 1.0 : ray->z / fabs(ray->x);
+	float sz_y = ray->y == 0.0f ? 1.0 : ray->z / fabs(ray->y);
+	
+	
+	
+	float acc;
+	float x = origin->x;
+	float y = origin->y;
+	float z = origin->z;
+	float x_end = x + sx * 3;
+	float y_end = y + sy * 3;
+	
+	if(adx > ady) { // x advances faster than y, accumulate y error
+		
+		if(sx > 0) { // x going up
+			while(x <= x_end) {
+				
+				printf("A x: %f, y: %f, z: %f\n", x, y, z);
+				
+				x += 1.0;
+				z += sz_x;
+				
+				acc += sy; // y slope 
+				
+				if(fabs(acc) >= 1.0) {
+					
+					assert(fabs(acc) < 2.0); // this shouldn't ever advance more than one 
+					
+					y += sdy;
+					acc -= sdy;
+				}
+			}
+		}
+		else { // x going down
+			while(x >= x_end) {
+				
+				
+				printf("B x: %f, y: %f, z: %f\n", x, y, z);
+				
+				
+				x -= 1.0;
+				z += sz_x;
+				
+				acc += sy; // y slope 
+				
+				if(fabs(acc) >= 1.0) {
+					
+					assert(fabs(acc) < 2.0); // this shouldn't ever advance more than one 
+					
+					y += sdy;
+					acc -= sdy;
+				}
+				
+			}
+		}
+		
+		// TODO: spawn debug cubes and ray line
+	}
+	else { // y advances faster than x, accumulate x error
+		
+			
+		if(sy > 0) { // y going up
+			while(y <= y_end) {
+				
+				
+				
+				printf("C x: %f, y: %f, z: %f\n", x, y, z);
+				
+				y += 1.0;
+				z += sz_y;
+				
+				acc += sx; // x slope 
+				
+				if(fabs(acc) >= 1.0) {
+					
+					assert(fabs(acc) < 2.0); // this shouldn't ever advance more than one 
+					
+					x += sdx;
+					acc -= sdx;
+				}
+			}
+		}
+		else { // y going down
+			while(y >= y_end) {
+				
+				
+				
+				printf("D x: %f, y: %f, z: %f\n", x, y, z);
+				
+				
+				y -= 1.0;
+				z += sz_y;
+				
+				
+				acc += sx; // x slope 
+				
+				if(fabs(acc) >= 1.0) {
+					
+					assert(fabs(acc) < 2.0); // this shouldn't ever advance more than one 
+					
+					x += sdx;
+					acc -= sdx;
+				}
+			}
+		}
+		
+	}
+	
+	
+	
+	
+} 
 
 
 

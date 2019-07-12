@@ -144,9 +144,15 @@ void initGame(XStuff* xs, GameState* gs) {
 	SoundManager_start(gs->sound);
 	
 // 	SoundClip* sc = SoundClip_fromWAV("./assets/sounds/ohno.wav");
-	SoundClip* sc = SoundClip_fromVorbis("./assets/sounds/ooo.ogg");
+// 	SoundClip* sc = SoundClip_fromVorbis("./assets/sounds/ooo.ogg");
+	SoundClip* sc = SoundGen_genTest();
 	SoundManager_addClip(gs->sound, sc, "ohno");
 
+	SoundInstance* si = calloc(1, sizeof(*si));
+			si->flags = 0;//SOUNDFLAG_LOOP;
+			si->globalStartTime = 0.5;
+			si->volume = 0.8;
+	SoundManager_addClipInstance(gs->sound, "ohno", si);
 	
 #endif
 
@@ -838,9 +844,39 @@ static void main_key_handler(InputEvent* ev, GameState* gs) {
 }  
 
 
+
+
+// BUG this is upside-down at very least
+void ray_from_screen(GameState* gs, Vector2 screenPos, Vector* origin, Vector* ray) {
+	Vector ws_ray; // ray in world space
+	
+	// convert from screen space through ndc into world space
+	Vector ss_ray = { // ray in screen space
+		(screenPos.x / gs->screen.wh.x) * 2.0 - 1.0,
+		(screenPos.y / gs->screen.wh.y) * 2.0 - 1.0,
+		-1
+	};
+	
+	vMatrixMul(&ss_ray, &gs->mProjWorld, &ws_ray);
+	
+	vNorm(&ws_ray, &ws_ray);
+	*ray = ws_ray;
+	
+	// ws_ray is now a world-space unit vector pointing away from the mouse
+	
+	Vector ws_campos;
+	vMatrixMul(&(Vector){0,0,0}, &gs->mProjWorld, &ws_campos);
+	
+	*origin = ws_campos;
+}
+
+
+
 static void main_click_handler(InputEvent* ev, GameState* gs) {
 
 	if(ev->button == 1) {
+
+		
 		
 		// BUG: used inverse cursor pos. changed to compile temporarily
 		GUIObject* hit;
@@ -856,6 +892,15 @@ static void main_click_handler(InputEvent* ev, GameState* gs) {
 			printf("@@clicked in window %p %p  %f,%f\n", gs->gui->root, hit, hit->header.size.x, hit->header.size.y);
 		}
 		else {
+			
+			Vector origin, ray;
+			
+			ray_from_screen(gs, ev->normPos, &origin, &ray);
+			
+			Map_rayIntersectTerrain(&gs->world->map, &origin, &ray, NULL);
+			
+			
+			
 			Vector2i tile;
 			Vector2 invPos = {ev->normPos.x, 1 - ev->normPos.y};
 			getTileFromScreenCoords(gs, ev->normPos, &tile);
@@ -1158,8 +1203,16 @@ void checkResize(XStuff* xs, GameState* gs) {
 }
 
 
+typedef int (*RayHitFn)(Vector* /*pt*/, void* /*data*/);
 
-void mapRayCastHitTest(GameState* gs, Vector2 screenpos) {
+// calls the cb for every tile along the projected line
+void mapRayCastLine(GameState* gs, Vector2 screenpos, RayHitFn cb, void* cbData) {
+	
+	
+}
+
+
+int mapRayCastHitTest(GameState* gs, Vector2 screenpos, Vector* hitPos) {
 	Vector ws_ray; // ray in world space
 	
 	// convert from screen space through ndc into world space
@@ -1184,13 +1237,56 @@ void mapRayCastHitTest(GameState* gs, Vector2 screenpos) {
 	// walk along the ray projected onto the x/y plane sampling terrain height
 	// start at the camera pos and continue until we hit something or fall off the map
 	
-	Vector groundDir;
+	Vector groundDir; // ws_ray along the ground
 	Plane plane = {.n = {0,1,0}, .d = 0};
 	vProjectOntoPlaneNormalized(&ws_ray, &plane, &groundDir);
 	
 	// epsilons
-	float ex = 1.0;
-	float ey = 1.0;
+	float dx = groundDir.y == 0.0f ? 1.0 : groundDir.x / groundDir.y;
+	float dy = groundDir.x == 0.0f ? 1.0 : groundDir.y / groundDir.x;
+	float adx = fabs(dx);
+	float ady = fabs(dy);
+	
+	Vector2 pos = {ws_campos.x, ws_campos.y};
+	
+	/*
+	
+	General Idea:
+	
+	walk along the line by adding x/y slope in a nested 
+	loop to arrive at every grid crossing.
+	
+	calculate the min/max corners for said tile
+	
+	fetch other two corners
+	
+	project all 4 corners onto horizontal view plane, calculate heights
+	
+	if any height is above the plane, calculate the intersection point
+	
+	
+	call the callback
+	
+	
+	*/
+	
+	//Vector2 low = {floor(ws_campos.x), floor(ws_campos.y)};
+	//Vector2 high = {ceil(ws_campos.x), ceil(ws_campos.y)};
+	
+	int failsafe = 0;
+	if(adx < ady) {
+		
+		while(failsafe < 1000) {
+			
+			
+		}
+		
+		
+	} 
+	else {
+		
+		
+	}
 	
 	//while(1) {
 		
