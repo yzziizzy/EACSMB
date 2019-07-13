@@ -854,7 +854,7 @@ void ray_from_screeni(GameState* gs, Vector2i screenPos, Vector* origin, Vector*
 
 void ray_from_screen(GameState* gs, Vector2 screenPos, Vector* origin, Vector* ray) {
 	
-	printf("screenpos: %f, %f  [%f,%f]\n", screenPos.x, screenPos.y, gs->screen.wh.x, gs->screen.wh.y);
+// 	printf("screenpos: %f, %f  [%f,%f]\n", screenPos.x, screenPos.y, gs->screen.wh.x, gs->screen.wh.y);
 	// convert from screen space through ndc into world space
 
 	Vector ss_ray = { // ray in screen space
@@ -1001,11 +1001,16 @@ static void main_move_handler(InputEvent* ev, GameState* gs) {
 	Vector2i ci;
 // 	Vector c;
 	
-	return;
+	Vector origin, ray, movePos;
+	ray_from_screeni(gs, ev->intPos, &origin, &ray);
 
-	getTileFromScreenCoords(gs, ev->normPos, &ci);
+	//debugWF_Ray(&origin, &ray, 600, "green", "red", 2, 2);
+	Map_rayIntersectTerrain(&gs->world->map, &origin, &ray, &movePos);
+	printf("move intersect: %f, %f\n", movePos.x, movePos.y);
+
+// 	getTileFromScreenCoords(gs, ev->normPos, &ci);
 	
-	Vector c = {ci.x, ci.y, 0};
+	Vector c = {movePos.x, movePos.y, 0};
 	Vector pos1 = {-10, -10, 20};
 	Vector pos2 = {-10, 10, 20};
 	Vector pos3 = {10, -10, 20};

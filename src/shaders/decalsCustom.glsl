@@ -127,6 +127,7 @@ uniform mat4 mProjView;
 
 layout(location = 0) out vec4 out_Color;
 layout(location = 1) out vec4 out_Normal;
+layout(location = 2) out vec4 out_Material;
 
 
 vec2 lineProject(vec2 a, vec2 b, vec2 p) {
@@ -199,7 +200,7 @@ void main(void) {
 	
 	// discard the box
 	if(max(max(tc.x, tc.y), max(r_oy, r_ox)) > 1 || min(tc.x, tc.y) < 0) {
-	//	out_Color = vec4(1,0,0, .5); return;
+// 		out_Color = vec4(1,0,0, .5); return;
 		discard; 
 	}
 	
@@ -211,7 +212,8 @@ void main(void) {
 	
 	//out_Color = vec4(mod(otc.x , 1), mod(otc.y, 1) ,0 , 1); //vs_norm;
 	out_Color = vec4(texture(sTexture, vec3(otc, texIndex)).rgba); //vs_norm;
-	out_Normal = vec4(1,0,0,roughness);
+	out_Normal = vec4(0,0,1,0);
+	out_Material= vec4(roughness, metallic,0 ,1);
 	
 	//out_Color = vec4(1,0,1,1);
 }

@@ -1830,7 +1830,7 @@ int Map_pointIsUnderground(MapInfo* mi, Vector pos) {
 	
 	float z = b->data.f[(int)pos.x + (int)pos.y * b->w];
 	
-	printf("z: %f - %f\n", z, pos.z);
+// 	printf("z: %f - %f\n", z, pos.z);
 	
 	return z >= pos.z;
 }
@@ -1866,7 +1866,7 @@ void Map_rayIntersectTerrain(MapInfo* mi, Vector* origin, Vector* ray, Vector* h
 	int sdy = groundDir.y > 0.0 ? 1.0 : -1.0;
 	
 	Vector2 pos = {origin->x, origin->y};
-	printf("%f,%f,%f\n", ray->x, ray->y, ray->z);
+// 	printf("%f,%f,%f\n", ray->x, ray->y, ray->z);
 	float sz_x = ray->x == 0.0f ? 1.0 : ray->z / fabs(ray->x);
 	float sz_y = ray->y == 0.0f ? 1.0 : ray->z / fabs(ray->y);
 	
@@ -1889,6 +1889,7 @@ void Map_rayIntersectTerrain(MapInfo* mi, Vector* origin, Vector* ray, Vector* h
 // 				debugWF_Sphere(&(Sphere){{x,y,z}, .5}, 5, "green", 1);
 				if(Map_pointIsUnderground(mi, (Vector){x,y,z})) {
 					debugWF_Sphere(&(Sphere){{x,y,z}, 2}, 10, "magenta", 2);
+					*hitPos = (Vector){x,y,z};
 					return;
 				}
 				
@@ -1909,6 +1910,7 @@ void Map_rayIntersectTerrain(MapInfo* mi, Vector* origin, Vector* ray, Vector* h
 // 				debugWF_Sphere(&(Sphere){{x,y,z}, .5}, 5, "red", 1);
 				if(Map_pointIsUnderground(mi, (Vector){x,y,z})) {
 					debugWF_Sphere(&(Sphere){{x,y,z}, 2}, 10, "magenta", 2);
+					*hitPos = (Vector){x,y,z};
 					return;
 				}
 				
@@ -1936,6 +1938,7 @@ void Map_rayIntersectTerrain(MapInfo* mi, Vector* origin, Vector* ray, Vector* h
 // 				debugWF_Sphere(&(Sphere){{x,y,z}, .5}, 5, "yellow", 1);
 				if(Map_pointIsUnderground(mi, (Vector){x,y,z})) {
 					debugWF_Sphere(&(Sphere){{x,y,z}, 2}, 10, "magenta", 2);
+					*hitPos = (Vector){x,y,z};
 					return;
 				}
 				
@@ -1956,6 +1959,7 @@ void Map_rayIntersectTerrain(MapInfo* mi, Vector* origin, Vector* ray, Vector* h
 // 				debugWF_Sphere(&(Sphere){{x,y,z}, .5}, 5, "cyan", 1);
 				if(Map_pointIsUnderground(mi, (Vector){x,y,z})) {
 					debugWF_Sphere(&(Sphere){{x,y,z}, 2}, 10, "magenta", 2);
+					*hitPos = (Vector){x,y,z};
 					return;
 				}
 				
