@@ -219,6 +219,7 @@ void initRenderLoop(GameState* gs);
 void depthPrepass(XStuff* xs, GameState* gs, InputState* is);
 
 
-
+void ray_from_screen(GameState* gs, Vector2 screenPos, Vector* origin, Vector* ray);
+void ray_from_screeni(GameState* gs, Vector2i screenPos, Vector* origin, Vector* ray);
 
 #endif // __EACSMB_GAME_H__

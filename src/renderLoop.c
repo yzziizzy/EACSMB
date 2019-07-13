@@ -709,7 +709,7 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		
 		renderDebugWireframeLines(&pfp);
-		resetDebugWireframes();
+// 		resetDebugWireframes();
 		
 		glDisable(GL_BLEND);
 		glEnable(GL_DEPTH_TEST);

@@ -14,6 +14,7 @@ void resetDebugWireframes();
 
 
 void debugWF_Line(Vector* p1, Vector* p2, char* color1, char* color2, float width1, float width2);
+void debugWF_Ray(Vector* origin, Vector* dir, float len, char* color1, char* color2, float width1, float width2);
 
 void debugWF_ProjMatrix(Matrix* m);
 void debugWF_AABB(AABB* aabb, char* color, float width);

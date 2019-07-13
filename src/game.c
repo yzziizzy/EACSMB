@@ -731,6 +731,8 @@ static void main_drag_handler(InputEvent* ev, GameState* gs) {
 		ev->normPos.x, ev->normPos.y
 	);
 	
+	return;
+	
 	Vector2i tile;
 	getTileFromScreenCoords(gs, ev->normPos, &tile);
 	Vector2 to = {tile.x, tile.y};
@@ -846,28 +848,28 @@ static void main_key_handler(InputEvent* ev, GameState* gs) {
 
 
 
-// BUG this is upside-down at very least
+void ray_from_screeni(GameState* gs, Vector2i screenPos, Vector* origin, Vector* ray) {
+	ray_from_screen(gs, (Vector2){screenPos.x, screenPos.y}, origin, ray);
+}
+
 void ray_from_screen(GameState* gs, Vector2 screenPos, Vector* origin, Vector* ray) {
-	Vector ws_ray; // ray in world space
 	
+	printf("screenpos: %f, %f  [%f,%f]\n", screenPos.x, screenPos.y, gs->screen.wh.x, gs->screen.wh.y);
 	// convert from screen space through ndc into world space
+
 	Vector ss_ray = { // ray in screen space
 		(screenPos.x / gs->screen.wh.x) * 2.0 - 1.0,
 		(screenPos.y / gs->screen.wh.y) * 2.0 - 1.0,
-		-1
+		-10
 	};
+
+	Vector p2;
 	
-	vMatrixMul(&ss_ray, &gs->mProjWorld, &ws_ray);
-	
-	vNorm(&ws_ray, &ws_ray);
-	*ray = ws_ray;
-	
-	// ws_ray is now a world-space unit vector pointing away from the mouse
-	
-	Vector ws_campos;
-	vMatrixMul(&(Vector){0,0,0}, &gs->mProjWorld, &ws_campos);
-	
-	*origin = ws_campos;
+	vMatrixMul(&(Vector){ss_ray.x, ss_ray.y, 0}, &gs->mProjWorld, origin);
+	vMatrixMul(&ss_ray, &gs->mProjWorld, &p2);
+
+	vSub(origin, &p2, &p2);
+	vNorm(&p2, ray);
 }
 
 
@@ -893,11 +895,38 @@ static void main_click_handler(InputEvent* ev, GameState* gs) {
 		}
 		else {
 			
+			float t;
 			Vector origin, ray;
 			
-			ray_from_screen(gs, ev->normPos, &origin, &ray);
+			ray_from_screeni(gs, ev->intPos, &origin, &ray);
 			
+			
+			
+			debugWF_Ray(&origin, &ray, 600, "green", "red", 2, 2);
 			Map_rayIntersectTerrain(&gs->world->map, &origin, &ray, NULL);
+			
+			/*
+			ray.y *= -1;
+ 			ray.x *= -1;
+			debugWF_Ray(&origin, &ray, 100, "green", "red", 2, 2);
+			Map_rayIntersectTerrain(&gs->world->map, &origin, &ray, NULL);
+			
+			t = ray.y;
+			ray.y = ray.x;
+			ray.x = -t;
+			debugWF_Ray(&origin, &ray, 100, "green", "red", 2, 2);
+ 			Map_rayIntersectTerrain(&gs->world->map, &origin, &ray, NULL);
+			
+			ray.y *= -1;
+ 			ray.x *= -1;
+			debugWF_Ray(&origin, &ray, 100, "green", "red", 2, 2);
+			Map_rayIntersectTerrain(&gs->world->map, &origin, &ray, NULL);
+*/
+			
+// 			debugWF_Ray(&(Vector){0,0,0}, &(Vector){1,0,0}, 100, "green", "red", 2, 2);
+// 			debugWF_Ray(&(Vector){0,0,0}, &(Vector){0,1,0}, 100, "cyan", "red", 2, 2);
+// 			debugWF_Ray(&(Vector){0,0,0}, &(Vector){0,0,1}, 100, "blue", "red", 2, 2);
+// 			debugWF_Ray(&(Vector){0,0,0}, &(Vector){.577,.577,.577}, 100, "pink", "red", 2, 2);
 			
 			
 			
@@ -972,6 +1001,7 @@ static void main_move_handler(InputEvent* ev, GameState* gs) {
 	Vector2i ci;
 // 	Vector c;
 	
+	return;
 
 	getTileFromScreenCoords(gs, ev->normPos, &ci);
 	

@@ -19,6 +19,7 @@
 #include "map.h"
 #include "perlin.h"
 #include "opensimplex.h"
+#include "debugWireframes.h"
 //#include "terrain.h"
 
 
@@ -1819,11 +1820,26 @@ void MapBlock_getTerrainBounds(MapBlock* mb, Vector* min, Vector* max) {
 }
 
 
+int Map_pointIsUnderground(MapInfo* mi, Vector pos) {
+	
+	if(pos.x < 0 || pos.y < 0 || pos.x > 512 || pos.y > 512) {
+		return 0;
+	}
+	
+	MapLayer* b = mi->block->terrain; 
+	
+	float z = b->data.f[(int)pos.x + (int)pos.y * b->w];
+	
+	printf("z: %f - %f\n", z, pos.z);
+	
+	return z >= pos.z;
+}
+
+
 
 
 // all arguments are in world space
 void Map_rayIntersectTerrain(MapInfo* mi, Vector* origin, Vector* ray, Vector* hitPos) {
-	
 	
 	MapLayer* terr = mi->block->terrain;
 	
@@ -1836,12 +1852,18 @@ void Map_rayIntersectTerrain(MapInfo* mi, Vector* origin, Vector* ray, Vector* h
 	Plane plane = {.n = {0,1,0}, .d = 0};
 	vProjectOntoPlaneNormalized(ray, &plane, &groundDir);
 	
+	// slopes of x and y with respect to each other
 	float sx = groundDir.y == 0.0f ? 1.0 : groundDir.x / groundDir.y;
 	float sy = groundDir.x == 0.0f ? 1.0 : groundDir.y / groundDir.x;
-	float adx = fabs(sx);
-	float ady = fabs(sy);
-	int sdx = sx > 0.0 ? 1.0 : -1.0;
-	int sdy = sy > 0.0 ? 1.0 : -1.0;
+	
+	float adx = fabs(groundDir.x);
+	float ady = fabs(groundDir.y);
+	
+	// sign of the slopes
+	int ssx = sx > 0.0 ? 1.0 : -1.0;
+	int ssy = sy > 0.0 ? 1.0 : -1.0;
+	int sdx = groundDir.x > 0.0 ? 1.0 : -1.0;
+	int sdy = groundDir.y > 0.0 ? 1.0 : -1.0;
 	
 	Vector2 pos = {origin->x, origin->y};
 	printf("%f,%f,%f\n", ray->x, ray->y, ray->z);
@@ -1849,20 +1871,26 @@ void Map_rayIntersectTerrain(MapInfo* mi, Vector* origin, Vector* ray, Vector* h
 	float sz_y = ray->y == 0.0f ? 1.0 : ray->z / fabs(ray->y);
 	
 	
-	
-	float acc;
+	float acc = 0.0;
 	float x = origin->x;
 	float y = origin->y;
 	float z = origin->z;
-	float x_end = x + sx * 3;
-	float y_end = y + sy * 3;
+	float x_end = x + sdx * 645;
+	float y_end = y + sdy * 645;
+	
+// 	printf("sx,sy: %f,%f  |  adx,ady: %f,%f  |  sdx,sdy: %d,%d\n", sx, sy, adx, ady, sdx, sdy);
+// 	printf("x,y: %f,%f  |  x_end,y_end: %f,%f \n", x, y, x_end, y_end);
 	
 	if(adx > ady) { // x advances faster than y, accumulate y error
 		
-		if(sx > 0) { // x going up
+		if(sdx > 0) { // x going up
 			while(x <= x_end) {
-				
-				printf("A x: %f, y: %f, z: %f\n", x, y, z);
+// 				printf("A x: %f, y: %f, z: %f\n", x, y, z);
+// 				debugWF_Sphere(&(Sphere){{x,y,z}, .5}, 5, "green", 1);
+				if(Map_pointIsUnderground(mi, (Vector){x,y,z})) {
+					debugWF_Sphere(&(Sphere){{x,y,z}, 2}, 10, "magenta", 2);
+					return;
+				}
 				
 				x += 1.0;
 				z += sz_x;
@@ -1870,20 +1898,19 @@ void Map_rayIntersectTerrain(MapInfo* mi, Vector* origin, Vector* ray, Vector* h
 				acc += sy; // y slope 
 				
 				if(fabs(acc) >= 1.0) {
-					
-					assert(fabs(acc) < 2.0); // this shouldn't ever advance more than one 
-					
-					y += sdy;
-					acc -= sdy;
+					y += ssy;
+					acc -= ssy;
 				}
 			}
 		}
 		else { // x going down
 			while(x >= x_end) {
-				
-				
-				printf("B x: %f, y: %f, z: %f\n", x, y, z);
-				
+// 				printf("B x: %f, y: %f, z: %f\n", x, y, z);
+// 				debugWF_Sphere(&(Sphere){{x,y,z}, .5}, 5, "red", 1);
+				if(Map_pointIsUnderground(mi, (Vector){x,y,z})) {
+					debugWF_Sphere(&(Sphere){{x,y,z}, 2}, 10, "magenta", 2);
+					return;
+				}
 				
 				x -= 1.0;
 				z += sz_x;
@@ -1891,13 +1918,9 @@ void Map_rayIntersectTerrain(MapInfo* mi, Vector* origin, Vector* ray, Vector* h
 				acc += sy; // y slope 
 				
 				if(fabs(acc) >= 1.0) {
-					
-					assert(fabs(acc) < 2.0); // this shouldn't ever advance more than one 
-					
-					y += sdy;
-					acc -= sdy;
+					y -= ssy;
+					acc -= ssy;
 				}
-				
 			}
 		}
 		
@@ -1905,13 +1928,16 @@ void Map_rayIntersectTerrain(MapInfo* mi, Vector* origin, Vector* ray, Vector* h
 	}
 	else { // y advances faster than x, accumulate x error
 		
-			
-		if(sy > 0) { // y going up
+		
+		if(sdy > 0) { // y going up
 			while(y <= y_end) {
 				
-				
-				
-				printf("C x: %f, y: %f, z: %f\n", x, y, z);
+// 				printf("C x: %f, y: %f, z: %f\n", x, y, z);
+// 				debugWF_Sphere(&(Sphere){{x,y,z}, .5}, 5, "yellow", 1);
+				if(Map_pointIsUnderground(mi, (Vector){x,y,z})) {
+					debugWF_Sphere(&(Sphere){{x,y,z}, 2}, 10, "magenta", 2);
+					return;
+				}
 				
 				y += 1.0;
 				z += sz_y;
@@ -1919,40 +1945,33 @@ void Map_rayIntersectTerrain(MapInfo* mi, Vector* origin, Vector* ray, Vector* h
 				acc += sx; // x slope 
 				
 				if(fabs(acc) >= 1.0) {
-					
-					assert(fabs(acc) < 2.0); // this shouldn't ever advance more than one 
-					
 					x += sdx;
 					acc -= sdx;
 				}
 			}
 		}
-		else { // y going down
+		else { // y going down*/
 			while(y >= y_end) {
-				
-				
-				
-				printf("D x: %f, y: %f, z: %f\n", x, y, z);
-				
+// 				printf("D x: %f, y: %f, z: %f\n", x, y, z);
+// 				debugWF_Sphere(&(Sphere){{x,y,z}, .5}, 5, "cyan", 1);
+				if(Map_pointIsUnderground(mi, (Vector){x,y,z})) {
+					debugWF_Sphere(&(Sphere){{x,y,z}, 2}, 10, "magenta", 2);
+					return;
+				}
 				
 				y -= 1.0;
 				z += sz_y;
 				
-				
 				acc += sx; // x slope 
 				
 				if(fabs(acc) >= 1.0) {
-					
-					assert(fabs(acc) < 2.0); // this shouldn't ever advance more than one 
-					
-					x += sdx;
-					acc -= sdx;
+					x -= ssx;
+					acc -= ssx;
 				}
 			}
 		}
 		
 	}
-	
 	
 	
 	

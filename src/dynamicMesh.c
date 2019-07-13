@@ -145,7 +145,7 @@ DynamicMesh* DynamicMeshFromOBJ(OBJContents* obj) {
 		vCopy(&obj->faces[i].n, &m->vertices[i].n);
 		
 		if(vMag(&obj->faces[i].n) < 0.1) {
-			printf("\n\n----broken normal: %d \n\n", i);
+			//printf("\n\n----broken normal: %d \n\n", i);
 		}
 		
 		m->vertices[i].t.u = obj->faces[i].t.x * 65535;

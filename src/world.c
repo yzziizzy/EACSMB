@@ -95,7 +95,6 @@ void World_init(World* w) {
 	
 	
 	
-	
 	// -------- building test ------------
 	Building b;
 	VEC_INIT(&b.outlines);
@@ -145,8 +144,7 @@ void World_init(World* w) {
 	
 	w->roads = RoadNetwork_alloc();
 	
-	
-	
+
 	
 	
 	int nn = 0;
@@ -172,6 +170,7 @@ void World_init(World* w) {
 		}
 	}
 	
+		
 	
 	
  	CustomDecal* cd;
@@ -210,7 +209,7 @@ void World_init(World* w) {
 		.tex34 = 2,
 	});
  	
-	
+
 	
 // 	World_spawnAt_CustomDecal(w, 0, 1, &(Vector2){100, 100}, &(Vector2){300, 300});
 	
@@ -229,7 +228,15 @@ void World_initGL(World* w) {
 	//initMap(&w->map);
 	MapInfo_InitGL(&w->map, &w->gs->globalSettings);
 	
-
+	
+	
+	
+	// HACK:
+	Vector a, b;
+	MapBlock_getTerrainBounds(w->map.block, &a, &b);
+	
+	
+	
 	
 	dynamicMeshManager_initGL(w->dmm, &w->gs->globalSettings);
 	DecalManager_initGL(w->dm, &w->gs->globalSettings);
@@ -476,7 +483,6 @@ int World_spawnAt_ItemPtr(World* w, Item* item, Vector* location) {
 	};
 	si->eid = inst->eid;
 	QuadTree_insert(&w->qt, si);
-	
 	
 	return inst->eid;
 }

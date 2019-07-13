@@ -177,6 +177,23 @@ void debugWF_Line(Vector* p1, Vector* p2, char* color1, char* color2, float widt
 	}));
 }
 
+void debugWF_Ray(Vector* origin, Vector* dir, float len, char* color1, char* color2, float width1, float width2) {
+	uint32_t c1 = parseColor(color1);
+	uint32_t c2 = parseColor(color2);
+	
+	Vector p2;
+	vScale(dir, len, &p2);
+	vAdd(origin, &p2, &p2);
+	
+	VEC_PUSH(&debugLines, ((debugWireframeLine){
+		.p1 = *origin,
+		.p2 = p2,
+		.color1 = c1,
+		.color2 = c2,
+		.width1 = width1,
+		.width2 = width2,
+	}));
+}
 
 
 void debugWF_ProjMatrix(Matrix* m) {
