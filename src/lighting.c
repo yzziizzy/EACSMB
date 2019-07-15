@@ -130,23 +130,20 @@ void LightManager_Init(LightManager* lm) {
 		3, 7, 9,
 		2, 4, 8,
 		2, 8, 6,
-	
-		// ---- triangles are correctly wound above here, below is random
-	
-		// inverted triangle end caps
-		10, 5, 6,
-		11, 7, 8,
 		
+		// inverted triangle end caps
+		6, 11, 7,
+		4, 5, 10,
+
 		// neighbors of the two bottom triangles
-		// signs are shared in x and y
-		8, 10, 4,
-		8, 11, 6,
-		9, 10, 5,
-		9, 11, 7,
+		6, 8, 11,
+		4, 10, 8,
+		5, 9, 10,
+		7, 11, 9,
 		
 		// bottom two triangles
-		10, 8, 11, 
-		11, 10, 9 
+		10, 9, 11,
+		10, 11, 8,
 	};
 	
 	lm->maxInstances = 1024 * 50;
@@ -341,10 +338,12 @@ static void draw(LightManager* lm, PassDrawable* pd, PassDrawParams* pdp) {
 	glUniformMatrix4fv(view_ul, 1, GL_FALSE, pdp->mWorldView->m);
 	
 	
-	glActiveTexture(GL_TEXTURE0 + 23);
+// 	glActiveTexture(GL_TEXTURE0 + 23);
 	glexit("shading tex 5");
 	glBindTexture(GL_TEXTURE_2D, lm->dtex);
-	glProgramUniform1i(prog->id, glGetUniformLocation(prog->id, "sDepth"), 23);
+	glProgramUniform1i(prog->id, glGetUniformLocation(prog->id, "sDepth"), 2);
+	glProgramUniform1i(prog->id, glGetUniformLocation(prog->id, "sNormals"), 1);
+	glProgramUniform1i(prog->id, glGetUniformLocation(prog->id, "sDiffuse"), 0);
 	
 	
 	// ---------------------------------

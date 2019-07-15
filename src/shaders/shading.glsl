@@ -345,13 +345,15 @@ void main() {
 		// ^^^ shadow stuff ^^^^^^^^^^^
 		
 		
-		FragColor = vec4(f_Schlick_Smith_GGX(
+		vec3 sun_shad = f_Schlick_Smith_GGX(
 			normal, h, l, viewdir_w, 
-			dielectricSpecular, baseColor, 
-			metallic, roughness) * (1 - shadow_factor), 1);
+			baseColor, 
+			metallic, roughness) * (1 - shadow_factor);
+			
+		FragColor = vec4(clamp(clamp(sun_shad, 0, 1) + texture(sLighting, tex).rgb, 0, 1), 1);
 		
 		//FragColor = vec4(light_dir.xyz, 1.0);
 	}
-		
+	
 //	FragColor = vec4(texture(sNormals, tex).rgb,  1.0);
 }

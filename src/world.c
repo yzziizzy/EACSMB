@@ -298,7 +298,7 @@ void World_initGL(World* w) {
 // 	Pipe_init(&w->testmesh);
 	
 	// hack to test lightmanager
-	LightManager_AddPointLight(w->lm, (Vector){10,10, 10}, 200, 20);
+	LightManager_AddPointLight(w->lm, (Vector){10,10, 10}, 20, 20);
 	
 	
 	dynamicMeshManager_updateGeometry(w->dmm);
@@ -604,12 +604,12 @@ int World_spawnAt_Light(World* w, int lightIndex, Vector* location) {
 	//getTerrainHeight(&w->map, &loci, 1, &h);
 	h = Map_getTerrainHeight(&w->map, loci);
 	
-	groundloc = (Vector){location->x, location->y, h};
+	groundloc = (Vector){location->x, location->y, h + 10};
 
 	//printf("spawning light %f,%f,%f\n", groundloc.x, groundloc.y, groundloc.z);
 
 	
-	LightManager_AddPointLight(w->lm, groundloc, 10.0, 0.02);
+	LightManager_AddPointLight(w->lm, groundloc, 50.0, 020.2);
 	
 	return newEID();
 }

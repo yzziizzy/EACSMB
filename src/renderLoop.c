@@ -609,14 +609,15 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	World_postTransparents(gs->world);
 	
-	
+/*	
 	// emitters
 // 	query_queue_start(&gs->queries.emitters);
 	RenderPass_preFrameAll(gs->world->emitterPass, &pfp);
 	RenderPass_renderAll(NULL, gs->world->emitterPass, pfp.dp);
 	RenderPass_postFrameAll(gs->world->emitterPass);
 // 	query_queue_stop(&gs->queries.emitters);
-	
+*/
+
 	glDepthMask(GL_TRUE); // turn depth writes back on
 	glDisable(GL_BLEND);
 	query_queue_stop(&gs->queries.effects);
@@ -629,7 +630,7 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	
 	
-
+	// Lighting
 	
 	
 	// keep depth writes off for lighting
@@ -637,10 +638,12 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	// lighting
 	// hacky code to adapt an isolated render pass outside a pipeline
 	//glFrontFace(GL_CCW);
-	//glEnable(GL_CULL_FACE);
-	//glCullFace(GL_FRONT);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_FRONT);
 	//glDisable(GL_DEPTH_TEST);
-	//glDepthFunc(GL_GREATER);
+	glDepthFunc(GL_GREATER);
+	
+	
 	query_queue_start(&gs->queries.lighting);
 	glDepthMask(GL_FALSE); // no depth writes for light volumes
 	glEnable(GL_BLEND);
@@ -660,10 +663,11 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	query_queue_stop(&gs->queries.lighting);
 	
 	//glDisable(GL_CULL_FACE);
-	//glCullFace(GL_BACK);
+	glCullFace(GL_BACK);
+	
 	glDepthMask(GL_TRUE);
 	//glEnable(GL_DEPTH_TEST);
-	//glDepthFunc(GL_LEQUAL);
+	glDepthFunc(GL_LEQUAL);
 	
 	cleanUpView(xs, gs, is);
 	

@@ -1,4 +1,6 @@
 
+#include "include/lighting_pbr.glsl"
+
 #shader VERTEX
 
 
@@ -66,6 +68,8 @@ void main() {
 // uniform vec4 color;
 // uniform sampler2D sTexture;
 
+uniform sampler2D sDiffuse;
+uniform sampler2D sNormals;
 uniform sampler2D sDepth;
 
 
@@ -109,16 +113,32 @@ void main(void) {
 		discard;
 	}
 	
+	
+	
+	vec2 tex = gl_FragCoord.xy / targetSize.xy;
+	vec4 raw_normal = texture(sNormals, tex);
+	vec4 raw_diffuse = texture(sDiffuse, tex);
+	vec3 normal = (raw_normal.xyz * 2.0) - 1.0;
+	vec3 diffuseColor = raw_diffuse.rgb;
 
+	if(raw_normal.xyz != vec3(0,0,0)) normal = normalize(normal);
+
+	vec3 viewpos = (inverse(mViewProj * mWorldView) * vec4(0,0,0,1)).xyz;
+	vec3 viewdir = normalize((inverse(mViewProj * mWorldView) * vec4(0,0,1,1)).xyz);
+	
+	// world space
+// 	vec3 ldir = normalize(pos - vs_center);
+	vec3 ldir = normalize(vs_center - pos);
+	vec3 h = normalize(ldir + viewdir);
 	
 	float att = 1.0 / (vs_constant + vs_linear * d + vs_quadratic * d * d);
 	
-	//att = att * 30;
-	//float linear = max(0.0, 1.0 - (distance(pos, vs_center) / vs_radius));
+// 	out_Light = vec4(att, att, att, 1.0);
 	
-	vec3 dir = normalize(pos - vs_center);
-	
-	out_Light = vec4(att, att, att, 1.0);
+	vec4 o = att * 5 * vec4(f_Schlick_Smith_GGX(normal, h, ldir, viewdir, diffuseColor, .08, .61), 1.0);
+	out_Light = clamp(o, 0, 2000);
 // 	out_Light = vec4(.2, 1.0, .8, 1.0);
+// 	out_Light = vec4(diffuseColor,1);
+//  	out_Light = vec4(viewdir * .5 + .5,1);
 }
 

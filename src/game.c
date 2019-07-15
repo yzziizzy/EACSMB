@@ -896,14 +896,14 @@ static void main_click_handler(InputEvent* ev, GameState* gs) {
 		else {
 			
 			float t;
-			Vector origin, ray;
+			Vector origin, ray, hitPos;
 			
 			ray_from_screeni(gs, ev->intPos, &origin, &ray);
 			
 			
 			
 			debugWF_Ray(&origin, &ray, 600, "green", "red", 2, 2);
-			Map_rayIntersectTerrain(&gs->world->map, &origin, &ray, NULL);
+			Map_rayIntersectTerrain(&gs->world->map, &origin, &ray, &hitPos);
 			
 			/*
 			ray.y *= -1;
@@ -930,11 +930,11 @@ static void main_click_handler(InputEvent* ev, GameState* gs) {
 			
 			
 			
-			Vector2i tile;
-			Vector2 invPos = {ev->normPos.x, 1 - ev->normPos.y};
-			getTileFromScreenCoords(gs, ev->normPos, &tile);
+			Vector2i tile = {hitPos.x, hitPos.y};
+// 			Vector2 invPos = {ev->normPos.x, 1 - ev->normPos.y};
+// 			getTileFromScreenCoords(gs, ev->normPos, &tile);
 			printf("x: %d, y: %d\n", tile.x, tile.y);
-			Vector2 tilef = {tile.x, tile.y};
+			Vector2 tilef = {hitPos.x, hitPos.y};
 			
 			
 			SceneItemInfo* sii = QuadTree_findFirst(&gs->world->qt, tilef);
@@ -953,8 +953,8 @@ static void main_click_handler(InputEvent* ev, GameState* gs) {
 			}
 			
 			QuadTree_findAllArea(&gs->world->qt, (AABB2){
-				tilef.x - 10, tilef.y - 10,
-				tilef.x + 10, tilef.y + 10,
+				tilef.x - 50, tilef.y - 50,
+				tilef.x + 50, tilef.y + 50,
 			}, purge, &gs->world->qt);
 			
 			VEC_EACH(&dead, sii, si) {
@@ -962,9 +962,9 @@ static void main_click_handler(InputEvent* ev, GameState* gs) {
 			}
 			
 			VEC_FREE(&dead);
-			
+			printf("tile: %f, %f\n",tilef.x, tilef.y);
 			//BUG: convert this to tile coords
-// 			World_spawnAt_Item(gs->world, "gazebbq", &tilef);
+ 			World_spawnAt_Item(gs->world, "gazebbq", &tilef);
 			
 		/*	SoundInstance* si = calloc(1, sizeof(*si));
 			si->flags = 0;//SOUNDFLAG_LOOP;
@@ -1006,7 +1006,7 @@ static void main_move_handler(InputEvent* ev, GameState* gs) {
 
 	//debugWF_Ray(&origin, &ray, 600, "green", "red", 2, 2);
 	Map_rayIntersectTerrain(&gs->world->map, &origin, &ray, &movePos);
-	printf("move intersect: %f, %f\n", movePos.x, movePos.y);
+// 	printf("move intersect: %f, %f\n", movePos.x, movePos.y);
 
 // 	getTileFromScreenCoords(gs, ev->normPos, &ci);
 	
