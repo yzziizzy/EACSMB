@@ -135,10 +135,11 @@ void main(void) {
 	
 // 	out_Light = vec4(att, att, att, 1.0);
 	
-	vec4 o = att * 5 * vec4(f_Schlick_Smith_GGX(normal, h, ldir, viewdir, diffuseColor, .08, .61), 1.0);
-	out_Light = clamp(o, 0, 2000);
-// 	out_Light = vec4(.2, 1.0, .8, 1.0);
-// 	out_Light = vec4(diffuseColor,1);
-//  	out_Light = vec4(viewdir * .5 + .5,1);
+	vec3 o = att * 5 * f_Schlick_Smith_GGX(normal, h, ldir, viewdir, diffuseColor, .08, .61);
+	out_Light = vec4(o, 1.0);
+
+//  	out_Light = vec4(.2, .4, .8, 1.0);
+// out_Light = vec4(att,att,att,1);
+//  	out_Light = vec4(h * .5 + .5,1);
 }
 

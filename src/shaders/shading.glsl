@@ -336,7 +336,7 @@ void main() {
 			}
 		}
 		
-		shadow_factor = smoothstep(0, 1, shadow_factor / ((sz + sz + 1)*(sz + sz + 1)));
+		shadow_factor = smoothstep(0.0, 1.0, shadow_factor / ((sz + sz + 1)*(sz + sz + 1)));
 		
 		if(l_pos.x > 1 || l_pos.y > 1 || l_pos.x < 0 || l_pos.y < 0) {
 			shadow_factor = 0;
@@ -348,9 +348,9 @@ void main() {
 		vec3 sun_shad = f_Schlick_Smith_GGX(
 			normal, h, l, viewdir_w, 
 			baseColor, 
-			metallic, roughness) * (1 - shadow_factor);
+			metallic, roughness) * (1.0 - shadow_factor);
 			
-		FragColor = vec4(clamp(clamp(sun_shad, 0, 1) + texture(sLighting, tex).rgb, 0, 1), 1);
+		FragColor = vec4(clamp(clamp(sun_shad, 0.0, 1.0) + texture(sLighting, tex).rgb, 0.0, 1.0), 1);
 		
 		//FragColor = vec4(light_dir.xyz, 1.0);
 	}

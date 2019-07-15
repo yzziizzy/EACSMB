@@ -609,14 +609,14 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	World_postTransparents(gs->world);
 	
-/*	
+	
 	// emitters
 // 	query_queue_start(&gs->queries.emitters);
 	RenderPass_preFrameAll(gs->world->emitterPass, &pfp);
 	RenderPass_renderAll(NULL, gs->world->emitterPass, pfp.dp);
 	RenderPass_postFrameAll(gs->world->emitterPass);
 // 	query_queue_stop(&gs->queries.emitters);
-*/
+
 
 	glDepthMask(GL_TRUE); // turn depth writes back on
 	glDisable(GL_BLEND);
