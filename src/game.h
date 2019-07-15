@@ -70,21 +70,14 @@ typedef struct GameState {
 	GameSettings settings;
 	GlobalSettings globalSettings;
 	
-	GLuint diffuseTexBuffer, normalTexBuffer, materialTexBuffer, depthTexBuffer, selectionTexBuffer, lightingTexBuffer;
+	GLuint diffuseTexBuffer, normalTexBuffer, materialTexBuffer, depthTexBuffer, lightingTexBuffer;
 	GLuint framebuffer;
 	GLuint depthRenderbuffer;
 	
 	GLuint* fboTextures; 
 	Framebuffer gbuf;
-	Framebuffer selectionbuf;
 	Framebuffer decalbuf;
 	Framebuffer lightingbuf;
-	
-	uint32_t* selectionData;
-	uint64_t selectionFrame;
-	GLsync selectionFence;
-	GLuint selectionPBOs[2];
-	char readPBO, activePBO;
 	
 	Scene scene;
 	World* world;
@@ -119,6 +112,8 @@ typedef struct GameState {
 	Vector2 cursorPos;
 // 	Vector cursorPos;
 	int cursorIndex;
+	
+	char hasMoved;
 
 	Vector2 mouseDownPos;
 	
@@ -142,7 +137,6 @@ typedef struct GameState {
 	// performance counters
 	struct {
 		double preframe;
-		double selection;
 		double draw;
 		double decal;
 		double light;
@@ -154,7 +148,6 @@ typedef struct GameState {
 		QueryQueue draw; 
 		QueryQueue terrain; 
 		QueryQueue solids; 
-		QueryQueue selection; 
 		QueryQueue decals; 
 		QueryQueue emitters; 
 		QueryQueue effects; 
@@ -166,10 +159,6 @@ typedef struct GameState {
 	} queries;
 
 	
-	// info for the selection pass
-	char hasMoved; // if the view has moved since the last selection pass
-	uint64_t lastSelectionFrame; // frame number of the last time a selection pass was rendered
-	char selectionPassDisabled;
 	
 	// temp stuff with no better place atm
 	int activeTool;

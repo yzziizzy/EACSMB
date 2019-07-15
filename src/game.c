@@ -61,7 +61,6 @@ float zoom;
 GUIText* gt;
 GUIText* gt_terrain;
 GUIText* gt_solids;
-GUIText* gt_selection;
 GUIText* gt_decals;
 GUIText* gt_emitters;
 GUIText* gt_effects;
@@ -76,7 +75,6 @@ GUIWindow* gw_test2;
 GUIImage* gt_img;
 
 GUIText* gtRenderMode;
-GUIText* gtSelectionDisabled;
 GUISimpleWindow* gswTest;
 GUIImage* giTest;
 
@@ -242,12 +240,11 @@ void initGame(XStuff* xs, GameState* gs) {
 	gs->show_debugWireframe = 0;
 	
 	gs->hasMoved = 1;
-	gs->lastSelectionFrame = 0;
 	gs->frameCount = 0;
 	
 	gs->activeTool = 0;
 	
-	gs->debugMode = 7;
+	gs->debugMode = 0;
 	gs->sunSpeed = 0;
 	gs->sunTheta = 2.2;
 	
@@ -380,7 +377,6 @@ void initGameGL(XStuff* xs, GameState* gs) {
 	gt = GUIText_new(gs->gui, "", "Arial", 3.0f);
 	
 	gtRenderMode = GUIText_new(gs->gui, "", "Arial", 6.0f);
-	gtSelectionDisabled = GUIText_new(gs->gui, "", "Arial", 6.0f);
 	
 
 	
@@ -458,7 +454,6 @@ void initGameGL(XStuff* xs, GameState* gs) {
 	GUIObject* ps = GUIObject_findChild(gs->gui->root, "perfstats");
 	gt_terrain = GUIObject_findChild(ps, "terrain");
 	gt_solids = GUIObject_findChild(ps, "solids");
-	gt_selection = GUIObject_findChild(ps, "selection");
 	gt_decals = GUIObject_findChild(ps, "decals");
 	gt_emitters = GUIObject_findChild(ps, "emitters");
 	gt_effects = GUIObject_findChild(ps, "effects");
@@ -556,7 +551,6 @@ void preFrame(GameState* gs) {
 
 		query_update_gui(terrain);
 		query_update_gui(solids);
-		query_update_gui(selection);
 		query_update_gui(decals);
 		query_update_gui(effects);
 		query_update_gui(emitters);
@@ -567,36 +561,6 @@ void preFrame(GameState* gs) {
 		
 		lastPoint = now;
 	}
-	
-	
-	// check the pbos
-	GLenum val;
-	if(gs->selectionFence) {
-		val = glClientWaitSync(gs->selectionFence, 0, 0);
-		
-		if(val == GL_CONDITION_SATISFIED || val == GL_ALREADY_SIGNALED) {
-			//printf("signaled %d\n", gs->frameCount - gs->selectionFrame);
-			glDeleteSync(gs->selectionFence);
-			gs->selectionFence = 0;
-			
-			glBindBuffer(GL_PIXEL_PACK_BUFFER, gs->selectionPBOs[gs->activePBO]);
-			void* p = glMapBufferRange(GL_PIXEL_PACK_BUFFER, 0, 600*600*4, GL_MAP_READ_BIT);
-			glexit("buffer map");
-			if(p == NULL) {
-				exit(1);
-			}
-			
-			int sz = gs->screen.wh.x * gs->screen.wh.y * 4; 
-			memcpy(gs->selectionData, p, sz);
-			
-			glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
-			
-			
-			gs->readPBO = gs->activePBO;
-			gs->activePBO = (gs->activePBO + 1) % 2;
-		}
-	}
-	
 }
 
 
@@ -688,7 +652,6 @@ static void main_perframe_handler(InputState* is, float frameSpan, GameState* gs
 		gs->hasMoved = 1;
 	}
 	
-	// these don't stimulate a selection pass since they are debug tools
 	if(is->keyState[110] & IS_KEYDOWN) {
 		gs->nearClipPlane += 50 * te;
 		printf("near: %f, far: %f\n", gs->nearClipPlane, gs->farClipPlane);
@@ -773,22 +736,16 @@ static void main_key_handler(InputEvent* ev, GameState* gs) {
 			"diffuse",
 			"normal",
 			"depth",
-			"selection",
 			"lighting",
 			"shadow depth",
-			"PBR"
 		};
 		
-		gs->debugMode = (gs->debugMode + 1) % 8;
+		gs->debugMode = (gs->debugMode + 1) % 6;
 		lastChange = gs->frameTime;
 		
 		GUIText_setString(gtRenderMode, modeStrings[gs->debugMode]);
 	}
 	
-	if(ev->keysym == XK_Insert) {
-		gs->selectionPassDisabled = !gs->selectionPassDisabled;
-		GUIText_setString(gtSelectionDisabled, gs->selectionPassDisabled ? "Selection Disabled" : "");
-	}
 	
 	if(ev->keysym == XK_Print) {
 		gs->takeScreenShot = 1;
@@ -1120,92 +1077,10 @@ void getTileFromScreenCoords(GameState* gs, Vector2 scoord, Vector2i* tile) {
 		uint32_t in;
 	} u;
 	
-	if(!gs->selectionData) {
-		printf("!!! Cannot look up tile coordinates: no selection data.\n");
-		return;
-	}
-	
-	int w = (int)gs->screen.wh.x;
-	int h = (int)gs->screen.wh.y;
-	
-	int i = (scoord.x * w) + ((scoord.y * h) * w);
-	
-	uint32_t j = gs->selectionData[i];
-	u.in = j;
-	
-	gs->cursorTilePos.x = u.rgb[0];
-	gs->cursorTilePos.y = u.rgb[1];
-	//gs->cursorTilePos.z = u.rgb[2];
-	
-//	struct sGL_RG8* off = &gs->world->map.offsetData[(int)gs->cursorTilePos.z]; 
-	
-	int by = u.rgb[2] / 2; // set 2 to the size of the map / 256
-	int bx = u.rgb[2] % 2; 
-	
-	//bx = by = 0;
-	
-	tile->x = (bx * 256.0) + gs->cursorTilePos.x;
-	tile->y = (by * 256.0) + gs->cursorTilePos.y;
-
-//	printf("*tile offset: %u - %d,%d, %d,%d %.3f,%.3f\n", j, u.rgb[0],u.rgb[1],u.rgb[2],u.rgb[3], tile->x, tile->y);
+	fprintf(stderr, "!!! getTileFromScreenCoords needs to be converted to raycasting.\n");
+	return;
 }
 
-
-// deprecated, use above
-void checkCursor(GameState* gs, InputState* is) {
-	
-	union {
-		unsigned char rgb[4];
-		uint32_t in;
-	} u;
-	glexit("pre selection buff");
-	
-	if(!gs->selectionData) return;
-	
-	int w = (int)gs->screen.wh.x;
-	int h = (int)gs->screen.wh.y;
-	
-	int x = (int)is->lastCursorPosPixels.x;
-	int y = (int)is->lastCursorPosPixels.y;
-
-	//printf("cursor %f, %f\n",is->cursorPosPixels.x, is->cursorPosPixels.y);
-	int i = x + (y * w);
-	//printf("off %d %f \n", i, gs->screen.wh.x);
-	uint32_t j = gs->selectionData[i];
-	u.in = j;
-	//printf("j %d\n", j); 
-	
-	gs->cursorTilePos.x = u.rgb[0];
-	gs->cursorTilePos.y = u.rgb[1];
-	gs->cursorTilePos.z = u.rgb[2];
-	
-	//struct sGL_RG8* off = &gs->world->map.offsetData[(int)gs->cursorTilePos.z]; 
-	
-	// NOTE: modified to not segfault during map update
-	gs->cursorPos.x =  gs->cursorTilePos.x;
-	gs->cursorPos.y =  gs->cursorTilePos.y;
-	
-	
-	//printf("tile offset: %u - %d - %d,%d,%d - %d,%d\n", j, u.rgb[2], (int)gs->cursorPos.x, (int)gs->cursorPos.y,
-		//(int)is->lastCursorPosPixels.x, (int)is->lastCursorPosPixels.y
-	//);
-	/*
- 	printf("mx: %d, my: %d, x: %d, y: %d, z: %d\n", 
-		   (int)is->cursorPosPixels.x, 
-		   (int)is->cursorPosPixels.y,  
-		   rgb[0], rgb[1], rgb[2]);
-	*/
-	
-	if(is->clickButton == 3 && u.rgb[2] == 1) {
-		gs->lookCenter.x = gs->cursorPos.x;
-		gs->lookCenter.y = gs->cursorPos.y;
-	}
-
-	
-	
-	// wove a window with the cursor
-	//gw_test->header.topleft = (Vector2){x, h - y};
-}
 
 Vector2i viewWH = {
 	.x = 0,
@@ -1613,7 +1488,6 @@ void gameLoop(XStuff* xs, GameState* gs, InputState* is) {
 	
 	updateView(xs, gs, is);
 	
-	checkCursor(gs, is);
 	
 	
 	runLogic(gs, is);

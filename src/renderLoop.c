@@ -89,12 +89,12 @@ void setupFBOs(GameState* gs, int resized) {
 	unpack_fbo(tex, "diffuse", &texcfg2[0]);
 	unpack_fbo(tex, "normal", &texcfg2[1]);
 	unpack_fbo(tex, "material", &texcfg2[2]);
-	unpack_fbo(tex, "selection", &texcfg2[3]);
-	unpack_fbo(tex, "lighting", &texcfg2[4]);
-	unpack_fbo(tex, "depth", &texcfg2[5]);
-	texcfg2[6].internalType = 0;
-	texcfg2[6].format = 0;
-	texcfg2[6].size = 0;
+// 	unpack_fbo(tex, "selection", &texcfg2[3]);
+	unpack_fbo(tex, "lighting", &texcfg2[3]);
+	unpack_fbo(tex, "depth", &texcfg2[4]);
+	texcfg2[5].internalType = 0;
+	texcfg2[5].format = 0;
+	texcfg2[5].size = 0;
 	
 	json_free(jsf->root);
 	free(jsf->root);
@@ -106,9 +106,9 @@ void setupFBOs(GameState* gs, int resized) {
 	gs->diffuseTexBuffer = texids[0];
 	gs->normalTexBuffer = texids[1];
 	gs->materialTexBuffer = texids[2];
-	gs->selectionTexBuffer = texids[3];
-	gs->lightingTexBuffer = texids[4];
-	gs->depthTexBuffer = texids[5];
+// 	gs->selectionTexBuffer = texids[3];
+	gs->lightingTexBuffer = texids[3];
+	gs->depthTexBuffer = texids[4];
 	
 	//printf("New Main Depth: %d \n", texids[3]);
 	
@@ -151,44 +151,6 @@ void setupFBOs(GameState* gs, int resized) {
 	
 	initFBO(&gs->lightingbuf, lightingConf);
 	
-	// selection pass framebufer
-	FBOConfig selectionConf[] = {
-// 		{GL_COLOR_ATTACHMENT0, gs->diffuseTexBuffer },
-// 		{GL_COLOR_ATTACHMENT1, gs->normalTexBuffer },
-		{GL_COLOR_ATTACHMENT0, gs->selectionTexBuffer },
-		{GL_DEPTH_ATTACHMENT,  gs->depthTexBuffer },
-		{0,0}
-	};
-	// depth buffer is also bound as a texture but disabled for writing
-	
-	initFBO(&gs->selectionbuf, selectionConf);
-	
-	
-	// pbo's for selection buffer
-	gs->readPBO = -1;
-	gs->activePBO = 0;
-	
-	if(gs->selectionPBOs[0]) {
-		glDeleteBuffers(2, gs->selectionPBOs);
-		glexit("");
-	}
-	
-	glGenBuffers(2, gs->selectionPBOs);
-	glexit("");
-	
-	glBindBuffer(GL_PIXEL_PACK_BUFFER, gs->selectionPBOs[0]);
-	glexit("");
-	glBufferData(GL_PIXEL_PACK_BUFFER, ww * wh * 4, NULL, GL_DYNAMIC_READ);
-	glexit("");
-	glBindBuffer(GL_PIXEL_PACK_BUFFER, gs->selectionPBOs[1]);
-	glexit("");
-	glBufferData(GL_PIXEL_PACK_BUFFER, ww * wh * 4, NULL, GL_DYNAMIC_READ);
-	glexit("");
-	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-	
-	if(gs->selectionData) free(gs->selectionData);
-	//printf("seldata size %d\n", ww * wh * 4);
-	gs->selectionData = malloc(ww * wh * 4);
 }
 
 
@@ -199,7 +161,6 @@ void initRenderLoop(GameState* gs) {
 	// timer queries
 	query_queue_init(&gs->queries.terrain);
 	query_queue_init(&gs->queries.solids);
-	query_queue_init(&gs->queries.selection);
 	query_queue_init(&gs->queries.decals);
 	query_queue_init(&gs->queries.emitters);
 	query_queue_init(&gs->queries.effects);
@@ -222,7 +183,7 @@ void initRenderLoop(GameState* gs) {
 	glProgramUniform1i(shadingProg->id, glGetUniformLocation(shadingProg->id, "sDiffuse"), 0);
 	glProgramUniform1i(shadingProg->id, glGetUniformLocation(shadingProg->id, "sNormals"), 1);
 	glProgramUniform1i(shadingProg->id, glGetUniformLocation(shadingProg->id, "sDepth"), 2);
-	glProgramUniform1i(shadingProg->id, glGetUniformLocation(shadingProg->id, "sSelection"), 3);
+	glProgramUniform1i(shadingProg->id, glGetUniformLocation(shadingProg->id, "sMaterial"), 3);
 	glProgramUniform1i(shadingProg->id, glGetUniformLocation(shadingProg->id, "sLighting"), 4);
 	
 	glProgramUniform1i(shadingProg->id, glGetUniformLocation(shadingProg->id, "sShadow"), 5);
@@ -259,7 +220,7 @@ void shadingPass(GameState* gs, PassFrameParams* pfp) {
 	glBindTexture(GL_TEXTURE_2D, gs->depthTexBuffer);
 
 	glActiveTexture(GL_TEXTURE0 + 3);
-	glBindTexture(GL_TEXTURE_2D, gs->selectionTexBuffer);
+	glBindTexture(GL_TEXTURE_2D, gs->materialTexBuffer);
 
 	glActiveTexture(GL_TEXTURE0 + 4);
 	glBindTexture(GL_TEXTURE_2D, gs->lightingTexBuffer);
@@ -323,75 +284,6 @@ void shadingPass(GameState* gs, PassFrameParams* pfp) {
 	query_queue_stop(&gs->queries.gui);
 	
 }
-
-
-void selectionPass(XStuff* xs, GameState* gs, InputState* is, PassFrameParams* pfp) {
-	
-	glexit("");
-	gs->lastSelectionFrame = gs->frameCount; 
-	
-	query_queue_start(&gs->queries.selection);
-	
-	glDepthFunc(GL_LESS);
-	//glDisable(GL_DEPTH_TEST);
-	
-	glBindFramebuffer(GL_FRAMEBUFFER, gs->selectionbuf.fb);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
-	
-	//depthPrepass(xs, gs, is);
-	
-	
-	RenderPass_preFrameAll(gs->world->terrainSelectionPass, pfp);
-	RenderPass_renderAll(NULL, gs->world->terrainSelectionPass, pfp->dp);
-	RenderPass_postFrameAll(gs->world->terrainSelectionPass);
-	
-	
-	
-	
-	
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, gs->selectionbuf.fb);
-	
-	
-	
-	// done drawing. initiate async pixel transfer
-	
-	
-	
-	//glEnable(GL_DEPTH_TEST);
-	glReadBuffer(GL_COLOR_ATTACHMENT0);
-	
-	//printf("is buffer %d\n", gs->selectionPBOs[gs->activePBO]);
-	glBindBuffer(GL_PIXEL_PACK_BUFFER, gs->selectionPBOs[gs->activePBO]);
-	
-	glexit("selection buff");
-	//printf("cursor pixels: %f, %f\n", is->cursorPosPixels.x, is->cursorPosPixels.y);
-	
-	glReadPixels(
-		0, //is->cursorPosPixels.x,
-		0, //is->cursorPosPixels.y,
-		gs->screen.wh.x,
-		gs->screen.wh.y,
-		GL_RGBA,
-		GL_UNSIGNED_BYTE,
-		0);
-	
-	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-
-	glexit("read selection");
-	glexit("");
-	
-	if(gs->selectionFence) glDeleteSync(gs->selectionFence);
-	gs->selectionFence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-	
-	gs->selectionFrame = gs->frameCount;
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	
-	query_queue_stop(&gs->queries.selection);
-}
-
 
 
 void renderDecals(XStuff* xs, GameState* gs, InputState* is, PassFrameParams* pfp) {
@@ -533,16 +425,6 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	
 	
-	
-	
-	
-	
-	if(gs->hasMoved && gs->lastSelectionFrame < gs->frameCount - 8 && !gs->selectionPassDisabled) {
-		//printf("doing selection pass %d\n", gs->frameCount);
-		gs->hasMoved = 0;
-		
-		selectionPass(xs, gs, is, &pfp);
-	}
 	
 	// update world state
 // 	glBeginQuery(GL_TIME_ELAPSED, gs->queries.dtime[gs->queries.dtimenum]);

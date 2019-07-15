@@ -112,8 +112,6 @@ typedef struct World {
 	RenderPass* decalPass; // temp hack
 	RenderPass* emitterPass; // temp hack
 	
-	RenderPass* terrainSelectionPass; // temp hack
-	
 	TextureManager* mapTexMan;
 	TextureManager* meshTexMan;
 	TextureManager* meshNormTexMan;

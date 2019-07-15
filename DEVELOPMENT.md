@@ -253,7 +253,7 @@ some work later on when the engine is more mature.
 0. diffuse buffer
 1. normal buffer
 2. depth buffer
-3. selection buffer
+3. material buffer
 4. lighting buffer
 5. shadow map depth buffer (temp?)
 6.

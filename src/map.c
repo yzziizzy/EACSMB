@@ -39,7 +39,6 @@ static int totalPatches;
 static TerrainPatchVertex* patchVertices;
 
 ShaderProgram* terrProg;
-ShaderProgram* terrDepthProg;
 
 GLuint MaxPatchVertices;
 GLuint MaxTessGenLevel;
@@ -195,8 +194,6 @@ void initTerrain(MapInfo* mi) {
 	terrProg = loadCombinedProgram("terrain");
 	printf("terrProg: %d\n", terrProg->id);
 	glexit("mid terrain progs");
-	terrDepthProg = loadCombinedProgram("terrainDepth");
-	glexit("after terrain progs");
 	
 	model_ul = glGetUniformLocation(terrProg->id, "mModel");
 	view_ul = glGetUniformLocation(terrProg->id, "mView");
@@ -210,15 +207,6 @@ void initTerrain(MapInfo* mi) {
 	zoneColors_ul = glGetUniformLocation(terrProg->id, "sZoneColors");
 	map_ul = glGetUniformLocation(terrProg->id, "sMap");
 	glexit("");
-
-
-	model_d_ul = glGetUniformLocation(terrDepthProg->id, "mModel");
-	view_d_ul = glGetUniformLocation(terrDepthProg->id, "mView");
-	proj_d_ul = glGetUniformLocation(terrDepthProg->id, "mProj");
-	offset_d_ul = glGetUniformLocation(terrDepthProg->id, "sOffsetLookup");
-	heightmap_d_ul = glGetUniformLocation(terrDepthProg->id, "sHeightMap");
-	winsize_d_ul = glGetUniformLocation(terrDepthProg->id, "winSize");
-	glexit("");
 	
 	// texture units don't change
 	glProgramUniform1i(terrProg->id, heightmap_ul, 21);
@@ -226,8 +214,6 @@ void initTerrain(MapInfo* mi) {
 	glProgramUniform1i(terrProg->id, diffuse_ul, 23);
 	glProgramUniform1i(terrProg->id, offset_ul, 20);
 
-	glProgramUniform1i(terrDepthProg->id, heightmap_d_ul, 21);
-	glProgramUniform1i(terrDepthProg->id, offset_d_ul, 20);
 	
 
 	glexit("before terrain patch");
@@ -592,36 +578,6 @@ static void bindTerrainTextures(MapInfo* mi, GLuint progID) {
 
 
 
-
-
-
-void drawTerrainDepth(MapInfo* mi, UniformBuffer* perViewUB, Vector2* viewWH) {
-	int i;
-	
-	glUseProgram(terrDepthProg->id);
-	//glDisable(GL_DEPTH_TEST);
-
-	uniformBuffer_bindProg(perViewUB, terrDepthProg->id, "perViewData");
-	
-// 	glUniformMatrix4fv(view_d_ul, 1, GL_FALSE, mView->m);
-// 	glexit("");
-// 	glUniformMatrix4fv(proj_d_ul, 1, GL_FALSE, mProj->m);
-// 	glexit("");
-	glUniform2f(winsize_d_ul, viewWH->x, viewWH->y);
-	glexit("");
-	
-	bindTerrainTextures(mi, terrDepthProg->id);
-	
-glexit("");	
-	glBindVertexArray(patchVAO);
-	
-	glPatchParameteri(GL_PATCH_VERTICES, 4);
-	glBindBuffer(GL_ARRAY_BUFFER, patchVBO);
-	
-	glUniformMatrix4fv(model_d_ul, 1, GL_FALSE, msGetTop(&model)->m);
-glexit("");
-	glDrawArraysInstanced(GL_PATCHES, 0, totalPatches * totalPatches * 4, mi->numBlocksToRender);
-}
 
 
 
@@ -995,20 +951,6 @@ PassDrawable* Map_CreateDrawable(MapInfo* m) {
 
 
 
-RenderPass* Map_CreateSelectionPass(MapInfo* m) {
-	
-	RenderPass* rp;
-	PassDrawable* pd;
-
-	pd = MultiDrawIndirect_CreateDrawable(m->blockPatch, terrDepthProg);
-
-	rp = calloc(1, sizeof(*rp));
-	RenderPass_init(rp);
-	RenderPass_addDrawable(rp, pd);
-	//rp->fboIndex = LIGHTING;
-	
-	return rp;
-}
 
 
 RenderPass* Map_CreateShadowPass(MapInfo* m) {

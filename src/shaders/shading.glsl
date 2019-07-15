@@ -28,7 +28,6 @@ void main() {
 uniform sampler2D sDiffuse;
 uniform sampler2D sNormals;
 uniform sampler2D sDepth;
-uniform sampler2D sSelection;
 uniform sampler2D sLighting;
 
 uniform sampler2D sShadow;
@@ -83,185 +82,7 @@ void main() {
 	
 	if(debugMode == 0) {
 		// normal rendering
-		// reconstruct world coordinates
-		vec2 screenCoord = gl_FragCoord.xy / resolution.xy;
-		
-		float depth = texture(sDepth, screenCoord).r;
-		if (depth > 0.99999) {
-		//	discard; // probably shouldn't be here
-		}
-		
-		float ndc_depth = depth * 2.0 - 1.0;
-		
-// 		mat4 invVP = inverse(mViewProj * mWorldView);
-		mat4 invVP = inverse(mViewProj * mWorldView);
-// 		
-		vec4 tmppos = invVP * vec4(screenCoord * 2.0 - 1.0, ndc_depth, 1.0);
-		vec3 pos = tmppos.xyz / tmppos.w;
-		// --------------------------------
-		// pos is in world coordinates now
-		
-		
-		// ---- shadow stuff ---------
-		vec4 l_pos4 = mWorldLight * vec4(pos, 1.0);
-		vec3 l_pos = vec3(l_pos4.xyz / l_pos4.w);
-		//l_pos /= 1024;
-		l_pos = l_pos * 0.5 + 0.5;
-	//	float l_closest = texture(sShadow, l_pos.xy).r;
-		float l_current = l_pos.z;
-		vec4 light_dir = inverse(mWorldLight) * vec4(0,0,1,1);
-		light_dir = vec4(normalize(light_dir.xyz / light_dir.w), 1);
-	
-		
-	//	float bias = 0.005;
-		float bias = max(0.005 * (1.0 - dot(normal, light_dir.xyz)), 0.0005);  
-		float shadow_factor = 0.0;
-		
-		// PCF
-		vec2 texelSz = 1.0 / textureSize(sShadow, 0);
-		int sz = 1;
-		for(int x = -sz; x <= sz; x++) {
-			for(int y = -sz; y <= sz; y++) {
-				float sf = texture(sShadow, l_pos.xy + (vec2(x, y) * texelSz)).r;
-				shadow_factor += l_current - bias > sf ? 1 : 0;
-			}
-		}
-		
-		shadow_factor = smoothstep(0, 1, shadow_factor / ((sz + sz + 1)*(sz + sz + 1)));
-		
-		if(l_pos.x > 1 || l_pos.y > 1 || l_pos.x < 0 || l_pos.y < 0) {
-			shadow_factor = 0;
-		}
-		
-		// ^^^ shadow stuff ^^^^^^^^^^^
-		
-		
-		float specPower = raw_normal.a * 128;
-		float specIntensity = raw_diffuse.a;
-		
-		
-		vec3 pos_vw = (vec4(pos, 1) * mWorldView).xyz;
-		
-		//vec3 pos_vw = (vec4(pos, 1) * mWorldView).xyz;
-		
-		
-		
-		// world space
-		vec3 viewpos = (inverse(mViewProj * mWorldView) * vec4(0,0,0,1)).xyz;
-// 		vec3 viewpos = (invVP * vec4(0,0,0,1)).xyz;
-		
-// 		vec3 viewpos_v = (inverse(mWorldView) * vec4(0,0,0,1)).xyz;
-		
-		//vec3 viewdir = normalize(viewpos - pos);
-		// world space
-		vec3 viewdir = -normalize((inverse(mViewProj * mWorldView) * vec4(0,0,-1,1)).xyz);
-		
-		//normal = (mWorldView * vec4(normal, 1)).xyz;
-		
-		// voodoo: specular is inverted from diffuse otherwise. something is wrong
-		//normal *= -1;
-		
-		// world space
-		vec3 sundir = sunNormal;
-		
-		vec3 sunColor;
-		
-		sunColor = vec3(1, .9, .8) * (1 - shadow_factor);
-		
-		
-		vec3 posToCam = normalize(viewpos - pos); 
-		
-		//------------ specular --------------------
-		
-		vec3 halfVec = normalize(viewdir - sundir);
-		
-		float nDl = max(0, dot(normal, sundir)); 
-		float nDh = max(0, dot(normal, -halfVec)); 
-		float specular = pow(nDh, specPower);
-		
-		if(nDl == 0) {
-			specular = 0;
-		}
-		//specular = .5;
-		////////-----------------////////
 
-		
-		vec3 specColor = vec3(1,.9,.8);//normalize(vec3(1,1,1));
-		// ^^^^^^^^^^^^ specular ^^^^^^^^^^^^^^^^^^^
-		
-		vec3 ambient = vec3(0.16,0.18,0.2);
-		
-		vec3 light = texture(sLighting, tex).rgb;
-		
-		
-		vec3 colorOut;
-		if(length(normal) < 1.01) { // things with normals get directional lighting
-			colorOut = vec3(
-				(((nDl * sunColor * 1.1) + light + ambient) * diffuseColor)
-				+ (specular * specColor * diffuseColor * specIntensity)
-			);
-		}
-		else { // no directional lighting for things without normals
-			colorOut = vec3(ambient + diffuseColor);
-		}
-		
-		// gamma correction
-		FragColor = vec4(pow(colorOut, vec3(1.1)), 1.0);
-		
-		
-// 		FragColor = vec4((l_pos4.xyz / l_pos4.w), 1.0);
-//  		FragColor = vec4(l_pos.xy, 0 , 1.0);
-//  		FragColor = vec4(l_closest, l_closest / 100, l_closest / 10000, 1.0);
-//  		FragColor = vec4(l_pos.z,l_pos.z / 100,l_pos.z /1000, 1.0);
-// 		FragColor = vec4(shadow_factor, shadow_factor / 100, shadow_factor / 1000, 1.0);
-	//	FragColor = vec4(lambertian * diffuseColor, 1.0);
-//		FragColor = vec4(vec3(dot(normalize(-sundir), normalize(normal))), 1.0);
-//		
-	}
-	else if(debugMode == 1) {
-		// diffuse
-		FragColor = vec4(texture(sDiffuse, tex).rgb,  1.0);
-	}
-	else if(debugMode == 2) {
-		// normals
- 		FragColor = vec4(abs(texture(sNormals, tex).rgb * 2 - 1),  1.0);
-	//	FragColor = vec4(texture(sNormals, tex).rgb,  1.0);
-	}
-	else if(debugMode == 3) {
-		// depth
-		
-		// bring it back to linear
-		float nd = (
-				(2.0 * clipPlanes.x * clipPlanes.y) / 
-				(clipPlanes.y + clipPlanes.x - (texture(sDepth, tex).r * 2.0 - 1.0) * (clipPlanes.y - clipPlanes.x))
-			) / clipPlanes.y;
-		
-		FragColor = vec4(vec3(nd),  1.0);
-	}
-	else if(debugMode == 4) {
-		// selection buffer
-		FragColor = vec4(texture(sSelection, tex).rgb,  1.0);
-	}
-	else if(debugMode == 5) {
-		// lighting buffer
-		FragColor = vec4(texture(sLighting, tex).rgb,  1.0);
-	}
-	else if(debugMode == 6) {
-		// shadow depth
-		
-		// bring it back to linear
-		float nd = (
-				(2.0 * shadowClipPlanes.x * shadowClipPlanes.y) / 
-				(shadowClipPlanes.y + shadowClipPlanes.x - (texture(sShadow, tex).r * 2.0 - 1.0) * (shadowClipPlanes.y - shadowClipPlanes.x))
-			) / shadowClipPlanes.y;
-		
-		FragColor = vec4(vec3(nd),  1.0);
-	//	FragColor = vec4(texture(sShadow, tex).rrr,  1.0);
-	}
-	else if(debugMode == 7) {
-		// experimental PBR
-		
-		// normal rendering
 		// reconstruct world coordinates
 		vec2 screenCoord = gl_FragCoord.xy / resolution.xy;
 		
@@ -350,10 +171,58 @@ void main() {
 			baseColor, 
 			metallic, roughness) * (1.0 - shadow_factor);
 			
-		FragColor = vec4(clamp(clamp(sun_shad, 0.0, 1.0) + texture(sLighting, tex).rgb, 0.0, 1.0), 1);
+		vec3 colorOut = clamp(clamp(sun_shad, 0.0, 1.0) + texture(sLighting, tex).rgb, 0.0, 1.0);
+		
+		// gamma correction
+		FragColor = vec4(pow(colorOut, vec3(1.1)), 1.0);
+	
 		
 		//FragColor = vec4(light_dir.xyz, 1.0);
+
+
 	}
+	else if(debugMode == 1) {
+		// diffuse
+		FragColor = vec4(texture(sDiffuse, tex).rgb,  1.0);
+	}
+	else if(debugMode == 2) {
+		// normals
+ 		FragColor = vec4(abs(texture(sNormals, tex).rgb * 2 - 1),  1.0);
+	//	FragColor = vec4(texture(sNormals, tex).rgb,  1.0);
+	}
+	else if(debugMode == 3) {
+		// depth
+		
+		// bring it back to linear
+		float nd = (
+				(2.0 * clipPlanes.x * clipPlanes.y) / 
+				(clipPlanes.y + clipPlanes.x - (texture(sDepth, tex).r * 2.0 - 1.0) * (clipPlanes.y - clipPlanes.x))
+			) / clipPlanes.y;
+		
+		FragColor = vec4(vec3(nd),  1.0);
+	}
+	else if(debugMode == 4) {
+		// lighting buffer
+		FragColor = vec4(texture(sLighting, tex).rgb,  1.0);
+	}
+	else if(debugMode == 5) {
+		// shadow depth
+		
+		// bring it back to linear
+		float nd = (
+				(2.0 * shadowClipPlanes.x * shadowClipPlanes.y) / 
+				(shadowClipPlanes.y + shadowClipPlanes.x - (texture(sShadow, tex).r * 2.0 - 1.0) * (shadowClipPlanes.y - shadowClipPlanes.x))
+			) / shadowClipPlanes.y;
+		
+		FragColor = vec4(vec3(nd),  1.0);
+	//	FragColor = vec4(texture(sShadow, tex).rrr,  1.0);
+	}
+// 	else if(debugMode == 6) {
+		// experimental PBR
+		
+		// normal rendering
+		
+// 	}
 	
 //	FragColor = vec4(texture(sNormals, tex).rgb,  1.0);
 }
