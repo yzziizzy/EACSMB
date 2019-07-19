@@ -525,7 +525,7 @@ char* pathExt(char* path) {
 	
 	for(i = len - 1; i >= 0; i--) {
 		char c = path[i];
-		if(c == '.') return path + i;
+		if(c == '.') return path + i + 1;
 		else if(c == '/') break;
 	} 
 	

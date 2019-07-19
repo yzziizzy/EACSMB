@@ -2,12 +2,18 @@
 	types: {
 		/* grass: "assets/textures/grass_texture-256.png", */
 		grass: {
-			diffuse: "assets/textures/grass_texture-256.png", 
-			normal: "$(seq (perlin .6 7 16 16 100 100) (normal_map 0))",
+		//	diffuse: "assets/textures/grass_texture-256.png", 
+		//	normal: "$(seq (perlin .6 7 16 16 100 100) (normal_map 0))",
+			diffuse: "assets/textures/Metal02_col.jpg",
+			normal: "assets/textures/Metal02_nrm.jpg",
+			metalness: "assets/textures/Metal02_met.jpg",
+			roughness: "assets/textures/Metal02_rgh.jpg",
 		},
 		dirt: {
-			diffuse: "assets/textures/dirt_texture-256.png",
-			normal: "$(seq (perlin .6 7 16 16 100 100) (normal_map 0))",
+			diffuse: "assets/textures/Ground22_col.jpg",
+			normal: "assets/textures/Ground22_nrm.jpg",
+			roughness: "assets/textures/Ground22_rgh.jpg",
+			ao: "assets/textures/Ground22_AO.jpg",
 		},
 		fract: "assets/textures/snowfractal-256.png",
 	},

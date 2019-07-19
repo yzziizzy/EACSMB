@@ -175,9 +175,9 @@ BitmapRGBA8* readJPEG_RGBA(char* path, uint32_t alphaValue) {
 	FILE* f;
 	float a_r, a_b, a_g;
 	
-	f = fopen(path, "wb");
+	f = fopen(path, "rb");
 	if(f == NULL) {
-		return 1;
+		return NULL;
 	}
 	
 	
@@ -192,6 +192,8 @@ BitmapRGBA8* readJPEG_RGBA(char* path, uint32_t alphaValue) {
 	
 	// set to a sane colorspace
 	dci.out_color_space = JCS_RGB;
+	dci.out_color_components = 3;
+	dci.output_components = 3;
 	
 	BitmapRGBA8* bmp = calloc(1, sizeof(bmp));
 	bmp->width = dci.image_width;
@@ -202,22 +204,23 @@ BitmapRGBA8* readJPEG_RGBA(char* path, uint32_t alphaValue) {
 	
 	jpeg_start_decompress(&dci);
 	
-	JSAMPROW row = (JSAMPROW)malloc(sizeof(JSAMPLE) * bmp->width * 3);
+	JSAMPROW row = (JSAMPROW)malloc(sizeof(JSAMPLE) * bmp->width * 30);
 	JSAMPROW* buf = &row;
-	
 	
 	while (dci.output_scanline < dci.output_height) {
 		int n = jpeg_read_scanlines(&dci, buf, 1);
 		
 		if(n) {
-			int i = dci.output_scanline * bmp->width * 4;
+			// output_scanline is the /next/ one, which has been advanced at this point
+			int i = (dci.output_scanline - 1) * bmp->width * 4;
 			for(int x = 0; x < bmp->width; x++) {
-				ch[i + x + 0] = row[x * 3 + 0];
-				ch[i + x + 1] = row[x * 3 + 1];
-				ch[i + x + 2] = row[x * 3 + 2];
-				ch[i + x + 3] = alphaValue;
+				ch[i + x * 4 + 0] = row[x * 3 + 0];
+				ch[i + x * 4 + 1] = row[x * 3 + 1];
+				ch[i + x * 4 + 2] = row[x * 3 + 2];
+				ch[i + x * 4 + 3] = 255;//alphaValue;
 			}
 		}
+		
 	}   
 
 	jpeg_finish_decompress(&dci);
@@ -227,7 +230,7 @@ BitmapRGBA8* readJPEG_RGBA(char* path, uint32_t alphaValue) {
 	fclose(f);
 	free(row);
 	
-	return 0;
+	return bmp;
 }
 
 #endif

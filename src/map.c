@@ -1392,7 +1392,7 @@ void MapInfo_GenMesh(MapInfo* mi) {
 	
 	float sideUnit = 1.0; // size of a square, the smallest tessellation level
 	float patchSide = sideUnit * MaxTessGenLevel;
-
+	
 	
 	
 	TerrainPatchVertex* pv = patchVertices;

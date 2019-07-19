@@ -18,6 +18,8 @@
 #include "hash.h"
 #include "utilities.h"
 #include "texture.h"
+#include "jpeg.h"
+#include "dumpImage.h"
 
 #include <png.h>
 #include <setjmp.h>
@@ -654,7 +656,9 @@ static BitmapRGBA8* linearDownscale_8(BitmapRGBA8* in) {
 	out = calloc(1, sizeof(out));
 	out->width = in->width / 8;
 	out->height = in->height / 8;
-	out->data = malloc(out->width * out->height * sizeof(*out->data));
+	size_t s = out->width * out->height * sizeof(*out->data);
+	void* p = malloc(s);
+	out->data = p;
 	
 #if defined(EACSMB_USE_SIMD) && defined(EACSMB_HAVE_AVX2)
 	// two columns of four columns of 8 rows of pixels
@@ -1130,8 +1134,19 @@ int TextureManager_loadAll(TextureManager* tm, Vector2i targetRes) {
 		else {
 			// load from file
 			
-			bmp = readPNG(te->path);
+			// check extension
+			char* ext = pathExt(te->path);
 			
+			if(0 == strcasecmp(ext, "png")) {
+				bmp = readPNG(te->path);
+			}
+			else if (0 == strcasecmp(ext, "jpg") || 0 == strcasecmp(ext, "jpeg")) {
+				bmp = readJPEG_RGBA(te->path, 0);
+			}
+			else {
+				fprintf(stderr, "Unknown texture format: '%s'\n", ext);
+			}
+				
 			if(!bmp) {
 				printf("TextureManager: Failed to load %s\n", te->path);
 				continue;
