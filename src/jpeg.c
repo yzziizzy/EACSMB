@@ -15,6 +15,14 @@ int writeJPEG_RGB(char* path, int width, int height, void* data, int quality) {
 int writeJPEG_RGBA(char* path, int width, int height, void* data, uint32_t alphaColor, int quality) {
 	printf("No libJPEG support compiled in.\n");
 }
+
+
+
+BitmapRGBA8* readJPEG_RGBA(char* path, uint32_t alphaValue) {
+	printf("No libJPEG support compiled in.\n");
+}
+
+
 #else
 
 
@@ -159,6 +167,68 @@ int writeJPEG_RGBA(char* path, int width, int height, void* data, uint32_t alpha
 
 
 
+
+BitmapRGBA8* readJPEG_RGBA(char* path, uint32_t alphaValue) {
+
+	struct jpeg_decompress_struct dci;
+	struct jpeg_error_mgr err;
+	FILE* f;
+	float a_r, a_b, a_g;
+	
+	f = fopen(path, "wb");
+	if(f == NULL) {
+		return 1;
+	}
+	
+	
+	dci.err = jpeg_std_error(&err);
+	jpeg_create_decompress(&dci);
+
+	jpeg_stdio_src(&dci, f);
+	
+	jpeg_read_header(&dci, 1);
+	
+	// output parameters must be set before calling start_decompress()
+	
+	// set to a sane colorspace
+	dci.out_color_space = JCS_RGB;
+	
+	BitmapRGBA8* bmp = calloc(1, sizeof(bmp));
+	bmp->width = dci.image_width;
+	bmp->height = dci.image_height;
+	bmp->path = strdup(path);
+	
+	unsigned char* ch = bmp->data = calloc(1, sizeof(*bmp->data) * bmp->width * bmp->height);
+	
+	jpeg_start_decompress(&dci);
+	
+	JSAMPROW row = (JSAMPROW)malloc(sizeof(JSAMPLE) * bmp->width * 3);
+	JSAMPROW* buf = &row;
+	
+	
+	while (dci.output_scanline < dci.output_height) {
+		int n = jpeg_read_scanlines(&dci, buf, 1);
+		
+		if(n) {
+			int i = dci.output_scanline * bmp->width * 4;
+			for(int x = 0; x < bmp->width; x++) {
+				ch[i + x + 0] = row[x * 3 + 0];
+				ch[i + x + 1] = row[x * 3 + 1];
+				ch[i + x + 2] = row[x * 3 + 2];
+				ch[i + x + 3] = alphaValue;
+			}
+		}
+	}   
+
+	jpeg_finish_decompress(&dci);
+	jpeg_destroy_decompress(&dci);
+	
+	
+	fclose(f);
+	free(row);
+	
+	return 0;
+}
 
 #endif
 
