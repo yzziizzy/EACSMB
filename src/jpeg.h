@@ -12,7 +12,8 @@ int writeJPEG_RGB(char* path, int width, int height, void* data, int quality);
 
 
 
-BitmapRGBA8* readJPEG_RGBA(char* path, uint32_t alphaValue);
+TexBitmap* readJPEG_RGBA(char* path, uint32_t alphaValue);
+TexBitmap* readJPEG_R(char* path);
 
 
 

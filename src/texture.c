@@ -1088,7 +1088,7 @@ int TextureManager_loadAll(TextureManager* tm, Vector2i targetRes) {
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, tm->tex_id);
 	glexit("failed to create texture array 1");
-	printf("texman array %d\n", tm->tex_id); 
+	//printf("texman array %d\n", tm->tex_id); 
 // 		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_GENERATE_MIPMAP, GL_FALSE);
 	glexit("failed to create texture array 2");
 
@@ -1141,7 +1141,16 @@ int TextureManager_loadAll(TextureManager* tm, Vector2i targetRes) {
 				bmp = readPNG(te->path);
 			}
 			else if (0 == strcasecmp(ext, "jpg") || 0 == strcasecmp(ext, "jpeg")) {
-				bmp = readJPEG_RGBA(te->path, 0);
+				TexBitmap* tbmp = readJPEG_RGBA(te->path, 0);
+				// temporary hack until the entire texture pipeline is converted to TexBitmap
+				if(tbmp) {
+					bmp = calloc(1, sizeof(*bmp));
+					bmp->data = tbmp->data8;
+					bmp->width = tbmp->width;
+					bmp->height = tbmp->height;
+					bmp->path = tbmp->path;
+					free(tbmp);
+				}
 			}
 			else {
 				fprintf(stderr, "Unknown texture format: '%s'\n", ext);
@@ -1153,7 +1162,7 @@ int TextureManager_loadAll(TextureManager* tm, Vector2i targetRes) {
 			}
 			
 			if(bmp->width != targetRes.x || bmp->height != targetRes.y) {
-				printf("resizing %s to %d,%d\n", te->path, targetRes.x, targetRes.y);
+				//printf("resizing %s to %d,%d\n", te->path, targetRes.x, targetRes.y);
 				//BitmapRGBA8* tmp = resample(bmp, targetRes);
 				BitmapRGBA8* tmp;
 				if(bmp->width > targetRes.x) {

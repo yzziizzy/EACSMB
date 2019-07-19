@@ -168,7 +168,7 @@ int writeJPEG_RGBA(char* path, int width, int height, void* data, uint32_t alpha
 
 
 
-BitmapRGBA8* readJPEG_RGBA(char* path, uint32_t alphaValue) {
+TexBitmap* readJPEG_RGBA(char* path, uint32_t alphaValue) {
 
 	struct jpeg_decompress_struct dci;
 	struct jpeg_error_mgr err;
@@ -195,16 +195,18 @@ BitmapRGBA8* readJPEG_RGBA(char* path, uint32_t alphaValue) {
 	dci.out_color_components = 3;
 	dci.output_components = 3;
 	
-	BitmapRGBA8* bmp = calloc(1, sizeof(bmp));
+	TexBitmap* bmp = calloc(1, sizeof(*bmp));
 	bmp->width = dci.image_width;
 	bmp->height = dci.image_height;
+	bmp->depth = TEXDEPTH_8;
+	bmp->channels = 4;
 	bmp->path = strdup(path);
 	
-	unsigned char* ch = bmp->data = calloc(1, sizeof(*bmp->data) * bmp->width * bmp->height);
+	unsigned char* ch = bmp->data8 = calloc(1, sizeof(*bmp->data8) * 4 * bmp->width * bmp->height);
 	
 	jpeg_start_decompress(&dci);
 	
-	JSAMPROW row = (JSAMPROW)malloc(sizeof(JSAMPLE) * bmp->width * 30);
+	JSAMPROW row = (JSAMPROW)malloc(sizeof(JSAMPLE) * bmp->width * 3);
 	JSAMPROW* buf = &row;
 	
 	while (dci.output_scanline < dci.output_height) {
@@ -218,6 +220,71 @@ BitmapRGBA8* readJPEG_RGBA(char* path, uint32_t alphaValue) {
 				ch[i + x * 4 + 1] = row[x * 3 + 1];
 				ch[i + x * 4 + 2] = row[x * 3 + 2];
 				ch[i + x * 4 + 3] = 255;//alphaValue;
+			}
+		}
+		
+	}   
+
+	jpeg_finish_decompress(&dci);
+	jpeg_destroy_decompress(&dci);
+	
+	
+	fclose(f);
+	free(row);
+	
+	return bmp;
+}
+
+
+TexBitmap* readJPEG_R(char* path) {
+
+	struct jpeg_decompress_struct dci;
+	struct jpeg_error_mgr err;
+	FILE* f;
+	float a_r, a_b, a_g;
+	
+	f = fopen(path, "rb");
+	if(f == NULL) {
+		return NULL;
+	}
+	
+	
+	dci.err = jpeg_std_error(&err);
+	jpeg_create_decompress(&dci);
+
+	jpeg_stdio_src(&dci, f);
+	
+	jpeg_read_header(&dci, 1);
+	
+	// output parameters must be set before calling start_decompress()
+	
+	// set to a sane colorspace
+	dci.out_color_space = JCS_GRAYSCALE;
+	dci.out_color_components = 1;
+	dci.output_components = 1;
+	
+	TexBitmap* bmp = calloc(1, sizeof(*bmp));
+	bmp->width = dci.image_width;
+	bmp->height = dci.image_height;
+	bmp->depth = TEXDEPTH_8;
+	bmp->channels = 1;
+	bmp->path = strdup(path);
+	
+	unsigned char* ch = bmp->data8 = calloc(1, sizeof(*bmp->data8) * bmp->width * bmp->height);
+	
+	jpeg_start_decompress(&dci);
+	
+	JSAMPROW row = (JSAMPROW)malloc(sizeof(JSAMPLE) * bmp->width);
+	JSAMPROW* buf = &row;
+	
+	while (dci.output_scanline < dci.output_height) {
+		int n = jpeg_read_scanlines(&dci, buf, 1);
+		
+		if(n) {
+			// output_scanline is the /next/ one, which has been advanced at this point
+			int i = (dci.output_scanline - 1) * bmp->width;
+			for(int x = 0; x < bmp->width; x++) {
+				ch[i + x] = row[x];
 			}
 		}
 		

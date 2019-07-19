@@ -39,6 +39,7 @@ typedef struct TexBitmap {
 	short channels;
 	enum TextureDepth depth;
 	unsigned int width, height;
+	char* path;
 	
 	union {
 		uint8_t* data8;
