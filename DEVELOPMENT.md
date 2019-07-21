@@ -273,7 +273,7 @@ some work later on when the engine is more mature.
 20. terrain block position lookup
 21. terrain heightmap
 22. terrain diffuse tex array
-23. terrain diffuse tex array (new)
+23. terrain Material tex array
 24. 
 25. 
 26.

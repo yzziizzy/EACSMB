@@ -191,7 +191,12 @@ typedef struct MapRenderComponent {
 
 typedef struct MapSurfaceType {
 	char* name;
-	int diffuse, normal; // specular
+	int diffuse;
+	int normal;
+	int metalness;
+	int roughness;
+	int AO;
+	int displacement;
 } MapSurfaceType;
 
 
@@ -210,7 +215,12 @@ typedef struct MapInfo {
 
 	VEC(MapSurfaceType*) surfaceTypes;
 	struct {
-		int diffuse, normal;
+		int diffuse;
+		int normal;
+		int metalness;
+		int roughness;
+// 		int AO;
+// 		int displacement;
 	} surfaceUniforms[16];
 // 	MapBlockTreeLeaf* root;
 	
@@ -241,6 +251,7 @@ typedef struct MapInfo {
 	
 	Vector cursorPos;
 	TextureManager* tm;
+	TextureManager* tmMat;
 	
 } MapInfo;
 

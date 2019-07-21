@@ -27,6 +27,7 @@ void main() {
 
 uniform sampler2D sDiffuse;
 uniform sampler2D sNormals;
+uniform sampler2D sMaterial;
 uniform sampler2D sDepth;
 uniform sampler2D sLighting;
 
@@ -74,8 +75,8 @@ void main() {
 	vec4 raw_diffuse = texture(sDiffuse, tex);
 	vec3 normal = (raw_normal.xyz * 2.0) - 1.0;
 	vec3 diffuseColor = raw_diffuse.rgb;
-	float metallic = raw_diffuse.a;
-	float roughness = raw_normal.w;
+	float metallic = texture(sMaterial, tex).r;
+	float roughness = texture(sMaterial, tex).g;
 	
 	if(raw_normal.xyz != vec3(0,0,0)) normal = normalize(normal);
 
@@ -121,9 +122,9 @@ void main() {
 // 		vec3 dielectricSpecular = vec3(0.45, 0.45, 0.45);
 // 		vec3 dielectricSpecular = vec3(1.0, 1.0, 1.0);
 		vec3 dielectricSpecular = vec3(0.1, 0.1, 0.1);
- 		metallic = 0.408;
+//  		metallic = 0.408;
 		vec3 baseColor = diffuseColor;
- 		roughness = 0.51; // sampled from tex
+//  		roughness = 0.51;
 		
 		// TODO: gather vectors
 		vec3 l = light_dir.xyz;//vec3(0,1,0); // light direction
@@ -190,7 +191,15 @@ void main() {
  		FragColor = vec4(abs(texture(sNormals, tex).rgb * 2 - 1),  1.0);
 	//	FragColor = vec4(texture(sNormals, tex).rgb,  1.0);
 	}
-	else if(debugMode == 3) {
+	else if(debugMode == 3) { 
+		// metallic/roughness
+		FragColor = vec4(metallic, roughness, 1.0,  1.0);
+	}
+	else if(debugMode == 4) { 
+		// ambient occlusion
+		FragColor = vec4(vec3(texture(sMaterial, tex).b),  1.0);
+	}
+	else if(debugMode == 5) {
 		// depth
 		
 		// bring it back to linear
@@ -201,11 +210,11 @@ void main() {
 		
 		FragColor = vec4(vec3(nd),  1.0);
 	}
-	else if(debugMode == 4) {
+	else if(debugMode == 6) {
 		// lighting buffer
 		FragColor = vec4(texture(sLighting, tex).rgb,  1.0);
 	}
-	else if(debugMode == 5) {
+	else if(debugMode == 7) {
 		// shadow depth
 		
 		// bring it back to linear

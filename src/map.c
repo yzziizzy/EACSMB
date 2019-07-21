@@ -560,6 +560,11 @@ static void bindTerrainTextures(MapInfo* mi, GLuint progID) {
 	glBindTexture(GL_TEXTURE_2D_ARRAY, mi->tm->tex_id);
 	GLuint texul = glGetUniformLocation(progID, "sTextures");
 	glProgramUniform1i(progID, texul, 22);
+
+	glActiveTexture(GL_TEXTURE0 + 23);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, mi->tmMat->tex_id);
+	GLuint texMatul = glGetUniformLocation(progID, "sMaterials");
+	glProgramUniform1i(progID, texMatul, 23);
 	
 	
 	//MapBlock_GetLayer(mi->block, "surface");
@@ -840,6 +845,10 @@ void Map_readConfigFile(MapInfo* mi, char* path) {
 		st->name = strdup(key);
 		st->diffuse = -1;
 		st->normal = -1;
+		st->metalness = -1;
+		st->roughness = -1;
+		st->AO = -1;
+		st->displacement = -1;
 		VEC_PUSH(&mi->surfaceTypes, st);
 		
 		if(tc->type == JSON_TYPE_OBJ) {
@@ -857,6 +866,30 @@ void Map_readConfigFile(MapInfo* mi, char* path) {
 				json_as_string(v, &path);
 				st->normal = TextureManager_reservePath(mi->tm, path);
 			}
+			
+			json_obj_get_key(tc, "roughness", &v);
+			if(v && v->type == JSON_TYPE_STRING) {
+				json_as_string(v, &path);
+				st->roughness = TextureManager_reservePath(mi->tmMat, path);
+			}
+
+			json_obj_get_key(tc, "metalness", &v);
+			if(v && v->type == JSON_TYPE_STRING) {
+				json_as_string(v, &path);
+				st->metalness = TextureManager_reservePath(mi->tmMat, path);
+			}
+			
+			json_obj_get_key(tc, "AO", &v);
+			if(v && v->type == JSON_TYPE_STRING) {
+				json_as_string(v, &path);
+				st->AO = TextureManager_reservePath(mi->tmMat, path);
+			}
+			
+			json_obj_get_key(tc, "displacement", &v);
+			if(v && v->type == JSON_TYPE_STRING) {
+				json_as_string(v, &path);
+				st->displacement = TextureManager_reservePath(mi->tmMat, path);
+			}
 		}
 		else {
 			
@@ -872,6 +905,10 @@ void Map_readConfigFile(MapInfo* mi, char* path) {
 	VEC_EACH(&mi->surfaceTypes, i, st) {
 		mi->surfaceUniforms[i].diffuse = st->diffuse; 
 		mi->surfaceUniforms[i].normal = st->normal; 
+		mi->surfaceUniforms[i].metalness = st->metalness; 
+		mi->surfaceUniforms[i].roughness = st->roughness; 
+// 		mi->surfaceUniforms[i].AO = st->AO; 
+// 		mi->surfaceUniforms[i].displacement = st->displacement; 
 	}
 	
 	
@@ -893,7 +930,7 @@ static void uniformSetup(MapInfo* mi, GLuint progID) {
 	glUniform1i(glGetUniformLocation(progID, "waterIndex"), waterIndex);
 	
 	// TODO: move elsewhere, no need to set every frame
-	glUniform2iv(glGetUniformLocation(progID, "aSurfaces"), 16, mi->surfaceUniforms);
+	glUniform4iv(glGetUniformLocation(progID, "aSurfaces"), 16, mi->surfaceUniforms);
 	
 	bindTerrainTextures(mi, progID);
 }

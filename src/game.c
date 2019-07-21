@@ -735,12 +735,14 @@ static void main_key_handler(InputEvent* ev, GameState* gs) {
 			"",
 			"diffuse",
 			"normal",
+			"metallic/roughness",
+			"ambient occlusion",
 			"depth",
 			"lighting",
 			"shadow depth",
 		};
 		
-		gs->debugMode = (gs->debugMode + 1) % 6;
+		gs->debugMode = (gs->debugMode + 1) % 8;
 		lastChange = gs->frameTime;
 		
 		GUIText_setString(gtRenderMode, modeStrings[gs->debugMode]);

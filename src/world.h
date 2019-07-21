@@ -112,12 +112,17 @@ typedef struct World {
 	RenderPass* decalPass; // temp hack
 	RenderPass* emitterPass; // temp hack
 	
-	TextureManager* mapTexMan;
-	TextureManager* meshTexMan;
-	TextureManager* meshNormTexMan;
-	TextureManager* meshMatTexMan;
+	
+	TextureManager* mapTexMan; // color and normals - RGB
+	TextureManager* mapMatTexMan; // R
+	
+	TextureManager* meshTexMan; // RGBA
+	TextureManager* meshNormTexMan; // RGB
+	TextureManager* meshMatTexMan; // R
+	
 	TextureManager* decalTexMan;
 	TextureManager* emitterTexMan;
+	
 	
 	// old bezier roads
 	//RoadBlock* roads;

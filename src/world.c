@@ -71,7 +71,8 @@ void World_init(World* w) {
 	// hack becore CES is made
 	w->dmm->ces = &w->gs->ces;
 	
-	w->mapTexMan = TextureManager_alloc(4);
+	w->mapTexMan = TextureManager_alloc(3);
+	w->mapMatTexMan = TextureManager_alloc(1);
 	w->meshTexMan = TextureManager_alloc(4);
 	w->meshNormTexMan = TextureManager_alloc(3);
 	w->meshMatTexMan = TextureManager_alloc(1);
@@ -79,6 +80,7 @@ void World_init(World* w) {
 	w->emitterTexMan = TextureManager_alloc(4);
 	
 	w->map.tm = w->mapTexMan;
+	w->map.tmMat = w->mapMatTexMan;
 	w->dmm->tm = w->meshTexMan;
 	w->dmm->tmNorm = w->meshNormTexMan;
 	w->dmm->tmMat = w->meshMatTexMan;
@@ -307,7 +309,8 @@ void World_initGL(World* w) {
 	
 	
 	// very last thing: load textures
-	TextureManager_loadAll(w->mapTexMan, (Vector2i){256, 256}); 
+	TextureManager_loadAll(w->mapTexMan, (Vector2i){2048, 2048}); 
+	TextureManager_loadAll(w->mapMatTexMan, (Vector2i){2048, 2048}); 
 	TextureManager_loadAll(w->meshTexMan, (Vector2i){256, 256}); 
 	TextureManager_loadAll(w->meshNormTexMan, (Vector2i){256, 256}); 
 	TextureManager_loadAll(w->meshMatTexMan, (Vector2i){256, 256}); 

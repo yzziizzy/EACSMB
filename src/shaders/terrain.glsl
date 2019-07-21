@@ -344,14 +344,15 @@ const vec2 eye = vec2(500,500);
 
 layout(location = 0) out vec4 out_Color;
 layout(location = 1) out vec4 out_Normal;
-//layout(location = 2) out vec4 out_Selection;
+layout(location = 2) out vec3 out_Material; // metal, rough, 
 
 #define UNIT 1
 #define HALFUNIT .5
 
 uniform sampler2D sBaseTex;
 // uniform sampler2DArray sDiffuse;
-uniform sampler2DArray sTextures;
+uniform sampler2DArray sTextures; // RGB
+uniform sampler2DArray sMaterials; // R
 // uniform isampler2DArray sMap; // 0 = zones, 1 = surfaceTex
 // uniform sampler1D sZoneColors;
 // uniform sampler2D sOffsetLookup;
@@ -361,7 +362,7 @@ uniform isampler2DArray sData;
 uniform mat4 mWorldView;
 uniform mat4 mViewProj;
 
-uniform ivec2 aSurfaces[16];
+uniform ivec4 aSurfaces[16]; // diff, norm, metal, rough
 
 uniform int waterIndex;
 const int win = 1 + waterIndex;
@@ -413,8 +414,22 @@ void main(void) {
 	float ei4 = 1.0 - smoothstep(0.98, 1.0, r);
 	
 	//out_Color = vec4(t_tile.x, t_tile.y,1 ,1.0);
+
 	
- 	
+	// splatting parameters
+	float blend_n0 = (1.0 - clamp(ftile.x * 4, 0.0, 1.0)) * .25; 
+	float blend_p0 = (1.0 - clamp((1.0-ftile.x) * 4, 0.0, 1.0)) * .25; 
+	float blend_0n = (1.0 - clamp(ftile.y * 4, 0.0, 1.0)) * .25; 
+	float blend_0p = (1.0 - clamp((1.0-ftile.y) * 4, 0.0, 1.0)) * .25; 
+	
+	float rem = clamp(1.0 - (blend_n0 + blend_p0 + blend_0n + blend_0p), 0.0, 1.0);
+	
+//	DEBUG
+// 	out_Color = vec4(max(blend_p0, blend_n0), max(blend_0p, blend_0n), rem, 1);
+//	return;
+	
+	
+	// diffuse texturing
 	vec4 tc, nc;// = texture2D(sBaseTex, texCoord);
 // 	int texIndex = texelFetch(sData, ivec3(t_tile.xy, 0), 0).x;
 	
@@ -425,67 +440,81 @@ void main(void) {
 	vec4 t = texture(sTextures, vec3(texCoord.xy * 64, texIndex));
 	vec4 n = texture(sTextures, vec3(texCoord.xy * 64, normIndex));
 
-	int ti_n10 = aSurfaces[textureOffset(sData, vec3(t_tile.xy, 0), ivec2(-1,0)).x].x;
-	int ti_0n1 = aSurfaces[textureOffset(sData, vec3(t_tile.xy, 0), ivec2(0,-1)).x].x;
-	int ti_n1n1 = aSurfaces[textureOffset(sData, vec3(t_tile.xy, 0), ivec2(-1,-1)).x].x;
-	int ni_n10 = aSurfaces[textureOffset(sData, vec3(t_tile.xy, 0), ivec2(-1,0)).x].y;
-	int ni_0n1 = aSurfaces[textureOffset(sData, vec3(t_tile.xy, 0), ivec2(0,-1)).x].y;
-	int ni_n1n1 = aSurfaces[textureOffset(sData, vec3(t_tile.xy, 0), ivec2(-1,-1)).x].y;
+	ivec4 surf_00 = aSurfaces[textureOffset(sData, vec3(t_tile.xy, 0), ivec2( 0, 0)).x];
+	ivec4 surf_n0 = aSurfaces[textureOffset(sData, vec3(t_tile.xy, 0), ivec2(-1, 0)).x];
+	ivec4 surf_p0 = aSurfaces[textureOffset(sData, vec3(t_tile.xy, 0), ivec2( 1, 0)).x];
+	ivec4 surf_0n = aSurfaces[textureOffset(sData, vec3(t_tile.xy, 0), ivec2( 0,-1)).x];
+	ivec4 surf_0p = aSurfaces[textureOffset(sData, vec3(t_tile.xy, 0), ivec2( 0, 1)).x];
+
 	
-	vec4 t_n10 = texture(sTextures, vec3(texCoord.xy * 64, ti_n10));
-	vec4 t_0n1 = texture(sTextures, vec3(texCoord.xy * 64, ti_0n1));
-	vec4 t_n1n1 = texture(sTextures, vec3(texCoord.xy * 64, ti_n1n1));
-	vec4 n_n10 = texture(sTextures, vec3(texCoord.xy * 64, ni_n10));
-	vec4 n_0n1 = texture(sTextures, vec3(texCoord.xy * 64, ni_0n1));
-	vec4 n_n1n1 = texture(sTextures, vec3(texCoord.xy * 64, ni_n1n1));
+	vec4 t_n0 = texture(sTextures, vec3(texCoord.xy * 64, surf_n0.x));
+	vec4 t_p0 = texture(sTextures, vec3(texCoord.xy * 64, surf_p0.x));
+	vec4 t_0n = texture(sTextures, vec3(texCoord.xy * 64, surf_0n.x));
+	vec4 t_0p = texture(sTextures, vec3(texCoord.xy * 64, surf_0p.x));
 	
-	float a = .2;
-	
-	
-	float xmw = smoothstep(0.0, a, ftile.x);
-	float ymw = smoothstep(0.0, a, ftile.y); 
- 
-	
-	// last working set
-	tc = min(xmw, ymw) * t; // + t_10 * xpw + t_n10 * xmw;
-	tc += ymw * (1-smoothstep(0.0, a, ftile.x)) * t_n10;
- 	tc += xmw * (1-smoothstep(0.0, a, ftile.y)) * t_0n1;
-	tc += (1-smoothstep(0.0, a, max(ftile.y,ftile.x))) * t_n1n1;
-	
-	nc = min(xmw, ymw) * n; // + t_10 * xpw + t_n10 * xmw;
-	nc += ymw * (1-smoothstep(0.0, a, ftile.x)) * n_n10;
- 	nc += xmw * (1-smoothstep(0.0, a, ftile.y)) * n_0n1;
-	nc += (1-smoothstep(0.0, a, max(ftile.y,ftile.x))) * n_n1n1;
-	
- 	// "in cursor"
- 	bool incx = t_tile.x > cursorPos.x && t_tile.x < cursorPos.x + UNIT;
- 	bool incy = t_tile.y > cursorPos.y && t_tile.y < cursorPos.y + UNIT;
- 	bool inct = ps_InstanceID == floor(cursorPos.z);
- 	
-	//float distToCursor = length(gl_TessCoord.xy - cursorPos);
-	vec4 cursorIntensity = (incx && incy && inct) ? vec4(0,10.0,10.0, 1.0) : vec4(1,1,1,1) ;//0 cursorRad - exp2(-1.0*distToCursor*distToCursor);
-	
-	d /= (255);
-	
+	vec4 final_color = 
+		(t_n0 * blend_n0) + 
+		(t_p0 * blend_p0) + 
+		(t_0n * blend_0n) + 
+		(t_0p * blend_0p) + 
+		(t * rem);
+		
 	vec4 lineFactor = vec4(min(min(ei1, ei2), min(ei3, ei4)), 0,0,1).rrra;
-	vec4 lineColor = vec4(0,0,0,1.0);
-	vec4 tc2 = mix(lineColor, tc, lineFactor.r);
+	out_Color = vec4(final_color.xyz, 1)  * lineFactor;
 	
+	
+	// normals
+	
+	vec4 n_n0 = texture(sTextures, vec3(texCoord.xy * 64, surf_n0.y));
+	vec4 n_p0 = texture(sTextures, vec3(texCoord.xy * 64, surf_p0.y));
+	vec4 n_0n = texture(sTextures, vec3(texCoord.xy * 64, surf_0n.y));
+	vec4 n_0p = texture(sTextures, vec3(texCoord.xy * 64, surf_0p.y));
+	
+	vec4 final_normal = 
+		(n_n0 * blend_n0) + 
+		(n_p0 * blend_p0) + 
+		(n_0n * blend_0n) + 
+		(n_0p * blend_0p) + 
+		(n * rem);
+		
+	// normals need to be in world space
+	vec4 out_norm = normalize(final_normal + (.25 * nc));
+	out_Normal = vec4((out_norm.xyz * .5) + .5, 1);
+	
+	
+	// Materials
+	
+	//   roughness
+	float r_00 = texture(sMaterials, vec3(texCoord.xy * 64, surf_00.z)).r;
+	float r_n0 = texture(sMaterials, vec3(texCoord.xy * 64, surf_n0.z)).r;
+	float r_p0 = texture(sMaterials, vec3(texCoord.xy * 64, surf_p0.z)).r;
+	float r_0n = texture(sMaterials, vec3(texCoord.xy * 64, surf_0n.z)).r;
+	float r_0p = texture(sMaterials, vec3(texCoord.xy * 64, surf_0p.z)).r;
+	
+	float final_roughness = 
+		(r_n0 * blend_n0) + 
+		(r_p0 * blend_p0) + 
+		(r_0n * blend_0n) + 
+		(r_0p * blend_0p) + 
+		(r_00 * rem);
+	
+	
+	float metalness = .4;
+	float roughness = .5;
+	
+	out_Material = vec3(metalness, final_roughness, 1);
+	
+	
+	return;
+	
+
 	/*    
 	// water. 
 	float wlevel = texture(sHeightMap, vec3(texCoord.xy, wout), 0).r;
 	// soil.
 	float slevel = texture(sHeightMap, vec3(texCoord.xy, 3), 0).r;
-	*/
 	
-//	out_Selection = vec4(floor(t_tile.x) / 256, floor(t_tile.y) / 256, ps_InstanceID, 1);
 	
-	// normals need to be in world space
-	vec4 out_norm = normalize(te_normal + (.25 * nc));
-// 	vec4 out_norm = normalize(nc);
-	out_Normal = vec4((out_norm.xyz * .5) + .5, .7); // alpha is roughness
-	
-	/*
 	if(wlevel > 4.7) {
 		tc2 = vec4(wlevel / 4000, wlevel / 200, wlevel, 1);
 	}
@@ -494,9 +523,8 @@ void main(void) {
 	}
 	*/
 	
-// 	out_Color =  (zoneColor * .2 + tc2) * cursorIntensity;// * lineFactor; //(1.0, 0, .5, .6);
 //	out_Color = vec4(wlevel, wlevel / 200, wlevel / 4000, 1);;
 // 	out_Color = vec4(slevel, slevel / 200, slevel / 4000, 1);;
-	out_Color = vec4(tc2.rgb, .1); // alpha is metallic //vec4(1,0,1,1);
+	
 }
 
