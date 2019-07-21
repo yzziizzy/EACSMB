@@ -248,6 +248,8 @@ void initGame(XStuff* xs, GameState* gs) {
 	gs->sunSpeed = 0;
 	gs->sunTheta = 2.2;
 	
+// 	gs->world->map.terrainLOD = 120.0;
+	
 	gs->nearClipPlane = .5;
 	gs->farClipPlane = 1700;
 
@@ -652,6 +654,14 @@ static void main_perframe_handler(InputState* is, float frameSpan, GameState* gs
 		gs->hasMoved = 1;
 	}
 	
+	if(is->keyState[31] & IS_KEYDOWN) { // I
+		gs->world->map.terrainLOD += 15 * te;
+		printf("terrainLOD: %f\n", gs->world->map.terrainLOD);
+	}
+	if(is->keyState[32] & IS_KEYDOWN) { // O
+		gs->world->map.terrainLOD -= 15 * te;
+		printf("terrainLOD: %f\n", gs->world->map.terrainLOD);
+	}
 	if(is->keyState[110] & IS_KEYDOWN) {
 		gs->nearClipPlane += 50 * te;
 		printf("near: %f, far: %f\n", gs->nearClipPlane, gs->farClipPlane);
@@ -797,9 +807,6 @@ static void main_key_handler(InputEvent* ev, GameState* gs) {
 		crw.edge = edge;
 		
 		CES_addComponentName(&gs->ces, "roadWander", eid, &crw);
-	
-
-
 		
 	}
 }  

@@ -567,6 +567,9 @@ static void bindTerrainTextures(MapInfo* mi, GLuint progID) {
 	glProgramUniform1i(progID, texMatul, 23);
 	
 	
+	glProgramUniform1f(progID, glGetUniformLocation(progID, "terrainLOD"), mi->terrainLOD);
+	
+	
 	//MapBlock_GetLayer(mi->block, "surface");
 	
 	
@@ -1307,6 +1310,7 @@ void MapInfo_Init(MapInfo* mi, GlobalSettings* gs) {
 	
 	mi->blockPatch = MultiDrawIndirect_alloc(vao_opts, 64, "map");
 	
+	mi->terrainLOD = 100.0;
 	
 	
 	//mi->block = MapBlock_Alloc(1024, 1024);

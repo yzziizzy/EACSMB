@@ -47,6 +47,7 @@ uniform sampler2DArray sHeightMap;
 uniform mat4 mWorldView;
 uniform mat4 mViewProj;
 
+uniform float terrainLOD;
 
 
 in vec2 vs_tex[];
@@ -192,7 +193,7 @@ void main() {
 			return;
 		}
 
-		float lod = 256; // lower means worse quality. 128 is optimal
+		float lod = terrainLOD; //256; // lower means worse quality. 128 is optimal
 		
 		float f0 = clamp(distance(w1, w2) * lod, 1, 64);
 		float f1 = clamp(distance(w0, w1) * lod, 1, 64);

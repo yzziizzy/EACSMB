@@ -232,6 +232,8 @@ typedef struct MapInfo {
 	GLuint terrainTex;
 	GLuint locationTex;
 	
+	float terrainLOD;
+	
 	MapBlock* texIndexMap[64]; // indices align to gl tex array
 	struct sGL_RG8* offsetData;
 	int numBlocksToRender;

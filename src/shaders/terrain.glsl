@@ -51,6 +51,7 @@ uniform sampler2DArray sHeightMap;
 uniform mat4 mWorldView;
 uniform mat4 mViewProj;
 
+uniform float terrainLOD;
 
 
 in vec2 vs_tex[];
@@ -196,7 +197,7 @@ void main() {
 			return;
 		}
 
-		float lod = 256; // lower means worse quality. 128 is optimal
+		float lod = terrainLOD;// 256; // lower means worse quality. 128 is optimal
 		
 		float f0 = clamp(distance(w1, w2) * lod, 1, 64);
 		float f1 = clamp(distance(w0, w1) * lod, 1, 64);
@@ -266,6 +267,7 @@ const int wout = 2 - waterIndex;
 
 
 out vec2 texCoord;
+out vec2 tex64;
 out vec2 t_tile;
 out vec4 te_normal;
 flat out int ps_InstanceID;
@@ -319,6 +321,7 @@ void main(void){
 	gl_Position = (mViewProj * mWorldView) * tmp;
 	t_tile =  tltmp;
 	texCoord = ttmp;
+	tex64 = ttmp * 64;
 	ps_InstanceID = te_InstanceID[0];
 }
 
@@ -336,6 +339,7 @@ uniform vec3 cursorPos;
 
 
 in vec2 texCoord;
+in vec2 tex64;
 in vec2 t_tile;
 in vec4 te_normal;
 flat in int ps_InstanceID;
@@ -431,76 +435,51 @@ void main(void) {
 	
 	// diffuse texturing
 	vec4 tc, nc;// = texture2D(sBaseTex, texCoord);
-// 	int texIndex = texelFetch(sData, ivec3(t_tile.xy, 0), 0).x;
 	
-	int surfIndex = texture(sData, vec3(t_tile.xy, 0)).x;
-	int texIndex = aSurfaces[surfIndex].x;
-	int normIndex = aSurfaces[surfIndex].y;
+	ivec4 surf_00 = aSurfaces[texture(sData, vec3(t_tile.xy, 0)).x];
 	
-	vec4 t = texture(sTextures, vec3(texCoord.xy * 64, texIndex));
-	vec4 n = texture(sTextures, vec3(texCoord.xy * 64, normIndex));
-
-	ivec4 surf_00 = aSurfaces[textureOffset(sData, vec3(t_tile.xy, 0), ivec2( 0, 0)).x];
-	ivec4 surf_n0 = aSurfaces[textureOffset(sData, vec3(t_tile.xy, 0), ivec2(-1, 0)).x];
-	ivec4 surf_p0 = aSurfaces[textureOffset(sData, vec3(t_tile.xy, 0), ivec2( 1, 0)).x];
-	ivec4 surf_0n = aSurfaces[textureOffset(sData, vec3(t_tile.xy, 0), ivec2( 0,-1)).x];
-	ivec4 surf_0p = aSurfaces[textureOffset(sData, vec3(t_tile.xy, 0), ivec2( 0, 1)).x];
+	vec4 final_color = rem * texture(sTextures, vec3(tex64.xy, surf_00.x));
+	vec4 final_normal = rem * texture(sTextures, vec3(tex64.xy, surf_00.y));
+	float final_roughness = rem * texture(sMaterials, vec3(tex64.xy, surf_00.z)).r;
 
 	
-	vec4 t_n0 = texture(sTextures, vec3(texCoord.xy * 64, surf_n0.x));
-	vec4 t_p0 = texture(sTextures, vec3(texCoord.xy * 64, surf_p0.x));
-	vec4 t_0n = texture(sTextures, vec3(texCoord.xy * 64, surf_0n.x));
-	vec4 t_0p = texture(sTextures, vec3(texCoord.xy * 64, surf_0p.x));
-	
-	vec4 final_color = 
-		(t_n0 * blend_n0) + 
-		(t_p0 * blend_p0) + 
-		(t_0n * blend_0n) + 
-		(t_0p * blend_0p) + 
-		(t * rem);
+	if(blend_n0 > 0.0) {
+		ivec4 surf_n0 = aSurfaces[textureOffset(sData, vec3(t_tile.xy, 0), ivec2(-1, 0)).x];
+		final_color += blend_n0 * texture(sTextures, vec3(tex64.xy, surf_n0.x));
+		final_normal += blend_n0 * texture(sTextures, vec3(tex64.xy, surf_n0.y));
+		final_roughness += blend_n0 * texture(sMaterials, vec3(tex64.xy, surf_n0.z)).r;
+	}
+	else if(blend_p0 > 0.0) {
+		ivec4 surf_p0 = aSurfaces[textureOffset(sData, vec3(t_tile.xy, 0), ivec2( 1, 0)).x];
+		final_color += blend_p0 * texture(sTextures, vec3(tex64.xy, surf_p0.x));
+		final_normal += blend_p0 * texture(sTextures, vec3(tex64.xy, surf_p0.y));
+		final_roughness += blend_p0 * texture(sMaterials, vec3(tex64.xy, surf_p0.z)).r;
 		
+	}
+	
+	if(blend_0n > 0.0) {
+		ivec4 surf_0n = aSurfaces[textureOffset(sData, vec3(t_tile.xy, 0), ivec2( 0,-1)).x];
+		final_color += blend_0n * texture(sTextures, vec3(tex64.xy, surf_0n.x));
+		final_normal += blend_0n * texture(sTextures, vec3(tex64.xy, surf_0n.y));
+		final_roughness += blend_0n * texture(sMaterials, vec3(tex64.xy, surf_0n.z)).r;
+		
+	}
+	else if(blend_0p > 0.0) {
+		ivec4 surf_0p = aSurfaces[textureOffset(sData, vec3(t_tile.xy, 0), ivec2( 0, 1)).x];
+		final_color += blend_0p * texture(sTextures, vec3(tex64.xy, surf_0p.x));
+		final_normal += blend_0p * texture(sTextures, vec3(tex64.xy, surf_0p.y));
+		final_roughness += blend_0p * texture(sMaterials, vec3(tex64.xy, surf_0p.z)).r;
+	}
+	
+
 	vec4 lineFactor = vec4(min(min(ei1, ei2), min(ei3, ei4)), 0,0,1).rrra;
 	out_Color = vec4(final_color.xyz, 1)  * lineFactor;
 	
-	
-	// normals
-	
-	vec4 n_n0 = texture(sTextures, vec3(texCoord.xy * 64, surf_n0.y));
-	vec4 n_p0 = texture(sTextures, vec3(texCoord.xy * 64, surf_p0.y));
-	vec4 n_0n = texture(sTextures, vec3(texCoord.xy * 64, surf_0n.y));
-	vec4 n_0p = texture(sTextures, vec3(texCoord.xy * 64, surf_0p.y));
-	
-	vec4 final_normal = 
-		(n_n0 * blend_n0) + 
-		(n_p0 * blend_p0) + 
-		(n_0n * blend_0n) + 
-		(n_0p * blend_0p) + 
-		(n * rem);
-		
 	// normals need to be in world space
 	vec4 out_norm = normalize(final_normal + (.25 * nc));
 	out_Normal = vec4((out_norm.xyz * .5) + .5, 1);
 	
-	
-	// Materials
-	
-	//   roughness
-	float r_00 = texture(sMaterials, vec3(texCoord.xy * 64, surf_00.z)).r;
-	float r_n0 = texture(sMaterials, vec3(texCoord.xy * 64, surf_n0.z)).r;
-	float r_p0 = texture(sMaterials, vec3(texCoord.xy * 64, surf_p0.z)).r;
-	float r_0n = texture(sMaterials, vec3(texCoord.xy * 64, surf_0n.z)).r;
-	float r_0p = texture(sMaterials, vec3(texCoord.xy * 64, surf_0p.z)).r;
-	
-	float final_roughness = 
-		(r_n0 * blend_n0) + 
-		(r_p0 * blend_p0) + 
-		(r_0n * blend_0n) + 
-		(r_0p * blend_0p) + 
-		(r_00 * rem);
-	
-	
 	float metalness = .4;
-	float roughness = .5;
 	
 	out_Material = vec3(metalness, final_roughness, 1);
 	
