@@ -367,6 +367,7 @@ uniform mat4 mWorldView;
 uniform mat4 mViewProj;
 
 uniform ivec4 aSurfaces[16]; // diff, norm, metal, rough
+uniform float terrainLOD;
 
 uniform int waterIndex;
 const int win = 1 + waterIndex;
@@ -416,15 +417,36 @@ void main(void) {
 	float ei2 = 1.0 - smoothstep(0.98, 1.0, q);
 	float ei3 = smoothstep(0.0, 0.02, r);
 	float ei4 = 1.0 - smoothstep(0.98, 1.0, r);
-	
+	vec4 lineFactor = vec4(min(min(ei1, ei2), min(ei3, ei4)), 0,0,1).rrra;
 	//out_Color = vec4(t_tile.x, t_tile.y,1 ,1.0);
 
+	float ndc_depth = gl_FragCoord.z * 2.0 - 1.0;
+	ndc_depth /= gl_FragCoord.w;
+	
+	ivec4 surf_00 = aSurfaces[texture(sData, vec3(t_tile.xy, 0)).x];
+	
+	
+	// don't bother blending the edges of distant tiles
+	if(ndc_depth > 80) { // 30 to 80
+		
+		out_Color = vec4(texture(sTextures, vec3(tex64.xy, surf_00.x))) * lineFactor;
+		out_Normal = vec4((normalize(texture(sTextures, vec3(tex64.xy, surf_00.y)).xyz) * .5) + .5, 1.0);
+		out_Material = vec3(.4, texture(sMaterials, vec3(tex64.xy, surf_00.z)).r, 1.0);
+// 		out_Color = vec4(texture(sTextures, vec3(tex64.xy,.5))) * lineFactor;
+// 		out_Normal = vec4((normalize(texture(sTextures, vec3(tex64.xy,.5)).xyz) * .5) + .5, 1.0);
+// 		out_Material = vec3(.4, texture(sMaterials, vec3(tex64.xy,.5)).r, 1.0);
+		
+		return;
+	}
+	
+	
+	float blend_lvl = 3;
 	
 	// splatting parameters
-	float blend_n0 = (1.0 - clamp(ftile.x * 4, 0.0, 1.0)) * .25; 
-	float blend_p0 = (1.0 - clamp((1.0-ftile.x) * 4, 0.0, 1.0)) * .25; 
-	float blend_0n = (1.0 - clamp(ftile.y * 4, 0.0, 1.0)) * .25; 
-	float blend_0p = (1.0 - clamp((1.0-ftile.y) * 4, 0.0, 1.0)) * .25; 
+	float blend_n0 = (1.0 - clamp(ftile.x * blend_lvl, 0.0, 1.0)) * (1.0/blend_lvl); 
+	float blend_p0 = (1.0 - clamp((1.0-ftile.x) * blend_lvl, 0.0, 1.0)) * (1.0/blend_lvl); 
+	float blend_0n = (1.0 - clamp(ftile.y * blend_lvl, 0.0, 1.0)) * (1.0/blend_lvl); 
+	float blend_0p = (1.0 - clamp((1.0-ftile.y) * blend_lvl, 0.0, 1.0)) * (1.0/blend_lvl); 
 	
 	float rem = clamp(1.0 - (blend_n0 + blend_p0 + blend_0n + blend_0p), 0.0, 1.0);
 	
@@ -436,7 +458,7 @@ void main(void) {
 	// diffuse texturing
 	vec4 tc, nc;// = texture2D(sBaseTex, texCoord);
 	
-	ivec4 surf_00 = aSurfaces[texture(sData, vec3(t_tile.xy, 0)).x];
+// 	ivec4 surf_00 = aSurfaces[texture(sData, vec3(t_tile.xy, 0)).x];
 	
 	vec4 final_color = rem * texture(sTextures, vec3(tex64.xy, surf_00.x));
 	vec4 final_normal = rem * texture(sTextures, vec3(tex64.xy, surf_00.y));
@@ -472,11 +494,11 @@ void main(void) {
 	}
 	
 
-	vec4 lineFactor = vec4(min(min(ei1, ei2), min(ei3, ei4)), 0,0,1).rrra;
+
 	out_Color = vec4(final_color.xyz, 1)  * lineFactor;
 	
 	// normals need to be in world space
-	vec4 out_norm = normalize(final_normal + (.25 * nc));
+	vec4 out_norm = normalize(final_normal);
 	out_Normal = vec4((out_norm.xyz * .5) + .5, 1);
 	
 	float metalness = .4;

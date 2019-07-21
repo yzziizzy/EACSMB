@@ -301,7 +301,7 @@ Texture* loadBitmapTexture(char* path) {
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, dt->tex_id);
 
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -1092,13 +1092,18 @@ int TextureManager_loadAll(TextureManager* tm, Vector2i targetRes) {
 // 		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_GENERATE_MIPMAP, GL_FALSE);
 	glexit("failed to create texture array 2");
 
-	glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	
 	glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_R, GL_REPEAT);
 	glexit("failed to create texture array 3");
+	
+	GLfloat aniso;
+	glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &aniso);
+	glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso);
+// 	printf("\n\naniso: %f\n\n\n", aniso);
 	
 	// squash the data in
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
@@ -1114,7 +1119,7 @@ int TextureManager_loadAll(TextureManager* tm, Vector2i targetRes) {
 	}
 	
 	glTexStorage3D(GL_TEXTURE_2D_ARRAY,
-		tm->mipLevels,  // mips, flat
+		8,//tm->mipLevels,
 		type,
 		targetRes.x, targetRes.y,
 		depth); // layers
@@ -1192,6 +1197,8 @@ int TextureManager_loadAll(TextureManager* tm, Vector2i targetRes) {
 		free(bmp);
 		
 	}
+	
+	glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
 	
 	return 0;
 }

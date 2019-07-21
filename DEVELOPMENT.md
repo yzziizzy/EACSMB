@@ -125,7 +125,7 @@ Triangulation is not required. The loader will automatically triangulate (as fan
 
 ## Textures
 ### From File
-PNG files can be loaded. All textures will be converted to RGBA8. *They must be a **square power of two**.*
+PNG and JPEG files can be loaded. All textures will be converted to RGBA8. *They must be a **square power of two**.*
 ### Procedural Generation
 Working but few operations. Prefixing the config texture path with "$" indicates a procedural 
 config. See `texgen.[ch]`
@@ -135,11 +135,8 @@ config. See `texgen.[ch]`
 
 ## Bugs
 * Terrain culling in the tessellation shader sometimes has false positives (blank areas on the screen).
-* Specular lighting algorithm is broken. (shading.glsl)
 * segfault when custom decal start/end points are the same.
-* Calculate correct shader error message line numbers.
-* Texture splatting on terrain is bad.
-* Selection pass is laggy but it shouldn't be. It's in the rendering, not the async pixel download. It might be in the render loop sleep timer; drawing the terrain should only take a few ms.
+* Texture splatting on terrain is slow. Seems to be the indirect texture fetches.
 * mCopy and the memcpy inside it have src/dst backwards but all usage needs to be fixed too...
 * Distance culling on CPU side needs to handle shadow passes properly
 * Bias calculation on shadows is terrible. Trees do not shadow themselves.
@@ -161,7 +158,6 @@ config. See `texgen.[ch]`
 * Texture scaling algorithm is broken (TextureManager)
 * Lighting:
 	* Point lights using geom-shader billboards for small/distance rendering.
-	* Fix light direction and color storage in gbuf. Probably needs some fancy packing.
 	* HDR and bloom
 * Ray-marched volumetric clouds and fog.
 * Custom mouse pointer support. 
@@ -200,7 +196,6 @@ config. See `texgen.[ch]`
 * CES system lacks a delete operation.
 * Figure out the proper API for adding and spawning CustomDecals in the CES system.
 * CLI options parsing for custom config files.
-* #include support in shaders.
 * Prevent zooming through the terrain.
 * Tree and bush generation algorithm.
 * JSON saving.

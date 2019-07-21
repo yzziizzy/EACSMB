@@ -110,7 +110,7 @@ typedef struct GameState {
 	
 	Vector cursorTilePos;
 	Vector2 cursorPos;
-// 	Vector cursorPos;
+// 	Vector cursorPos;i
 	int cursorIndex;
 	
 	char hasMoved;
