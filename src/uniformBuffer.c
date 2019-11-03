@@ -19,7 +19,7 @@ static GLuint ubo_alignment;
 
 
 // terrible code, but use for now
-static int waitSync(GLuint id) {
+static int waitSync(GLsync id) {
 	GLenum ret;
 	if(!id || !glIsSync(id)) return 1;
 	while(1) {
@@ -36,7 +36,7 @@ void* uniformBuffer_begin(UniformBuffer* ub) {
 	// it is set after commands for n - 1;
 	waitSync(ub->fences[ub->next_region]);
 	
-	return &ub->data_ptr[ub->next_region * ubo_alignment];
+	return ub->data_ptr + (ub->next_region * ubo_alignment);
 }
 
 void uniformBuffer_bindRange(UniformBuffer* ub) {

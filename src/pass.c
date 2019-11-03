@@ -330,7 +330,7 @@ static void bindUniforms(PassDrawable* d, PassDrawParams* pdp) {
 	if(d->ul_timeSeconds != -1) glUniform1f(d->ul_timeSeconds, pdp->timeSeconds);
 	if(d->ul_timeFractional != -1) glUniform1f(d->ul_timeFractional, pdp->timeFractional);
 	
-	if(d->ul_targetSize != -1) glUniform2iv(d->ul_targetSize, 1, &pdp->targetSize);
+	if(d->ul_targetSize != -1) glUniform2iv(d->ul_targetSize, 1, (GLint*)&pdp->targetSize);
 	
 #undef BIND_MATRIX
 }
@@ -373,6 +373,8 @@ void RenderPass_renderAll(RenderPipeline* rpipe, RenderPass* pass, PassDrawParam
 		glUseProgram(d->prog->id);
 		if(rpipe) bindFBOUniforms(rpipe, d);
 		bindUniforms(d, pdp);
+		
+		// BUG the code below works but the declarations do not agree. dunno which one is wrong.
 		d->draw(d->data, d->prog->id, pdp);
 		
 		DrawTimer_Start(&d->timer);

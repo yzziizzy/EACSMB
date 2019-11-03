@@ -354,7 +354,7 @@ static Item* findItem(World* w, char* itemName) {
 	
 	if(HT_get(&w->itemLookup, itemName, &index)) {
 		fprintf(stderr, "!!! item not found: '%s'\n", itemName);
-		return -1;
+		return (Item*)-1;
 	}
 	
 	//printf("index of %s:%d\n", itemName, index);
@@ -376,7 +376,7 @@ static ItemInstance* allocItemInstance(Item* item) {
 
 static uint32_t spawnPart(World* w, ItemPart* part, uint32_t parentEID, Vector* center) {
 	Vector loc;
-	uint32_t eid = (1 << 31) - 2;
+	uint32_t eid = (1ul << 31) - 2ul;
 	
 	vAdd(center, &part->offset, &loc);
 	
@@ -387,7 +387,7 @@ static uint32_t spawnPart(World* w, ItemPart* part, uint32_t parentEID, Vector* 
 		
 		case PART_TYPE_STATICMESH:
 			printf("!!! StaticMeshManager is obsolete. use DynamicMeshManager.\n");
-			return 1 << 31;
+			return 1ul << 31;
 		
 		case PART_TYPE_EMITTER:
 			eid = World_spawnAt_Emitter(w, part->index, &loc);
@@ -411,7 +411,7 @@ static uint32_t spawnPart(World* w, ItemPart* part, uint32_t parentEID, Vector* 
 	
 		default:
 			printf("unknown part item type: %d, %d\n", part->type, part->index);
-			return (1 << 31) - 1;
+			return (1ul << 31) - 1ul;
 	}
 	
 	
@@ -536,7 +536,7 @@ int World_spawnAt_DynamicMesh(World* w, int dmIndex, Vector* location) {
 	CES_addComponentName(&w->gs->ces, "angularVelocity", eid, &av);
 	
 	C_PathFollow pf = {
-		.path = Path_makeRandomLoop(&dmi.pos, 50, 10, .01),
+		.path = Path_makeRandomLoop((Vector2*)&dmi.pos, 50, 10, .01),
 		.distTravelled = frand(0, 10000),
 		.speed = frand(5, 100)
 	};
@@ -680,12 +680,12 @@ int World_spawnAt_CustomDecal(World* w, int cdecalIndex, float width, const Vect
 	vNorm2(&n, &n);
 	vScale2(&n, hw, &n);
 	
-	vAdd(&n, p1, &di.pos1);
-	vAdd(&n, p2, &di.pos3);
+	vAdd2(&n, p1, (Vector2*)&di.pos1);
+	vAdd2(&n, p2, (Vector2*)&di.pos3);
 	
-	vScale(&n, -1, &n);
-	vAdd(&n, p1, &di.pos2);
-	vAdd(&n, p2, &di.pos4);
+	vScale2(&n, -1, &n);
+	vAdd2(&n, p1, (Vector2*)&di.pos2);
+	vAdd2(&n, p2, (Vector2*)&di.pos4);
 	
 	di.pos1.z = Map_getTerrainHeight3f(&w->map, di.pos1);
 	di.pos2.z = Map_getTerrainHeight3f(&w->map, di.pos2);
@@ -789,7 +789,7 @@ void World_drawDecals(World* w, PassFrameParams* pfp) {
 int World_lookUp_Item(World* w, char* name) {
 	int64_t index;
 	
-	if(HT_get(&w->itemLookup, name, &index)) {
+	if(HT_get(&w->itemLookup, name, (void**)&index)) {
 		fprintf(stderr, "!!! item not found: '%s'\n", name);
 		return -1;
 	}

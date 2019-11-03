@@ -141,18 +141,18 @@ void part_spawn_CUSTOMDECAL(void* partMgr, PartInstance* pi, void* info) {
 	float hw = width / 2;
 	
 	Vector2 p12;
-	vSub2(p2, p1, &p12);
+	vSub2((Vector2*)p2, (Vector2*)p1, &p12);
 	
 	n = (Vector2){p12.y, -p12.x};
 	vNorm2(&n, &n);
 	vScale2(&n, hw, &n);
 	
-	vAdd(&n, p1, &di.pos1);
-	vAdd(&n, p2, &di.pos3);
+	vAdd2(&n, (Vector2*)p1, (Vector2*)&di.pos1);
+	vAdd2(&n, (Vector2*)p2, (Vector2*)&di.pos3);
 	
-	vScale(&n, -1, &n);
-	vAdd(&n, p1, &di.pos2);
-	vAdd(&n, p2, &di.pos4);
+	vScale2(&n, -1, &n);
+	vAdd2(&n, (Vector2*)p1, (Vector2*)&di.pos2);
+	vAdd2(&n, (Vector2*)p2, (Vector2*)&di.pos4);
 	
 // 	di.pos1.z = Map_getTerrainHeight3f(&w->map, di.pos1);
 // 	di.pos2.z = Map_getTerrainHeight3f(&w->map, di.pos2);

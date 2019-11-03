@@ -91,7 +91,7 @@ static void printLogOnFail(GLuint id, ShaderSource* ss) {
 	free(log);
 }
 
-static void printProgLogOnFail(id) {
+static void printProgLogOnFail(GLuint id) {
 	
 	GLint success, logSize;
 	GLsizei len;
@@ -236,7 +236,7 @@ static void ss_loadFile(ShaderSource* ss, char* path) {
 	if(!source) {
 		// TODO copypasta, fix this
 		fprintf(stderr, "failed to load shader file '%s'\n", path);
-		return NULL;
+		return;
 	}
 	
 	VEC_INIT(&l);
@@ -397,7 +397,7 @@ void extractShaders(ShaderProgram* sp, ShaderSource* raw) {
 		
 		// add the version line
 		s = malloc(20);
-		sprintf(s, "#version %0.3u\n", ss->version);
+		sprintf(s, "#version %.3u\n", ss->version);
 		VEC_ITEM(&ss->lines, 0).src = s;
 		VEC_ITEM(&ss->lines, 0).file_path = NULL;
 		VEC_ITEM(&ss->lines, 0).file_line = -1;

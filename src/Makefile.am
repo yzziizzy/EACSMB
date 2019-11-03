@@ -110,7 +110,8 @@ AM_CFLAGS = "-I/usr/include/freetype2" -std=gnu11 -g -DLINUX \
 	-include "./global_include.h" \
 	-pthread \
 	-Wno-unused-result \
-	-Werror-implicit-function-declaration
+	-Werror-implicit-function-declaration \
+	-Wno-discarded-qualifiers
 	
 AM_CXXFLAGS = $(AM_CFLAGS)
 
