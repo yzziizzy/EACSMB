@@ -395,11 +395,11 @@ static void renderDebugBox(float thickness, Vector color, Vector min, Vector max
 	
 	glUseProgram(prog->id);
 // 	glUniformMatrix4fv(wp_ul, 1, GL_FALSE, &pfp->dp->mWorldProj);
-	glUniformMatrix4fv(wv_ul, 1, GL_FALSE, &pfp->dp->mWorldView->m);
-	glUniformMatrix4fv(wp_ul, 1, GL_FALSE, &pfp->dp->mViewProj->m);
+	glUniformMatrix4fv(wv_ul, 1, GL_FALSE, pfp->dp->mWorldView->m);
+	glUniformMatrix4fv(wp_ul, 1, GL_FALSE, pfp->dp->mViewProj->m);
 	glUniform3f(min_ul, min.x, min.y, min.z);
 	glUniform3f(max_ul, max.x, max.y, max.z);
-	glUniform3fv(color_ul, 1, &color);
+	glUniform3fv(color_ul, 1, (GLfloat*)&color);
 
 	glBindVertexArray(vao);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);

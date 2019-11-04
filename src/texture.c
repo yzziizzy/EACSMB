@@ -44,7 +44,7 @@ Texture* Texture_acquirePath(char* path) {
 	}
 	
 	// check the cache
-	if(HT_get(&texLookup, path, &e) && e->tex) {
+	if(HT_get(&texLookup, path, (void*)&e) && e->tex) {
 		e->refs++;
 		return e->tex;
 	}
@@ -68,11 +68,11 @@ void Texture_release(Texture* tex) {
 	struct TexEntry* e;
 	
 	if(strlen(tex->name) == 0) {
-		return NULL;
+		return;
 	}
 	
 		// check the cache
-	if(HT_get(&texLookup, tex->name, &e)) {
+	if(HT_get(&texLookup, tex->name, (void*)&e)) {
 		if(e->refs > 0) {
 			e->refs--;
 		}
@@ -848,9 +848,9 @@ static BitmapRGBA8* linearUpscale_2(BitmapRGBA8* in) {
 			);
 			
 			// two packed pixels are stored at once
-			_mm_storel_epi64(&out->data[ox + 0 + (oy + 1) * out->width], packed);
+			_mm_storel_epi64((__m128i_u*)&out->data[ox + 0 + (oy + 1) * out->width], packed);
 			packed = _mm_unpackhi_epi64(packed, packed);
-			_mm_storel_epi64(&out->data[ox + 0 + (oy + 0) * out->width], packed);
+			_mm_storel_epi64((__m128i_u*)&out->data[ox + 0 + (oy + 0) * out->width], packed);
 		}
 		
 		// do the last two vertical pixels
@@ -1150,7 +1150,7 @@ int TextureManager_loadAll(TextureManager* tm, Vector2i targetRes) {
 				// temporary hack until the entire texture pipeline is converted to TexBitmap
 				if(tbmp) {
 					bmp = calloc(1, sizeof(*bmp));
-					bmp->data = tbmp->data8;
+					bmp->data = (uint32_t*)tbmp->data8;
 					bmp->width = tbmp->width;
 					bmp->height = tbmp->height;
 					bmp->path = tbmp->path;

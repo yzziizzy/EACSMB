@@ -27,9 +27,6 @@ static GLuint model_ul, view_ul, proj_ul, timeS_ul, timeMS_ul;
 
 
 
-#define PC_BUFFER_DEPTH 16
-
-
 
 // the distance at which the given light falls below an 8 bit integer's precision
 float lightDistance(float constant, float linear, float quadratic) {
@@ -270,9 +267,9 @@ RenderPass* LightManager_CreateRenderPass(LightManager* lm) {
 	
 	pd = Pass_allocDrawable("LightManager");
 	pd->data = lm;
-	pd->preFrame = preFrame;
+	pd->preFrame = (void*)preFrame;
 	pd->draw = (PassDrawFn)draw;
-	pd->postFrame = postFrame;
+	pd->postFrame = (void*)postFrame;
 	pd->prog = prog;
 	
 	rp = calloc(1, sizeof(*rp));

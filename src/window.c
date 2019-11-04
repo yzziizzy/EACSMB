@@ -99,7 +99,7 @@ void _khr_debug_callback( // i hate this stype of formatting, but this function 
 	GLenum severity,
 	GLsizei length,
 	const GLchar *message,
-	GLvoid *userParam) {
+	const GLvoid *userParam) {
 
 	printf(TERM_BOLD TERM_COLOR_RED "GL ERROR:" TERM_RESET TERM_COLOR_RED " %s\n" TERM_RESET, message);
 	
@@ -305,7 +305,7 @@ void processEvents(XStuff* xs, InputState* st, InputFocusStack* ifs, int max_eve
 			
 			st->keyState[xev.xkey.keycode] |= IS_KEYPRESSED | IS_KEYDOWN;
 			
-			int slen = XLookupString(&xev, &c, 1, &sym, NULL);
+			int slen = XLookupString(&xev.xkey, &c, 1, &sym, NULL);
 			
 			iev.type = EVENT_KEYDOWN;
 			iev.time = gt;
@@ -321,7 +321,7 @@ void processEvents(XStuff* xs, InputState* st, InputFocusStack* ifs, int max_eve
 			
 			st->keyState[xev.xkey.keycode] &= !IS_KEYDOWN;
 			
-			int slen = XLookupString(&xev, &c, 1, &sym, NULL);
+			int slen = XLookupString(&xev.xkey, &c, 1, &sym, NULL);
 			
 			iev.type = EVENT_KEYUP;
 			iev.time = gt;

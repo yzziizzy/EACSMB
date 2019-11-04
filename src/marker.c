@@ -130,7 +130,7 @@ int MarkerManager_addMesh(MarkerManager* mm, Marker* m, char* name, int segments
 	VEC_PUSH(&mm->meshes, m);
 	index = VEC_LEN(&mm->meshes);
 	
-	HT_set(&mm->lookup, name, index -1);
+	HT_set(&mm->lookup, name, (void*)(index - 1));
 	
 	return index - 1;
 }
@@ -155,8 +155,8 @@ int MarkerManager_lookupName(MarkerManager* mm, char* name) {
 	
 	int64_t index;
 	
-	if(!HT_get(&mm->lookup, name, &index)) {
-		printf("marker found: %s -> %d\n", name, index);
+	if(!HT_get(&mm->lookup, name, (void*)&index)) {
+		printf("marker found: %s -> %ld\n", name, index);
 		return index;
 	}
 	printf("marker not found: %s\n", name);

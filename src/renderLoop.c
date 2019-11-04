@@ -238,17 +238,17 @@ void shadingPass(GameState* gs, PassFrameParams* pfp) {
 	glexit("shading samplers");
 	
 //	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "world"), 1, GL_FALSE, world.m);
-	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "mViewProj"), 1, GL_FALSE, pfp->dp->mViewProj);
-	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "mWorldView"), 1, GL_FALSE, pfp->dp->mWorldView);
+	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "mViewProj"), 1, GL_FALSE, pfp->dp->mViewProj->m);
+	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "mWorldView"), 1, GL_FALSE, pfp->dp->mWorldView->m);
 
 	//mInverse(msGetTop(&gs->proj), &projView);
 	//mInverse(msGetTop(&gs->view), &viewWorld);
 	
-	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "mProjView"), 1, GL_FALSE, pfp->dp->mProjView);
-	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "mViewWorld"), 1, GL_FALSE, pfp->dp->mViewWorld);
+	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "mProjView"), 1, GL_FALSE, pfp->dp->mProjView->m);
+	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "mViewWorld"), 1, GL_FALSE, pfp->dp->mViewWorld->m);
 	
 	//mPrint(&gs->world->sunShadow->mWorldLight,  stdout);
-	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "mWorldLight"), 1, GL_FALSE, &gs->world->sunShadow->mWorldLight);
+	glUniformMatrix4fv(glGetUniformLocation(shadingProg->id, "mWorldLight"), 1, GL_FALSE, gs->world->sunShadow->mWorldLight.m);
 
 	glexit("shading world");
 
@@ -389,7 +389,7 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	
 	PassFrameParams* activePFP = &pfp;
-	PassFrameParams* activePDP;
+	PassDrawParams* activePDP;
 	
 	if(gs->use_debugCam) {
 		if(gs->refresh_debugCam) {

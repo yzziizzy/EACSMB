@@ -123,6 +123,8 @@ int writeJPEG_RGBA(char* path, int width, int height, void* data, uint32_t alpha
 	a_g = (alphaColor & 0x00ff0000) >> 16;
 	a_b = (alphaColor & 0x0000ff00) >> 8;
 	
+	JSAMPARRAY arr = &row;
+	
 	// convert and write one row at a time
 	for(int i = 0; i < height; i++) {
 		
@@ -149,7 +151,8 @@ int writeJPEG_RGBA(char* path, int width, int height, void* data, uint32_t alpha
 			}
 		}
 		
-		jpeg_write_scanlines(&ci, row, 1);
+		
+		jpeg_write_scanlines(&ci, arr, 1);
 	}
 
 	

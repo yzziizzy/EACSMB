@@ -49,7 +49,7 @@ void MemPool_init(MemPool* mp, size_t itemSize, size_t maxItems) {
 
 void* MemPool_malloc(MemPool* mp) {
 	if(mp->fill >= mp->maxItems) {
-		fprintf(stderr, "MemPool overflowed max items %d\n", mp->maxItems);
+		fprintf(stderr, "MemPool overflowed max items %ld\n", mp->maxItems);
 		return NULL;
 	}
 	
@@ -127,7 +127,7 @@ void MemPoolT_init(MemPoolT* mp, size_t itemSize, size_t maxItems) {
 
 
 static inline void mpt_check_bitfield(MemPoolT* mp) {
-	printf("bf alloc: %d\n", mp->bitfieldAlloc);
+	printf("bf alloc: %ld\n", mp->bitfieldAlloc);
 	if((mp->fill / 64) + ((mp->fill % 64) > 0) >= mp->bitfieldAlloc) {
 		mp->bitfieldAlloc = mp->bitfieldAlloc < 8 ? 8 : mp->bitfieldAlloc * 2;
 		mp->bitfield = realloc(mp->bitfield, sizeof(*mp->bitfield) * mp->bitfieldAlloc);
@@ -164,7 +164,7 @@ static inline int mpt_get_bit(MemPoolT* mp, size_t index) {
 
 void* MemPoolT_malloc(MemPoolT* mp) {
 	if(mp->fill >= mp->maxItems) {
-		fprintf(stderr, "MemPool overflowed max items %d\n", mp->maxItems);
+		fprintf(stderr, "MemPool overflowed max items %ld\n", mp->maxItems);
 		return NULL;
 	}
 	
