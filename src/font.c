@@ -61,7 +61,7 @@ void FontManager_init(FontManager* fm, GlobalSettings* gs) {
 		FontManager_saveAtlas(fm, "fonts.atlas");
 	}
 	
-	HT_get(&fm->fonts, "Arial", &fm->helv);
+	HT_get(&fm->fonts, "Arial", (void**)&fm->helv);
 }
 
 
@@ -70,7 +70,7 @@ void FontManager_init(FontManager* fm, GlobalSettings* gs) {
 GUIFont* FontManager_findFont(FontManager* fm, char* name) {
 	GUIFont* f;
 	
-	if(HT_get(&fm->fonts, name, &f)) {
+	if(HT_get(&fm->fonts, name, (void**)&f)) {
 		return fm->helv; // fallback
 	}
 	
@@ -124,7 +124,7 @@ static void checkFTlib() {
 		err = FT_Init_FreeType(&ftLib);
 		if(err) {
 			fprintf(stderr, "Could not initialize FreeType library.\n");
-			return NULL;
+			return;
 		}
 	}
 }
@@ -288,7 +288,7 @@ static FontGen* addChar(FontManager* fm, FT_Face* ff, int code, int fontSize, ch
 	if(err) {
 		fprintf(stderr, "Could not set pixel size to %dpx.\n", rawSize);
 		free(fg);
-		return;
+		return NULL;
 	}
 	
 	
@@ -446,11 +446,11 @@ void FontManager_addFont2(FontManager* fm, char* name, char bold, char italic) {
 
 	err = FT_New_Face(ftLib, fontPath, 0, &fontFace);
 	if(err) {
-		fprintf(stderr, "Could not access font '%s' at '%'.\n", name, fontPath);
+		fprintf(stderr, "Could not access font '%s' at '%s'.\n", name, fontPath);
 		return;
 	}
 	
-	if(HT_get(&fm->fonts, name, &f)) {
+	if(HT_get(&fm->fonts, name, (void**)&f)) {
 		f = GUIFont_alloc(name);
 		HT_set(&fm->fonts, name, f);
 	}
@@ -491,7 +491,7 @@ void FontManager_createAtlas(FontManager* fm) {
 	int pot = nextPOT(naiveSize);
 	int pot2 = naiveSize / 2;
 	
-	printf("naive min tex size: %f -> %d (%d)\n", naiveSize, pot, totalWidth);
+	printf("naive min tex size: %d -> %d (%d)\n", naiveSize, pot, totalWidth);
 	
 	pot = MIN(pot, fm->maxAtlasSize);
 	
@@ -523,7 +523,7 @@ void FontManager_createAtlas(FontManager* fm) {
 			if(hext + prevhext > pot) { 
 				VEC_PUSH(&fm->atlas, texData);
 				
-				sprintf(buf, "sdf-comp-%d.png", VEC_LEN(&fm->atlas));
+				sprintf(buf, "sdf-comp-%ld.png", VEC_LEN(&fm->atlas));
 				writePNG(buf, 1, texData, pot, pot);
 				
 				
@@ -583,7 +583,7 @@ void FontManager_createAtlas(FontManager* fm) {
 	
 	VEC_PUSH(&fm->atlas, texData);
 	
-	sprintf(buf, "sdf-comp-%d.png", VEC_LEN(&fm->atlas));
+	sprintf(buf, "sdf-comp-%ld.png", VEC_LEN(&fm->atlas));
 	writePNG(buf, 1, texData, pot, pot);
 	
 	VEC_FREE(&fm->gen);
@@ -745,7 +745,7 @@ int FontManager_loadAtlas(FontManager* fm, char* path) {
 	fclose(f);
 	
 	
-	HT_get(&fm->fonts, "Arial", &fm->helv);
+	HT_get(&fm->fonts, "Arial", (void**)&fm->helv);
 	
 	return 0;
 }

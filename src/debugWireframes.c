@@ -142,8 +142,8 @@ void renderDebugWireframeLines(PassFrameParams* pfp) {
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	
 	glUseProgram(debugProgLines->id);
-	glUniformMatrix4fv(wv_lines_ul, 1, GL_FALSE, &pfp->dp->mWorldView->m);
-	glUniformMatrix4fv(vp_lines_ul, 1, GL_FALSE, &pfp->dp->mViewProj->m);
+	glUniformMatrix4fv(wv_lines_ul, 1, GL_FALSE, pfp->dp->mWorldView->m);
+	glUniformMatrix4fv(vp_lines_ul, 1, GL_FALSE, pfp->dp->mViewProj->m);
 
 	glexit("");
 // 	glBindVertexArray(vao);
@@ -263,7 +263,7 @@ void debugWF_Sphere(Sphere* s, int segments, char* color, float width) {
 	float th = (2 * F_PI) / (float)segments;
 	Vector c = s->center;
 	float r = s->r;
-
+	
 	char* red = color ? color : "red"; 
 	char* blue = color ? color : "blue"; 
 	char* green = color ? color : "green"; 

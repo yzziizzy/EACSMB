@@ -730,13 +730,16 @@ static void main_key_handler(InputEvent* ev, GameState* gs) {
 	if(ev->keysym == XK_F12) {
 		gs->use_debugCam = 1;
 		gs->refresh_debugCam = 1;
+		printf("refreshed/enabled debug cam\n");
 	}
 	if(ev->keysym == XK_F11) {
 		gs->use_debugCam = 0;
+		printf("disabled debug cam\n");
 	}
 	
 	if(ev->keysym == XK_F9) {
 		gs->show_debugWireframe = !gs->show_debugWireframe;
+		printf("showing debug wireframe: %d\n", gs->show_debugWireframe);
 	}
 	
 	if(ev->keysym == XK_Delete) {

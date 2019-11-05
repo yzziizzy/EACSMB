@@ -180,9 +180,9 @@ PassDrawable* DecalManager_CreateDrawable(DecalManager* lm) {
 
 	pd = Pass_allocDrawable("DecalManager");
 	pd->data = lm;
-	pd->preFrame = preFrame;
+	pd->preFrame = (void*)preFrame;
 	pd->draw = (PassDrawFn)draw;
-	pd->postFrame = postFrame;
+	pd->postFrame = (void*)postFrame;
 	pd->prog = prog;
 	
 	return pd;
@@ -267,7 +267,7 @@ int DecalManager_lookupName(DecalManager* dm, char* name) {
 	
 	int64_t index;
 	
-	if(!HT_get(&dm->lookup, name, &index)) {
+	if(!HT_get(&dm->lookup, name, (void**)&index)) {
 		//printf("decal found: %s -> %d\n", name, index);
 		return index;
 	}
@@ -289,7 +289,7 @@ int DecalManager_AddDecal(DecalManager* dm, char* name, Decal* d) {
 	VEC_PUSH(&dm->renderOrder, index - 1);
 	sortDecalRenderOrder(dm);
 	
-	HT_set(&dm->lookup, name, index -1);
+	HT_set(&dm->lookup, name, (void*)(index -1));
 	
 	return index - 1;
 }
@@ -409,8 +409,8 @@ glexit("");
 	glProgramUniform1i(prog->id, glGetUniformLocation(prog->id, "sDepth"), 23);
 	
 
-	glUniformMatrix4fv(view_ul, 1, GL_FALSE, &pdp->mWorldView->m);
-	glUniformMatrix4fv(proj_ul, 1, GL_FALSE, &pdp->mViewProj->m);
+	glUniformMatrix4fv(view_ul, 1, GL_FALSE, pdp->mWorldView->m);
+	glUniformMatrix4fv(proj_ul, 1, GL_FALSE, pdp->mViewProj->m);
 	
 	
 

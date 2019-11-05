@@ -96,7 +96,7 @@ int EmitterManager_addEmitter(EmitterManager* em, Emitter* e, char* name) {
 	VEC_PUSH(&em->emitters, e);
 	index = VEC_LEN(&em->emitters);
 	
-	HT_set(&em->lookup, name, index - 1);
+	HT_set(&em->lookup, name, (void*)(index - 1));
 }
 
 
@@ -120,8 +120,8 @@ int EmitterManager_lookupName(EmitterManager* em, char* name) {
 	
 	int64_t index;
 	
-	if(!HT_get(&em->lookup, name, &index)) {
-		printf("emitter found: %s -> %d\n", name, index);
+	if(!HT_get(&em->lookup, name, (void**)&index)) {
+		printf("emitter found: %s -> %ld\n", name, index);
 		return index;
 	}
 	printf("emitter not found: %s\n", name);

@@ -181,7 +181,7 @@ void _print_leaf(BPlusTree* tree, BPTNode* n, int indent) {
 	for(i = 0; i < MIN(n->fill, 30); i++) {
 		bpt_key_t k = bpt_get_leaf_key(tree, n, i);
 		uint64_t v = *((uint64_t*)bpt_get_leaf_val_p(tree, n, i));
-		printf("%d=%d, ", k, v);
+		printf("%d=%ld, ", k, v);
 	}
 	
 	

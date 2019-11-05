@@ -195,9 +195,9 @@ PassDrawable* CustomDecalManager_CreateDrawable(CustomDecalManager* lm) {
 
 	pd = Pass_allocDrawable("CustomDecalManager");
 	pd->data = lm;
-	pd->preFrame = preFrame;
+	pd->preFrame = (void*)preFrame;
 	pd->draw = (PassDrawFn)draw;
-	pd->postFrame = postFrame;
+	pd->postFrame = (void*)postFrame;
 	pd->prog = prog;
 	
 	return pd;
@@ -251,7 +251,7 @@ void CustomDecalManager_initGL(CustomDecalManager* dm, GlobalSettings* gs) {
 
 // makes a decal of a certain width from one spot to another
 // returns the index of the instance
-int CustomDecalManager_AddInstanceStrip(CustomDecalManager* dm, int index, Vector start, Vector end, float width) {
+CustomDecalInstance* CustomDecalManager_AddInstanceStrip(CustomDecalManager* dm, int index, Vector start, Vector end, float width) {
 	
 	CustomDecalInstance di;
 	
@@ -259,7 +259,7 @@ int CustomDecalManager_AddInstanceStrip(CustomDecalManager* dm, int index, Vecto
 }
 
 
-// returns the index of the instance
+// returns the instance
 CustomDecalInstance* CustomDecalManager_AddInstance(CustomDecalManager* dm, int index, const CustomDecalInstance* di) {
 	
 	CustomDecal* d; 

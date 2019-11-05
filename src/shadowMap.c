@@ -106,7 +106,7 @@ void ShadowMap_Render(ShadowMap* sm, PassFrameParams* cameraPFP, Vector* lightPo
 	mPrint(cameraPFP->dp->mViewWorld, stdout);
 	mPrint(cameraPFP->dp->mProjWorld, stdout);
 	*/
-// 	debugWF_ProjMatrix(cameraPFP->dp->mWorldProj);
+	debugWF_ProjMatrix(cameraPFP->dp->mWorldProj);
 	
 	Frustum fr;
 	Sphere sp;
@@ -115,7 +115,7 @@ void ShadowMap_Render(ShadowMap* sm, PassFrameParams* cameraPFP, Vector* lightPo
 	frustumBoundingSphere(&fr, &sp);
 // 	printf("%f,%f,%f,  %f\n", sp.center.x,sp.center.y,sp.center.z, sp.r);
 	
-// 	debugWF_Sphere(&sp, 100, NULL, 2);
+	debugWF_Sphere(&sp, 100, NULL, 2);
 	
 	
 	Vector p2 = {5000, 5000, 5000};
@@ -126,7 +126,7 @@ void ShadowMap_Render(ShadowMap* sm, PassFrameParams* cameraPFP, Vector* lightPo
 	
 //  	debugWF_ProjMatrix(&m2);
 	
-// 	debugWF_ProjMatrix(&m_wp);
+	debugWF_ProjMatrix(&m_wp);
 	
 	// figure out a good view
 
