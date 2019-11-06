@@ -7,7 +7,7 @@
 
 
 #include "core.h"
-#include "../staticMesh.h"
+#include "../dynamicMesh.h"
 
 
 
@@ -28,7 +28,7 @@ typedef struct MB_link {
 typedef struct MeshBuilder {
 	
 	MeshData* md;
-	MeshManager* mm;
+	DynamicMeshManager* mm;
 	
 	MB_operation* rootOp;
 	MB_link* rootLink;

@@ -29,7 +29,6 @@
 #include "shader.h"
 #include "texture.h"
 #include "window.h"
-#include "staticMesh.h"
 #include "dynamicMesh.h"
 #include "waterPlane.h"
 #include "road.h"
@@ -361,7 +360,6 @@ void initGameGL(XStuff* xs, GameState* gs) {
 	
 	initTextures();
 	
-	initStaticMeshes(); // static meshes will probably be phased out due to the culling efficiency of dynamic meshes
 	initDynamicMeshes();
 	initLighting();
 	//initRoads();

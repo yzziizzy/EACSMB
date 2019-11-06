@@ -38,7 +38,7 @@ void MeshBuilder_init(MeshBuilder* mb) {
 // rebuild the mesh from the root operation
 void MeshBuilder_Rebuild(MeshBuilder* mb) {
 	
-	StaticMesh* sm;
+	DynamicMesh* sm;
 	int i;
 	
 	
@@ -65,7 +65,7 @@ void MeshBuilder_Rebuild(MeshBuilder* mb) {
 	CHECK_OOM(sm->indices.w16);
 	
 	// copy data
-	for(i = 0; i < sm->vertexCnt; i++) sm->vertices[i] = *((StaticMeshVertex*)&VEC_ITEM(&mb->md->verts, i));
+	for(i = 0; i < sm->vertexCnt; i++) sm->vertices[i] = *((DynamicMeshVertex*)&VEC_ITEM(&mb->md->verts, i));
 	for(i = 0; i < sm->indexCnt; i++) sm->indices.w16[i] = VEC_ITEM(&mb->md->indices, i);
 	
 	
@@ -73,18 +73,18 @@ void MeshBuilder_Rebuild(MeshBuilder* mb) {
 	
 	// TODO: purge mesh manager of all existing instances and meshes
 	
-	int m_index = meshManager_addMesh(mb->mm, "object", sm);
+	int m_index = dynamicMeshManager_addMesh(mb->mm, "object", sm);
 	
-	StaticMeshInstance smi = {
+	DynamicMeshInstance smi = {
 		.pos = {0,0,0},
 		.scale = 1.0,
 		.dir = {0,1,0},
 		.rot = 0,
 		.alpha = .5
 	};
-	meshManager_addInstance(mb->mm, m_index, &smi);
-	meshManager_updateGeometry(mb->mm);
-	meshManager_updateInstances(mb->mm);
+	dynamicMeshManager_addInstance(mb->mm, m_index, &smi);
+	dynamicMeshManager_updateGeometry(mb->mm);
+// 	dynamicMeshManager_updateInstances(mb->mm);
 }
 
 

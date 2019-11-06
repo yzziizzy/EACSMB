@@ -9,10 +9,7 @@
 
 
 static int partTypeLookup(char* name) {
-	if(0 == strcmp("staticMesh", name)) {
-		return PART_TYPE_STATICMESH;
-	}
-	else if(0 == strcmp("dynamicMesh", name)) {
+	if(0 == strcmp("dynamicMesh", name)) {
 		return PART_TYPE_DYNAMICMESH;
 	}
 	else if(0 == strcmp("emitter", name)) {
@@ -106,7 +103,6 @@ typedef int (*loaderFn)(World*, json_value_t*);
 static const loaderFn loaderFns[] = {
 	[PART_TYPE_UNKNOWN] =     NULL,
 	[PART_TYPE_ITEM] =        loadConfig_Item,
-	[PART_TYPE_STATICMESH] =  NULL, // obsolete, for now
 	[PART_TYPE_DYNAMICMESH] = loadConfig_DynamicMesh,
 	[PART_TYPE_EMITTER] =     loadConfig_Emitter,
 	[PART_TYPE_LIGHT] =       loadConfig_Light,

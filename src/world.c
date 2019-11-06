@@ -385,9 +385,9 @@ static uint32_t spawnPart(World* w, ItemPart* part, uint32_t parentEID, Vector* 
 			eid = World_spawnAt_DynamicMesh(w, part->index, &loc);
 			break;
 		
-		case PART_TYPE_STATICMESH:
-			printf("!!! StaticMeshManager is obsolete. use DynamicMeshManager.\n");
-			return 1ul << 31;
+// 		case PART_TYPE_STATICMESH:
+// 			printf("!!! StaticMeshManager is obsolete. use DynamicMeshManager.\n");
+// 			return 1ul << 31;
 		
 		case PART_TYPE_EMITTER:
 			eid = World_spawnAt_Emitter(w, part->index, &loc);

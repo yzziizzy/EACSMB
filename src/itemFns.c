@@ -12,10 +12,6 @@ void part_spawn_ITEM(void* partMgr, PartInstance* pi, void* partSpawnInfo) {}
 void part_remove_ITEM(void* partMgr, PartInstance* pi) {}
 void part_move_ITEM(void* partMgr, PartInstance* pi, Vector* newPos) {}
 
-void part_spawn_STATICMESH(void* partMgr, PartInstance* pi, void* partSpawnInfo) {}
-void part_remove_STATICMESH(void* partMgr, PartInstance* pi) {}
-void part_move_STATICMESH(void* partMgr, PartInstance* pi, Vector* newPos) {}
-
 
 
 // waiting to be moved to their appropriate files

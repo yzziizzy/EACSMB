@@ -13,7 +13,6 @@
 
 #include "utilities.h"
 #include "shader.h"
-#include "staticMesh.h"
 #include "emitter.h"
 #include "scene.h"
 #include "map.h"

@@ -95,7 +95,7 @@ void guiBuilderControlResize(GUIBuilderControl* bc, Vector2 newSz) {
 	guiResize(bc->rt, newSz);
 }
 
-void geom_pass_render(MeshManager* mm, PassDrawable* pd, PassDrawParams* dp) {
+void geom_pass_render(DynamicMeshManager* mm, PassDrawable* pd, PassDrawParams* dp) {
 	
 // 	meshManager_draw(mm, dp->mWorldView, dp->mViewProj);
 	
@@ -267,10 +267,10 @@ GUIBuilderControl* GUIBuilderControl_new(GUIManager* gm, Vector2 pos, Vector2 si
 	RenderPass_init(pass);
 	// loadCombinedProgram("dynamicMeshInstanced")
 	
-	bc->mm = meshManager_alloc();
+	bc->mm = dynamicMeshManager_alloc(64);
 	//meshManager_readConfigFile(bc->mm, "assets/config/models.json");
 	//meshManager_updateGeometry(bc->mm);
-	StaticMeshInstance smi[] = {
+	DynamicMeshInstance smi[] = {
 		{
 			{1,1,4}, 2.5,
 			{1, 0, 0}, 0.0,

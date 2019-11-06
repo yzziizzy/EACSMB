@@ -69,6 +69,7 @@ void initPipes() {
 
 
 void Pipe_init(PipeSegment* ps) {
+	/* must be converted to dynamicMesh
 	MeshData*  md;
 	StaticMesh* sm;
 	int i;
@@ -116,14 +117,14 @@ void Pipe_init(PipeSegment* ps) {
 		short* v = &sm->indices.w16[i];
 		printf("face %d - [%d, %d, %d]\n", i / 3, v[0], v[1], v[2]);
 	}
-	*/
+	* /
 	
 	StaticMesh_updateBuffers(sm);
 	
 	//ps->sm = sm;
 	
 	
-	
+	*/
 }
 
 

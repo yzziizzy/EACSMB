@@ -34,8 +34,6 @@ struct RoadSpline; typedef struct RoadSpline RoadSpline;
 struct RoadVertex; typedef struct RoadVertex RoadVertex;
 struct Scene; typedef struct Scene Scene;
 struct Selection; typedef struct Selection Selection;
-struct StaticMesh; typedef struct StaticMesh StaticMesh;
-struct StaticMeshVertex; typedef struct StaticMeshVertex StaticMeshVertex;
 struct TerrainBlock; typedef struct TerrainBlock TerrainBlock;
 struct TerrainPatchVertex; typedef struct TerrainPatchVertex TerrainPatchVertex;
 struct TexArray; typedef struct TexArray TexArray;

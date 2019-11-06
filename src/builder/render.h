@@ -6,7 +6,7 @@
 
 
 #include "builder.h" 
-#include "../staticMesh.h" 
+#include "../dynamicMesh.h" 
 #include "../shader.h" 
 #include "../pass.h" 
 #include "../game.h" 
@@ -24,7 +24,7 @@ typedef struct GUIBuilderControl {
 	GUIEdit* ed;
 	
 	MeshBuilder* mb;
-	MeshManager* mm;
+	DynamicMeshManager* mm;
 	
 	InputEventHandler* inputHandlers;
 	

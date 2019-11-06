@@ -10,7 +10,6 @@
 #include "lighting.h"
 #include "decals.h"
 #include "decalsCustom.h"
-// #include "staticMesh.h"
 #include "dynamicMesh.h"
 #include "marker.h"
 #include "waterPlane.h"
@@ -79,7 +78,7 @@ void QuadTree_renderDebugVolumes(QuadTree* qt, PassFrameParams* pfp);
 
 static const uint32_t ITEM_BASE_IDS[] = {
 	[PART_TYPE_UNKNOWN] =     4000000000,
-	[PART_TYPE_STATICMESH] =  0000000000,
+// 	[PART_TYPE_STATICMESH] =  0000000000,
 	[PART_TYPE_DYNAMICMESH] = 1000000000,
 	[PART_TYPE_EMITTER] =     1100000000,
 	[PART_TYPE_LIGHT] =       1200000000,
@@ -172,7 +171,6 @@ int World_lookUp_SubItem(World* w, enum ItemType type, char* name);
 int World_spawnAt_Item(World* w, char* itemName, Vector* location);
 int World_spawnAt_ItemPtr(World* w, Item* item, Vector* location);
 int World_spawnAt_DynamicMesh(World* w, int dmIndex, Vector* location);
-// int World_spawnAt_StaticMesh(World* w, int smIndex, Vector* location);
 int World_spawnAt_Light(World* w, int lightIndex, Vector* location); 
 int World_spawnAt_Decal(World* w, int index, Vector* location);
 int World_spawnAt_CustomDecal(World* w, int cdecalIndex, float width, const Vector2* p1, const Vector2* p2);
