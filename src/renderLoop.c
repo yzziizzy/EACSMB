@@ -161,6 +161,7 @@ void initRenderLoop(GameState* gs) {
 	// timer queries
 	query_queue_init(&gs->queries.terrain);
 	query_queue_init(&gs->queries.solids);
+	query_queue_init(&gs->queries.leaves);
 	query_queue_init(&gs->queries.decals);
 	query_queue_init(&gs->queries.emitters);
 	query_queue_init(&gs->queries.effects);
@@ -470,6 +471,13 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	query_queue_start(&gs->queries.solids);
 	World_drawSolids(gs->world, &pfp);
 	query_queue_stop(&gs->queries.solids);
+	
+	
+	// vegetation
+	query_queue_start(&gs->queries.leaves);
+	World_drawLeaves(gs->world, &pfp);
+	query_queue_stop(&gs->queries.leaves);
+	
 	
 	
 	// transparency and effects

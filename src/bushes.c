@@ -32,7 +32,7 @@ BushConfig* BushConfig_alloc() {
 
 
 BushModel* BushModel_FromConfig(BushConfig* bc) {
-		size_t l, i;
+	size_t l, i;
 	
 	int ret;
 	struct json_value* tex_o;
@@ -189,29 +189,12 @@ static VAOConfig vao_opts[] = {
 	{0, 2, GL_UNSIGNED_SHORT, 0, GL_TRUE}, // tex
 	
 	// per instance 
-	{1, 1, GL_MATRIX_EXT, 1, GL_FALSE}, // model-world matrix
+	{1, 4, GL_FLOAT, 0, GL_FALSE}, // position, rotation
 	{1, 4, GL_UNSIGNED_SHORT, 1, GL_FALSE}, // texture indices: diffuse, normal, metallic, roughness
 	
 	{0, 0, 0}
 };
 
-
-// this is called from _initGL which is run on one thread
-static int bushes_are_initialized = 0;
-static void initBushes() {
-	
-	bushes_are_initialized = 1;
-	
-	// shader
-	prog = loadCombinedProgram("bushes");
-	
-// 	model_ul = glGetUniformLocation(prog->id, "mModel");
-// 	view_ul = glGetUniformLocation(prog->id, "mView");
-// 	proj_ul = glGetUniformLocation(prog->id, "mProj");
-// 	color_ul = glGetUniformLocation(prog->id, "color");
-	
-	glexit("bushes shader");
-}
 
 
 
@@ -277,10 +260,8 @@ void BushManager_init(BushManager* bmm, GlobalSettings* gs) {
 	bmm->mdi->data = bmm;
 }
 
+
 void BushManager_initGL(BushManager* bmm, GlobalSettings* gs) {
-	
-	if(!bushes_are_initialized) initBushes();
-	
 	MultiDrawIndirect_initGL(bmm->mdi);
 }
 

@@ -61,6 +61,7 @@ GUIText* gt;
 GUIText* gt_terrain;
 GUIText* gt_solids;
 GUIText* gt_decals;
+GUIText* gt_leaves;
 GUIText* gt_emitters;
 GUIText* gt_effects;
 GUIText* gt_lighting;
@@ -455,6 +456,7 @@ void initGameGL(XStuff* xs, GameState* gs) {
 	gt_terrain = GUIObject_findChild(ps, "terrain");
 	gt_solids = GUIObject_findChild(ps, "solids");
 	gt_decals = GUIObject_findChild(ps, "decals");
+	gt_leaves = GUIObject_findChild(ps, "leaves");
 	gt_emitters = GUIObject_findChild(ps, "emitters");
 	gt_effects = GUIObject_findChild(ps, "effects");
 	gt_lighting = GUIObject_findChild(ps, "lighting");
@@ -552,6 +554,7 @@ void preFrame(GameState* gs) {
 		query_update_gui(terrain);
 		query_update_gui(solids);
 		query_update_gui(decals);
+		query_update_gui(leaves);
 		query_update_gui(effects);
 		query_update_gui(emitters);
 		query_update_gui(sunShadow);

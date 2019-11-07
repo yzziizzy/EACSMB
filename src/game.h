@@ -149,6 +149,7 @@ typedef struct GameState {
 		QueryQueue terrain; 
 		QueryQueue solids; 
 		QueryQueue decals; 
+		QueryQueue leaves; 
 		QueryQueue emitters; 
 		QueryQueue effects; 
 		QueryQueue lighting; 

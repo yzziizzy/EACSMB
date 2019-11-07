@@ -108,6 +108,7 @@ typedef struct World {
 	
 	RenderPass* terrainPass; // temp hackMap_CreateDrawable(m);
 	RenderPass* solidsPass; // temp hack
+	RenderPass* bushesPass; // temp hack
 	RenderPass* transparentsPass; // temp hack
 	RenderPass* lightingPass; // temp hack
 	RenderPass* decalPass; // temp hack
@@ -161,6 +162,7 @@ void World_loadItemConfigNew(World* w, json_value_t* jo);
 
 void World_drawTerrain(World* w, PassFrameParams* pfp);
 void World_drawSolids(World* w, PassFrameParams* pfp);
+void World_drawLeaves(World* w, PassFrameParams* pfp); // alpha-stenciled
 void World_preTransparents(World* w, PassFrameParams* pfp);
 void World_drawTransparents(World* w, PassFrameParams* pfp);
 void World_postTransparents(World* w);

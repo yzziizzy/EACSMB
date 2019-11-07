@@ -11,6 +11,7 @@
 				{ elemType: 'text', name: "solids" },
 				{ elemType: 'text', name: "selection" },
 				{ elemType: 'text', name: "decals" },
+				{ elemType: 'text', name: "leaves" },
 				{ elemType: 'text', name: "emitters" },
 				{ elemType: 'text', name: "effects" },
 				{ elemType: 'text', name: "lighting" },

@@ -151,8 +151,6 @@ void World_init(World* w) {
 	
 	
 	
-	
-	
 	// -----------------------------------
 	
 	w->roads = RoadNetwork_alloc();
@@ -256,6 +254,7 @@ void World_initGL(World* w) {
 	CustomDecalManager_initGL(w->cdm, &w->gs->globalSettings);
 	MarkerManager_initGL(w->mm, &w->gs->globalSettings);
 	EmitterManager_initGL(w->em, &w->gs->globalSettings);
+	BushManager_initGL(w->bushm, &w->gs->globalSettings);
 
 
 	
@@ -334,7 +333,10 @@ void World_initGL(World* w) {
 	
 	// solids pass
 	w->solidsPass = DynamicMeshManager_CreateRenderPass(w->dmm);
-
+	
+	// vegetation pass
+	w->bushesPass = BushManager_CreateRenderPass(w->bushm);
+	
 	// transparents pass
 	w->transparentsPass = MarkerManager_CreateRenderPass(w->mm);
 	
@@ -760,11 +762,22 @@ void World_drawSolids(World* w, PassFrameParams* pfp) {
 	RenderPass_postFrameAll(w->solidsPass);
 	
 	
+	// why was this here?
 	//glBlendFuncSeparatei(1, GL_SRC_COLOR, GL_ZERO, GL_SRC_ALPHA, GL_ZERO);
 	//glBlendFuncSeparatei(1, GL_ONE, GL_ZERO, GL_SRC_ALPHA,  GL_ONE_MINUS_DST_COLOR);
 	//glBlendFuncSeparatei(1, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-	glBlendFuncSeparatei(1, GL_ONE, GL_ZERO, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-	WaterPlane_draw(w->wp, pfp->dp->mWorldView, pfp->dp->mViewProj);
+// 	glBlendFuncSeparatei(1, GL_ONE, GL_ZERO, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+// 	WaterPlane_draw(w->wp, pfp->dp->mWorldView, pfp->dp->mViewProj);
+	
+}
+
+
+// alpha-stenciled vegetation
+void World_drawLeaves(World* w, PassFrameParams* pfp) {
+	
+	RenderPass_preFrameAll(w->bushesPass, pfp);
+	RenderPass_renderAll(NULL, w->bushesPass, pfp->dp);
+	RenderPass_postFrameAll(w->bushesPass);
 	
 }
 
