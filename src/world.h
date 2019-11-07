@@ -12,6 +12,7 @@
 #include "decalsCustom.h"
 #include "dynamicMesh.h"
 #include "marker.h"
+#include "bushes.h"
 #include "waterPlane.h"
 #include "sound.h"
 #include "pass.h"
@@ -103,6 +104,7 @@ typedef struct World {
 	LightManager* lm;
 	DecalManager* dm;
 	CustomDecalManager* cdm;
+	BushManager* bushm;
 	
 	RenderPass* terrainPass; // temp hackMap_CreateDrawable(m);
 	RenderPass* solidsPass; // temp hack

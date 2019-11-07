@@ -27,6 +27,7 @@
 	SETTING(int, DynamicMeshManager_maxInstances, 8192) \
 	SETTING(int, RiggedMeshManager_maxInstances, 4096) \
 	SETTING(int, DecalManager_maxInstances, 8192) \
+	SETTING(int, BushManager_maxInstances, 8192) \
 	SETTING(int, CustomDecalManager_maxInstances, 8192) \
 	SETTING(int, EmitterManager_maxInstances, 8192) \
 	SETTING(int, MarkerManager_maxInstances, 8192) \

@@ -13,6 +13,7 @@
 // temp?
 #include "building.h"
 
+
 #include "perlin.h"
 
 
@@ -141,6 +142,16 @@ void World_init(World* w) {
 	
 	
 	//World_spawnAt_DynamicMesh(w, building_ind, &v);
+	
+	// -----------------------------------
+	
+	
+	w->bushm = BushManager_alloc(&w->gs->globalSettings);
+	
+	
+	
+	
+	
 	
 	// -----------------------------------
 	
