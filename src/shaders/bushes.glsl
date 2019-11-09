@@ -8,12 +8,12 @@ layout(std140) uniform;
 
 // per vertex
 layout (location = 0) in vec3 v_pos_in;
-layout (location = 0) in vec3 v_norm_in;
-layout (location = 1) in vec2 v_tex_in;
+layout (location = 1) in vec3 v_norm_in;
+layout (location = 2) in vec2 v_tex_in;
 
 // per instance
-layout (location = 2) in vec4 i_pos_rot_in;
-layout (location = 3) in ivec4 i_texIndex_in; // diffuse, normal, metallic, roughness
+layout (location = 3) in vec4 i_pos_rot_in;
+layout (location = 4) in ivec4 i_texIndex_in; // diffuse, normal, metallic, roughness
 
 
 
@@ -31,9 +31,9 @@ flat out float vs_divisor;
 void main() {
 	
 	
-	vec4 pos = vec4(v_pos_in.xyz + i_pos_rot_in.xyz, 1.0);
+	vec4 pos = vec4(v_pos_in.xyz/* + i_pos_rot_in.xyz*/, 1.0);
 	
-	gl_Position = (mWorldProj) * pos;
+	gl_Position = (mViewProj * mWorldView) * pos;
 	vs_norm = v_norm_in; // TODO: rotate with the rest
 	vs_tex = v_tex_in;
 	vs_tex_indices = i_texIndex_in;
@@ -80,5 +80,8 @@ void main(void) {
 	out_Normal = vec4((out_norm.xyz * .5) + .5, 1);
 	
 	out_Material = vec3(metalness, roughness, 1);
+	
+	out_Color = vec4(1,0,0,1);
+	out_Normal = vec4(0,0,1,1);
 }
 

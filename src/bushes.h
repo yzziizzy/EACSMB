@@ -32,7 +32,7 @@ typedef struct BushModel {
 	
 	VEC(Vertex_PNT) vertices;
 	VEC(unsigned short) indices;
-	VEC(BushInstance*) instances;
+	VEC(BushInstance) instances;
 	
 } BushModel;
 
@@ -60,7 +60,7 @@ typedef struct BushManager {
 
 
 typedef struct BushInstanceShader {
-	Matrix mat;
+	Vector pos; float rot;
 	unsigned short diff, norm, met, rough;
 } BushInstanceShader;
 
@@ -70,14 +70,19 @@ typedef struct BushInstanceShader {
 BushManager* BushManager_alloc(GlobalSettings* gs);
 void BushManager_init(BushManager* bmm, GlobalSettings* gs);
 void BushManager_initGL(BushManager* bmm, GlobalSettings* gs);
+void BushManager_updateGeometry(BushManager* mm);
 
 
 RenderPass* BushManager_CreateRenderPass(BushManager* bmm);
 PassDrawable* BushManager_CreateDrawable(BushManager* bmm);
 
 
+// returns the index of the mesh
+int BushManager_addMesh(BushManager* bmm, BushModel* b, char* name);
+void BushManager_addInstance(BushManager* bmm, int index, BushInstance* inst);
 
-
+// temp
+void bush_addQuad(BushModel* bm, Vector center, Vector2 size, float rotation, float tilt);
 
 
 #endif // __EACSMB_bushes_h__

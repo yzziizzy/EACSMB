@@ -475,7 +475,9 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	// vegetation
 	query_queue_start(&gs->queries.leaves);
+	glDisable(GL_CULL_FACE);
 	World_drawLeaves(gs->world, &pfp);
+	glEnable(GL_CULL_FACE);
 	query_queue_stop(&gs->queries.leaves);
 	
 	

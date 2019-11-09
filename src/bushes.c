@@ -101,7 +101,7 @@ BushModel* BushModel_FromConfig(BushConfig* bc) {
 
 
 
-static void addQuad(BushModel* bm, Vector center, Vector2 size, float rotation, float tilt) {
+void bush_addQuad(BushModel* bm, Vector center, Vector2 size, float rotation, float tilt) {
 	
 	float hwidth = size.y / 2.0;
 	
@@ -119,12 +119,21 @@ static void addQuad(BushModel* bm, Vector center, Vector2 size, float rotation, 
 		ct * size.y
 	};
 	
-	Vector b2 = {-a2.x, -a2.y, a2.z};
+	Vector b2 = {-a2.x, -a2.y, -a2.z};
 	
+	a = (Vector){100,0,0};
+	b = (Vector){0,100,0};
+	b2 = (Vector){100,100,0};
+	a2 = (Vector){0,0,0};
 	
 	Vector norm;
 	vCross(&a, &b, &norm);
 	vNorm(&norm, &norm);
+	
+// 	printf("a %f,%f,%f\n", a.x, a.y, a.z);
+// 	printf("b %f,%f,%f\n", b.x, b.y, b.z);
+// 	printf("b2 %f,%f,%f\n", b2.x, b2.y, b2.z);
+// 	printf("a2 %f,%f,%f\n", a2.x, a2.y, a2.z);
 	
 	int base_index = VEC_LEN(&bm->vertices);
 	
@@ -138,10 +147,37 @@ static void addQuad(BushModel* bm, Vector center, Vector2 size, float rotation, 
 	VEC_PUSH(&bm->indices, base_index + 2);
 	
 	VEC_PUSH(&bm->indices, base_index + 0);
-	VEC_PUSH(&bm->indices, base_index + 2);
+	VEC_PUSH(&bm->indices, base_index + 1);
 	VEC_PUSH(&bm->indices, base_index + 3);
+	
 }
 
+
+
+// returns the index of the mesh
+int BushManager_addMesh(BushManager* bmm, BushModel* b, char* name) {
+	int index;
+	
+	
+	MDIDrawInfo* di = pcalloc(di);
+	
+	*di = (MDIDrawInfo){
+		.vertices = VEC_DATA(&b->vertices),
+		.vertexCount = VEC_LEN(&b->vertices),
+		
+		.indices = VEC_DATA(&b->indices),
+		.indexCount = VEC_LEN(&b->indices),
+	};
+	
+	MultiDrawIndirect_addMesh(bmm->mdi, di);
+	
+	VEC_PUSH(&bmm->meshes, b);
+	index = VEC_LEN(&bmm->meshes);
+	
+	HT_set(&bmm->lookup, name, (void*)(index - 1));
+	
+	return index - 1;
+}
 
 
 
@@ -155,7 +191,7 @@ BushModel* BushModel_GenCrop(int rows, float width, float length) {
 	float h_center = length / 2.0;
 	
 	for(int i = 0; i < rows; i++) {
-		addQuad(bm, 
+		bush_addQuad(bm, 
 			(Vector){i * row_w + half_row, h_center, 0},
 			(Vector2){length, 1.0},
 			0.0, 0.0
@@ -165,6 +201,20 @@ BushModel* BushModel_GenCrop(int rows, float width, float length) {
 	
 	return bm;
 }
+
+
+
+
+void BushManager_addInstance(BushManager* bmm, int index, BushInstance* inst) {
+	
+	BushModel* m = VEC_ITEM(&bmm->meshes, index);
+	
+	// seems like VEC_MP should be used here
+	VEC_PUSH(&m->instances, *inst);
+	
+	return VEC_LEN(&m->instances) - 1;
+}
+
 
 static GLuint vao, geomVBO, geomIBO;
 static GLuint view_ul, proj_ul;
@@ -186,7 +236,7 @@ static VAOConfig vao_opts[] = {
 	// per vertex
 	{0, 3, GL_FLOAT, 0, GL_FALSE}, // position
 	{0, 3, GL_FLOAT, 0, GL_FALSE}, // normal
-	{0, 2, GL_UNSIGNED_SHORT, 0, GL_TRUE}, // tex
+	{0, 2, GL_FLOAT/*GL_UNSIGNED_SHORT*/, 0, GL_FALSE/*GL_TRUE*/}, // tex // BUG Vertex PNT uses floats
 	
 	// per instance 
 	{1, 4, GL_FLOAT, 0, GL_FALSE}, // position, rotation
@@ -208,11 +258,13 @@ static void instanceSetup(BushManager* mm, BushInstanceShader* vmem, MDIDrawInfo
 		di[j]->numToDraw = VEC_LEN(&m->instances);
 		
 		VEC_EACH(&m->instances, i, inst) {
-// 			vmem->pos = inst.pos;//(Vector){10,10,10};
-// 			vmem->radius = 2.0;
-// 			
-// 			vmem->texIndex = m->texIndex;
-// 			vmem->divisor = 5;
+			vmem->pos = inst.pos;
+			vmem->rot = inst.rot;
+			
+			vmem->diff = 1;
+			vmem->norm = 1;
+			vmem->met = 1;
+			vmem->rough = 1;
 			
 			vmem++;
 		}
@@ -250,6 +302,8 @@ BushManager* BushManager_alloc(GlobalSettings* gs) {
 }
 
 void BushManager_init(BushManager* bmm, GlobalSettings* gs) {
+	
+	HT_init(&bmm->lookup, 4);
 	
 	bmm->mdi = MultiDrawIndirect_alloc(vao_opts, gs->BushManager_maxInstances, "bushManager");
 	bmm->mdi->isIndexed = 1;

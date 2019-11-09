@@ -148,7 +148,13 @@ void World_init(World* w) {
 	
 	w->bushm = BushManager_alloc(&w->gs->globalSettings);
 	
+	BushModel* bush = pcalloc(bush);
 	
+	bush_addQuad(bush, (Vector){0,0,1}, (Vector2){100,100}, 0, 0);
+	BushManager_addMesh(w->bushm, bush, "zbiggest");
+	
+	BushInstance binst = {};
+	BushManager_addInstance(w->bushm, 0, &binst);
 	
 	
 	// -----------------------------------
@@ -256,7 +262,9 @@ void World_initGL(World* w) {
 	EmitterManager_initGL(w->em, &w->gs->globalSettings);
 	BushManager_initGL(w->bushm, &w->gs->globalSettings);
 
-
+	// temp
+	BushManager_updateGeometry(w->bushm);
+	
 	
 	float shadSz = w->gs->globalSettings.SunShadow_size;
 	w->sunShadow = ShadowMap_alloc();
