@@ -30,7 +30,7 @@ typedef struct BushInstance {
 
 typedef struct BushModel {
 	
-	VEC(Vertex_PNT) vertices;
+	VEC(Vertex_PNTs) vertices;
 	VEC(unsigned short) indices;
 	VEC(BushInstance) instances;
 	

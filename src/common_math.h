@@ -24,6 +24,11 @@ typedef struct Vertex_PNT {
 	struct { float u, v; } t;
 } Vertex_PNT;
 
+typedef struct Vertex_PNTs {
+	Vector p, n;
+	struct { uint16_t u, v; } t;
+} Vertex_PNTs;
+
 // for physically based rendering
 typedef struct Vertex_PBR {
 	Vector p, n;

@@ -121,10 +121,10 @@ void bush_addQuad(BushModel* bm, Vector center, Vector2 size, float rotation, fl
 	
 	Vector b2 = {-a2.x, -a2.y, -a2.z};
 	
-	a = (Vector){100,0,0};
-	b = (Vector){0,100,0};
-	b2 = (Vector){100,100,0};
-	a2 = (Vector){0,0,0};
+// 	a = (Vector){100,0,0};
+// 	b = (Vector){0,100,0};
+// 	b2 = (Vector){100,100,0};
+// 	a2 = (Vector){0,0,0};
 	
 	Vector norm;
 	vCross(&a, &b, &norm);
@@ -137,10 +137,10 @@ void bush_addQuad(BushModel* bm, Vector center, Vector2 size, float rotation, fl
 	
 	int base_index = VEC_LEN(&bm->vertices);
 	
-	VEC_PUSH(&bm->vertices, ((Vertex_PNT){ p: a,  n: norm, t: {u: 0.0, v: 0.0} }));
-	VEC_PUSH(&bm->vertices, ((Vertex_PNT){ p: b,  n: norm, t: {u: 1.0, v: 0.0} }));
-	VEC_PUSH(&bm->vertices, ((Vertex_PNT){ p: b2, n: norm, t: {u: 1.0, v: 1.0} }));
-	VEC_PUSH(&bm->vertices, ((Vertex_PNT){ p: a2, n: norm, t: {u: 0.0, v: 1.0} }));
+	VEC_PUSH(&bm->vertices, ((Vertex_PNTs){ p: a,  n: norm, t: {u: 0, v: 0} }));
+	VEC_PUSH(&bm->vertices, ((Vertex_PNTs){ p: b,  n: norm, t: {u: 65535, v: 0} }));
+	VEC_PUSH(&bm->vertices, ((Vertex_PNTs){ p: b2, n: norm, t: {u: 65535, v: 65535} }));
+	VEC_PUSH(&bm->vertices, ((Vertex_PNTs){ p: a2, n: norm, t: {u: 0, v: 65535} }));
 	
 	VEC_PUSH(&bm->indices, base_index + 0);
 	VEC_PUSH(&bm->indices, base_index + 1);
@@ -236,7 +236,7 @@ static VAOConfig vao_opts[] = {
 	// per vertex
 	{0, 3, GL_FLOAT, 0, GL_FALSE}, // position
 	{0, 3, GL_FLOAT, 0, GL_FALSE}, // normal
-	{0, 2, GL_FLOAT/*GL_UNSIGNED_SHORT*/, 0, GL_FALSE/*GL_TRUE*/}, // tex // BUG Vertex PNT uses floats
+	{0, 2, GL_UNSIGNED_SHORT, 0, GL_TRUE}, // tex
 	
 	// per instance 
 	{1, 4, GL_FLOAT, 0, GL_FALSE}, // position, rotation
