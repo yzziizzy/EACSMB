@@ -103,23 +103,20 @@ BushModel* BushModel_FromConfig(BushConfig* bc) {
 
 void bush_addQuad(BushModel* bm, Vector center, Vector2 size, float rotation, float tilt) {
 	
-	float hwidth = size.y / 2.0;
+	float hwidth = size.x / 2.0;
+	float hheight = size.y / 2.0;
 	
 	float cr = cos(rotation);
 	float sr = sin(rotation);
 	float ct = cos(tilt);
 	float st = sin(tilt);
 	
-	Vector a = {hwidth * cr, hwidth * sr, 0};
-	Vector b = {-a.x, -b.y, 0};
+	Vector l1 = {hwidth * cr, hwidth * sr, -hheight};
+	Vector u1 = {l1.x, l1.y, hheight};
 	
-	Vector a2 = {
-		a.x * size.y * st,
-		a.y * size.y * st,
-		ct * size.y
-	};
+	Vector l2 = {-hwidth * cr, -hwidth * sr, -hheight};
+	Vector u2 = {l2.x, l2.y, hheight};
 	
-	Vector b2 = {-a2.x, -a2.y, -a2.z};
 	
 // 	a = (Vector){100,0,0};
 // 	b = (Vector){0,100,0};
@@ -127,7 +124,7 @@ void bush_addQuad(BushModel* bm, Vector center, Vector2 size, float rotation, fl
 // 	a2 = (Vector){0,0,0};
 	
 	Vector norm;
-	vCross(&a, &b, &norm);
+	vCross(&l1, &l2, &norm); // very wrong, but need to compile
 	vNorm(&norm, &norm);
 	
 // 	printf("a %f,%f,%f\n", a.x, a.y, a.z);
@@ -137,17 +134,17 @@ void bush_addQuad(BushModel* bm, Vector center, Vector2 size, float rotation, fl
 	
 	int base_index = VEC_LEN(&bm->vertices);
 	
-	VEC_PUSH(&bm->vertices, ((Vertex_PNTs){ p: a,  n: norm, t: {u: 0, v: 0} }));
-	VEC_PUSH(&bm->vertices, ((Vertex_PNTs){ p: b,  n: norm, t: {u: 65535, v: 0} }));
-	VEC_PUSH(&bm->vertices, ((Vertex_PNTs){ p: b2, n: norm, t: {u: 65535, v: 65535} }));
-	VEC_PUSH(&bm->vertices, ((Vertex_PNTs){ p: a2, n: norm, t: {u: 0, v: 65535} }));
+	VEC_PUSH(&bm->vertices, ((Vertex_PNTs){ p: l1,  n: norm, t: {u: 0, v: 0} }));
+	VEC_PUSH(&bm->vertices, ((Vertex_PNTs){ p: l2,  n: norm, t: {u: 65535, v: 0} }));
+	VEC_PUSH(&bm->vertices, ((Vertex_PNTs){ p: u2, n: norm, t: {u: 65535, v: 65535} }));
+	VEC_PUSH(&bm->vertices, ((Vertex_PNTs){ p: u1, n: norm, t: {u: 0, v: 65535} }));
 	
 	VEC_PUSH(&bm->indices, base_index + 0);
 	VEC_PUSH(&bm->indices, base_index + 1);
 	VEC_PUSH(&bm->indices, base_index + 2);
 	
 	VEC_PUSH(&bm->indices, base_index + 0);
-	VEC_PUSH(&bm->indices, base_index + 1);
+	VEC_PUSH(&bm->indices, base_index + 2);
 	VEC_PUSH(&bm->indices, base_index + 3);
 	
 }

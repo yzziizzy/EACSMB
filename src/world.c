@@ -150,7 +150,7 @@ void World_init(World* w) {
 	
 	BushModel* bush = pcalloc(bush);
 	
-	bush_addQuad(bush, (Vector){0,0,1}, (Vector2){100,100}, 0, 0);
+	bush_addQuad(bush, (Vector){0,0,1}, (Vector2){20,100}, 1, 1);
 	BushManager_addMesh(w->bushm, bush, "zbiggest");
 	
 	BushInstance binst = {};
