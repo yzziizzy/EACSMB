@@ -103,25 +103,40 @@ BushModel* BushModel_FromConfig(BushConfig* bc) {
 
 void bush_addQuad(BushModel* bm, Vector center, Vector2 size, float rotation, float tilt) {
 	
-	float hwidth = size.x / 2.0;
-	float hheight = size.y / 2.0;
+	float hw = size.x / 2.0;
+	float hh = size.y / 2.0;
 	
-	float cr = cos(rotation);
+	float cr = cos(rotation); // Z
 	float sr = sin(rotation);
-	float ct = cos(tilt);
+	float ct = cos(tilt); // X
 	float st = sin(tilt);
 	
-	Vector l1 = {hwidth * cr, hwidth * sr, -hheight};
-	Vector u1 = {l1.x, l1.y, hheight};
+	// x = X*cr + Y*sr*ct + Z*sr*st
+	// y = X*-sr + Y*cr*ct + Z*cr+st
+	// z =         Y*-st + Z*ct
 	
-	Vector l2 = {-hwidth * cr, -hwidth * sr, -hheight};
-	Vector u2 = {l2.x, l2.y, hheight};
+	// lower 1
+	Vector l1 = { // [-hw, 0, -hh]
+		-hw*cr + -hh*sr*st + center.x,
+		-hw*-sr + -hh*cr*st + center.y,
+		-hh*ct + center.z
+	};
+	Vector l2 = { // [+hw, 0, -hh]
+		hw*cr + -hh*sr*st + center.x,
+		hw*-sr + -hh*cr*st + center.y,
+		-hh*ct + center.z
+	};
+	Vector u1 = { // [-hw, 0, +hh]
+		-hw*cr + hh*sr*st + center.x,
+		-hw*-sr + hh*cr*st + center.y,
+		hh*ct + center.z
+	};
+	Vector u2 = { // [+hw, 0, +hh]
+		hw*cr + hh*sr*st + center.x,
+		hw*-sr + hh*cr*st + center.y,
+		hh*ct + center.z
+	};
 	
-	
-// 	a = (Vector){100,0,0};
-// 	b = (Vector){0,100,0};
-// 	b2 = (Vector){100,100,0};
-// 	a2 = (Vector){0,0,0};
 	
 	Vector norm;
 	vCross(&l1, &l2, &norm); // very wrong, but need to compile
