@@ -968,10 +968,12 @@ static void main_click_handler(InputEvent* ev, GameState* gs) {
 
 static void main_move_handler(InputEvent* ev, GameState* gs) {
 	
+	Vector origin, ray, movePos;
 	Vector2i ci;
 // 	Vector c;
 	
-	Vector origin, ray, movePos;
+	if(!&gs->world || !gs->world->cursor) return;
+	
 	ray_from_screeni(gs, ev->intPos, &origin, &ray);
 
 	//debugWF_Ray(&origin, &ray, 600, "green", "red", 2, 2);
