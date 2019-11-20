@@ -57,6 +57,7 @@ uniform float timeFractional;
 
 layout(location = 0) out vec4 out_Color;
 layout(location = 1) out vec4 out_Normal;
+layout(location = 2) out vec3 out_Material; // metal, rough, 
 
 
 in vec2 vs_tex;
@@ -78,5 +79,6 @@ void main(void) {
 	if(t3.a < 0.01) discard;
 	
 	out_Color = t3;
+	out_Material = vec3(0, 0.5, 1);
 }
 

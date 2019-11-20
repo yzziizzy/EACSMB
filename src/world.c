@@ -141,7 +141,7 @@ void World_init(World* w) {
 	Vector v = {50,50,0};
 	
 	
-	//World_spawnAt_DynamicMesh(w, building_ind, &v);
+	World_spawnAt_DynamicMesh(w, building_ind, &v);
 	
 	// -----------------------------------
 	
@@ -150,7 +150,8 @@ void World_init(World* w) {
 	
 	BushModel* bush = pcalloc(bush);
 	
-	bush_addQuad(bush, (Vector){0,0,90}, (Vector2){20,100}, 1, 1);
+	for(int i = 0; i < 10; i++)
+		bush_addQuad(bush, (Vector){i,0,90}, (Vector2){20,20}, .628 * i, 1);
 	BushManager_addMesh(w->bushm, bush, "zbiggest");
 	
 	BushInstance binst = {};

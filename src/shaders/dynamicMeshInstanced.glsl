@@ -76,6 +76,7 @@ uniform mat4 mViewProj;
 
 layout(location = 0) out vec4 out_Color;
 layout(location = 1) out vec4 out_Normal;
+layout(location = 2) out vec3 out_Material; // metal, rough, 
 
 
 void main(void) {
@@ -90,7 +91,8 @@ void main(void) {
 
 	// TODO: blend the normals properly
 	
-	out_Color = vec4(tex.rgb, metallic); // alpha is metallic
- 	out_Normal = vec4((vs_norm.xyz * .5) + .5, roughness); // alpha is roughness
+	out_Color = vec4(tex.rgba); 
+ 	out_Normal = vec4((vs_norm.xyz * .5) + .5, 1.0); // alpha is roughness
+	out_Material = vec3(metallic, roughness, 1);
 }
 

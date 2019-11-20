@@ -79,7 +79,7 @@ uniform mat4 mProjView;
 
 layout(location = 0) out vec4 out_Color;
 layout(location = 1) out vec4 out_Normal;
-
+layout(location = 2) out vec3 out_Material; // metal, rough, 
 
 
 void main(void) {
@@ -122,8 +122,9 @@ void main(void) {
 		float metallic = texture(sMaterialTextures, vec3(tc, texIndex)).r;
 		float roughness = texture(sMaterialTextures, vec3(tc, texIndex)).r;
 		
-		out_Color = vec4(texture(sTexture, vec3(tc, texIndex)).rgb, metallic); //vs_norm;
-		out_Normal = vec4(1,0,0, roughness);
+		out_Color = vec4(texture(sTexture, vec3(tc, texIndex)).rgba); //vs_norm;
+		out_Normal = vec4(1,0,0, 0);
+		out_Material = vec3(metallic, roughness, 1);
 	}
 	
 }

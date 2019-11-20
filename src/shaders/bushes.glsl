@@ -72,6 +72,7 @@ void main(void) {
 	
 	float metalness = 0.05;
 	
+	if(tex_color.a < 0.05) discard;
 	
 	out_Color = vec4(tex_color.xyz, 1);
 	
@@ -81,7 +82,7 @@ void main(void) {
 	
 	out_Material = vec3(metalness, roughness, 1);
 	
-	out_Color = vec4(1,0,0,1);
-	out_Normal = vec4(0,0,1,1);
+// 	out_Color = vec4(1,0,0,1);
+// 	out_Normal = vec4(0,0,1,1);
 }
 
