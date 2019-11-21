@@ -92,6 +92,42 @@ static inline uint32_t itemBaseID(enum PartType e) {
 	return ITEM_BASE_IDS[e];
 }
 
+#define EditCmd_Empty_ID 0
+#define EditCmd_Spawn_ID 1
+#define EditCmd_Move_ID 2
+
+
+typedef struct EditCmd_Empty {
+	uint32_t cmdID;
+	
+	uint32_t is_terminator;
+} EditCmd_Empty;
+
+// spawns relative to the ground level
+typedef struct EditCmd_Spawn {
+	uint32_t cmdID;
+	
+	uint32_t type;
+	char* name;
+	
+	Vector pos;
+} EditCmd_Spawn;
+
+typedef struct EditCmd_Move{
+	uint32_t cmdID;
+	
+	uint32_t type;
+	uint32_t id;
+	
+	Vector pos;
+} EditCmd_Move;
+
+typedef union EditCmd{
+	EditCmd_Empty Empty;
+	EditCmd_Spawn Spawn;
+	EditCmd_Move Move;
+} EditCmd;
+
 
 
 typedef struct World {

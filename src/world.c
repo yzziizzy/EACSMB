@@ -370,6 +370,47 @@ void World_initGL(World* w) {
 }
 
 
+void World_processEdit_Spawn(World* w, EditCmd_Spawn* e) {
+// 	World_spawnAt_Item(w, "tree", &v);
+}
+void World_processEdit_Move(World* w, EditCmd_Move* e) {
+	
+}
+
+
+
+typedef void (*EditProcessingFn)(World*, EditCmd*);
+
+EditProcessingFn editProcessors[] = {
+	[EditCmd_Empty_ID] = NULL,
+	[EditCmd_Spawn_ID] = (EditProcessingFn)World_processEdit_Spawn,
+	[EditCmd_Move_ID] = (EditProcessingFn)World_processEdit_Spawn,
+};
+
+
+void World_ProcessEdits(World* w, EditCmd* edits) {
+	EditCmd* e = edits;
+	
+	while(1) {
+		// loop control but also skip intentionally blanked records
+		if(e->Empty.cmdID == EditCmd_Empty_ID) {
+			if(e->Empty.is_terminator) break;
+			continue;
+		}
+		
+		EditProcessingFn fn = editProcessors[e->Empty.cmdID];
+		if(!fn) {
+			fprintf(stderr, "!!! Missing EditProcessingFn for %d\n", e->Empty.cmdID);
+		}
+		else {
+			fn(w, e);
+		}
+		
+		
+		e++;
+	}
+} 
+
 
 static Item* findItem(World* w, char* itemName) {
 	int64_t index;
@@ -839,28 +880,6 @@ int World_lookUp_Part(World* w, enum PartType type, char* name) {
 
 
 
-
-/*
-
-
-depth buf              w         -        w         r         -        -
-      tex              -         r        -         -         r        r
-
-light buf              w?        w?       w?        w?        w        -
-      tex              -         -        -         -         -        r
-       
-         separate     full     depth    depth     depth      depth    GBuf
-           FBOs       GBuf      tex     write     read       tex      tex
-       |-----------|---------|--------|--------,----------|--------|---------|
-         prepasses   terrain   decals   solids   emitters   lights   shading
-
-
-
-
-shadows and reflections
-
-
-*/
 
 
 
