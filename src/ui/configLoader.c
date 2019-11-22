@@ -114,15 +114,16 @@ static GUIObject* create_GUIPerformanceGraph(GUIManager* gm, json_value_t* cfg) 
 
 static GUIObject* create_GUIImageButton(GUIManager* gm, json_value_t* cfg) {
 	GUIImageButton* obj;
-	Vector2 defaultSpacing = {0.01, 0.01};
+	float border;
 	char* defaultImgName = "pre/denied";
 	
+	border = json_obj_get_double(cfg, "border", 2);
 	char* s = json_obj_get_string(cfg, "image");
 	if(!s) s = defaultImgName;
 	
 	// TODO: read json for values
 	
-	obj = GUIImageButton_New(gm, defaultSpacing, s);
+	obj = GUIImageButton_New(gm, border, s);
 	
 	return (GUIObject*)obj;
 }

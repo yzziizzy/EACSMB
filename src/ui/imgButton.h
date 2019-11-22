@@ -6,7 +6,14 @@
 typedef struct GUIImageButton {
 	GUIHeader header;
 	
+	float border;
+	struct Color4 normalColor;
+	struct Color4 hoverColor;
+	struct Color4 activeColor;
 // 	int imgIndex;
+	
+	char active;
+	char hovered;
 	
 	//GUIWindow* bg;
 	GUIImage* img;
@@ -14,7 +21,7 @@ typedef struct GUIImageButton {
 } GUIImageButton;
 
 
-GUIImageButton* GUIImageButton_New(GUIManager* gm, Vector2 size, char* imgName);
+GUIImageButton* GUIImageButton_New(GUIManager* gm, float border, char* imgName);
 
 
 

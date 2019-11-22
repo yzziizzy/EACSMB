@@ -850,6 +850,16 @@ GUIObject* GUIManager_triggerClick(GUIManager* gm, Vector2 testPos) {
 	return go;
 }
 
+void GUIManager_handleMouseMove(GUIManager* gm, Vector2i mousePx) {
+	gm->lastMousePosPx = gm->mousePosPx;
+	gm->mousePosPx = mousePx;
+	
+	// TODO: walk the tree and process enter/leave events
+	
+	
+}
+
+
 
 GUIObject* GUIManager_hitTest(GUIManager* gm, Vector2 testPos) {
 	GUIObject* go = GUIObject_hitTest(gm->root, testPos);

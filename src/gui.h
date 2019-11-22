@@ -181,6 +181,8 @@ union GUIObject {
 	GUIValueMonitor valueMonitor;
 	GUIDebugAdjuster debugAdjuster;
 	GUIStructAdjuster structAdjuster;
+	GUIImageButton ImageButton;
+	GUIPerformanceGraph PerformanceGraph;
 };
 
 
@@ -204,6 +206,8 @@ typedef struct GUIManager {
 	GUIUnifiedVertex* elemBuffer;
 	
 	Vector2i screenSize;
+	Vector2i lastMousePosPx;
+	Vector2i mousePosPx;
 	
 	GUIObject* root;
 	VEC(GUIObject*) reapQueue; 
@@ -266,6 +270,7 @@ static void GUIObject_revertFocus(GUIObject* go) {
 }
 
 
+// called to initiate the gui elements' position updates
 void GUIManager_updatePos(GUIManager* gm, PassFrameParams* pfp);
 
 GUIObject* GUIObject_hitTest(GUIObject* go, Vector2 testPos);
@@ -274,6 +279,10 @@ GUIObject* GUIManager_hitTest(GUIManager* gm, Vector2 testPos);
 // void GUIObject_triggerClick(GUIObject* go, GUIEvent* e); 
 void GUIObject_triggerClick(GUIObject* go, Vector2 testPos);
 GUIObject* GUIManager_triggerClick(GUIManager* gm, Vector2 testPos);
+
+// called once per frame to update the mouse position.
+// the mouse is assumed to have moved in a straight line from the previous position
+void GUIManager_handleMouseMove(GUIManager* gm, Vector2i mousePx);
 
 GUIObject* GUIObject_findChild(GUIObject* obj, char* childName);
 

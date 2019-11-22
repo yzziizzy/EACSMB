@@ -545,6 +545,11 @@ void postFrame(GameState* gs) {
 static void main_perframe_handler(InputState* is, float frameSpan, GameState* gs) {
 	double te = gs->frameSpan;
 	
+	
+	GUIManager_handleMouseMove(gs->gui,
+		(Vector2i){is->lastCursorPosPixels.x, gs->screen.wh.y - is->lastCursorPosPixels.y});
+	
+	
 	float moveSpeed = gs->settings.keyScroll * te; // should load from config
 	float rotateSpeed = gs->settings.keyRotate * te; // 20.8 degrees
 	float keyZoom = gs->settings.keyZoom * te;

@@ -224,6 +224,8 @@ config. See `texgen.[ch]`
 * Consistent z offsets for child windows to prevent flickering from inconsistent sorting
 * Animations
 * Debug float* adjusters
+* Make naming conventions consistent
+* Macro Magic for creating new controls
 
 
 ## Petty Basic Optimization
