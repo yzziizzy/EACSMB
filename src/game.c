@@ -68,6 +68,7 @@ GUIText* gt_lighting;
 GUIText* gt_sunShadow;
 GUIText* gt_shading;
 GUIText* gt_gui;
+GUIPerformanceGraph* gt_frameTimes;
 
 GUIWindow* gw_test;
 GUIWindow* gw_test2;
@@ -464,6 +465,8 @@ void initGameGL(XStuff* xs, GameState* gs) {
 	gt_shading = GUIObject_findChild(ps, "shading");
 	gt_gui = GUIObject_findChild(ps, "gui");
 	
+	gt_frameTimes = GUIObject_findChild(ps, "frameTimes");
+	
 	
 
 	
@@ -561,6 +564,8 @@ void preFrame(GameState* gs) {
 		query_update_gui(shading);
 		query_update_gui(lighting);
 		query_update_gui(gui);
+		
+		GUIPerformanceGraph_AddTime(gt_frameTimes, gs->frameSpan);
 		
 		lastPoint = now;
 	}

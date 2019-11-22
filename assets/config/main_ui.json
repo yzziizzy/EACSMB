@@ -7,6 +7,7 @@
 			pos: [10, 10],
 			gravity: 'TOP_LEFT'
 			children: [
+				{ elemType: 'performanceGraph', name: "frameTimes" },
 				{ elemType: 'text', name: "terrain" },
 				{ elemType: 'text', name: "solids" },
 				{ elemType: 'text', name: "selection" },

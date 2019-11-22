@@ -79,6 +79,17 @@ static GUIObject* create_GUIText(GUIManager* gm, json_value_t* cfg) {
 	return (GUIObject*)obj;
 }
 
+static GUIObject* create_GUIPerformanceGraph(GUIManager* gm, json_value_t* cfg) {
+	GUIPerformanceGraph* obj;
+	Vector2 defaultSpacing = {0.01, 0.01};
+	
+	// TODO: read json for values
+	
+	obj = guiPerformanceGraphNew(gm, defaultSpacing, 0.02, 120);
+	
+	return (GUIObject*)obj;
+}
+
 static GUIObject* create_GUIColumnLayout(GUIManager* gm, json_value_t* cfg) {
 	GUIColumnLayout* obj;
 	Vector2 defaultSpacing = {0.01, 0.01};
@@ -107,6 +118,7 @@ static void checkInitLookup() {
 		{"columnLayout", create_GUIColumnLayout},
 		{"window", create_GUIWindow},
 		{"image", create_GUIImage},
+		{"performanceGraph", create_GUIPerformanceGraph},
 // 		{"gridLayout", create_GUIGridLayout},
 	};
 	

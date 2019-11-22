@@ -164,6 +164,7 @@ typedef struct GUIHeader {
 #include "ui/monitors.h"
 #include "ui/debugAdjuster.h"
 #include "ui/structAdjuster.h"
+#include "ui/performanceGraph.h"
 
 
 
