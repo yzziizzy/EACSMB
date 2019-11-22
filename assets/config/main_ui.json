@@ -21,6 +21,27 @@
 				{ elemType: 'text', name: "gui" },
 			]
 		},
+		{
+			elemType: 'gridLayout',
+			name: "buttons",
+			pos: [0, 0],
+			gravity: 'BOTTOM_CENTER',
+			maxCols: 10,
+			maxRows: 6,
+			cellSize: [35, 35],
+			children: [
+				{ elemType: 'imageButton', size: [30,30], image: "pre/audio", name: "foo1" },
+				{ elemType: 'imageButton', size: [30,30], image: "pre/bag", name: "foo2" },
+				{ elemType: 'imageButton', size: [30,30], image: "pre/bang", name: "foo3" },
+				{ elemType: 'imageButton', size: [30,30], image: "pre/book", name: "foo4" },
+				{ elemType: 'imageButton', size: [30,30], image: "pre/camera", name: "foo5" },
+				{ elemType: 'imageButton', size: [30,30], image: "pre/car", name: "foo6" },
+				{ elemType: 'imageButton', size: [30,30], image: "pre/car", name: "foo7" },
+				{ elemType: 'imageButton', size: [30,30], image: "pre/car", name: "foo8" },
+				{ elemType: 'imageButton', size: [30,30], image: "pre/car", name: "foo9" },
+				{ elemType: 'imageButton', size: [30,30], image: "pre/car", name: "foo0" },
+			]
+		},
 		
 		
 		

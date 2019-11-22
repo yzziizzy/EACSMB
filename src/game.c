@@ -382,51 +382,6 @@ void initGameGL(XStuff* xs, GameState* gs) {
 	
 
 	
-	char* iconNames[] = {
-		"pre/audio",
-		"pre/plane",
-		"pre/bag",
-		"pre/book",
-		"pre/calculator",
-		
-		"pre/camera",
-		"pre/car",
-		"pre/check",
-		"pre/clock",
-		"pre/cloud",
-		
-		"pre/crop",
-		"pre/cup",
-		"pre/cutlery",
-		"pre/denied",
-		"pre/down_arrow",
-		
-		"pre/entrance",
-		"pre/envelope",
-		"pre/file",
-		"pre/gear",
-		"pre/home",
-	};
-	
-	
-	
-	
-	gglTest = GUIGridLayout_new(gs->gui, (Vector2){0,0}, (Vector2){35, 35});
-	gglTest->maxCols = 10;
-	gglTest->maxRows = 6;
-	gglTest->header.gravity = GUI_GRAV_CENTER_BOTTOM;
-	for(int i = 0; i < 20; i++) {
-		GUIImage* img = GUIImage_new(gs->gui, iconNames[i]);
-		img->header.size = (Vector2){30, 30};
-		GUIRegisterObject(img, gglTest);
-	}
-	
-	GUIRegisterObject(gglTest, NULL);
-
-	
-
-
-	
 	GUIScrollWindow* gsw = GUIScrollWindow_new(gs->gui);
 	gsw->header.topleft = (Vector2){200, 200};
 	gsw->header.size = (Vector2){100, 100};

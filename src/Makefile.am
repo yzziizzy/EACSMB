@@ -75,6 +75,7 @@ eacsmb_SOURCES = main.c \
 	ui/edit.c \
 	ui/gridLayout.c \
 	ui/image.c \
+	ui/imgButton.c \
 	ui/monitors.c \
 	ui/performanceGraph.c \
 	ui/scrollWindow.c \
