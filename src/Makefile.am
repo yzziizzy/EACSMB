@@ -86,7 +86,8 @@ eacsmb_SOURCES = main.c \
 	utilities.c \
 	waterPlane.c \
 	window.c \
-	world.c 
+	world.c \
+	worldEdit.c 
 
 eacsmb_LDADD =  \
 	-lm \
