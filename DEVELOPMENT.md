@@ -163,15 +163,15 @@ config. See `texgen.[ch]`
 * Custom mouse pointer support. 
 * Falling rain and snow.
 	* Make a special version of Emitter that only spawns in rage of the camera, but consistently.
-* Mipmapping in decals.
+* Mipmapping in decals. 
 * 3D billboards/text/gui
 * Dynamic LOD
 * Easy, cheap ephemeral meshes, decal and effects that can automatically spawn on terrain at certain zoom levels. Grass, dust, flowers, decorative decals, etc. They should not be in the CES as they are not real game items. 
-* Better gbuffer packing, depends on shader #include support.
 * Texture compression
 * Calculate proper derivatives in decal fragment shader for anisotropic filtering
 * Texture atlassing for meshes, including coordinate transformation in/near shaders.
 * Polygonal/triangular decals
+* NormalMap values are not transformed properly in mesh vertex shaders
 
 ## Sound
 * Finish API.
@@ -189,7 +189,6 @@ config. See `texgen.[ch]`
 
 ## Core
 * Better loading screen
-* Migrate World to init/initGL system
 * Water and fluid dynamics are a broken mess right now.
 * B+ tree leaves become heavily lopsided when filled with an increasing integer sequence. (half full leaves) 
 * B+ tree does not have a delete operation.
@@ -204,21 +203,24 @@ config. See `texgen.[ch]`
 * Track GPU memory usage as much as possible.
 * Destructors and resource cleanup on just about everything.
 * Fix quad tree to bin items by size
-* Function to programmatically resize of window.
+* Function to programmatically resize window.
 
 ## UI
 * Config system
 * Finish wiring clipping boxes through everything
 * Arbitrary lines (via rotation?)
 * Components:
-	* Performance bar graphs (frame times)
 	* Text boxes with wrapping
 	* Sliders
 	* Menu boxes
 	* Scroll bars and scrollable windows (depends on clipping)
-	* Input fields and text areas
-	* Image-based radio buttons (tool selection)
+	* Input Button:
+		* Radio-like selection behavior
 	* Tab Control
+	* Edit Control:
+		* Clip text properly
+		* Horizontal scroll
+		* Borders, active/inactive colors
 * SDF calculation on the GPU. (current multithreaded version is not *too* bad.)
 * 3D gui (positioned in the world rather than overlayed in 2D.)
 * Consistent z offsets for child windows to prevent flickering from inconsistent sorting

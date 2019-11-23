@@ -8,7 +8,7 @@
 
 
 
-static void render(GUIImageButton* w, GameState* gs, PassFrameParams* pfp) {
+static void render(GUIImageButton* w, PassFrameParams* pfp) {
 	
 	w->hovered = 0;
 	Vector2i mp = w->header.gm->mousePosPx; 

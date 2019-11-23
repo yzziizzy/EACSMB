@@ -329,7 +329,7 @@ void tbcOnChange(GUIEdit* ed, struct tbc_opt_param* p) {
 	
 	switch(op->type) {
 		case 0:// TODO: real enums
-			d_val = guiEditGetDouble(ed);
+// 			d_val = guiEditGetDouble(ed);
 			// TODO: clamp val to limits
 			*((float*)(op + param->struct_offset)) = d_val;
 			break;
@@ -355,17 +355,17 @@ GUITBCOptsControl* guiTBCOptsNew(TexGenOp* op, struct texopt_param* params, int 
 		
 		// TODO: text label
 		
-		ed = GUIEditNew("0", pos, size); // TODO: positioning
-		ed->numType = 2;
-		ed->onChange = tbcOnChange;
-		guiEditSetDouble(ed, param->def_value.f);
+// 		ed = GUIEdit_New("0", pos, size); // TODO: positioning
+// 		ed->numType = 2;
+// 		ed->onChange = tbcOnChange;
+// 		guiEditSetDouble(ed, param->def_value.f);
 		
-		p = calloc(1, sizeof(*p));
-		p->param = param;
-		p->op = op;
-		ed->onChangeData = p;
+// 		p = calloc(1, sizeof(*p));
+// 		p->param = param;
+// 		p->op = op;
+// 		ed->onChangeData = p;
 		
-		VEC_PUSH(&c->edits, ed);
+// 		VEC_PUSH(&c->edits, ed);
 	}
 	
 	

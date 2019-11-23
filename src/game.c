@@ -430,9 +430,9 @@ void initGameGL(XStuff* xs, GameState* gs) {
 // 	GUIRegisterObject(gtSelectionDisabled, NULL);
 	
 
-	//geditTest = GUIEditNew("edit", (Vector2){.5, .5}, (Vector2){.4, .05});
-	//GUIRegisterObject(geditTest, NULL);
-	//InputFocusStack_PushTarget(&gs->ifs, geditTest, inputHandlers);
+	geditTest = GUIEdit_New(gs->gui, "edit", (Vector2){200, 20});
+	GUIRegisterObject(geditTest, NULL);
+	InputFocusStack_PushTarget(&gs->ifs, geditTest, inputHandlers);
 
 		
 	#include "../mods/GameState_initGL.generated_thunk.c" 

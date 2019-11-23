@@ -13,7 +13,7 @@
 
 
 
-void guiPerformanceGraphRender(GUIPerformanceGraph* w, GameState* gs, PassFrameParams* pfp) {
+void guiPerformanceGraphRender(GUIPerformanceGraph* w, PassFrameParams* pfp) {
 	if(w->header.hidden || w->header.deleted) return;
 	
 	Vector2 tl = w->header.absTopLeft;
