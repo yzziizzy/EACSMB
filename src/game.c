@@ -83,6 +83,7 @@ GUIColumnLayout* gclTest;
 GUIGridLayout* gglTest;
 
 GUIEdit* geditTest;
+GUISlider* gsliderTest;
 
 // GUIImageButton* gibTest;
 
@@ -109,11 +110,11 @@ void setupFBOs(GameState* gs, int resized);
 // TerrainBlock* terrain;
 
 
-static void main_drag_handler(InputEvent* ev, GameState* gs);
-static void main_key_handler(InputEvent* ev, GameState* gs);
-static void main_perframe_handler(InputState* is, float frameSpan, GameState* gs);
-static void main_click_handler(InputEvent* ev, GameState* gs);
-static void main_move_handler(InputEvent* ev, GameState* gs);
+static int main_drag_handler(InputEvent* ev, GameState* gs);
+static int main_key_handler(InputEvent* ev, GameState* gs);
+static int main_perframe_handler(InputState* is, float frameSpan, GameState* gs);
+static int main_click_handler(InputEvent* ev, GameState* gs);
+static int main_move_handler(InputEvent* ev, GameState* gs);
 
 
 // nothing in here can use opengl at all.
@@ -430,11 +431,13 @@ void initGameGL(XStuff* xs, GameState* gs) {
 // 	GUIRegisterObject(gtSelectionDisabled, NULL);
 	
 
-	geditTest = GUIEdit_New(gs->gui, "edit", (Vector2){200, 20});
-	GUIRegisterObject(geditTest, NULL);
-	InputFocusStack_PushTarget(&gs->ifs, geditTest, inputHandlers);
+	gsliderTest = GUISlider_New(gs->gui, 0, 20, 13);
+	GUIRegisterObject(gsliderTest, NULL);
+	
+// 	geditTest = GUIEdit_New(gs->gui, "edit", (Vector2){200, 20});
+// 	GUIRegisterObject(geditTest, NULL);
 
-		
+	
 	#include "../mods/GameState_initGL.generated_thunk.c" 
 	
 	
@@ -542,7 +545,7 @@ void postFrame(GameState* gs) {
 
 
 
-static void main_perframe_handler(InputState* is, float frameSpan, GameState* gs) {
+static int main_perframe_handler(InputState* is, float frameSpan, GameState* gs) {
 	double te = gs->frameSpan;
 	
 	
@@ -657,11 +660,12 @@ static void main_perframe_handler(InputState* is, float frameSpan, GameState* gs
 		printf("sunTheta: %f\n", gs->sunTheta);
 	}
 	
+	return 0;
 }
 
 
 
-static void main_drag_handler(InputEvent* ev, GameState* gs) {
+static int main_drag_handler(InputEvent* ev, GameState* gs) {
 	
 	printf("dragged from %d,%d to %d,%d \n", ev->intDragStart.x, ev->intDragStart.y,
 		ev->intPos.x, ev->intPos.y
@@ -670,7 +674,7 @@ static void main_drag_handler(InputEvent* ev, GameState* gs) {
 		ev->normPos.x, ev->normPos.y
 	);
 	
-	return;
+	return 0;
 	
 	Vector2i tile;
 	getTileFromScreenCoords(gs, ev->normPos, &tile);
@@ -682,7 +686,7 @@ static void main_drag_handler(InputEvent* ev, GameState* gs) {
 	
 }
 
-static void main_key_handler(InputEvent* ev, GameState* gs) {
+static int main_key_handler(InputEvent* ev, GameState* gs) {
 	
 	if(ev->character == 'c') {
 		exit(0);
@@ -778,6 +782,8 @@ static void main_key_handler(InputEvent* ev, GameState* gs) {
 		CES_addComponentName(&gs->ces, "roadWander", eid, &crw);
 		
 	}
+	
+	return 0;
 }  
 
 
@@ -809,7 +815,7 @@ void ray_from_screen(GameState* gs, Vector2 screenPos, Vector* origin, Vector* r
 
 
 
-static void main_click_handler(InputEvent* ev, GameState* gs) {
+static int main_click_handler(InputEvent* ev, GameState* gs) {
 
 	if(ev->button == 1) {
 
@@ -926,12 +932,14 @@ static void main_click_handler(InputEvent* ev, GameState* gs) {
 		checkMapDirty(&gs->map);
 		*/
 	}
+	
+	return 0;
 }
 
 
 
 
-static void main_move_handler(InputEvent* ev, GameState* gs) {
+static int main_move_handler(InputEvent* ev, GameState* gs) {
 	
 	Vector origin, ray, movePos;
 	Vector2i ci;
@@ -957,6 +965,8 @@ static void main_move_handler(InputEvent* ev, GameState* gs) {
 	vAdd(&pos2, &c, &gs->world->cursor->pos2);
 	vAdd(&pos3, &c, &gs->world->cursor->pos3);
 	vAdd(&pos4, &c, &gs->world->cursor->pos4);
+	
+	return 0;
 }
 
 

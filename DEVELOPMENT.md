@@ -228,6 +228,7 @@ config. See `texgen.[ch]`
 * Debug float* adjusters
 * Make naming conventions consistent
 * Macro Magic for creating new controls
+* Settings-based theme option
 
 
 ## Petty Basic Optimization

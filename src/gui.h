@@ -160,6 +160,7 @@ typedef struct GUIHeader {
 #include "ui/imgButton.h"
 #include "ui/tree.h"
 #include "ui/edit.h"
+#include "ui/slider.h"
 #include "ui/columnLayout.h"
 #include "ui/gridLayout.h"
 #include "ui/monitors.h"
@@ -180,6 +181,8 @@ union GUIObject {
 	GUIGridLayout gridLayout;
 	GUIValueMonitor valueMonitor;
 	GUIDebugAdjuster debugAdjuster;
+	GUISlider Slider;
+	GUIEdit Edit;
 	GUIStructAdjuster structAdjuster;
 	GUIImageButton ImageButton;
 	GUIPerformanceGraph PerformanceGraph;

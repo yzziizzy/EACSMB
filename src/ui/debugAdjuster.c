@@ -11,7 +11,7 @@
 
 
 
-static void keyUp(InputEvent* ev, GUIDebugAdjuster* bc);
+static int keyUp(InputEvent* ev, GUIDebugAdjuster* bc);
 
 static void render(GUIDebugAdjuster* da, PassFrameParams* pfp);
 
@@ -205,21 +205,28 @@ static void decrement(GUIDebugAdjuster* da, int scale) {
 }
 
 
-static void keyUp(InputEvent* ev, GUIDebugAdjuster* da) {
+static int keyUp(InputEvent* ev, GUIDebugAdjuster* da) {
 	if(ev->keysym == XK_Escape) {
 		
 		GUIObject_revertFocus(da);
 		//gbcTest = NULL;
+		return 0;
 	}
 	
 	if(ev->keysym == XK_Up) {
 		increment(da, 0);
+		updateText(da);
+		
+		return 0;
 	} 
 	if(ev->keysym == XK_Down) {
 		decrement(da, 0);
+		updateText(da);
+		
+		return 0;
 	} 
 	
-	updateText(da);
+	return 1;
 }
 
 

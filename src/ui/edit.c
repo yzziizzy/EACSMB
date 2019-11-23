@@ -97,13 +97,15 @@ void backspace(GUIEdit* ed) {
 }
 
 
-static void recieveText(InputEvent* ev, GUIEdit* ed) {
+static int recieveText(InputEvent* ev, GUIEdit* ed) {
 	insertChar(ed, ev->character);
 	ed->cursorpos++;
 	updateTextControl(ed);
+	
+	return 0;
 }
 
-static void keyDown(InputEvent* ev, GUIEdit* w) {
+static int keyDown(InputEvent* ev, GUIEdit* w) {
 	if(ev->keysym == XK_Left) moveCursor(w, -1);
 	else if(ev->keysym == XK_Right) moveCursor(w, 1);
 	else if(ev->keysym == XK_BackSpace) {
@@ -114,10 +116,12 @@ static void keyDown(InputEvent* ev, GUIEdit* w) {
 	else if(ev->keysym == XK_Escape) {
 		GUIObject_revertFocus((GUIObject*)w);
 		w->hasFocus = 0;
-		return;
+		return 0;
 	};
 	
 	updateTextControl(w);
+	
+	return 0;
 }
 
 static int click(GUIEdit* w, Vector2 clickPos) {

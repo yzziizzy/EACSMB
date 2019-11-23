@@ -83,6 +83,7 @@ eacsmb_SOURCES = main.c \
 	ui/performanceGraph.c \
 	ui/scrollWindow.c \
 	ui/simpleWindow.c \
+	ui/slider.c \
 	ui/structAdjuster.c \
 	ui/text.c \
 	ui/tree.c \

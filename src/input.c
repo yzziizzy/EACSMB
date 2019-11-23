@@ -74,37 +74,43 @@ void InputFocusStack_RevertTarget(InputFocusStack* stack) {
 }
 
 
-void InputFocusStack_Dispatch(InputFocusStack* stack, InputEvent* ev) {
+int InputFocusStack_Dispatch(InputFocusStack* stack, InputEvent* ev) {
+	int ret = 99;
 	if(VEC_LEN(&stack->stack) == 0) return;
 	
-	InputFocusTarget* h = &VEC_TAIL(&stack->stack);
+	for(int i = VEC_LEN(&stack->stack) - 1; i >= 0; i--) {
+		InputFocusTarget* h = &VEC_ITEM(&stack->stack, i);
 	
-	InputFocusTarget_Dispatch(h, ev);
+		ret = InputFocusTarget_Dispatch(h, ev);
+		if(ret == 0) return 0; 
+	}
+	
+	return ret;
 }
 
 
-void InputFocusTarget_Dispatch(InputFocusTarget* t , InputEvent* ev) {
+int InputFocusTarget_Dispatch(InputFocusTarget* t , InputEvent* ev) {
 	
-#define CALLIF(x) if(*t->vt && (*t->vt)->x) ((*t->vt)->x)(ev, t->data) 
+#define CALLIF(x) if(*t->vt && (*t->vt)->x) return ((*t->vt)->x)(ev, t->data) 
 	
 	CALLIF(all);
 	
 	switch(ev->type) {
-		case EVENT_KEYDOWN: CALLIF(keyDown); break;
-		case EVENT_KEYUP: CALLIF(keyUp); break;
-		case EVENT_TEXT: CALLIF(keyText); break;
-		case EVENT_MOUSEDOWN: CALLIF(mouseDown); break;
-		case EVENT_MOUSEUP: CALLIF(mouseUp); break;
-		case EVENT_CLICK: CALLIF(click); break;
-		case EVENT_DOUBLECLICK: CALLIF(doubleClick); break;
-		case EVENT_DRAGSTART: CALLIF(dragStart); break;
-		case EVENT_DRAGSTOP: CALLIF(dragStop); break;
-		case EVENT_DRAGMOVE: CALLIF(dragMove); break;
-		case EVENT_MOUSEMOVE: CALLIF(mouseMove); break;
-		case EVENT_MOUSEENTER: CALLIF(mouseEnter); break;
-		case EVENT_MOUSELEAVE: CALLIF(mouseLeave); break;
-		case EVENT_GAINFOCUS: CALLIF(gainFocus); break;
-		case EVENT_LOSEFOCUS: CALLIF(loseFocus); break;
+		case EVENT_KEYDOWN: CALLIF(keyDown);
+		case EVENT_KEYUP: CALLIF(keyUp);
+		case EVENT_TEXT: CALLIF(keyText);
+		case EVENT_MOUSEDOWN: CALLIF(mouseDown);
+		case EVENT_MOUSEUP: CALLIF(mouseUp);
+		case EVENT_CLICK: CALLIF(click);
+		case EVENT_DOUBLECLICK: CALLIF(doubleClick);
+		case EVENT_DRAGSTART: CALLIF(dragStart);
+		case EVENT_DRAGSTOP: CALLIF(dragStop);
+		case EVENT_DRAGMOVE: CALLIF(dragMove);
+		case EVENT_MOUSEMOVE: CALLIF(mouseMove);
+		case EVENT_MOUSEENTER: CALLIF(mouseEnter);
+		case EVENT_MOUSELEAVE: CALLIF(mouseLeave);
+		case EVENT_GAINFOCUS: CALLIF(gainFocus);
+		case EVENT_LOSEFOCUS: CALLIF(loseFocus);
 		default:
 			fprintf(stderr, "!!! Unknown event in InputFocusTarget_Dispatch: %d\n", ev->type);
 			break;
@@ -115,14 +121,20 @@ void InputFocusTarget_Dispatch(InputFocusTarget* t , InputEvent* ev) {
 
 
 
-void InputFocusStack_DispatchPerFrame(InputFocusStack* stack, InputState* is, float frameSpan) {
-	
+int InputFocusStack_DispatchPerFrame(InputFocusStack* stack, InputState* is, float frameSpan) {
+	int ret = 99;
 	if(VEC_LEN(&stack->stack) == 0) return;
 	
-	InputFocusTarget* h = &VEC_TAIL(&stack->stack);
-	if(*h->vt && (*h->vt)->perFrame) {
-		((*h->vt)->perFrame)(is, frameSpan, h->data); 
+	for(int i = VEC_LEN(&stack->stack) - 1; i >= 0; i--) {
+		InputFocusTarget* h = &VEC_ITEM(&stack->stack, i);
+	
+		if(*h->vt && (*h->vt)->perFrame) {
+			ret = ((*h->vt)->perFrame)(is, frameSpan, h->data); 
+		}
+		if(ret == 0) return 0; 
 	}
+	
+	return ret;
 }
 
 
