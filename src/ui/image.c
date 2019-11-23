@@ -281,27 +281,6 @@ GUIImage* GUIImage_new(GUIManager* gm, char* name) {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 static void rt_render(GUIRenderTarget* im, PassFrameParams* pfp) {
 	
 	//just a clipped box

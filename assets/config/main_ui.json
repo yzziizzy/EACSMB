@@ -36,10 +36,10 @@
 				{ elemType: 'imageButton', size: [30,30], image: "pre/book", name: "foo4" },
 				{ elemType: 'imageButton', size: [30,30], image: "pre/camera", name: "foo5" },
 				{ elemType: 'imageButton', size: [30,30], image: "pre/car", name: "foo6" },
-				{ elemType: 'imageButton', size: [30,30], image: "pre/car", name: "foo7" },
-				{ elemType: 'imageButton', size: [30,30], image: "pre/car", name: "foo8" },
-				{ elemType: 'imageButton', size: [30,30], image: "pre/car", name: "foo9" },
-				{ elemType: 'imageButton', size: [30,30], image: "pre/car", name: "foo0" },
+				{ elemType: 'imageButton', size: [30,30], image: "pre/location", name: "foo7" },
+				{ elemType: 'imageButton', size: [30,30], image: "pre/gear", name: "foo8" },
+				{ elemType: 'imageButton', size: [30,30], image: "pre/lock", name: "foo9" },
+				{ elemType: 'imageButton', size: [30,30], image: "pre/eye", name: "foo0" },
 			]
 		},
 		

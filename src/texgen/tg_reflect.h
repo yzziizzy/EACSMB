@@ -119,6 +119,9 @@ typedef struct CAT_(TG_, TG_REFL_STRUCT_NAME) {
 	
 #else
 	// everywhere else is declared extern
+	struct tg_reflect;
+	struct GUISA_Field;
+	
 	extern struct tg_reflect CAT_(CAT_(TG_, TG_REFL_STRUCT_NAME), _ref)[];
 	extern struct GUISA_Field CAT_(CAT_(TG_, TG_REFL_STRUCT_NAME), _structAdjusterFields)[];
 	extern struct CAT_(CAT_(TG_, TG_REFL_STRUCT_NAME), _defaultValue);

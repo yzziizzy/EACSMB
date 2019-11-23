@@ -66,6 +66,9 @@ eacsmb_SOURCES = main.c \
 	sound/utils.c \
 	sound/vorbis.c \
 	texgen.c \
+	texgen/core.c \
+	texgen/definitions.c \
+	texgen/ui.c \
 	texture.c \
 	textureAtlas.c \
 	ui/animations/pulse.c \

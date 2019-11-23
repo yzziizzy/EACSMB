@@ -42,7 +42,7 @@
 #include "ui/simpleWindow.h"
 #include "ui/image.h"
 #include "builder/render.h"
-#include "texgen.h"
+#include "texgen/ui.h"
 
 
 
@@ -745,9 +745,9 @@ static void main_key_handler(InputEvent* ev, GameState* gs) {
 	// texture builder
 	if(ev->character == 't') {
 		printf("t\n");
-		texbuilder = guiTexBuilderControlNew(gs->gui, (Vector2){0,0}, (Vector2){800,800}, 0);
+		texbuilder = guiTexBuilderControlNew(gs->gui, (Vector2){50,50}, (Vector2){700,700}, 0);
 		GUIRegisterObject(texbuilder, NULL);
-		guiResize(&texbuilder->header, (Vector2){.79, .79});
+// 		guiResize(&texbuilder->header, (Vector2){.79, .79});
 		
 		GUIObject_giveFocus(texbuilder);
 	}
