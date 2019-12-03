@@ -9,6 +9,7 @@
 
 #include "ds.h"
 #include "hash.h"
+#include "mempool.h"
 
 #include "settings.h"
 #include "texture.h"
@@ -78,7 +79,7 @@ typedef struct DynamicMesh {
 	
 	// rendering info
 	int curFrameIndex;
-	VEC(DynamicMeshInstance) instances[2];
+	MemPoolT instances;
 	VEC(Matrix) instMatrices;
 	int numToDraw; // TODO: cycle per frame or move elsewhere
 	
@@ -121,7 +122,7 @@ void dynamicMeshManager_draw(DynamicMeshManager* mm, PassFrameParams* pfp);
 void dynamicMeshManager_updateGeometry(DynamicMeshManager* mm);
 int dynamicMeshManager_addMesh(DynamicMeshManager* mm, char* name, DynamicMesh* sm);
 int dynamicMeshManager_lookupName(DynamicMeshManager* mm, char* name);
-int dynamicMeshManager_addInstance(DynamicMeshManager* mm, int meshIndex, const DynamicMeshInstance* smi);
+DynamicMeshInstance* dynamicMeshManager_addInstance(DynamicMeshManager* mm, int meshIndex, const DynamicMeshInstance* smi);
 int dynamicMeshManager_addTexture(DynamicMeshManager* mm, char* path);
 DynamicMeshManager* dynamicMeshManager_alloc();
 DynamicMesh* DynamicMeshFromOBJ(OBJContents* obj);

@@ -397,6 +397,9 @@ DynamicMesh* Building_CreateDynamicMesh(Building* b) {
 	dm->defaultRotZ = 0.0;
 	dm->polyMode = GL_TRIANGLES;
 	
+	
+	MemPoolT_init(&dm->instances, sizeof(DynamicMeshInstance), 8192);
+	
 	return dm;
 }
 

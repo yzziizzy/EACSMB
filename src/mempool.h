@@ -66,7 +66,7 @@ void MemPool_free(MemPool* mp, void* ptr);
 
 
 
-typedef struct MemPoolT /* racked */ {
+typedef struct MemPoolT /* tracked */ {
 	
 	size_t itemSize;
 	size_t maxItems;

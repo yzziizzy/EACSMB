@@ -127,6 +127,8 @@ DynamicMesh* DynamicMesh_FromGLTF(gltf_file* gf, int meshIndex) {
 		free(texcoords);
 	}
 	
+	MemPoolT_init(&m->instances, sizeof(DynamicMeshInstance), 8192);
+	
 }
 
 DynamicMesh* DynamicMeshFromOBJ(OBJContents* obj) {
@@ -167,8 +169,8 @@ DynamicMesh* DynamicMeshFromOBJ(OBJContents* obj) {
 	printf("-----loaded---------------\n");
 	
 	m->curFrameIndex = 0;
-	VEC_INIT(&m->instances[0]);
-	VEC_INIT(&m->instances[1]);
+	// HACK: hardcoded limit
+	MemPoolT_init(&m->instances, sizeof(DynamicMeshInstance), 8192);
 	
 	VEC_INIT(&m->instMatrices);
 	
@@ -212,10 +214,10 @@ void dynamicMeshManager_initGL(DynamicMeshManager* dmm, GlobalSettings* gs) {
 }
 
 // returns the index of the instance
-int dynamicMeshManager_addInstance(DynamicMeshManager* mm, int meshIndex, const DynamicMeshInstance* smi) {
+DynamicMeshInstance* dynamicMeshManager_addInstance(DynamicMeshManager* mm, int meshIndex, const DynamicMeshInstance* smi) {
 	
 	DynamicMesh* msh; 
-	DynamicMeshInstance* s;
+	DynamicMeshInstance* s, *perm;
 	
 	if(meshIndex >= VEC_LEN(&mm->meshes)) {
 		fprintf(stderr, "mesh manager addInstance out of bounds: %d, %d\n", (int)VEC_LEN(&mm->meshes), meshIndex);
@@ -226,13 +228,13 @@ int dynamicMeshManager_addInstance(DynamicMeshManager* mm, int meshIndex, const 
 	
 	//printf("adding instance: %d ", meshIndex);
 	msh = VEC_DATA(&mm->meshes)[meshIndex];
-	VEC_PUSH(&msh->instances[0], *smi);
-	VEC_PUSH(&msh->instances[1], *smi);
+	perm = MemPoolT_malloc(&msh->instances);
+	*perm = *smi;
 	VEC_INC(&msh->instMatrices);
 	
 	//printf("add instance: %d", mm->totalInstances, VEC_LEN(&msh->instances[0]));
 	
-	return VEC_LEN(&msh->instances[0]);
+	return perm;
 }
 
 // returns the index of the instance
@@ -307,7 +309,7 @@ static void instanceSetup(DynamicMeshManager* dmm, DynamicMeshInstShader* vmem, 
 		di[j]->numToDraw = 0;
 		dm->matBufOffset = off;
 		
-		off += VEC_LEN(&dm->instances[0]);
+		off += dm->instances.fill;
 	}
 	
 	/*
@@ -318,7 +320,7 @@ static void instanceSetup(DynamicMeshManager* dmm, DynamicMeshInstShader* vmem, 
 		dm->numToDraw = 0; // clear this out while we're at it	
 		dm->matBufOffset = off;
 		
-		off += VEC_LEN(&dm->instances[0]);
+		off += VEC_LEN(&dm->instances);
 	}
 	*/
 	
@@ -381,7 +383,7 @@ static void instanceSetup(DynamicMeshManager* dmm, DynamicMeshInstShader* vmem, 
 		
 		// TODO make instances switch per frame
 		for(i = 0; i < di[mesh_index]->numToDraw; i++) {
-			DynamicMeshInstance* dmi = &VEC_ITEM(&dm->instances[0], i);
+// 			DynamicMeshInstance* dmi = &VEC_ITEM(&dm->instances, i);
 		
 			vmem->m = dmm->matBuf[dm->matBufOffset + i];
 			vmem->diffuseIndex = dm->texIndex;
@@ -400,7 +402,7 @@ static void instanceSetup(DynamicMeshManager* dmm, DynamicMeshInstShader* vmem, 
 		
 		// TODO make instances switch per frame
 		for(i = 0; i < VEC_LEN(&dm->instances[0]); i++) {
-			DynamicMeshInstance* dmi = &VEC_ITEM(&dm->instances[0], i);
+			DynamicMeshInstance* dmi = &VEC_ITEM(&dm->instances, i);
 			Matrix m = IDENT_MATRIX, tmp = IDENT_MATRIX;
 			
 			float d = vDist(&dmi->pos, &pfp->dp->eyePos);
@@ -774,13 +776,16 @@ void SlowMeshManager_RemoveMesh(SlowMeshManager* mm, DynamicMesh* dm) {
 }
 
 
-void SlowMeshManager_AddInstance(SlowMeshManager* mm, DynamicMesh* dm, DynamicMeshInstance* inst) {
-	VEC_PUSH(&dm->instances[0], *inst);
+DynamicMeshInstance* SlowMeshManager_AddInstance(SlowMeshManager* mm, DynamicMesh* dm, DynamicMeshInstance* inst) {
+	DynamicMeshInstance* perm = MemPoolT_malloc(&dm->instances);
 	mm->totalInstances++;
+	*perm = *inst;
+	
+	return perm;
 }
 
 void SlowMeshManager_RemoveInstance(SlowMeshManager* mm, DynamicMesh* dm, DynamicMeshInstance* inst) {
-	
+	fprintf(stderr, "NYI\n");
 	mm->totalInstances--;
 }
 
