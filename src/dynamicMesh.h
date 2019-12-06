@@ -49,7 +49,7 @@ typedef struct DynamicMeshInstance {
 
 
 // this is what actually goes into the shader now
-typedef struct DynamicMeshInstShader {
+typedef struct __attribute__((packed)) DynamicMeshInstShader {
 	Matrix m;
 	
 	// texture indices

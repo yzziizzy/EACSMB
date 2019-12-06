@@ -124,6 +124,14 @@ void initGame(XStuff* xs, GameState* gs) {
 	
 	json_gl_init_lookup();
 	
+	gs->enableDraw.decals = 1;
+	gs->enableDraw.solids = 1;
+	gs->enableDraw.effects = 1;
+	gs->enableDraw.emitters = 1;
+	gs->enableDraw.terrain = 1;
+	gs->enableDraw.lighting = 0;
+	gs->enableDraw.leaves = 1;
+	gs->enableDraw.shadows = 0;
 	
 // 	TextureAtlas* ta = TextureAtlas_alloc();
 // 	ta->width = 256;
@@ -356,9 +364,12 @@ void initGameGL(XStuff* xs, GameState* gs) {
 	getPrintGLEnum(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, "meh");
 	getPrintGLEnum(GL_MAX_UNIFORM_BLOCK_SIZE, "meh");
 	getPrintGLEnum(GL_MAX_TEXTURE_SIZE, "meh");
+	getPrintGLEnum(GL_MAX_ELEMENTS_VERTICES, "meh");
+	getPrintGLEnum(GL_MAX_ELEMENTS_VERTICES, "meh");
+	getPrintGLEnum(GL_MAX_VERTEX_ATTRIB_RELATIVE_OFFSET, "meh");
 	
 	*/
-	
+// exit(1);
 	
 	
 	initTextures();
@@ -905,6 +916,8 @@ static int main_click_handler(InputEvent* ev, GameState* gs) {
 			VEC_FREE(&dead);
 			printf("tile: %f, %f\n",tilef.x, tilef.y);
 			//BUG: convert this to tile coords
+			
+// 			for(int ii = 0; ii < 100; ii++)
  			World_spawnAt_Item(gs->world, "gazebbq", &tilef);
 			
 		/*	SoundInstance* si = calloc(1, sizeof(*si));

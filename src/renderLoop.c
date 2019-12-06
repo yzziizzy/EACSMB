@@ -410,13 +410,13 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	
 	Vector sunPos;
 	vScale(&gs->sunNormal, 1000, &sunPos);
-	
-// 	printf("sm------\n");
-	query_queue_start(&gs->queries.sunShadow);
-	ShadowMap_Render(gs->world->sunShadow, activePFP, &sunPos);
-	query_queue_stop(&gs->queries.sunShadow);
-// 	printf("sm^^^^^^\n");
-	
+	if(gs->enableDraw.shadows) {
+	// 	printf("sm------\n");
+		query_queue_start(&gs->queries.sunShadow);
+		ShadowMap_Render(gs->world->sunShadow, activePFP, &sunPos);
+		query_queue_stop(&gs->queries.sunShadow);
+	// 	printf("sm^^^^^^\n");
+	}
 	//giShadowMap->customTexID = gs->world->sunShadow->depthTex; 
 	
 	glViewport(0, 0, gs->screen.wh.x, gs->screen.wh.y);
@@ -436,84 +436,89 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glDepthFunc(GL_LEQUAL);
 	
-	// terrain
-	query_queue_start(&gs->queries.terrain);
-	World_drawTerrain(gs->world, &pfp);
-	query_queue_stop(&gs->queries.terrain);
+	if(gs->enableDraw.terrain) {
+		// terrain
+		query_queue_start(&gs->queries.terrain);
+		World_drawTerrain(gs->world, &pfp);
+		query_queue_stop(&gs->queries.terrain);
+	}
 	
-	
-	
-	// decals
-	glBindFramebuffer(GL_FRAMEBUFFER, gs->decalbuf.fb);
-	glDepthMask(GL_FALSE); // disable depth writes for decals
-	
-	// hack
-	gs->world->dm->dtex = gs->depthTexBuffer;
-	gs->world->cdm->dtex = gs->depthTexBuffer;
-	
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	
-	// only draw backfaces that are behind existing geometry
-	glCullFace(GL_FRONT);
-	glDepthFunc(GL_GREATER);
-	
-	renderDecals(xs, gs, is, &pfp);
-	
-	glDisable(GL_BLEND);
-	glCullFace(GL_BACK);
+	if(gs->enableDraw.decals) {
+		// decals
+		glBindFramebuffer(GL_FRAMEBUFFER, gs->decalbuf.fb);
+		glDepthMask(GL_FALSE); // disable depth writes for decals
+		
+		// hack
+		gs->world->dm->dtex = gs->depthTexBuffer;
+		gs->world->cdm->dtex = gs->depthTexBuffer;
+		
+		
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		
+		// only draw backfaces that are behind existing geometry
+		glCullFace(GL_FRONT);
+		glDepthFunc(GL_GREATER);
+		
+		renderDecals(xs, gs, is, &pfp);
+		
+		glDisable(GL_BLEND);
+		glCullFace(GL_BACK);
+	}
 	
 	// back to normal gbuf for solids
 	glBindFramebuffer(GL_FRAMEBUFFER, gs->gbuf.fb);
 	glDepthMask(GL_TRUE); // turn depth writes back on
 	glDepthFunc(GL_LEQUAL); // normal depth function
 	
-	query_queue_start(&gs->queries.solids);
-	World_drawSolids(gs->world, &pfp);
-	query_queue_stop(&gs->queries.solids);
+	if(gs->enableDraw.solids) {
+		query_queue_start(&gs->queries.solids);
+		World_drawSolids(gs->world, &pfp);
+		query_queue_stop(&gs->queries.solids);
+	}
 	
-	
-	// vegetation
-	query_queue_start(&gs->queries.leaves);
-	glDisable(GL_CULL_FACE);
-	World_drawLeaves(gs->world, &pfp);
-	glEnable(GL_CULL_FACE);
-	query_queue_stop(&gs->queries.leaves);
-	
+	if(gs->enableDraw.leaves) {
+		// vegetation
+		query_queue_start(&gs->queries.leaves);
+		glDisable(GL_CULL_FACE);
+		World_drawLeaves(gs->world, &pfp);
+		glEnable(GL_CULL_FACE);
+		query_queue_stop(&gs->queries.leaves);
+	}
 	
 	
 	// transparency and effects
+	if(gs->enableDraw.effects) {
+		query_queue_start(&gs->queries.effects);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glDepthMask(GL_FALSE); // turn depth writes off
+		
+		World_preTransparents(gs->world, &pfp);
+		
+		// draw backfaces
+		glCullFace(GL_FRONT);
+		World_drawTransparents(gs->world, &pfp);
+	// 	
+		// draw frontfaces
+		glCullFace(GL_BACK);
+		World_drawTransparents(gs->world, &pfp);
+		
+		World_postTransparents(gs->world);
 	
- 	query_queue_start(&gs->queries.effects);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glDepthMask(GL_FALSE); // turn depth writes off
 	
-	World_preTransparents(gs->world, &pfp);
-	
-	// draw backfaces
-	glCullFace(GL_FRONT);
-	World_drawTransparents(gs->world, &pfp);
-// 	
-	// draw frontfaces
-	glCullFace(GL_BACK);
-	World_drawTransparents(gs->world, &pfp);
-	
-	World_postTransparents(gs->world);
-	
-	
-	// emitters
-// 	query_queue_start(&gs->queries.emitters);
-	RenderPass_preFrameAll(gs->world->emitterPass, &pfp);
-	RenderPass_renderAll(NULL, gs->world->emitterPass, pfp.dp);
-	RenderPass_postFrameAll(gs->world->emitterPass);
-// 	query_queue_stop(&gs->queries.emitters);
+		// emitters
+	// 	query_queue_start(&gs->queries.emitters);
+		RenderPass_preFrameAll(gs->world->emitterPass, &pfp);
+		RenderPass_renderAll(NULL, gs->world->emitterPass, pfp.dp);
+		RenderPass_postFrameAll(gs->world->emitterPass);
+	// 	query_queue_stop(&gs->queries.emitters);
 
 
-	glDepthMask(GL_TRUE); // turn depth writes back on
-	glDisable(GL_BLEND);
-	query_queue_stop(&gs->queries.effects);
-	
+		glDepthMask(GL_TRUE); // turn depth writes back on
+		glDisable(GL_BLEND);
+		query_queue_stop(&gs->queries.effects);
+	}
 	
 	//renderFrame(xs, gs, is, &pfp);
 	//query_queue_stop(&gs->queries.draw);
@@ -528,32 +533,33 @@ void drawFrame(XStuff* xs, GameState* gs, InputState* is) {
 	// keep depth writes off for lighting
 	
 	// lighting
-	// hacky code to adapt an isolated render pass outside a pipeline
-	//glFrontFace(GL_CCW);
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_FRONT);
-	//glDisable(GL_DEPTH_TEST);
-	glDepthFunc(GL_GREATER);
-	
-	
-	query_queue_start(&gs->queries.lighting);
-	glDepthMask(GL_FALSE); // no depth writes for light volumes
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_ONE, GL_ONE);
-	glBlendEquationSeparate(GL_FUNC_ADD, GL_MAX);
-	
-	glBindFramebuffer(GL_FRAMEBUFFER, gs->lightingbuf.fb);
-	//glBindFramebuffer(GL_FRAMEBUFFER, gs->gbuf.fb);
-	
-	gs->world->lm->dtex = gs->depthTexBuffer;
-	RenderPass_preFrameAll(gs->world->lightingPass, &pfp);
-	RenderPass_renderAll(NULL, gs->world->lightingPass, &pdp);
-	RenderPass_postFrameAll(gs->world->lightingPass);
-	
-	glDisable(GL_BLEND);
-	glDepthMask(GL_TRUE);
-	query_queue_stop(&gs->queries.lighting);
-	
+	if(gs->enableDraw.lighting) {
+		// hacky code to adapt an isolated render pass outside a pipeline
+		//glFrontFace(GL_CCW);
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_FRONT);
+		//glDisable(GL_DEPTH_TEST);
+		glDepthFunc(GL_GREATER);
+		
+		
+		query_queue_start(&gs->queries.lighting);
+		glDepthMask(GL_FALSE); // no depth writes for light volumes
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_ONE, GL_ONE);
+		glBlendEquationSeparate(GL_FUNC_ADD, GL_MAX);
+		
+		glBindFramebuffer(GL_FRAMEBUFFER, gs->lightingbuf.fb);
+		//glBindFramebuffer(GL_FRAMEBUFFER, gs->gbuf.fb);
+		
+		gs->world->lm->dtex = gs->depthTexBuffer;
+		RenderPass_preFrameAll(gs->world->lightingPass, &pfp);
+		RenderPass_renderAll(NULL, gs->world->lightingPass, &pdp);
+		RenderPass_postFrameAll(gs->world->lightingPass);
+		
+		glDisable(GL_BLEND);
+		glDepthMask(GL_TRUE);
+		query_queue_stop(&gs->queries.lighting);
+	}
 	//glDisable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	

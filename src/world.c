@@ -174,6 +174,8 @@ void World_init(World* w) {
 				.z = 0,
 			};
 			
+			/*break*/;
+			
 			float f = fabs(PerlinNoise_2D((0 + x) / 512.0, (0 + y) / 512.0, .2, 6));
 			
 // 			if(nn > 4) goto DONE;
@@ -183,12 +185,13 @@ void World_init(World* w) {
 			if(f / frandNorm() < 1.8) continue;
 			
 			World_spawnAt_Item(w, "tree", &v);
+// 			World_spawnAt_Item(w, "gazebbq", &v);
 			nn++;
 			
 		}
 	}
 	
-		
+	
 	
 	
  	CustomDecal* cd;
@@ -255,7 +258,7 @@ void World_initGL(World* w) {
 	
 	
 	
-	
+	printf("dmm initgl\n");
 	dynamicMeshManager_initGL(w->dmm, &w->gs->globalSettings);
 	DecalManager_initGL(w->dm, &w->gs->globalSettings);
 	CustomDecalManager_initGL(w->cdm, &w->gs->globalSettings);
@@ -561,7 +564,7 @@ int World_spawnAt_DynamicMesh(World* w, int dmIndex, Vector* location) {
 		.distTravelled = frand(0, 10000),
 		.speed = frand(5, 100)
 	};
-//	CES_addComponentName(&w->gs->ces, "pathFollow", eid, &pf);
+	CES_addComponentName(&w->gs->ces, "pathFollow", eid, &pf);
 	
 	return eid;
 }
@@ -764,7 +767,6 @@ void World_drawTerrain(World* w, PassFrameParams* pfp) {
 
 void World_drawSolids(World* w, PassFrameParams* pfp) {
 	//meshManager_draw(w->smm, view, proj);
-	
 	RenderPass_preFrameAll(w->solidsPass, pfp);
 	RenderPass_renderAll(NULL, w->solidsPass, pfp->dp);
 	RenderPass_postFrameAll(w->solidsPass);

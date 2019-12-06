@@ -8,7 +8,7 @@
 	mouseZoomSensitivity: 0.500,
 	
 	
-	DynamicMeshManager_maxInstances: 8192,
+	DynamicMeshManager_maxInstances: 16384,
 	DecalManager_maxInstances: 8192,
 	CustomDecalManager_maxInstances: 8192,
 	MarkerManager_maxInstances: 8192, 

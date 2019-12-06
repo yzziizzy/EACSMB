@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <math.h>
+#include <assert.h>
 
 #include "common_gl.h"
 #include "common_math.h"
@@ -39,19 +40,6 @@ static void instanceSetup(DynamicMeshManager* dmm, DynamicMeshInstShader* vmem, 
 
 
 
-// VAO
-VAOConfig vao_opts[] = {
-	// per vertex
-	{0, 3, GL_FLOAT, 0, GL_FALSE}, // position
-	{0, 3, GL_FLOAT, 0, GL_FALSE}, // normal
-	{0, 2, GL_UNSIGNED_SHORT, 0, GL_TRUE}, // tex
-	
-	// per instance 
-	{1, 1, GL_MATRIX_EXT, 1, GL_FALSE}, // model-world matrix
-	{1, 4, GL_UNSIGNED_SHORT, 1, GL_FALSE}, // texture indices: diffuse, normal, metallic, roughness
-	
-	{0, 0, 0}
-};
 
 
 
@@ -127,7 +115,7 @@ DynamicMesh* DynamicMesh_FromGLTF(gltf_file* gf, int meshIndex) {
 		free(texcoords);
 	}
 	
-	MemPoolT_init(&m->instances, sizeof(DynamicMeshInstance), 8192);
+	MemPoolT_init(&m->instances, sizeof(DynamicMeshInstance), 8192*8);
 	
 }
 
@@ -170,7 +158,7 @@ DynamicMesh* DynamicMeshFromOBJ(OBJContents* obj) {
 	
 	m->curFrameIndex = 0;
 	// HACK: hardcoded limit
-	MemPoolT_init(&m->instances, sizeof(DynamicMeshInstance), 8192);
+	MemPoolT_init(&m->instances, sizeof(DynamicMeshInstance), 8192 * 8);
 	
 	VEC_INIT(&m->instMatrices);
 	
@@ -198,8 +186,30 @@ void dynamicMeshManager_init(DynamicMeshManager* dmm, GlobalSettings* gs) {
 	VEC_INIT(&dmm->meshes);
 	HT_init(&dmm->lookup, 6);
 	
-	dmm->maxInstances = gs->DynamicMeshManager_maxInstances;
+	// VAO
+	static VAOConfig vao_opts[] = {
+		// per vertex
+		{0, 3, GL_FLOAT, 0, GL_FALSE}, // position
+		{0, 3, GL_FLOAT, 0, GL_FALSE}, // normal
+		{0, 2, GL_UNSIGNED_SHORT, 0, GL_TRUE}, // tex
+		
+		// per instance 
+		{1, 1, GL_MATRIX_EXT, 1, GL_FALSE}, // model-world matrix
+		
+		/*
+		{1, 4, GL_FLOAT, 1, GL_FALSE}, // position
+		{1, 4, GL_FLOAT, 1, GL_FALSE}, // position
+		{1, 4, GL_FLOAT, 1, GL_FALSE}, // position
+		{1, 4, GL_FLOAT, 1, GL_FALSE}, // position
+		*/ 
+		{1, 4, GL_UNSIGNED_SHORT, 1, GL_FALSE}, // texture indices: diffuse, normal, metallic, roughness
+		
+		{0, 0, 0}
+	};
+
 	
+	dmm->maxInstances = gs->DynamicMeshManager_maxInstances;
+	printf("-->max: %d\n", dmm->maxInstances);
 	dmm->mdi = MultiDrawIndirect_alloc(vao_opts, dmm->maxInstances, "dynamicMeshManager");
 	dmm->mdi->isIndexed = 1;
 	dmm->mdi->indexSize = 2;
@@ -225,6 +235,8 @@ DynamicMeshInstance* dynamicMeshManager_addInstance(DynamicMeshManager* mm, int 
 	}
 	
 	mm->totalInstances++;
+	
+	assert(mm->totalInstances <= mm->maxInstances); 
 	
 	//printf("adding instance: %d ", meshIndex);
 	msh = VEC_DATA(&mm->meshes)[meshIndex];
@@ -310,6 +322,7 @@ static void instanceSetup(DynamicMeshManager* dmm, DynamicMeshInstShader* vmem, 
 		dm->matBufOffset = off;
 		
 		off += dm->instances.fill;
+// 		printf("[%d], fill: %d, off: %d \n", j, dm->instances.fill, off);
 	}
 	
 	/*
@@ -384,13 +397,17 @@ static void instanceSetup(DynamicMeshManager* dmm, DynamicMeshInstShader* vmem, 
 		// TODO make instances switch per frame
 		for(i = 0; i < di[mesh_index]->numToDraw; i++) {
 // 			DynamicMeshInstance* dmi = &VEC_ITEM(&dm->instances, i);
-		
+// 			printf("vmem %p\n", vmem);
+			
+			
 			vmem->m = dmm->matBuf[dm->matBufOffset + i];
 			vmem->diffuseIndex = dm->texIndex;
 			vmem->normalIndex = 0;
 			
 			vmem++;
 		}
+		
+// 		printf("[%d], numtodraw: %d\n", mesh_index, di[mesh_index]->numToDraw);
 	}
 
 	/* 

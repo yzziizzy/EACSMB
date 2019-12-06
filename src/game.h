@@ -159,7 +159,16 @@ typedef struct GameState {
 		
 	} queries;
 
-	
+	struct {
+		int leaves: 1; 
+		int decals : 1; 
+		int solids : 1; 
+		int effects : 1; 
+		int emitters : 1; 
+		int terrain : 1; 
+		int lighting : 1; 
+		int shadows : 1; 
+	} enableDraw;
 	
 	// temp stuff with no better place atm
 	int activeTool;

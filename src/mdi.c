@@ -38,6 +38,8 @@ void MultiDrawIndirect_init(MultiDrawIndirect* mdi, VAOConfig* vaoConfig, int ma
 	mdi->maxInstances = maxInstances;
 	mdi->vaoConfig = vaoConfig;
 	
+	printf("Max instances [%s]: %d\n", label, maxInstances);
+	
 	char* instLabelAdd = ", mdi instVB"; 
 	char* instLabel = calloc(1, strlen(mdi->label) + strlen(instLabelAdd) + 1);
 	strcat(instLabel, mdi->label);
@@ -66,7 +68,7 @@ void MultiDrawIndirect_initGL(MultiDrawIndirect* mdi) {
 	
 	PCBuffer_startInit(
 		&mdi->indirectCmds, 
-		16 * sizeof(DrawElementsIndirectCommand), // carefull here
+		64 * sizeof(DrawElementsIndirectCommand), // carefull here
 		GL_DRAW_INDIRECT_BUFFER
 	);
 	PCBuffer_finishInit(&mdi->indirectCmds);
