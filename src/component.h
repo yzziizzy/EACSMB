@@ -6,6 +6,7 @@
 #include "ds.h"
 #include "hash.h"
 
+#include "mempool.h"
 #include "btree.h"
 
 #include "c_json/json.h"
@@ -42,10 +43,10 @@ typedef struct ComponentManager {
 	
 	
 	// b+ tree-based version
-	
 	BPlusTree bptree;
 	
-	
+	// flat mempool version
+	MemPoolT mpool;
 	
 	// TODO: queue for adding mid-frame
 	

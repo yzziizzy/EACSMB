@@ -116,6 +116,7 @@ AM_CFLAGS = "-I/usr/include/freetype2" -std=gnu11 -g -DLINUX \
 	-include "../config.h" \
 	-include "./global_include.h" \
 	-pthread \
+	-Wall \
 	-Wno-unused-result \
 	-Werror-implicit-function-declaration \
 	-Wno-discarded-qualifiers

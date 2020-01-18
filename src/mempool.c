@@ -127,8 +127,8 @@ void MemPoolT_init(MemPoolT* mp, size_t itemSize, size_t maxItems) {
 
 
 static inline void mpt_check_bitfield(MemPoolT* mp) {
-	printf("bf alloc: %ld\n", mp->bitfieldAlloc);
 	if((mp->fill / 64) + ((mp->fill % 64) > 0) >= mp->bitfieldAlloc) {
+		printf("bf alloc: %ld\n", mp->bitfieldAlloc);
 		mp->bitfieldAlloc = mp->bitfieldAlloc < 8 ? 8 : mp->bitfieldAlloc * 2;
 		mp->bitfield = realloc(mp->bitfield, sizeof(*mp->bitfield) * mp->bitfieldAlloc);
 	}

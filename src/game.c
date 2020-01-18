@@ -129,9 +129,9 @@ void initGame(XStuff* xs, GameState* gs) {
 	gs->enableDraw.effects = 1;
 	gs->enableDraw.emitters = 1;
 	gs->enableDraw.terrain = 1;
-	gs->enableDraw.lighting = 0;
+	gs->enableDraw.lighting = 1;
 	gs->enableDraw.leaves = 1;
-	gs->enableDraw.shadows = 0;
+	gs->enableDraw.shadows = 1;
 	
 // 	TextureAtlas* ta = TextureAtlas_alloc();
 // 	ta->width = 256;
@@ -189,7 +189,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	
 	for(int i = 0; defaultComponents[i].name != NULL; i++) {
 		CES_addComponentManager(&gs->ces, 
-			ComponentManager_alloc(defaultComponents[i].name, defaultComponents[i].size, 1024*8, 1)
+			ComponentManager_alloc(defaultComponents[i].name, defaultComponents[i].size, 1024*8, 0)
 		);
 	}
 	
@@ -247,7 +247,7 @@ void initGame(XStuff* xs, GameState* gs) {
 	gs->settings.mouseScroll = scrollFactor * fclampNorm(gs->globalSettings.mouseScrollSensitivity);
 	gs->settings.mouseZoom = 4 * zoomFactor * fclampNorm(gs->globalSettings.mouseZoomSensitivity);
 	
-	gs->show_debugWireframe = 0;
+	gs->show_debugWireframe = 1;
 	
 	gs->hasMoved = 1;
 	gs->frameCount = 0;
@@ -698,6 +698,7 @@ static int main_drag_handler(InputEvent* ev, GameState* gs) {
 }
 
 static int main_key_handler(InputEvent* ev, GameState* gs) {
+	if(ev->type != EVENT_KEYUP) return;
 	
 	if(ev->character == 'c') {
 		exit(0);

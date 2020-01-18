@@ -132,7 +132,9 @@ int ComponentManager_init(ComponentManager* cm, char* name, size_t compSize, int
 		
 		bpt_init(&cm->bptree, N, L); // these numbers should be more like 32, 4096
 	}
-	
+	else if(backend == 2) { // MemPoolT
+		
+	}
 	
 	cm->name = strdup(name);
 	// TODO: look up name to get ID
