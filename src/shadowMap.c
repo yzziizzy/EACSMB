@@ -106,12 +106,22 @@ void ShadowMap_Render(ShadowMap* sm, PassFrameParams* cameraPFP, Vector* lightPo
 	mPrint(cameraPFP->dp->mViewWorld, stdout);
 	mPrint(cameraPFP->dp->mProjWorld, stdout);
 	*/
-	debugWF_ProjMatrix(cameraPFP->dp->mWorldProj);
+// 	debugWF_ProjMatrix(cameraPFP->dp->mWorldProj);
 	
 	Frustum fr;
 	Sphere sp;
 	
-	frustumFromMatrix(cameraPFP->dp->mWorldProj, &fr);
+	Matrix wproj = *cameraPFP->dp->mViewProj;
+	Matrix wview = *cameraPFP->dp->mWorldView;
+	
+	// TODO: dynamically adjust shadow depth based on closest objects in frame
+	mPerspSetNF(&wproj, 30, 250);
+	Matrix wc;
+	mFastMul(&wview, &wproj, &wc);
+	debugWF_ProjMatrix(&wc);
+
+	
+	frustumFromMatrix(&wc, &fr);
 	frustumBoundingSphere(&fr, &sp);
 // 	printf("%f,%f,%f,  %f\n", sp.center.x,sp.center.y,sp.center.z, sp.r);
 	

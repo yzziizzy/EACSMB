@@ -998,6 +998,8 @@ void updateView(XStuff* xs, GameState* gs, InputState* is) {
 	msPush(&gs->proj);
 	msPerspective(60, gs->screen.aspect, gs->nearClipPlane, gs->farClipPlane, &gs->proj);
 	
+// 	mPerspExtractNF(msGetTop(&gs->proj), NULL, NULL);
+// 	printf("near: %f, far: %f\n--------------\n", gs->nearClipPlane, gs->farClipPlane);
 	
 	msPush(&gs->view);
 	

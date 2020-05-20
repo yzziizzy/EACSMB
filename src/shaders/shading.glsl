@@ -160,7 +160,7 @@ void main() {
 		
 		shadow_factor = smoothstep(0.0, 1.0, shadow_factor / ((sz + sz + 1)*(sz + sz + 1)));
 		
-		if(l_pos.x > 1 || l_pos.y > 1 || l_pos.x < 0 || l_pos.y < 0) {
+		if(l_pos.z > 1 || l_pos.x > 1 || l_pos.y > 1 || l_pos.x < 0 || l_pos.y < 0) {
 			shadow_factor = 0;
 		}
 		
